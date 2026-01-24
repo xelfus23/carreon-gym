@@ -1,53 +1,83 @@
-# NODE MODULES
+# =========================
+# GLOBAL
+# =========================
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-admin/node_modules/
-client/node_modules/
-server/node_modules/
+.env
+.env.*
+!.env.example
 
-# ENV FILES
-admin/.env/
-client/.env/
-server/.env/
+.DS_Store
+*.log
 
-
-# CLIENT
+# =========================
+# CLIENT (Expo / React Native)
+# =========================
 
 # Expo
 client/.expo/
+client/.expo-shared/
 client/dist/
 client/web-build/
 client/expo-env.d.ts
 
-# Native
-client/.kotlin/
-client/*.orig.*
+# Metro
+client/.metro-health-check*
+
+# Native (Expo Managed ONLY)
+client/ios/
+client/android/
+
+# Android
+client/*.keystore
 client/*.jks
 client/*.p8
 client/*.p12
 client/*.key
 client/*.mobileprovision
 
-# Metro
-client/.metro-health-check*
-
-# debug
+# Debug
 client/npm-debug.*
 client/yarn-debug.*
 client/yarn-error.*
 
-# macOS
-client/.DS_Store
-client/*.pem
-
-# local env files
-client/.env*.local
-
-# typescript
+# TypeScript
 client/*.tsbuildinfo
 
-client/app-example
+# Examples / temp
+client/app-example/
 
-# generated native folders
-client/ios
-client/android
+# =========================
+# SERVER
+# =========================
+server/node_modules/
+server/dist/
+server/.env
+server/.env.*
+
+# =========================
+# ADMIN (Web)
+# =========================
+admin/node_modules/
+admin/dist
+admin/dist-ssr
+admin/*.local
+
+# Logs
+admin/logs
+admin/*.log
+
+# Editor
+admin/.vscode/
+admin/.idea
+admin/.DS_Store
+admin/*.suo
+admin/*.ntvs*
+admin/*.njsproj
+admin/*.sln
+admin/*.sw?
