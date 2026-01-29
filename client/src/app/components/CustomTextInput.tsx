@@ -1,5 +1,5 @@
-import { COLORS } from "@/consts/colors";
-import { Pressable, TextInput, Touchable, View } from "react-native";
+import { COLORS } from "@/src/consts/colors";
+import { KeyboardTypeOptions, Pressable, TextInput, View } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
 
 interface TextInputProps {
@@ -10,6 +10,12 @@ interface TextInputProps {
     value?: string;
     onChangeText?: (text: string) => void;
 }
+
+const KeyboardTypes: Record<string, string> = {
+    username: "default",
+    email: "email-address",
+    password: "default",
+};
 
 export default function CustomTextInput({
     placeholder,
@@ -23,10 +29,14 @@ export default function CustomTextInput({
         <View className="flex flex-row">
             <TextInput
                 placeholder={placeholder}
-                placeholderTextColor={COLORS.gray300}
-                className={`${className} bg-gray-900 rounded-xl px-4 py-4 text-xl text-gray-200 flex-1`}
+                placeholderTextColor={COLORS.textSecondary}
+                className={`${className} bg-surface font-inter rounded-xl px-4 py-4 text-xl text-text-primary flex-1`}
                 secureTextEntry={secureTextEntry}
                 value={value}
+                autoCorrect={false}
+                spellCheck={false}
+                autoCapitalize="none"
+                keyboardType={KeyboardTypes[placeholder] as KeyboardTypeOptions}
                 onChangeText={onChangeText}
             />
             {placeholder === "Password" && (
@@ -39,9 +49,9 @@ export default function CustomTextInput({
                         className="px-4"
                     >
                         {secureTextEntry ? (
-                            <Eye size={30} color={COLORS.gray200} />
+                            <Eye size={30} color={COLORS.textPrimary} />
                         ) : (
-                            <EyeOff size={30} color={COLORS.gray200} />
+                            <EyeOff size={30} color={COLORS.textPrimary} />
                         )}
                     </Pressable>
                 </View>

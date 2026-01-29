@@ -1,10 +1,10 @@
 import { View, Text } from "react-native";
 import React from "react";
 
-export default function ProtectedRouteLayout() {
+export default function Plans() {
     return (
-        <View>
-            <Text>_Layout</Text>
+        <View className="flex-1 bg-background">
+            
         </View>
     );
 }
