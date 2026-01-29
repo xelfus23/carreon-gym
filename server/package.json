@@ -2,9 +2,9 @@
     "name": "server",
     "version": "1.0.0",
     "description": "",
-    "main": "src/index.ts",
+    "main": "./src/index.ts",
     "scripts": {
-        "dev": "nodemon src/index.ts"
+        "dev": "nodemon ./src/index.ts"
     },
     "type": "module",
     "keywords": [],

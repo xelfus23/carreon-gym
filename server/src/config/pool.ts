@@ -8,6 +8,10 @@ const pool = new Pool({
     host: "localhost",
     port: 5432,
     database: "careon_db",
+    // connectionString: process.env.DATABASE_URL,
+    // ssl: {
+    //     rejectUnauthorized: false,
+    // },
 });
 
 export default pool;

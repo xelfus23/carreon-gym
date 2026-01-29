@@ -33,7 +33,7 @@ export default function Login() {
                 <View className="container max-w-sm gap-4">
                     <View className="flex-row gap-4 pb-4 border-border border-b items-center">
                         <TouchableOpacity
-                            onPress={() => router.back()}
+                            onPress={() => router.navigate('/')}
                             className="bg-border flex aspect-square items-center justify-center rounded-xl"
                         >
                             <ChevronLeft

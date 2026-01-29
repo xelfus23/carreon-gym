@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import pool from "../../config/db.ts";
+import pool from "../../config/pool.ts";
 import bcrypt from "bcrypt";
 
 const createUser = async (req: Request, res: Response) => {
