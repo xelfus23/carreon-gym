@@ -18,7 +18,12 @@ export const chatService = {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: text, userId }),
             });
-            return await response.json();
+
+            const data = await response.json()
+
+            console.log(data)
+
+            return data;
         } catch (error) {
             console.error("Error sending message:", error);
             throw error;

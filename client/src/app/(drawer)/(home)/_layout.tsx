@@ -17,7 +17,6 @@ export default function ProtectedRouteLayout() {
                 ),
                 tabBarStyle: {
                     borderTopWidth: 0,
-                    height: 70,
                     paddingTop: 2,
                 },
                 tabBarLabel: ({ children }) => (

@@ -3,7 +3,7 @@ import React from "react";
 
 interface ChatBubbleProps {
     text: string;
-    role: "user" | "model";
+    role: "user" | "assistant";
     index: number;
 }
 
