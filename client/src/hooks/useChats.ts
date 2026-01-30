@@ -33,7 +33,7 @@ export function useChat(userId: string) {
             setMessages((prev) => [...prev, userMessage]);
             setMessages((prev) => [
                 ...prev,
-                { role: "assistant", content: "...", timestamp: Date.now() },
+                { role: "assistant", content: "", timestamp: Date.now() },
             ]);
 
             try {
