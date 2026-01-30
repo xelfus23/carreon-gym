@@ -13,16 +13,14 @@ export const chatService = {
 
     sendMessage: async (text: string, userId: string) => {
         try {
-            const response = await fetch(`${API_URL}/ai/chat`, {
+            const response = await fetch(`${API_URL}/chats/messages`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: text, userId }),
             });
 
-            const data = await response.json()
-
-            console.log(data)
-
+            const data = await response.json();
+            
             return data;
         } catch (error) {
             console.error("Error sending message:", error);

@@ -13,6 +13,8 @@ import { COLORS } from "@/src/consts/colors";
 import { useHeaderHeight } from "@react-navigation/elements";
 import ScreenWrapper from "../../components/ScreenWrapper";
 import { useChat } from "@/src/hooks/useChats";
+import Loader from "../../components/Loader";
+import Markdown from "react-native-markdown-display";
 
 type MessageTypes = {
     text: string;
@@ -34,7 +36,7 @@ type MessageTypes = {
 // ];
 
 export default function Chats() {
-    const { messages, sendMessage } = useChat("1");
+    const { messages, sendMessage, loading } = useChat("1");
     const [text, setText] = useState("");
     const headerHeight = useHeaderHeight();
     const scrollRef = useRef<FlatList<MessageTypes>>(null);
@@ -42,9 +44,12 @@ export default function Chats() {
     const handleSend = async () => {
         if (!text.trim()) return;
 
+        const prompt = text;
+
+        setText("");
+
         try {
-            await sendMessage(text);
-            setText("");
+            await sendMessage(prompt);
         } catch (err) {
             if (err instanceof Error) {
                 console.error(err.message);
@@ -95,16 +100,25 @@ export default function Chats() {
                                     }`}
                                 >
                                     <View className="bg-surface px-4 py-2 rounded-xl max-w-[80%]">
-                                        <Text className="text-gray-300">
-                                            {item.text}
-                                        </Text>
+                                        <Markdown
+                                            style={{
+                                                body: {
+                                                    color: COLORS.textSecondary,
+                                                },
+                                                heading: {
+                                                    color: COLORS.textPrimary,
+                                                },
+                                            }}
+                                        >
+                                            {item.content}
+                                        </Markdown>
                                     </View>
                                 </View>
                             )}
                         />
 
                         {/* Input */}
-                        <View className="flex-row gap-2 py-2 items-center">
+                        <View className="flex-row gap-2 p-4 items-center">
                             <TextInput
                                 value={text}
                                 onChangeText={setText}
@@ -117,9 +131,14 @@ export default function Chats() {
 
                             <TouchableOpacity
                                 onPress={handleSend}
-                                className="p-3 bg-primary-dark rounded-full items-center justify-center"
+                                disabled={loading}
+                                className={`p-3 ${loading ? "bg-surface" : "bg-primary-dark"} rounded-full items-center justify-center`}
                             >
-                                <Send color="white" size={20} />
+                                {loading ? (
+                                    <Loader />
+                                ) : (
+                                    <Send color="white" size={24} />
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>

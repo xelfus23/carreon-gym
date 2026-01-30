@@ -6,35 +6,41 @@ export function useChat(userId: string) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchHistory = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const data = await chatService.getHistory(userId);
-            setMessages(data);
-        } catch (err: any) {
-            setError(err.message || "Failed to fetch chat history");
-        } finally {
-            setLoading(false);
-        }
-    }, [userId]);
+    // const fetchHistory = useCallback(async () => {
+    //     setLoading(true);
+    //     setError(null);
+    //     try {
+    //         const data = await chatService.getHistory(userId);
+    //         setMessages(data);
+    //     } catch (err: any) {
+    //         setError(err.message || "Failed to fetch chat history");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }, [userId]);
 
     const sendMessage = useCallback(
         async (text: string) => {
+            setLoading(true);
+
             try {
                 const userMessage = {
                     role: "user",
-                    text: text,
+                    content: text,
                     timestamp: Date.now(),
                 };
-                
+
                 setMessages((prev) => [...prev, userMessage]);
 
-                const newMessage = await chatService.sendMessage(text, userId);
+                const response = await chatService.sendMessage(text, userId);
 
-                setMessages((prev) => [...prev, newMessage.message]);
+                if (response.success) {
+                    setMessages((prev) => [...prev, response.message]);
+                    setLoading(false);
+                }
             } catch (err: any) {
                 setError(err.message || "Failed to send message");
+                setLoading(false);
             }
         },
         [userId],
@@ -49,9 +55,9 @@ export function useChat(userId: string) {
         }
     }, []);
 
-    useEffect(() => {
-        fetchHistory();
-    }, [fetchHistory]);
+    // useEffect(() => {
+    //     fetchHistory();
+    // }, [fetchHistory]);
 
     return {
         messages,
@@ -59,6 +65,6 @@ export function useChat(userId: string) {
         error,
         sendMessage,
         deleteMessage,
-        refresh: fetchHistory,
+        // refresh: fetchHistory,
     };
 }
