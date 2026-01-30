@@ -1,11 +1,14 @@
-const API_URL = "http://192.168.1.150:6000/api";
-
 let ws: WebSocket | null = null;
+
+const WS_URL = process.env.EXPO_PUBLIC_WS_URL;
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+console.log(WS_URL, API_URL);
 
 export const chatService = {
     getHistory: async (userId: string) => {
         try {
-            const response = await fetch(`${API_URL}/chats/${userId}`);
+            const response = await fetch(`${API_URL}/api/chats/${userId}`);
             return await response.json();
         } catch (error) {
             console.error("Error fetching history:", error);
@@ -21,7 +24,7 @@ export const chatService = {
         return new Promise((resolve, reject) => {
             // Replace with your local IP if testing on device (e.g., 192.168.1.5:3000)
             // Do not use 'localhost' if running on a physical phone
-            const socketUrl = `ws://192.168.1.150:3000`;
+            const socketUrl = `ws://${WS_URL}`;
 
             ws = new WebSocket(socketUrl);
 
@@ -61,6 +64,8 @@ export const chatService = {
     },
 
     deleteMessage: async (messageId: string) => {
-        await fetch(`${API_URL}/chat/${messageId}`, { method: "DELETE" });
+        await fetch(`${API_URL}/chat/${messageId}`, {
+            method: "DELETE",
+        });
     },
 };

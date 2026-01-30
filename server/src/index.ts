@@ -5,7 +5,6 @@ import userRouter from "./routes/user.route.ts";
 import authRouter from "./routes/auth.route.ts";
 import chatRouter from "./routes/chat.routes.ts";
 import equipmentRouter from "./routes/equipment.route.ts";
-import http from "http";
 import { setupWebSocket } from "./services/websocketHandler.ts";
 
 dotenv.config();
@@ -14,6 +13,7 @@ const app = express();
 app.use(express.json());
 
 const server = app.listen(3000);
+
 setupWebSocket(server);
 
 app.use(
