@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { COLORS } from "@/src/consts/colors";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
-import Animations from "@/src/lib/animations";
 
 export default function ThinkingBlock({
     thought,
