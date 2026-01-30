@@ -17,14 +17,9 @@ import {
     ChevronDown,
     ChevronUp,
     ArrowDown,
-    Pen,
-    Trash,
-    Redo,
-    LucideArrowDownRightFromCircle,
     RotateCw,
     ThumbsUp,
     ThumbsDown,
-    Copy,
     CopyIcon,
 } from "lucide-react-native"; // Added icons
 import { COLORS } from "@/src/consts/colors";
