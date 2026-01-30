@@ -1,6 +1,3 @@
-Sure! Based on your project structure and description, here’s a well-organized, group-friendly `README.md` for your **Careon Gym** project:
-
-```markdown
 # Careon Gym Mobile Application & Admin Dashboard
 
 Welcome to **Careon Gym**, a full-stack project consisting of a mobile application and an admin dashboard for managing gym activities, users, and chat interactions. This project is part of our capstone project.
