@@ -1,165 +1,166 @@
-# [Project Name] - Careon Gym Mobile Application / Admin Dashboard
+Sure! Based on your project structure and description, here’s a well-organized, group-friendly `README.md` for your **Careon Gym** project:
 
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)
-![React Native](https://img.shields.io/badge/React_Native-20232A?logo=react&logoColor=61DAFB)
-![Expo](https://img.shields.io/badge/Expo-000020?logo=expo&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-339933?logo=nodedotjs&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
+```markdown
+# Careon Gym Mobile Application & Admin Dashboard
 
-A full-stack monorepo application featuring a cross-platform mobile app, a web administration dashboard, and a robust backend API integrated with local LLMs (LM Studio).
-
-## 📂 Project Structure
-
-The project is organized into three main directories:
-
-*   **`client/`**: A mobile application built with **Expo**, **React Native**, and **NativeWind** (Tailwind CSS). It features file-based routing via **Expo Router** and real-time chat capabilities.
-*   **`admin/`**: A web-based dashboard built with **Vite** and **React** for managing users, equipment, and system settings.
-*   **`server/`**: A **Node.js** backend API connecting the client and admin panels. It handles authentication, data management (PostgreSQL), and streams AI responses from **LM Studio** via WebSockets.
+Welcome to **Careon Gym**, a full-stack project consisting of a mobile application and an admin dashboard for managing gym activities, users, and chat interactions. This project is part of our capstone project.
 
 ---
 
-## 🚀 Key Features
+## Table of Contents
 
-### 📱 Mobile Client
-*   **AI Chat Interface:** Real-time chat with a streaming "Thinking" UI block.
-*   **Navigation:** Drawer-based navigation with `(home)` and `(settings)` groups.
-*   **Authentication:** Login and Registration flows.
-*   **UI/UX:** Styled with NativeWind (Tailwind) and custom animations.
-*   **Screens:** Dashboard, Plans, Chat, Settings, Notification, Help.
-
-### 💻 Admin Dashboard
-*   **Management:** CRUD operations for Equipment and Users.
-*   **Performance:** Fast builds and HMR using Vite.
-
-### 🖥️ Backend Server
-*   **AI Integration:** Streams responses from a local LM Studio instance (`streamFromLMStudio.ts`).
-*   **Database:** PostgreSQL integration for persisting users, chats, and equipment.
-*   **Real-time:** WebSocket handling for instant messaging.
-*   **Security:** JWT-based authentication (Login/Logout).
+- [Project Overview](#project-overview)  
+- [Tech Stack](#tech-stack)  
+- [Project Structure](#project-structure)  
+- [Setup & Installation](#setup--installation)  
+- [Usage](#usage)  
+- [Future Improvements](#future-improvements)  
+- [Team](#team)
 
 ---
 
-## 🛠️ Tech Stack
+## Project Overview
 
-| Component | Technologies |
-| :--- | :--- |
-| **Mobile** | Expo, React Native, TypeScript, NativeWind, Expo Router |
-| **Web** | React, Vite, TypeScript, CSS Modules |
-| **Backend** | Node.js, Express (implied), WebSocket (ws), PostgreSQL |
-| **AI** | LM Studio (Local LLM Inference) |
+Careon Gym provides:
 
----
-
-## ⚙️ Prerequisites
-
-Before starting, ensure you have the following installed:
-
-1.  **Node.js** (v18+ recommended)
-2.  **PostgreSQL** (Running locally or in the cloud)
-3.  **LM Studio** (For AI Chat functionality)
-    *   *Note: Ensure LM Studio is running a local server, usually on port 1234.*
+- **Mobile App**: For gym members to view dashboards, manage plans, chat with support, and adjust settings.  
+- **Admin Dashboard**: For gym staff to manage users, equipment, and monitor activities.  
+- **Chat Feature**: Uses a local LLM (LM Studio) for demo purposes, with plans to migrate to Gemini API (e.g., `gemini-2.0-flash`) in the future.  
 
 ---
 
-## 📦 Installation & Setup
+## Tech Stack
 
-### 1. Backend Server
+| Layer | Technology |
+|-------|------------|
+| Frontend (Mobile) | React Native (Expo), TypeScript, TailwindCSS |
+| Frontend (Admin) | React, Vite, TypeScript, TailwindCSS |
+| Backend | Node.js, Express, TypeScript |
+| Database | SQL (configured in `server/src/database/database.sql`) |
+| AI / Chat | LM Studio (demo), future: Gemini API |
+| Tools | ESLint, Babel, Metro, NativeWind |
+
+---
+
+## Project Structure
+
+```
+
+Careon-Gym/
+├── admin/          # Admin dashboard
+├── client/         # Mobile app
+├── server/         # Backend server
+├── package.json    # Root dependencies
+└── README.md       # This file
+
+````
+
+### Highlights:
+
+- **Admin (`admin/`)**:  
+  Contains Vite + React app with assets, environment configs, and TypeScript setup.
+
+- **Client (`client/`)**:  
+  React Native app (Expo) with organized directories:
+  - `app/`: Screens & layouts
+  - `components/`: Reusable components like `ChatBubble`, `CustomDrawer`, `Loader`
+  - `context/` & `hooks/`: State management and custom hooks
+  - `services/`: API integrations (chat, user, etc.)
+  - `assets/`: Images & UI resources
+  - `consts/`: Colors & constants
+  - `utils/`: Helper functions
+
+- **Server (`server/`)**:  
+  Node.js + Express backend with:
+  - `controller/`: Handles requests for auth, chat, users, and equipment
+  - `routes/`: API route definitions
+  - `services/`: Business logic like chat streaming
+  - `database/`: SQL schema
+  - `middleware/` & `models/`: Backend utilities & ORM (if any)
+
+---
+
+## Setup & Installation
+
+> **Note**: This setup is for local development and testing. We use LM Studio as the chat backend for now.
+
+### Prerequisites
+
+- Node.js >= 18  
+- Expo CLI (`npm install -g expo-cli`)  
+- SQL server (for backend database)  
+
+### Steps
+
+1. **Clone the repository**
+```bash
+git clone <repository-url>
+cd careon-gym
+````
+
+2. **Install dependencies**
 
 ```bash
+# Root (optional)
+npm install
+
+# Server
 cd server
 npm install
-```
 
-**Database Setup:**
-1.  Create a PostgreSQL database.
-2.  Run the schema script located at `server/src/database/database.sql` to generate tables.
+# Client (Mobile App)
+cd ../client
+npm install
 
-**Environment Variables:**
-Create a `.env` file in `server/`:
-```env
-PORT=3000
-DB_USER=your_user
-DB_PASSWORD=your_password
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=your_db_name
-JWT_SECRET=your_jwt_secret
-LM_STUDIO_URL=http://localhost:1234/v1/chat/completions
-```
-
-**Start Server:**
-```bash
-npm start
-# or for development
-npm run dev
-```
-
-### 2. Mobile Client
-
-```bash
-cd client
+# Admin Dashboard
+cd ../admin
 npm install
 ```
 
-**Environment Variables:**
-Create a `.env` file in `client/`:
-```env
-EXPO_PUBLIC_API_URL=http://<YOUR_LOCAL_IP>:3000
-```
-*Note: Use your machine's local IP address (e.g., `192.168.1.x`) instead of `localhost` so the phone/emulator can reach the server.*
+3. **Set up environment variables**
 
-**Start App:**
-```bash
-npm start
-# Press 'a' for Android, 'i' for iOS (Mac only), or scan QR code with Expo Go.
-```
+Create `.env` files in `client/`, `admin/`, and `server/` according to your local configuration.
 
-### 3. Admin Dashboard
+4. **Run locally**
 
 ```bash
-cd admin
-npm install
-```
+# Backend
+cd server
+npm run dev
 
-**Environment Variables:**
-Create a `.env` file in `admin/`:
-```env
-VITE_API_URL=http://localhost:3000
-```
+# Mobile App
+cd ../client
+expo start
 
-**Start Dashboard:**
-```bash
+# Admin Dashboard
+cd ../admin
 npm run dev
 ```
-
-<!-- ---
-
-## 🤖 AI / LM Studio Setup
-
-This project uses `streamFromLMStudio.ts` to communicate with a local LLM.
-
-1.  Download and install [LM Studio](https://lmstudio.ai/).
-2.  Load a model (e.g., Mistral, Llama 3, or DeepSeek).
-3.  Go to the **Local Server** tab (double-headed arrow icon).
-4.  Start the server (Default port: `1234`).
-5.  Ensure `server/.env` points to this URL.
 
 ---
 
-## 📸 Screenshots
+## Usage
 
-*(Add screenshots of your Mobile App and Admin Dashboard here)*
+* **Mobile App**: Login, register, navigate dashboard, chat with AI assistant, manage plans and settings.
+* **Admin Dashboard**: Manage users and gym equipment, monitor chat interactions.
+* **Chat Feature**: Currently uses LM Studio locally. API calls are routed through `server/src/services/streamFromLMStudio.ts`.
 
-| Mobile Home | AI Chat | Admin Panel |
-|:---:|:---:|:---:|
-| ![Home](path/to/image) | ![Chat](path/to/image) | ![Admin](path/to/image) |
+---
+
+## Future Improvements
+
+* Migrate chat backend to **Gemini API** (`gemini-2.0-flash`) for production.
+* Add push notifications for mobile app.
+* Implement analytics dashboard for admin.
+* Optimize SQL database queries and implement security best practices.
+
+---
+<!-- 
+## Team
+
+* **Frontend (Mobile)**: Patrick John Medenilla
+* **Frontend (Admin)**: Ryan Tulipas
+* **Backend**: Patrick John Medenilla
+* **Database & AI Integration**: Patrick John Medenilla & Ryan Tulipas
 
 --- -->
-
-## 🤝 Contributing
-
-1.  Fork the repository.
-2.  Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4.  Push to the branch (`git push origin feature/AmazingFeature`).
-5.  Open a Pull Request.
