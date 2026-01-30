@@ -3,7 +3,7 @@ import React, { useRef, useEffect } from "react";
 import { View, Animated, Easing } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Stop, G } from "react-native-svg";
 
-export default function Loader() {
+export default function Loader({ size = 24 }: { size?: number }) {
     const spin = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
@@ -22,7 +22,6 @@ export default function Loader() {
         outputRange: ["0deg", "360deg"],
     });
 
-    const size = 24;
     const strokeWidth = 2;
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;

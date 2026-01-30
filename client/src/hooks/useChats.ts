@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { chatService } from "@/src/services/chatService";
 
 export function useChat(userId: string) {
@@ -19,27 +19,49 @@ export function useChat(userId: string) {
     //     }
     // }, [userId]);
 
+    // Inside your Component
+
     const sendMessage = useCallback(
         async (text: string) => {
             setLoading(true);
+            const userMessage = {
+                role: "user",
+                content: text,
+                timestamp: Date.now(),
+            };
+
+            // 1. Add User Message
+            setMessages((prev) => [...prev, userMessage]);
+
+            // 2. Add placeholder Assistant Message
+            setMessages((prev) => [
+                ...prev,
+                { role: "assistant", content: "...", timestamp: Date.now() },
+            ]);
 
             try {
-                const userMessage = {
-                    role: "user",
-                    content: text,
-                    timestamp: Date.now(),
-                };
+                // Buffer to hold tokens before React state update (Optimization)
+                let responseBuffer = "";
 
-                setMessages((prev) => [...prev, userMessage]);
+                await chatService.sendMessage(text, userId, (token) => {
+                    responseBuffer += token;
 
-                const response = await chatService.sendMessage(text, userId);
+                    // Functional state update to always get latest messages
+                    setMessages((prev) => {
+                        const updated = [...prev];
+                        const lastIndex = updated.length - 1;
 
-                if (response.success) {
-                    setMessages((prev) => [...prev, response.message]);
-                    setLoading(false);
-                }
-            } catch (err: any) {
-                setError(err.message || "Failed to send message");
+                        // Update the last message (the assistant's)
+                        updated[lastIndex] = {
+                            ...updated[lastIndex],
+                            content: responseBuffer,
+                        };
+                        return updated;
+                    });
+                });
+                setLoading(false);
+            } catch (error) {
+                console.error(error);
                 setLoading(false);
             }
         },

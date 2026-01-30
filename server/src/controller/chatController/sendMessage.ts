@@ -1,22 +1,28 @@
 import type { Request, Response } from "express";
 
 const sendMessage = async (req: Request, res: Response) => {
-    const { message, userId } = req.body;
+    const { message } = req.body;
 
     if (!message) {
-        console.error("Message is empty!");
         return res.status(400).json({ error: "Message is Empty!" });
     }
 
-    console.log("sending message", message);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
 
     try {
-        const response = await fetch(process.env.MODEL_URL || "", {
+        const lmResponse = await fetch(process.env.MODEL_URL || "", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+            },
             body: JSON.stringify({
                 model: "mistralai/ministral-3-8b-reasoning",
-                stream: false,
+                stream: true,
                 messages: [
                     {
                         role: "user",
@@ -26,23 +32,37 @@ const sendMessage = async (req: Request, res: Response) => {
             }),
         });
 
-        if (!response.body) {
+        if (!lmResponse.body) {
             throw new Error("No response body from LM Studio");
         }
 
-        const data: any = await response.json();
+        reader = lmResponse.body.getReader();
+        const decoder = new TextDecoder();
 
-        const aiMessage = {
-            role: "assistant",
-            content: data?.choices[0].message.content,
-            timestamp: data?.created,
-        };
+        req.on("close", () => {
+            reader?.cancel();
+        });
 
-        return res.status(200).json({ success: true, message: aiMessage });
-    } catch (err) {
-        if (err instanceof Error) {
-            return res.status(500).json({ error: err.message });
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            res.write(chunk);
         }
+
+        res.write("data: [DONE]\n\n");
+        res.end();
+    } catch (err) {
+        console.error(err);
+
+        res.write(
+            `data: ${JSON.stringify({
+                error: err instanceof Error ? err.message : "Streaming failed",
+            })}\n\n`,
+        );
+        res.write("data: [DONE]\n\n");
+        res.end();
     }
 };
 
