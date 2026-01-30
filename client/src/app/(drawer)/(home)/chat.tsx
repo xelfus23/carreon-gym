@@ -6,28 +6,17 @@ import {
     TouchableOpacity,
     KeyboardAvoidingView,
     Platform,
-    LayoutAnimation,
     UIManager,
     NativeScrollEvent,
     NativeSyntheticEvent,
 } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
-import {
-    Send,
-    ChevronDown,
-    ChevronUp,
-    ArrowDown,
-    RotateCw,
-    ThumbsUp,
-    ThumbsDown,
-    CopyIcon,
-} from "lucide-react-native"; // Added icons
+import React, { useRef, useState } from "react";
+import { Send, ArrowDown } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import { useHeaderHeight } from "@react-navigation/elements";
 import ScreenWrapper from "../../components/ScreenWrapper";
 import { useChat } from "@/src/hooks/useChats";
-import Loader from "../../components/Loader";
-import Markdown from "react-native-markdown-display";
+import renderMessageItem from "../../components/Chat/RenderMessage";
 
 if (
     Platform.OS === "android" &&
@@ -40,84 +29,6 @@ type MessageTypes = {
     text: string;
     role: "assistant" | "user";
     timestamp: number;
-};
-
-const parseDeepSeekResponse = (rawContent: string) => {
-    if (!rawContent.startsWith("[THINK]")) {
-        return { thought: null, content: rawContent };
-    }
-
-    const endTag = "[/THINK]";
-    const endIndex = rawContent.indexOf(endTag);
-
-    if (endIndex === -1) {
-        return {
-            thought: rawContent.replace("[THINK]", "").trim(),
-            content: "",
-            isThinking: true,
-        };
-    }
-
-    const thought = rawContent
-        .substring(0, endIndex)
-        .replace("[THINK]", "")
-        .trim();
-    const content = rawContent.substring(endIndex + endTag.length).trim();
-
-    return { thought, content, isThinking: false };
-};
-
-const ThinkingBlock = ({
-    thought,
-    isThinking,
-}: {
-    thought: string;
-    isThinking: boolean;
-}) => {
-    const [expanded, setExpanded] = useState(false);
-
-    useEffect(() => {
-        if (!isThinking) {
-            LayoutAnimation.configureNext(
-                LayoutAnimation.Presets.easeInEaseOut,
-            );
-            setExpanded(false);
-        }
-    }, [isThinking]);
-
-    const toggle = () => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setExpanded(!expanded);
-    };
-
-    return (
-        <View className="mb-2 border-l-2 border-primary bg-surface rounded-lg overflow-hidden w-full">
-            <TouchableOpacity
-                onPress={toggle}
-                className="flex-row items-center justify-between gap-2 pl-4 pr-2 py-2"
-            >
-                <View className="flex-row items-center gap-2">
-                    <Text className="text-text-secondary text-xs font-bold">
-                        {isThinking ? "Thinking..." : "Thoughts"}
-                    </Text>
-                    {isThinking && <Loader size={14} />}
-                </View>
-                {expanded ? (
-                    <ChevronUp size={16} color={COLORS.textSecondary} />
-                ) : (
-                    <ChevronDown size={16} color={COLORS.textSecondary} />
-                )}
-            </TouchableOpacity>
-
-            {expanded && (
-                <View className="p-2">
-                    <Text className="text-text-secondary text-xs italic leading-5">
-                        {thought}
-                    </Text>
-                </View>
-            )}
-        </View>
-    );
 };
 
 export default function Chats() {
@@ -164,70 +75,6 @@ export default function Chats() {
 
     const scrollToBottom = () => {
         scrollRef.current?.scrollToEnd({ animated: true });
-    };
-
-    // --- 3. Custom Render Item ---
-    const renderMessageItem = ({ item }: { item: any }) => {
-        const isUser = item.role === "user";
-        const { thought, content, isThinking } = isUser
-            ? { thought: null, content: item.content, isThinking: false }
-            : parseDeepSeekResponse(item.content);
-
-        return (
-            <View
-                className={`mb-2 ${isUser ? "items-end" : "items-start"} gap-2`}
-            >
-                <View
-                    className={`rounded-2xl ${
-                        isUser ? "px-4 bg-surface max-w-[85%]" : ""
-                    }`}
-                >
-                    {!isUser && thought && (
-                        <ThinkingBlock
-                            thought={thought}
-                            isThinking={isThinking}
-                        />
-                    )}
-
-                    {content ? (
-                        <Markdown
-                            style={{
-                                body: {
-                                    color: COLORS.textSecondary,
-                                },
-                                heading1: { color: COLORS.textPrimary },
-                                code_block: {
-                                    backgroundColor: "#1a1a1a",
-                                    padding: 10,
-                                    borderRadius: 8,
-                                },
-                            }}
-                        >
-                            {content}
-                        </Markdown>
-                    ) : null}
-                </View>
-                {!isUser && !isThinking && (
-                    <View className="flex flex-row gap-4 pl-4">
-                        <TouchableOpacity>
-                            <ThumbsUp color={COLORS.textSecondary} size={18} />
-                        </TouchableOpacity>
-                        <TouchableOpacity>
-                            <ThumbsDown
-                                color={COLORS.textSecondary}
-                                size={18}
-                            />
-                        </TouchableOpacity>
-                        <TouchableOpacity>
-                            <RotateCw color={COLORS.textSecondary} size={18} />
-                        </TouchableOpacity>
-                        <TouchableOpacity>
-                            <CopyIcon color={COLORS.textSecondary} size={18} />
-                        </TouchableOpacity>
-                    </View>
-                )}
-            </View>
-        );
     };
 
     return (

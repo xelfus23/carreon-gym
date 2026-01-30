@@ -10,7 +10,7 @@ export default function Start() {
                 <Image
                     className="h-32"
                     resizeMode="contain"
-                    source={require("../assets/images/brand-logo.png")}
+                    source={require("../assets/ui/brand-logo.png")}
                 />
                 <TouchableOpacity
                     onPress={() => router.push("/login")}
