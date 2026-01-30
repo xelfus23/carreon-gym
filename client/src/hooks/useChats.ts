@@ -30,28 +30,19 @@ export function useChat(userId: string) {
                 timestamp: Date.now(),
             };
 
-            // 1. Add User Message
             setMessages((prev) => [...prev, userMessage]);
-
-            // 2. Add placeholder Assistant Message
             setMessages((prev) => [
                 ...prev,
                 { role: "assistant", content: "...", timestamp: Date.now() },
             ]);
 
             try {
-                // Buffer to hold tokens before React state update (Optimization)
                 let responseBuffer = "";
-
                 await chatService.sendMessage(text, userId, (token) => {
                     responseBuffer += token;
-
-                    // Functional state update to always get latest messages
                     setMessages((prev) => {
                         const updated = [...prev];
                         const lastIndex = updated.length - 1;
-
-                        // Update the last message (the assistant's)
                         updated[lastIndex] = {
                             ...updated[lastIndex],
                             content: responseBuffer,

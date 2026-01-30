@@ -12,7 +12,21 @@ import {
     NativeSyntheticEvent,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { Send, ChevronDown, ChevronUp, ArrowDown } from "lucide-react-native"; // Added icons
+import {
+    Send,
+    ChevronDown,
+    ChevronUp,
+    ArrowDown,
+    Pen,
+    Trash,
+    Redo,
+    LucideArrowDownRightFromCircle,
+    RotateCw,
+    ThumbsUp,
+    ThumbsDown,
+    Copy,
+    CopyIcon,
+} from "lucide-react-native"; // Added icons
 import { COLORS } from "@/src/consts/colors";
 import { useHeaderHeight } from "@react-navigation/elements";
 import ScreenWrapper from "../../components/ScreenWrapper";
@@ -138,7 +152,6 @@ export default function Chats() {
             event.nativeEvent;
 
         const paddingToBottom = 20;
-        // Check if we are within 20px of the bottom
         const isCloseToBottom =
             layoutMeasurement.height + contentOffset.y >=
             contentSize.height - paddingToBottom;
@@ -166,10 +179,12 @@ export default function Chats() {
             : parseDeepSeekResponse(item.content);
 
         return (
-            <View className={`mb-4 ${isUser ? "items-end" : "items-start"}`}>
+            <View
+                className={`mb-2 ${isUser ? "items-end" : "items-start"} gap-2`}
+            >
                 <View
-                    className={`px-4 py-2 rounded-2xl ${
-                        isUser ? "bg-surface max-w-[85%]" : ""
+                    className={`rounded-2xl ${
+                        isUser ? "px-4 bg-surface max-w-[85%]" : ""
                     }`}
                 >
                     {!isUser && thought && (
@@ -178,12 +193,12 @@ export default function Chats() {
                             isThinking={isThinking}
                         />
                     )}
+
                     {content ? (
                         <Markdown
                             style={{
                                 body: {
                                     color: COLORS.textSecondary,
-                                    marginVertical: 2
                                 },
                                 heading1: { color: COLORS.textPrimary },
                                 code_block: {
@@ -197,6 +212,25 @@ export default function Chats() {
                         </Markdown>
                     ) : null}
                 </View>
+                {!isUser && !isThinking && (
+                    <View className="flex flex-row gap-4 pl-4">
+                        <TouchableOpacity>
+                            <ThumbsUp color={COLORS.textSecondary} size={18} />
+                        </TouchableOpacity>
+                        <TouchableOpacity>
+                            <ThumbsDown
+                                color={COLORS.textSecondary}
+                                size={18}
+                            />
+                        </TouchableOpacity>
+                        <TouchableOpacity>
+                            <RotateCw color={COLORS.textSecondary} size={18} />
+                        </TouchableOpacity>
+                        <TouchableOpacity>
+                            <CopyIcon color={COLORS.textSecondary} size={18} />
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
         );
     };
@@ -269,11 +303,7 @@ export default function Chats() {
                                         : "bg-primary-dark"
                                 } rounded-full items-center justify-center`}
                             >
-                                {loading ? (
-                                    <Loader />
-                                ) : (
-                                    <Send color="white" size={24} />
-                                )}
+                                <Send color="white" size={24} />
                             </TouchableOpacity>
                         </View>
                     </View>
