@@ -7,13 +7,8 @@ console.log(WS_URL, API_URL);
 
 export const chatService = {
     getHistory: async (userId: string) => {
-        try {
-            const response = await fetch(`${API_URL}/api/chats/${userId}`);
-            return await response.json();
-        } catch (error) {
-            console.error("Error fetching history:", error);
-            throw error;
-        }
+        const response = await fetch(`${API_URL}/api/chats/${userId}`);
+        return await response.json();
     },
 
     sendMessage: (

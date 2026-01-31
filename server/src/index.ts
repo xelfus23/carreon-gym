@@ -7,7 +7,7 @@ import chatRouter from "./routes/chat.routes.ts";
 import equipmentRouter from "./routes/equipment.route.ts";
 import { setupWebSocket } from "./services/websocketHandler.ts";
 
-dotenv.config();
+dotenv.config({ path: ".env" });
 
 const app = express();
 app.use(express.json());

@@ -10,6 +10,8 @@ import {
 import { LogOut, User } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/src/context/authContext";
+import { useUserProfile } from "@/src/context/profileContext";
 
 export default function CustomDrawerContent(props: any) {
     const { bottom } = useSafeAreaInsets();
@@ -19,6 +21,11 @@ export default function CustomDrawerContent(props: any) {
         console.log("Logging out...");
         router.replace("/login"); // Redirect to login
     };
+
+    const { isAuthenticated } = useAuth();
+    const { profile } = useUserProfile();
+
+    if (!isAuthenticated) return;
 
     return (
         <View className="flex-1 bg-surface border-border rounded-r-xl">
@@ -30,14 +37,14 @@ export default function CustomDrawerContent(props: any) {
                     <DrawerContentScrollView {...props}>
                         <View className="bg-surface p-6 mb-4 border-b border-border">
                             <View className="h-32 aspect-square bg-gray-700 rounded-full items-center justify-center mb-3">
-                                <User color={COLORS.primary} size={40} />
+                                <Image />
                             </View>
                             <View className="pl-4">
                                 <Text className="text-white text-lg font-bold">
-                                    Test Name
+                                    {profile?.firstName} {profile?.lastName}
                                 </Text>
                                 <Text className="text-gray-400 text-sm">
-                                    test@gmail.com
+                                    {profile?.email}
                                 </Text>
                             </View>
                         </View>

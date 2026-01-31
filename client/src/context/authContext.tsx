@@ -1,38 +1,92 @@
-import { createContext, useContext } from "react";
-
-interface AuthContextType {
-    register: () => Promise<void>;
-    login: () => Promise<void>;
-    logout: () => Promise<void>;
-}
+import { createContext, useContext, useState } from "react";
+import { authService } from "../services/authService";
+import { AuthUser } from "../types/users";
+import { AuthContextType } from "../types/interface";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const register = async () => {
-        // REGISTRATION LOGIC
+    const [user, setUser] = useState<null | AuthUser>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-        return console.log("Registered");
+    const register = async (
+        firstName: string,
+        lastName: string,
+        email: string,
+        password: string,
+        contactNumber: string,
+    ) => {
+        setIsLoading(true);
+
+        try {
+            const result: {
+                success: boolean;
+                message: string;
+                data: { user: AuthUser };
+            } = await authService.register(
+                firstName,
+                lastName,
+                email,
+                password,
+                contactNumber,
+            );
+
+            if (!result.success) {
+                throw new Error(result.message);
+            }
+
+            //=======SET USER=======//
+            setIsAuthenticated(result.success);
+            setUser(result.data.user);
+
+            return true;
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const login = async () => {
-        // LOGIN LOGIC
-        return console.log("Logged in");
+    const login = async (email: string, password: string) => {
+        setIsLoading(true);
+        try {
+            const result = await authService.login(email, password);
+
+            if (!result.success) {
+                throw new Error(result.message);
+            }
+
+            //=======SET USER=======//
+            setIsAuthenticated(result.success);
+            setUser(result.data.user);
+
+            return true;
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const logout = async () => {
-        // LOGOUT LOGIC
-
-        return console.log("Logged out");
+        setIsAuthenticated(false);
     };
 
     return (
-        <AuthContext.Provider value={{ register, login, logout }}>
+        <AuthContext.Provider
+            value={{
+                register,
+                login,
+                logout,
+                isAuthenticated,
+                isLoading,
+                user,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );
 };
 
 export function useAuth() {
-    return useContext(AuthContext);
+    const ctx = useContext(AuthContext);
+    if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+    return ctx;
 }

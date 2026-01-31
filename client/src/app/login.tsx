@@ -6,23 +6,31 @@ import { useRouter } from "expo-router";
 import CustomTextInput from "./components/CustomTextInput";
 import CustomKeyboardAvoidingView from "./components/CustomKeyboardAvoidingView";
 import Loader from "./components/Loader";
+import { useAuth } from "../context/authContext";
 export default function Login() {
     const router = useRouter();
     const [secureTextEntry, setSecureTextEntry] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
+
+    const [email, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [errMsg, setErrMsg] = useState("");
+
+    const { login, isLoading } = useAuth();
 
     const handleLogin = async () => {
-        setIsLoading(true);
-
         try {
-            console.log("Register");
-            setTimeout(() => {
-                router.navigate("/(drawer)/(home)/dashboard");
-                setIsLoading(false);
-            }, 1000);
+            if (email === "" || password === "") {
+                throw new Error("Enter email and Password");
+            }
+
+            const success = await login(email, password);
+
+            if (success) {
+                router.replace("/(drawer)/(home)/dashboard");
+            }
         } catch (err) {
             if (err instanceof Error) {
-                console.log(err.message);
+                setErrMsg(err.message);
             }
         }
     };
@@ -33,7 +41,7 @@ export default function Login() {
                 <View className="container max-w-sm gap-4">
                     <View className="flex-row gap-4 pb-4 border-border border-b items-center">
                         <TouchableOpacity
-                            onPress={() => router.navigate('/')}
+                            onPress={() => router.navigate("/")}
                             className="bg-border flex aspect-square items-center justify-center rounded-xl"
                         >
                             <ChevronLeft
@@ -47,13 +55,24 @@ export default function Login() {
                         </Text>
                     </View>
                     <View className="flex-col gap-4">
-                        <CustomTextInput placeholder="Username" />
                         <CustomTextInput
+                            error={errMsg !== ""}
+                            placeholder="Email or Phone Number"
+                            onChangeText={(e) => setUsername(e)}
+                        />
+                        <CustomTextInput
+                            error={errMsg !== ""}
                             placeholder="Password"
                             secureTextEntry={secureTextEntry}
                             setSecureTextEntry={setSecureTextEntry}
+                            onChangeText={(e) => setPassword(e)}
                         />
                     </View>
+                    {errMsg !== "" && (
+                        <Text className="text-danger text-center text-sm">
+                            {errMsg}
+                        </Text>
+                    )}
                     <TouchableOpacity
                         onPress={handleLogin}
                         className={`${isLoading ? "bg-surface" : "bg-primary"} rounded-xl w-full transition-all hover:bg-blue-400`}
