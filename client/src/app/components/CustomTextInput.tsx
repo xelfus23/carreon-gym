@@ -3,6 +3,7 @@ import { KeyboardTypeOptions, Pressable, TextInput, View } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
 
 interface TextInputProps {
+    error?: boolean;
     placeholder: string;
     className?: string;
     secureTextEntry?: boolean;
@@ -24,13 +25,16 @@ export default function CustomTextInput({
     value,
     onChangeText,
     setSecureTextEntry,
+    error,
 }: TextInputProps) {
     return (
         <View className="flex flex-row">
             <TextInput
                 placeholder={placeholder}
-                placeholderTextColor={COLORS.textSecondary}
-                className={`${className} bg-surface font-inter rounded-xl px-4 py-4 text-xl text-text-primary flex-1`}
+                placeholderTextColor={
+                    error ? COLORS.danger : COLORS.textSecondary
+                }
+                className={`${className} ${error ? "border-danger" : "border-border"} border bg-surface font-inter rounded-xl px-4 py-4 text-x text-text-secondary flex-1`}
                 secureTextEntry={secureTextEntry}
                 value={value}
                 autoCorrect={false}

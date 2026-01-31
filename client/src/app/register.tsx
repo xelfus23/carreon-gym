@@ -4,15 +4,15 @@ import {
     TouchableOpacity,
     ScrollView,
     Dimensions,
-    Pressable,
 } from "react-native";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import CustomKeyboardAvoidingView from "./components/CustomKeyboardAvoidingView";
 import CustomTextInput from "./components/CustomTextInput";
 import { useRouter } from "expo-router";
 import { COLORS } from "@/src/consts/colors";
 import { ChevronLeft } from "lucide-react-native";
 import Loader from "./components/Loader";
+import { useAuth } from "../context/authContext";
 
 type UserInfoProps = {
     firstName: string;
@@ -22,10 +22,45 @@ type UserInfoProps = {
     phoneNumber: string;
     email: string;
 };
+
+type UserInfoErrorProps = {
+    firstName: boolean;
+    lastName: boolean;
+    password: boolean;
+    confirmPassword: boolean;
+    phoneNumber: boolean;
+    email: boolean;
+};
+
+const stepRequirements = {
+    1: ["firstName", "lastName"],
+    2: ["password", "confirmPassword"],
+    3: ["phoneNumber", "email"],
+} as const;
+
+const defaultStringValue: UserInfoProps = {
+    firstName: "",
+    lastName: "",
+    password: "",
+    confirmPassword: "",
+    phoneNumber: "",
+    email: "",
+};
+
+const defaultBooleanValue: UserInfoErrorProps = {
+    firstName: false,
+    lastName: false,
+    password: false,
+    confirmPassword: false,
+    phoneNumber: false,
+    email: false,
+};
+
 export default function Register() {
     const [secureTextEntry, setSecureTextEntry] = useState(true);
     const [currentIndex, setCurrentIndex] = useState<number>(1);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const { register, isLoading } = useAuth();
 
     const router = useRouter();
 
@@ -33,21 +68,50 @@ export default function Register() {
 
     const scrollRef = useRef<ScrollView>(null);
 
-    const [userInfo, setUserInfo] = useState<UserInfoProps>({
-        firstName: "",
-        lastName: "",
-        password: "",
-        confirmPassword: "",
-        phoneNumber: "",
-        email: "",
-    });
+    const [userInfo, setUserInfo] = useState<UserInfoProps>(defaultStringValue);
+    const [errState, setErrState] =
+        useState<UserInfoErrorProps>(defaultBooleanValue);
+    const [errMsg, setErrMsg] = useState("");
+
+    const isStepValid = (step: number): boolean => {
+        const requiredFields = stepRequirements[step as 1 | 2 | 3];
+        if (!requiredFields) return true;
+
+        let valid = true;
+        const newErrState: UserInfoErrorProps = { ...defaultBooleanValue };
+        let message = "";
+
+        for (const field of requiredFields) {
+            if (!userInfo[field as keyof UserInfoProps]?.trim()) {
+                newErrState[field as keyof UserInfoErrorProps] = true;
+                message = "Please fill in all required fields.";
+                valid = false;
+            }
+        }
+
+        // Extra check for passwords match on step 2
+        if (step === 2 && userInfo.password !== userInfo.confirmPassword) {
+            newErrState.password = true;
+            newErrState.confirmPassword = true;
+            message = "Passwords do not match.";
+            valid = false;
+        }
+
+        setErrState(newErrState);
+        setErrMsg(message);
+
+        return valid;
+    };
 
     const handleNext = () => {
+        if (!isStepValid(currentIndex)) return;
+
         scrollRef.current?.scrollTo({
             x: width * currentIndex,
             animated: true,
         });
-        setCurrentIndex((prevIndex) => (prevIndex < 3 ? prevIndex + 1 : 3));
+
+        setCurrentIndex((prev) => Math.min(prev + 1, 3));
     };
 
     const handleBack = () => {
@@ -59,17 +123,25 @@ export default function Register() {
     };
 
     const handleRegister = async () => {
-        setIsLoading(true);
-
         try {
-            console.log("Register");
-            setTimeout(() => {
-                router.navigate("/(drawer)/(home)/dashboard");
-                setIsLoading(false);
-            }, 1000);
+            if (userInfo.phoneNumber === "" || userInfo.email === "") {
+                throw new Error("Missing Details");
+            }
+
+            const success = await register(
+                userInfo.firstName,
+                userInfo.lastName,
+                userInfo.email,
+                userInfo.password,
+                userInfo.phoneNumber,
+            );
+
+            if (success) {
+                router.replace("/(drawer)/(home)/dashboard");
+            }
         } catch (err) {
             if (err instanceof Error) {
-                console.log(err.message);
+                setErrMsg(err.message);
             }
         }
     };
@@ -102,6 +174,7 @@ export default function Register() {
                     <View className="flex-col w-screen h-full gap-4 items-center justify-center">
                         <View className="max-w-sm w-full gap-4">
                             <CustomTextInput
+                                error={errState.firstName}
                                 placeholder="First Name"
                                 value={userInfo.firstName}
                                 onChangeText={(val) =>
@@ -112,6 +185,7 @@ export default function Register() {
                                 }
                             />
                             <CustomTextInput
+                                error={errState.lastName}
                                 placeholder="Last Name"
                                 value={userInfo.lastName}
                                 onChangeText={(val) =>
@@ -126,6 +200,7 @@ export default function Register() {
                     <View className="flex-col w-screen h-full gap-4 items-center justify-center">
                         <View className="max-w-sm w-full gap-4">
                             <CustomTextInput
+                                error={errState.password}
                                 placeholder="Password"
                                 secureTextEntry={secureTextEntry}
                                 setSecureTextEntry={setSecureTextEntry}
@@ -138,6 +213,7 @@ export default function Register() {
                                 }
                             />
                             <CustomTextInput
+                                error={errState.confirmPassword}
                                 placeholder="Confirm Password"
                                 secureTextEntry={secureTextEntry}
                                 setSecureTextEntry={setSecureTextEntry}
@@ -154,6 +230,7 @@ export default function Register() {
                     <View className="flex-col w-screen h-full gap-4 items-center justify-center">
                         <View className="max-w-sm w-full gap-4">
                             <CustomTextInput
+                                error={errState.phoneNumber}
                                 placeholder="Phone Number"
                                 value={userInfo.phoneNumber}
                                 onChangeText={(val) =>
@@ -164,6 +241,7 @@ export default function Register() {
                                 }
                             />
                             <CustomTextInput
+                                error={errState.email}
                                 placeholder="Email"
                                 value={userInfo.email}
                                 onChangeText={(val) =>
@@ -176,8 +254,13 @@ export default function Register() {
                         </View>
                     </View>
                 </ScrollView>
+                {errMsg && (
+                    <Text className="text-danger text-center text-sm">
+                        {errMsg}
+                    </Text>
+                )}
                 <View className="flex flex-row w-full gap-4 max-w-sm justify-between">
-                    <Pressable
+                    <TouchableOpacity
                         disabled={isLoading}
                         onPress={
                             currentIndex === 3 ? handleRegister : handleNext
@@ -193,7 +276,7 @@ export default function Register() {
                                 "Next"
                             )}
                         </Text>
-                    </Pressable>
+                    </TouchableOpacity>
                 </View>
             </View>
         </CustomKeyboardAvoidingView>

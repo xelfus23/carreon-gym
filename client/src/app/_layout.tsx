@@ -1,4 +1,3 @@
-import { Stack } from "expo-router";
 import { AuthProvider } from "../context/authContext";
 import "../../global.css";
 import { useFonts } from "expo-font";
@@ -13,6 +12,8 @@ import {
     Montserrat_700Bold,
     Montserrat_800ExtraBold,
 } from "@expo-google-fonts/montserrat";
+import { Stack } from "expo-router";
+import { UserProfileProvider } from "../context/profileContext";
 
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({
@@ -28,12 +29,9 @@ export default function RootLayout() {
 
     return (
         <AuthProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="login" />
-                <Stack.Screen name="register" />
-                <Stack.Screen name="(drawer)" />
-            </Stack>
+            <UserProfileProvider>
+                <Stack screenOptions={{ headerShown: false }} />
+            </UserProfileProvider>
         </AuthProvider>
     );
 }
