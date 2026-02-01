@@ -2,13 +2,14 @@ import { View, Text, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import { ChevronLeft } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
-import { useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import CustomTextInput from "./components/CustomTextInput";
 import CustomKeyboardAvoidingView from "./components/CustomKeyboardAvoidingView";
 import Loader from "./components/Loader";
 import { useAuth } from "../context/authContext";
+import { StackNavigationProp } from "../types/stackParam";
 export default function Login() {
-    const router = useRouter();
+    const navigation: StackNavigationProp = useNavigation();
     const [secureTextEntry, setSecureTextEntry] = useState(true);
 
     const [email, setUsername] = useState("");
@@ -23,11 +24,7 @@ export default function Login() {
                 throw new Error("Enter email and Password");
             }
 
-            const success = await login(email, password);
-
-            if (success) {
-                router.replace("/(drawer)/(home)/dashboard");
-            }
+            await login(email, password);
         } catch (err) {
             if (err instanceof Error) {
                 setErrMsg(err.message);
@@ -41,7 +38,7 @@ export default function Login() {
                 <View className="container max-w-sm gap-4">
                     <View className="flex-row gap-4 pb-4 border-border border-b items-center">
                         <TouchableOpacity
-                            onPress={() => router.navigate("/")}
+                            onPress={() => navigation.navigate("index")}
                             className="bg-border flex aspect-square items-center justify-center rounded-xl"
                         >
                             <ChevronLeft
@@ -84,7 +81,7 @@ export default function Login() {
                     <Text className="text-text-secondary text-center flex items-center justify-center">
                         Don&apos;t have account?{" "}
                         <Text
-                            onPress={() => router.push("/register")}
+                            onPress={() => navigation.navigate("register")}
                             className="text-primary-dark"
                         >
                             Register now!

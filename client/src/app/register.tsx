@@ -5,14 +5,15 @@ import {
     ScrollView,
     Dimensions,
 } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import CustomKeyboardAvoidingView from "./components/CustomKeyboardAvoidingView";
 import CustomTextInput from "./components/CustomTextInput";
-import { useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import { COLORS } from "@/src/consts/colors";
 import { ChevronLeft } from "lucide-react-native";
 import Loader from "./components/Loader";
 import { useAuth } from "../context/authContext";
+import { StackNavigationProp } from "../types/stackParam";
 
 type UserInfoProps = {
     firstName: string;
@@ -62,7 +63,7 @@ export default function Register() {
 
     const { register, isLoading } = useAuth();
 
-    const router = useRouter();
+    const navigation: StackNavigationProp = useNavigation();
 
     const { width } = Dimensions.get("window");
 
@@ -128,17 +129,13 @@ export default function Register() {
                 throw new Error("Missing Details");
             }
 
-            const success = await register(
+            await register(
                 userInfo.firstName,
                 userInfo.lastName,
                 userInfo.email,
                 userInfo.password,
                 userInfo.phoneNumber,
             );
-
-            if (success) {
-                router.replace("/(drawer)/(home)/dashboard");
-            }
         } catch (err) {
             if (err instanceof Error) {
                 setErrMsg(err.message);
@@ -152,7 +149,9 @@ export default function Register() {
                 <View className="max-w-sm w-full flex flex-row gap-4 pb-4 border-b border-border items-center">
                     <TouchableOpacity
                         onPress={() =>
-                            currentIndex === 1 ? router.back() : handleBack()
+                            currentIndex === 1
+                                ? navigation.navigate("login")
+                                : handleBack()
                         }
                         className="bg-border flex aspect-square items-center justify-center rounded-xl"
                     >

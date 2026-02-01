@@ -49,16 +49,18 @@ const loginController = async (req: Request, res: Response) => {
                     lastName: user.last_name,
                     email: user.email,
                     contactNumber: user.phone_number,
-                    token,
                 },
+                token,
             },
         });
     } catch (err) {
-        console.error(err);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
-        });
+        if (err instanceof Error) {
+            console.error(err.message);
+            return res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
     }
 };
 

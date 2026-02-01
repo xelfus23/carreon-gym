@@ -14,6 +14,7 @@ import {
 } from "@expo-google-fonts/montserrat";
 import { Stack } from "expo-router";
 import { UserProfileProvider } from "../context/profileContext";
+import CheckAuth from "./components/CheckAuth";
 
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({
@@ -30,7 +31,7 @@ export default function RootLayout() {
     return (
         <AuthProvider>
             <UserProfileProvider>
-                <Stack screenOptions={{ headerShown: false }} />
+                <CheckAuth />
             </UserProfileProvider>
         </AuthProvider>
     );

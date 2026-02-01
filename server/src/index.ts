@@ -27,7 +27,7 @@ app.use(
 const PORT = Number(process.env.PORT) || 4545;
 
 app.use("/api/users", userRouter);
-app.use("/api/authenticate", authRouter);
+app.use("/api/login", authRouter);
 app.use("/api/chats", chatRouter);
 app.use("/api/equipments", equipmentRouter);
 

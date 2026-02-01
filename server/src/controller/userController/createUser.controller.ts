@@ -39,8 +39,8 @@ const createUser = async (req: Request, res: Response) => {
                     lastName: user.last_name,
                     email: user.email,
                     contactNumber: user.phone_number,
-                    token,
                 },
+                token,
             },
         });
     } catch (err) {

@@ -1,8 +1,12 @@
 import { Image, Text, TouchableOpacity, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
+import { RootStackParamList } from "../types/stackParam";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function Start() {
-    const router = useRouter();
+    const navigation: NavigationProp = useNavigation();
 
     return (
         <View className="bg-background flex-1 items-center justify-center">
@@ -13,7 +17,7 @@ export default function Start() {
                     source={require("../assets/ui/brand-logo.png")}
                 />
                 <TouchableOpacity
-                    onPress={() => router.push("/login")}
+                    onPress={() => navigation.navigate("login")}
                     className="bg-primary rounded-full"
                 >
                     <Text className="text-background font-interBold px-8 py-4 text-xl">

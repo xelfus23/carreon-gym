@@ -7,25 +7,28 @@ import {
     SafeAreaView,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { LogOut, User } from "lucide-react-native";
+import { LogOut } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
-import { useRouter } from "expo-router";
 import { useAuth } from "@/src/context/authContext";
 import { useUserProfile } from "@/src/context/profileContext";
+import { router } from "expo-router";
 
 export default function CustomDrawerContent(props: any) {
     const { bottom } = useSafeAreaInsets();
-    const router = useRouter();
+    const { logout } = useAuth();
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         console.log("Logging out...");
-        router.replace("/login"); // Redirect to login
+        await logout();
+        router.replace("/login");
     };
 
     const { isAuthenticated } = useAuth();
     const { profile } = useUserProfile();
 
-    if (!isAuthenticated) return;
+    if (!isAuthenticated && profile) return;
+
+    const fullName = `${profile?.firstName} ${profile?.lastName}`;
 
     return (
         <View className="flex-1 bg-surface border-border rounded-r-xl">
@@ -36,12 +39,22 @@ export default function CustomDrawerContent(props: any) {
                 <View className="flex-1 bg-surface rounded-r-xl">
                     <DrawerContentScrollView {...props}>
                         <View className="bg-surface p-6 mb-4 border-b border-border">
-                            <View className="h-32 aspect-square bg-gray-700 rounded-full items-center justify-center mb-3">
-                                <Image />
+                            <View className="flex-row ga-2 w-full">
+                                <View className="h-32 aspect-square bg-gray-700 rounded-full items-center justify-center mb-3">
+                                    <Image />
+                                </View>
                             </View>
-                            <View className="pl-4">
+
+                            <View className="">
                                 <Text className="text-white text-lg font-bold">
-                                    {profile?.firstName} {profile?.lastName}
+                                    {fullName
+                                        .split(" ")
+                                        .map(
+                                            (v) =>
+                                                v.charAt(0).toUpperCase() +
+                                                v.slice(1),
+                                        )
+                                        .join(" ")}
                                 </Text>
                                 <Text className="text-gray-400 text-sm">
                                     {profile?.email}
