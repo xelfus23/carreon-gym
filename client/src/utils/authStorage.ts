@@ -1,30 +1,41 @@
+import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthUser } from "../types/users";
 
 const USER_KEY = "@auth_user";
-const TOKEN_KEY = "@auth_token";
+const TOKEN_KEY = "auth_token";
 
 export const authStorage = {
     async save(user: AuthUser, token: string) {
-        await AsyncStorage.multiSet([
-            [USER_KEY, JSON.stringify(user)],
-            [TOKEN_KEY, token],
-        ]);
+        try {
+            await SecureStore.setItemAsync(TOKEN_KEY, token);
+            await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+        } catch (err) {
+            console.error("Error saving auth data:", err);
+        }
     },
 
-    async load() {
-        const [[, user], [, token]] = await AsyncStorage.multiGet([
-            USER_KEY,
-            TOKEN_KEY,
-        ]);
+    // Load user and token
+    async load(): Promise<{ user: AuthUser | null; token: string | null }> {
+        try {
+            const token = await SecureStore.getItemAsync(TOKEN_KEY);
+            const userStr = await AsyncStorage.getItem(USER_KEY);
+            const user = userStr ? JSON.parse(userStr) : null;
 
-        return {
-            user: user ? JSON.parse(user) : null,
-            token,
-        };
+            return { user, token };
+        } catch (err) {
+            console.error("Error loading auth data:", err);
+            return { user: null, token: null };
+        }
     },
 
+    // Clear user and token
     async clear() {
-        await AsyncStorage.multiRemove([USER_KEY, TOKEN_KEY]);
+        try {
+            await SecureStore.deleteItemAsync(TOKEN_KEY);
+            await AsyncStorage.removeItem(USER_KEY);
+        } catch (err) {
+            console.error("Error clearing auth data:", err);
+        }
     },
 };

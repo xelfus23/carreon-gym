@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import pool from "../../config/pool.ts";
+import { metricsQuery, userQuery } from "../../utils/getUser.ts";
 
 const meController = async (req: Request, res: Response) => {
     try {
@@ -15,27 +16,8 @@ const meController = async (req: Request, res: Response) => {
         // 2. Fetch User & Profile Data (JOIN users + user_profiles)
         // Note: We use LEFT JOIN so that if they haven't set up a profile yet,
         // we still get the basic user info without crashing.
-        const userQuery = `
-            SELECT 
-                u.id,
-                u.first_name,
-                u.last_name,
-                u.username,
-                u.email,
-                u.role,
-                u.phone_number,
-                u.created_at,
-                p.height_cm,
-                p.gender,
-                p.birth_date,
-                p.goal,
-                p.activity_level
-            FROM users u
-            LEFT JOIN user_profiles p ON u.id = p.user_id
-            WHERE u.id = $1
-        `;
 
-        const userResult = await pool.query(userQuery, [userId]);
+        const userResult = await userQuery(userId);
 
         if (userResult.rowCount === 0) {
             return res
@@ -45,17 +27,7 @@ const meController = async (req: Request, res: Response) => {
 
         const userData = userResult.rows[0];
 
-        // 3. Fetch ONLY the LATEST Body Metrics
-        // We order by recorded_at DESCending and limit to 1 to get the most recent update.
-        const metricsQuery = `
-            SELECT weight_kg, body_fat_percent, muscle_mass_kg, recorded_at
-            FROM body_metrics
-            WHERE user_id = $1
-            ORDER BY recorded_at DESC
-            LIMIT 1
-        `;
-
-        const metricsResult = await pool.query(metricsQuery, [userId]);
+        const metricsResult = await metricsQuery(userId);
         const latestMetric = metricsResult.rows[0] || null; // Handle case where user has no metrics yet
 
         // 4. Construct the clean JSON response

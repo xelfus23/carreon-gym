@@ -1,7 +1,5 @@
 -- CREATE DATABASE careon_gym_db;
-
 -- CREATE TYPE user_role AS ENUM ('member', 'admin', 'trainer');
-
 -- CREATE TABLE
 --     users (
 --         id SERIAL PRIMARY KEY,
@@ -14,7 +12,6 @@
 --         role user_role DEFAULT 'member',
 --         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 --     );
-
 -- CREATE TABLE
 --     user_profiles (
 --         user_id INT PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
@@ -33,7 +30,6 @@
 --         ),
 --         updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 --     );
-
 -- CREATE TABLE
 --     body_metrics (
 --         id SERIAL PRIMARY KEY,
@@ -43,7 +39,6 @@
 --         muscle_mass_kg NUMERIC(5, 2),
 --         recorded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 --     );
-
 -- CREATE TABLE
 --     chat_sessions (
 --         id SERIAL PRIMARY KEY,
@@ -51,7 +46,6 @@
 --         type TEXT CHECK (type IN ('model', 'trainer')) NOT NULL,
 --         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 --     );
-
 -- CREATE TABLE
 --     chat_messages (
 --         id SERIAL PRIMARY KEY,
@@ -60,16 +54,13 @@
 --         message TEXT NOT NULL,
 --         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 --     );
-
 -- ------------------------------------------------------------------------------------------
 -- -- Categories table
 -- CREATE TABLE
 --     equipment_category (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL);
-
 -- -- Muscle groups table
 -- CREATE TABLE
 --     muscle_group (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL);
-
 -- -- Equipment table
 -- CREATE TABLE
 --     equipment (
@@ -80,7 +71,6 @@
 --         description TEXT,
 --         created_at TIMESTAMP DEFAULT NOW ()
 --     );
-
 -- -- Linking equipment to muscle groups (many-to-many)
 -- CREATE TABLE
 --     equipment_muscle (
@@ -88,7 +78,6 @@
 --         muscle_group_id INT NOT NULL REFERENCES muscle_group (id) ON DELETE CASCADE,
 --         PRIMARY KEY (equipment_id, muscle_group_id)
 --     );
-
 -- INSERT INTO
 --     equipment_category (name)
 -- VALUES
@@ -96,7 +85,6 @@
 --     ('Machine'),
 --     ('Accessory'),
 --     ('Cardio');
-
 -- INSERT INTO
 --     muscle_group (name)
 -- VALUES
@@ -108,7 +96,6 @@
 --     ('Core'),
 --     ('Full Body'),
 --     ('Cardio');
-
 -- INSERT INTO
 --     equipment (name, category_id, type, description)
 -- VALUES
@@ -234,7 +221,6 @@
 --         'Barbell',
 --         'Free weight barbell squat'
 --     );
-
 -- -- Dumbbells
 -- INSERT INTO
 --     equipment_muscle (equipment_id, muscle_group_id)
@@ -245,7 +231,6 @@
 --     (1, 4), -- shoulders
 --     (1, 5), -- arms
 --     (1, 6);
-
 -- -- core
 -- -- Barbell
 -- INSERT INTO
@@ -256,20 +241,17 @@
 --     (2, 3),
 --     (2, 4),
 --     (2, 5);
-
 -- -- Curve Barbells
 -- INSERT INTO
 --     equipment_muscle (equipment_id, muscle_group_id)
 -- VALUES
 --     (3, 5);
-
 -- -- arms
 -- -- Arm Bars
 -- INSERT INTO
 --     equipment_muscle (equipment_id, muscle_group_id)
 -- VALUES
 --     (4, 5);
-
 -- -- Resistance Bands
 -- INSERT INTO
 --     equipment_muscle (equipment_id, muscle_group_id)
@@ -280,13 +262,11 @@
 --     (5, 4),
 --     (5, 5),
 --     (5, 6);
-
 -- -- Yoga Ball
 -- INSERT INTO
 --     equipment_muscle (equipment_id, muscle_group_id)
 -- VALUES
 --     (6, 6);
-
 -- -- core
 -- -- Machines (example)
 -- INSERT INTO
@@ -306,5 +286,231 @@
 --     (17, 4),
 --     (18, 3), -- Hack Squat
 --     (19, 3);
-
 -- -- Barbell Squat
+-- 1. CLEAN UP (Resets IDs to 1 so the script works perfectly)
+
+-- TRUNCATE TABLE equipment_muscle,
+-- equipment,
+-- muscle_group,
+-- equipment_category RESTART IDENTITY CASCADE;
+
+-- -- 2. SETUP CATEGORIES
+-- INSERT INTO
+--     equipment_category (name)
+-- VALUES
+--     ('Free Weight'), -- ID 1
+--     ('Machine'), -- ID 2
+--     ('Accessory'), -- ID 3
+--     ('Cardio');
+
+-- -- ID 4
+-- -- 3. SETUP MUSCLE GROUPS
+-- INSERT INTO
+--     muscle_group (name)
+-- VALUES
+--     ('Chest'), -- ID 1
+--     ('Back'), -- ID 2
+--     ('Legs'), -- ID 3
+--     ('Shoulders'), -- ID 4
+--     ('Arms'), -- ID 5
+--     ('Core'), -- ID 6
+--     ('Cardio');
+
+-- -- ID 7
+-- -- 4. INSERT YOUR GYM'S SPECIFIC INVENTORY
+-- INSERT INTO
+--     equipment (name, category_id, type, description)
+-- VALUES
+--     -- Free Weights / Accessories (From "GYM EQUIPMENTS" list)
+--     (
+--         'Dumbbells',
+--         1,
+--         'Free Weight',
+--         'Standard adjustable or fixed dumbbells'
+--     ),
+--     (
+--         'Barbells',
+--         1,
+--         'Free Weight',
+--         'Olympic or standard straight bars'
+--     ),
+--     (
+--         'Curve Barbells',
+--         1,
+--         'Free Weight',
+--         'EZ-Curl bars for arm isolation'
+--     ),
+--     (
+--         'Yoga Ball',
+--         3,
+--         'Accessory',
+--         'Stability ball for core and balance'
+--     ),
+--     (
+--         'Resistance Bands',
+--         3,
+--         'Accessory',
+--         'Elastic bands for warming up or resistance'
+--     ),
+--     (
+--         'Arm Bars',
+--         1,
+--         'Free Weight',
+--         'Specialized bars for triceps/biceps'
+--     ),
+--     -- Machines (From "MACHINES" list)
+--     (
+--         'Bench Press Station',
+--         2,
+--         'Station',
+--         'Flat bench rack for chest press'
+--     ),
+--     (
+--         'Pec Deck',
+--         2,
+--         'Isolation Machine',
+--         'Seated fly machine for chest definition'
+--     ),
+--     (
+--         'Incline Press Machine',
+--         2,
+--         'Press Machine',
+--         'Upper chest press machine'
+--     ),
+--     (
+--         'Cable Row',
+--         2,
+--         'Cable Machine',
+--         'Seated row for back thickness'
+--     ),
+--     (
+--         'Lat Machine',
+--         2,
+--         'Cable Machine',
+--         'General cable machine for back/arms'
+--     ),
+--     (
+--         'Lat Pulldown',
+--         2,
+--         'Cable Machine',
+--         'Vertical pulldown for back width'
+--     ),
+--     (
+--         'Leg Press',
+--         2,
+--         'Leg Machine',
+--         'Sled machine for heavy leg pressing'
+--     ),
+--     (
+--         'Smith Machine',
+--         2,
+--         'Multipurpose',
+--         'Guided barbell system for safety'
+--     ),
+--     (
+--         'Calf Raise Machine',
+--         2,
+--         'Leg Machine',
+--         'Isolation machine for calves'
+--     ),
+--     (
+--         'Leg Extension Machine',
+--         2,
+--         'Leg Machine',
+--         'Seated machine for quadriceps'
+--     ),
+--     (
+--         'Leg Curl Machine',
+--         2,
+--         'Leg Machine',
+--         'Seated or lying machine for hamstrings'
+--     ),
+--     ('Cardio Bike', 4, 'Cardio', 'Stationary bicycle'),
+--     (
+--         'Treadmill',
+--         4,
+--         'Cardio',
+--         'Running/Walking machine'
+--     ),
+--     (
+--         'Hack Squat Machine',
+--         2,
+--         'Leg Machine',
+--         'Angled squat machine for legs'
+--     ),
+--     (
+--         'Barbell Squat Station',
+--         1,
+--         'Station',
+--         'Squat rack or power cage'
+--     );
+
+-- -- 5. MAP EQUIPMENT TO MUSCLES (Crucial for AI Logic)
+-- -- This tells the AI: "If user wants big arms, recommend Equipment ID 3 (Curve Barbell)"
+-- INSERT INTO
+--     equipment_muscle (equipment_id, muscle_group_id)
+-- VALUES
+--     -- Dumbbells (Chest, Back, Legs, Shoulders, Arms)
+--     (1, 1),
+--     (1, 2),
+--     (1, 3),
+--     (1, 4),
+--     (1, 5),
+--     -- Barbells (Chest, Back, Legs, Shoulders, Arms)
+--     (2, 1),
+--     (2, 2),
+--     (2, 3),
+--     (2, 4),
+--     (2, 5),
+--     -- Curve Barbells (Arms)
+--     (3, 5),
+--     -- Yoga Ball (Core)
+--     (4, 6),
+--     -- Resistance Bands (Full Body - simplifies to multiple)
+--     (5, 1),
+--     (5, 2),
+--     (5, 3),
+--     (5, 4),
+--     (5, 5),
+--     -- Arm Bars (Arms)
+--     (6, 5),
+--     -- Bench Press Station (Chest, Shoulders, Arms)
+--     (7, 1),
+--     (7, 4),
+--     (7, 5),
+--     -- Pec Deck (Chest)
+--     (8, 1),
+--     -- Incline Press (Chest - Upper, Shoulders)
+--     (9, 1),
+--     (9, 4),
+--     -- Cable Row (Back, Arms)
+--     (10, 2),
+--     (10, 5),
+--     -- Lat Machine (Back, Arms - Triceps usually)
+--     (11, 2),
+--     (11, 5),
+--     -- Lat Pulldown (Back)
+--     (12, 2),
+--     -- Leg Press (Legs)
+--     (13, 3),
+--     -- Smith Machine (Chest, Legs, Shoulders - Compound)
+--     (14, 1),
+--     (14, 3),
+--     (14, 4),
+--     -- Calf Raise (Legs)
+--     (15, 3),
+--     -- Leg Extension (Legs - Quads)
+--     (16, 3),
+--     -- Leg Curl (Legs - Hamstrings)
+--     (17, 3),
+--     -- Cardio Bike (Cardio, Legs)
+--     (18, 7),
+--     (18, 3),
+--     -- Treadmill (Cardio, Legs)
+--     (19, 7),
+--     (19, 3),
+--     -- Hack Squat (Legs)
+--     (20, 3),
+--     -- Barbell Squat Station (Legs, Core)
+--     (21, 3),
+--     (21, 6);

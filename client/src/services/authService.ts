@@ -38,8 +38,13 @@ export const authService = {
                 contactNumber,
             }),
         });
+        const data = await res.json();
 
-        return res.json();
+        if (data?.data?.token) {
+            authToken = data.data.token;
+        }
+
+        return data;
     },
 
     /** --------------------

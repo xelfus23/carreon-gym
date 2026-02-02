@@ -17,6 +17,7 @@ export default function DrawerLayout() {
                 },
             }}
             drawerContent={(props) => <CustomDrawerContent {...props} />}
+            initialRouteName="(home)"
         >
             <Drawer.Screen
                 name="(home)"

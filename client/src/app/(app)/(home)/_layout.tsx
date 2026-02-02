@@ -1,7 +1,14 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { Text, View } from "react-native";
-import { LayoutGrid, MessageSquare, Notebook, User, User2 } from "lucide-react-native";
+import {
+    CameraIcon,
+    LayoutGrid,
+    LucideDumbbell,
+    MessageSquare,
+    User2,
+} from "lucide-react-native";
+
 import { COLORS } from "@/src/consts/colors";
 import CustomHeader from "@/src/app/components/CustomHeader";
 
@@ -59,7 +66,7 @@ export default function ProtectedRouteLayout() {
                 name="plans"
                 options={{
                     tabBarIcon: ({ focused }) => (
-                        <Notebook
+                        <LucideDumbbell
                             color={
                                 focused
                                     ? COLORS.textPrimary
@@ -74,6 +81,20 @@ export default function ProtectedRouteLayout() {
                 options={{
                     tabBarIcon: ({ focused }) => (
                         <User2
+                            color={
+                                focused
+                                    ? COLORS.textPrimary
+                                    : COLORS.textSecondary
+                            }
+                        />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="camera"
+                options={{
+                    tabBarIcon: ({ focused }) => (
+                        <CameraIcon
                             color={
                                 focused
                                     ? COLORS.textPrimary

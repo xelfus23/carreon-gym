@@ -3,26 +3,29 @@ import { authService } from "../services/authService";
 import { AuthUser } from "../types/users";
 import { AuthContextType } from "../types/interface";
 import { authStorage } from "../utils/authStorage";
-import { StackNavigationProp } from "../types/stackParam";
-import { useNavigation } from "expo-router";
+import { useRouter, useSegments } from "expo-router";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true); // 🔑 start true
+    const [isLoading, setIsLoading] = useState(true);
+
+    const segments = useSegments();
+    const router = useRouter();
 
     useEffect(() => {
         const restoreSession = async () => {
             try {
                 const { user, token } = await authStorage.load();
-
                 if (user && token) {
                     setUser(user);
                     setIsAuthenticated(true);
                     authService.setToken(token);
                 }
+            } catch (e) {
+                console.error(e);
             } finally {
                 setIsLoading(false);
             }
@@ -32,8 +35,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     useEffect(() => {
-        console.log("IS AUTHENTICATED: ", isAuthenticated, "USER: ", user);
-    }, [isAuthenticated, user]);
+        if (isLoading) return;
+
+        const inAuthGroup = segments[0] === "(app)";
+
+        if (isAuthenticated && !inAuthGroup) {
+            router.replace("/(app)/(home)/dashboard");
+        } else if (!isAuthenticated && inAuthGroup) {
+            router.replace("/");
+        }
+    }, [isAuthenticated, segments, isLoading, router]);
 
     const register = async (
         firstName: string,
@@ -55,11 +66,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (!result.success) throw new Error(result.message);
 
             const { user, token } = result.data;
-
             setUser(user);
             setIsAuthenticated(true);
             await authStorage.save(user, token);
-
             return true;
         } finally {
             setIsLoading(false);
@@ -73,9 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (!result.success) throw new Error(result.message);
 
             const { user, token } = result.data;
-
             setUser(user);
-            console.log(token);
             setIsAuthenticated(true);
             authService.setToken(token);
             await authStorage.save(user, token);
@@ -90,6 +97,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsAuthenticated(false);
         await authService.logout();
         await authStorage.clear();
+        // Router will automatically redirect to '/' due to the useEffect above
     };
 
     return (

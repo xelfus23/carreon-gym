@@ -1,10 +1,10 @@
 import type { Request, Response } from "express";
-import pool from "../../config/pool.ts";
+import { getEquipment } from "../../utils/getEquipment.ts";
 
-const getEquipment = async (req: Request, res: Response) => {
+const getEquipmentController = async (req: Request, res: Response) => {
     try {
-        const result = await pool.query("SELECT * FROM equipment;");
-        const equipments = result.rows
+        const result = await getEquipment();
+        const equipments = result.rows;
         return res.status(200).json({ success: true, equipments: equipments });
     } catch (err) {
         if (err instanceof Error) {
@@ -14,4 +14,4 @@ const getEquipment = async (req: Request, res: Response) => {
     }
 };
 
-export default getEquipment;
+export default getEquipmentController;

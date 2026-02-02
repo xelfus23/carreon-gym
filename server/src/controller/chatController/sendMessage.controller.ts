@@ -1,7 +1,20 @@
 import type { Request, Response } from "express";
+import { Instructions } from "../../utils/getInstructions.ts";
 
 const sendMessage = async (req: Request, res: Response) => {
     const { message } = req.body;
+
+    console.log(req.body)
+
+    console.log(message)
+
+    if (!req.user) {
+        return res
+            .status(401)
+            .json({ success: false, message: "Unauthorized" });
+    }
+
+    const userId = req.user.id;
 
     if (!message) {
         return res.status(400).json({ error: "Message is Empty!" });
@@ -24,6 +37,10 @@ const sendMessage = async (req: Request, res: Response) => {
                 model: "mistralai/ministral-3-8b-reasoning",
                 stream: true,
                 messages: [
+                    {
+                        role: "system",
+                        content: await Instructions(userId),
+                    },
                     {
                         role: "user",
                         content: message,
