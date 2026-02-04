@@ -17,6 +17,7 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import ScreenWrapper from "../../components/ScreenWrapper";
 import { useChat } from "@/src/hooks/useChats";
 import renderMessageItem from "../../components/Chat/RenderMessage";
+import { ChatMessage } from "@/src/types/chats";
 
 if (
     Platform.OS === "android" &&
@@ -25,17 +26,11 @@ if (
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-type MessageTypes = {
-    text: string;
-    role: "assistant" | "user";
-    timestamp: number;
-};
-
 export default function Chats() {
-    const { messages, sendMessage, loading } = useChat("1");
+    const { messages, sendMessage, loading } = useChat();
     const [text, setText] = useState("");
     const headerHeight = useHeaderHeight();
-    const scrollRef = useRef<FlatList<MessageTypes>>(null);
+    const scrollRef = useRef<FlatList<ChatMessage>>(null);
     const isAtBottom = useRef(true);
 
     const handleSend = async () => {
@@ -93,13 +88,12 @@ export default function Chats() {
                             ref={scrollRef}
                             data={messages}
                             keyExtractor={(item, index) =>
-                                item.timestamp.toString() + index
+                                item.timestamp.toString() + item.id
                             }
                             onScroll={handleScroll}
                             scrollEventThrottle={16}
                             onContentSizeChange={handleContentSizeChange}
                             onLayout={handleContentSizeChange}
-                            contentContainerClassName="p-4 pb-20"
                             keyboardShouldPersistTaps="handled"
                             ListEmptyComponent={
                                 <Text className="text-text-secondary text-center mt-10">

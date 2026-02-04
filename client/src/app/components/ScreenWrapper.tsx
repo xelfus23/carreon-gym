@@ -12,7 +12,7 @@ export default function ScreenWrapper({
     bg = "bg-background",
 }: Props) {
     return (
-        <View className={`flex-1 ${bg}`}>
+        <View className={`flex-1 border  ${bg}`}>
             <SafeAreaView edges={["left", "right"]} className="flex-1">
                 {children}
             </SafeAreaView>

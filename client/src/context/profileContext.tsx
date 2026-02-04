@@ -8,29 +8,11 @@ import {
 import { UserProfile } from "../types/users";
 import { useAuth } from "./authContext";
 import { authService } from "../services/authService";
-
-interface UserProfileContextType {
-    profile: UserProfile | null;
-    isLoading: boolean;
-    refreshProfile: () => Promise<void>;
-    updateProfile: (
-        updates: Partial<{
-            heightCm: number;
-            gender: string;
-            birthDate: string;
-            goal: string;
-            activityLevel: string;
-        }>,
-    ) => Promise<void>;
-    updateUser: (
-        updates: Partial<{
-            firstName: string;
-            lastName: string;
-            email: string;
-            contactNumber: string;
-        }>,
-    ) => Promise<void>;
-}
+import {
+    UpdateProfileProps,
+    UpdateUserProps,
+    UserProfileContextType,
+} from "../types/context";
 
 const UserProfileContext = createContext<UserProfileContextType | null>(null);
 
@@ -43,30 +25,18 @@ export const UserProfileProvider = ({
     const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        console.log(profile);
-    }, [profile]);
-
     const refreshProfile = useCallback(async () => {
         setIsLoading(true);
         try {
             const { data } = await authService.me();
 
-            console.log("DATA:", data);
             setProfile(data.user);
         } finally {
             setIsLoading(false);
         }
     }, []);
 
-    const updateUser = async (
-        updates: Partial<{
-            firstName: string;
-            lastName: string;
-            email: string;
-            contactNumber: string;
-        }>,
-    ) => {
+    const updateUser = async (updates: UpdateUserProps) => {
         setIsLoading(true);
         try {
             const data = await authService.updateUser(user?.id!, updates);
@@ -85,15 +55,7 @@ export const UserProfileProvider = ({
         }
     };
 
-    const updateProfile = async (
-        updates: Partial<{
-            heightCm: number;
-            gender: string;
-            birthDate: string;
-            goal: string;
-            activityLevel: string;
-        }>,
-    ) => {
+    const updateProfile = async (updates: UpdateProfileProps) => {
         setIsLoading(true);
         try {
             const data = await authService.updateProfile(user?.id!, updates);
@@ -117,7 +79,6 @@ export const UserProfileProvider = ({
 
     useEffect(() => {
         if (user) {
-            console.log("RE-FETCHING: ", user.id);
             refreshProfile();
         }
     }, [user, refreshProfile]);

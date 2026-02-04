@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { authService } from "../services/authService";
 import { AuthUser } from "../types/users";
-import { AuthContextType } from "../types/interface";
+import { AuthContextType } from "../types/context";
 import { authStorage } from "../utils/authStorage";
 import { useRouter, useSegments } from "expo-router";
 

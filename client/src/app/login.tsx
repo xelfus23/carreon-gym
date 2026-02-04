@@ -8,6 +8,7 @@ import CustomKeyboardAvoidingView from "./components/CustomKeyboardAvoidingView"
 import Loader from "./components/Loader";
 import { useAuth } from "../context/authContext";
 import { StackNavigationProp } from "../types/stackParam";
+
 export default function Login() {
     const navigation: StackNavigationProp = useNavigation();
     const [secureTextEntry, setSecureTextEntry] = useState(true);

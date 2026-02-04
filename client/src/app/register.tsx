@@ -14,48 +14,9 @@ import { ChevronLeft } from "lucide-react-native";
 import Loader from "./components/Loader";
 import { useAuth } from "../context/authContext";
 import { StackNavigationProp } from "../types/stackParam";
-
-type UserInfoProps = {
-    firstName: string;
-    lastName: string;
-    password: string;
-    confirmPassword: string;
-    phoneNumber: string;
-    email: string;
-};
-
-type UserInfoErrorProps = {
-    firstName: boolean;
-    lastName: boolean;
-    password: boolean;
-    confirmPassword: boolean;
-    phoneNumber: boolean;
-    email: boolean;
-};
-
-const stepRequirements = {
-    1: ["firstName", "lastName"],
-    2: ["password", "confirmPassword"],
-    3: ["phoneNumber", "email"],
-} as const;
-
-const defaultStringValue: UserInfoProps = {
-    firstName: "",
-    lastName: "",
-    password: "",
-    confirmPassword: "",
-    phoneNumber: "",
-    email: "",
-};
-
-const defaultBooleanValue: UserInfoErrorProps = {
-    firstName: false,
-    lastName: false,
-    password: false,
-    confirmPassword: false,
-    phoneNumber: false,
-    email: false,
-};
+import { UserInfoErrorProps, UserInfoProps } from "../types/auth";
+import { defaultBooleanValue, defaultStringValue } from "../consts/defaults";
+import { stepRequirements } from "../consts/maps";
 
 export default function Register() {
     const [secureTextEntry, setSecureTextEntry] = useState(true);

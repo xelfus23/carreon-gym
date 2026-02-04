@@ -10,6 +10,14 @@ export const authService = {
         authToken = token;
     },
 
+    getToken() {
+        if (!authToken) {
+            return;
+        }
+
+        return authToken;
+    },
+
     getHeaders() {
         return {
             "Content-Type": "application/json",

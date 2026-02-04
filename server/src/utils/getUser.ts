@@ -20,6 +20,7 @@ export const userQuery = async (userId: string | number) => {
             LEFT JOIN user_profiles p ON u.id = p.user_id
             WHERE u.id = $1
         `;
+        
     return await pool.query(query, [userId]);
 };
 

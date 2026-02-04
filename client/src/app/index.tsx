@@ -1,5 +1,5 @@
 import { Image, Text, TouchableOpacity, View } from "react-native";
-import { useNavigation, useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import { RootStackParamList } from "../types/stackParam";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 

@@ -18,7 +18,6 @@ export default function CustomDrawerContent(props: any) {
     const { logout } = useAuth();
 
     const handleLogout = async () => {
-        console.log("Logging out...");
         await logout();
         router.replace("/login");
     };

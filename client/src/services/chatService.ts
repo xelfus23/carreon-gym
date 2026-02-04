@@ -1,31 +1,105 @@
+import { authService } from "./authService";
+
 let ws: WebSocket | null = null;
 
 const WS_URL = process.env.EXPO_PUBLIC_WS_URL;
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-console.log(WS_URL, API_URL);
-
 export const chatService = {
-    getHistory: async (userId: string) => {
-        const response = await fetch(`${API_URL}/api/chats/${userId}`);
+    getHistory: async () => {
+        const response = await fetch(`${API_URL}/api/chats/sessions`, {
+            method: "GET",
+            headers: authService.getHeaders(),
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch history");
+
         return await response.json();
     },
 
+    getSessionMessages: async (sessionId: number) => {
+        try {
+            const response = await fetch(
+                `${API_URL}/api/chats/sessions/${sessionId}/messages`,
+                {
+                    method: "GET",
+                    headers: authService.getHeaders(),
+                },
+            );
+            if (!response.ok) throw new Error("Failed to fetch messages");
+            return await response.json();
+        } catch (error) {
+            console.error("getSessionMessages error:", error);
+            return [];
+        }
+    },
+
+    createChat: async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/chats/sessions`, {
+                method: "POST",
+                headers: authService.getHeaders(),
+            });
+
+            if (!response.ok) throw new Error("Failed to create chat");
+            return await response.json(); // Should return { id: 123 }
+        } catch (error) {
+            console.error("createChat error:", error);
+            throw error;
+        }
+    },
+
+    saveMessage: async (
+        sessionId: number,
+        role: "user" | "assistant",
+        content: string,
+    ) => {
+        try {
+            await fetch(`${API_URL}/api/chats/messages`, {
+                method: "POST",
+                headers: authService.getHeaders(),
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    role: role,
+                    content: content,
+                }),
+            });
+        } catch (error) {
+            console.error("saveMessage error:", error);
+        }
+    },
+
     sendMessage: (
+        sessionId: number,
         text: string,
-        userId: string,
         onToken: (token: string) => void,
     ): Promise<void> => {
         return new Promise((resolve, reject) => {
-            // Replace with your local IP if testing on device (e.g., 192.168.1.5:3000)
-            // Do not use 'localhost' if running on a physical phone
-            const socketUrl = `ws://${WS_URL}`;
+            const token = authService.getToken();
+
+            if (!token) {
+                reject(new Error("No auth token"));
+                return;
+            }
+
+            // Pass sessionId in Query Params so backend knows context
+            const socketUrl = `ws://${WS_URL}/?token=${token}&session_id=${sessionId}`;
+
+            // Close existing connection if any (prevents double streams)
+            if (ws) {
+                ws.close();
+            }
 
             ws = new WebSocket(socketUrl);
 
             ws.onopen = () => {
-                // Send the prompt once connection is open
-                ws?.send(JSON.stringify({ message: text, userId }));
+                // Send the payload
+                ws?.send(
+                    JSON.stringify({
+                        message: text,
+                        session_id: sessionId,
+                    }),
+                );
             };
 
             ws.onmessage = (e) => {
@@ -34,10 +108,15 @@ export const chatService = {
 
                     if (data.type === "token") {
                         onToken(data.content);
+                    } else if (data.type === "tool_result") {
+                        // Optional: Handle tool success UI here (e.g. show "Plan Saved" toast)
+                        console.log("Tool used:", data.result);
                     } else if (data.type === "done") {
                         ws?.close();
+                        ws = null;
                         resolve();
                     } else if (data.type === "error") {
+                        ws?.close();
                         reject(new Error(data.message));
                     }
                 } catch (err) {
@@ -46,10 +125,10 @@ export const chatService = {
             };
 
             ws.onerror = (e) => {
-                if (e instanceof Error) {
-                    console.error("WebSocket error:", e.message);
-                    reject(new Error(e.message));
-                }
+                const errorMessage =
+                    (e as any).message || "WebSocket error occurred";
+                console.error("WebSocket error:", errorMessage);
+                reject(new Error(errorMessage));
             };
 
             ws.onclose = () => {
@@ -59,8 +138,13 @@ export const chatService = {
     },
 
     deleteMessage: async (messageId: string) => {
-        await fetch(`${API_URL}/chat/${messageId}`, {
-            method: "DELETE",
-        });
+        try {
+            await fetch(`${API_URL}/api/chats/messages/${messageId}`, {
+                method: "DELETE",
+                headers: authService.getHeaders(),
+            });
+        } catch (error) {
+            console.error("Delete error", error);
+        }
     },
 };
