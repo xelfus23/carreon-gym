@@ -69,10 +69,11 @@ export const chatService = {
         }
     },
 
+    // src/services/chatService.ts
     sendMessage: (
         sessionId: number,
         text: string,
-        onToken: (token: string) => void,
+        onToken: (token: string, status: string | null) => void,
     ): Promise<void> => {
         return new Promise((resolve, reject) => {
             const token = authService.getToken();
@@ -82,10 +83,9 @@ export const chatService = {
                 return;
             }
 
-            // Pass sessionId in Query Params so backend knows context
+            // ✅ sessionId is guaranteed to exist at this point
             const socketUrl = `ws://${WS_URL}/?token=${token}&session_id=${sessionId}`;
 
-            // Close existing connection if any (prevents double streams)
             if (ws) {
                 ws.close();
             }
@@ -93,7 +93,6 @@ export const chatService = {
             ws = new WebSocket(socketUrl);
 
             ws.onopen = () => {
-                // Send the payload
                 ws?.send(
                     JSON.stringify({
                         message: text,
@@ -107,10 +106,11 @@ export const chatService = {
                     const data = JSON.parse(e.data as string);
 
                     if (data.type === "token") {
-                        onToken(data.content);
+                        onToken(data.content, null);
+                    } else if (data.type === "status") {
+                        onToken("", data.state);
                     } else if (data.type === "tool_result") {
-                        // Optional: Handle tool success UI here (e.g. show "Plan Saved" toast)
-                        console.log("Tool used:", data.result);
+                        console.log("✅ Tool used:", data.toolName);
                     } else if (data.type === "done") {
                         ws?.close();
                         ws = null;
@@ -127,7 +127,7 @@ export const chatService = {
             ws.onerror = (e) => {
                 const errorMessage =
                     (e as any).message || "WebSocket error occurred";
-                console.error("WebSocket error:", errorMessage);
+                console.error("WebSocket error:", e);
                 reject(new Error(errorMessage));
             };
 

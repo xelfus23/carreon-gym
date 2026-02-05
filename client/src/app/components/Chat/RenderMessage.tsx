@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, ScrollView, Text } from "react-native";
+import { View, TouchableOpacity, ScrollView } from "react-native";
 import React from "react";
 import { RotateCw, ThumbsUp, ThumbsDown, CopyIcon } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
@@ -10,9 +10,17 @@ import { ChatMessage } from "@/src/types/chats";
 export default function renderMessageItem({ item }: { item: ChatMessage }) {
     const isUser = item.role === "user";
 
-    const { thought, content, isThinking } = isUser
-        ? { thought: null, content: item.content, isThinking: false }
-        : parseResponse(item.content);
+    // Merge parseResponse with live status
+    const { thought: parsedThought, content: parsedContent } = !isUser
+        ? parseResponse(item.content)
+        : { thought: null, content: item.content };
+
+    const isThinking =
+        !isUser && (item.aiStatus != null || parsedThought != null);
+
+    // Choose which text to display
+    const thought = parsedThought || "";
+    const content = parsedContent;
 
     return (
         <View
@@ -28,7 +36,8 @@ export default function renderMessageItem({ item }: { item: ChatMessage }) {
                 {!isUser && (content === "" || thought) && (
                     <ThinkingBlock
                         thought={thought || ""}
-                        isThinking={isThinking || false}
+                        isThinking={isThinking}
+                        status={item.aiStatus!}
                     />
                 )}
 

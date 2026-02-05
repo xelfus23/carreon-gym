@@ -6,6 +6,7 @@ import authRouter from "./routes/auth.route.ts";
 import chatRouter from "./routes/chat.routes.ts";
 import equipmentRouter from "./routes/equipment.route.ts";
 import { setupWebSocket } from "./services/websocketHandler.ts";
+import workoutPlanRouter from "./routes/workoutPlan.route.ts";
 
 dotenv.config({ path: ".env" });
 
@@ -30,6 +31,7 @@ app.use("/api/users", userRouter);
 app.use("/api/login", authRouter);
 app.use("/api/chats", chatRouter);
 app.use("/api/equipments", equipmentRouter);
+app.use("/api/workoutplan", workoutPlanRouter);
 
 app.listen(PORT, "0.0.0.0", () => {
     console.log("Listening to port", PORT);

@@ -3,10 +3,12 @@ export type ChatMessage = {
     role: "user" | "assistant" | "system";
     content: string;
     timestamp: number;
+    aiStatus?: string;
 };
 
 export interface ThinkingProps {
     thought: string;
+    status: string;
     isThinking: boolean;
 }
 

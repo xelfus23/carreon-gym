@@ -1,3 +1,4 @@
+// src/app/(tabs)/chats.tsx
 import {
     View,
     Text,
@@ -6,9 +7,7 @@ import {
     TouchableOpacity,
     KeyboardAvoidingView,
     Platform,
-    UIManager,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
+    ActivityIndicator,
 } from "react-native";
 import React, { useRef, useState } from "react";
 import { Send, ArrowDown } from "lucide-react-native";
@@ -18,20 +17,49 @@ import ScreenWrapper from "../../components/ScreenWrapper";
 import { useChat } from "@/src/hooks/useChats";
 import renderMessageItem from "../../components/Chat/RenderMessage";
 import { ChatMessage } from "@/src/types/chats";
-
-if (
-    Platform.OS === "android" &&
-    UIManager.setLayoutAnimationEnabledExperimental
-) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+import WelcomeScreen from "../../components/chatWelcome";
 
 export default function Chats() {
-    const { messages, sendMessage, loading } = useChat();
+    const {
+        messages,
+        sessionId,
+        sendMessage,
+        loading,
+        initializing,
+        startNewSession,
+    } = useChat();
+
     const [text, setText] = useState("");
     const headerHeight = useHeaderHeight();
     const scrollRef = useRef<FlatList<ChatMessage>>(null);
     const isAtBottom = useRef(true);
+    const [showScrollButton, setShowScrollButton] = useState(false);
+
+    // ✅ Show loading spinner during initialization
+    if (initializing) {
+        return (
+            <ScreenWrapper>
+                <View className="flex-1 bg-background justify-center items-center">
+                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <Text className="text-text-secondary mt-4">
+                        Loading your training history...
+                    </Text>
+                </View>
+            </ScreenWrapper>
+        );
+    }
+
+    // ✅ Show welcome screen if no session exists
+    if (!sessionId) {
+        return (
+            <ScreenWrapper>
+                <WelcomeScreen
+                    onStartChat={startNewSession}
+                    loading={loading}
+                />
+            </ScreenWrapper>
+        );
+    }
 
     const handleSend = async () => {
         if (!text.trim()) return;
@@ -46,12 +74,9 @@ export default function Chats() {
         }
     };
 
-    const [showScrollButton, setShowScrollButton] = useState(false);
-
-    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const handleScroll = (event: any) => {
         const { layoutMeasurement, contentOffset, contentSize } =
             event.nativeEvent;
-
         const paddingToBottom = 20;
         const isCloseToBottom =
             layoutMeasurement.height + contentOffset.y >=
@@ -62,7 +87,6 @@ export default function Chats() {
     };
 
     const handleContentSizeChange = () => {
-        // Only auto-scroll if the user was already at the bottom
         if (isAtBottom.current) {
             scrollToBottom();
         }
@@ -96,9 +120,15 @@ export default function Chats() {
                             onLayout={handleContentSizeChange}
                             keyboardShouldPersistTaps="handled"
                             ListEmptyComponent={
-                                <Text className="text-text-secondary text-center mt-10">
-                                    Start a conversation...
-                                </Text>
+                                <View className="flex-1 justify-center items-center mt-20">
+                                    <Text className="text-text-secondary text-center text-lg">
+                                        👋 Ready to train?
+                                    </Text>
+                                    <Text className="text-text-secondary text-center mt-2">
+                                        Ask me anything about fitness or request
+                                        a workout!
+                                    </Text>
+                                </View>
                             }
                             renderItem={renderMessageItem}
                         />

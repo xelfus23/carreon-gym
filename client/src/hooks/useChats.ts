@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+// src/hooks/useChats.ts
+import { useState, useCallback, useEffect } from "react";
 import { chatService } from "@/src/services/chatService";
 import { ChatMessage } from "../types/chats";
 
@@ -6,22 +7,16 @@ export function useChat(initialSessionId?: number) {
     const [sessionId, setSessionId] = useState<number | null>(
         initialSessionId || null,
     );
-
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [loading, setLoading] = useState(false);
-
-    // We start 'initializing' as true. It finishes only after we
-    // attempt to find a session AND load its messages.
     const [initializing, setInitializing] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    const creationLock = useRef(false);
+    const [aiStatus, setAiStatus] = useState<null | string>(null);
 
     // ============================================================
-    // 0. AUTO-RESUME LOGIC (The Fix)
+    // 1. AUTO-RESUME: Check for existing sessions on mount
     // ============================================================
     useEffect(() => {
-        // If the parent component passed an ID, rely on that.
         if (initialSessionId) {
             setSessionId(initialSessionId);
             return;
@@ -29,17 +24,15 @@ export function useChat(initialSessionId?: number) {
 
         const findLatestSession = async () => {
             try {
-                // 1. Fetch all sessions for this user
                 const sessions = await chatService.getHistory();
 
-                // 2. If sessions exist, pick the first one (Assuming Backend sorts DESC)
                 if (sessions && sessions.length > 0) {
                     const latestSession = sessions[0];
-                    console.log("Resuming session:", latestSession.id);
+                    console.log("📂 Resuming session:", latestSession.id);
                     setSessionId(latestSession.id);
                 } else {
-                    // 3. No sessions found? Stop loading.
-                    // The user is new, so we wait for them to send the first message.
+                    // ✅ No sessions found - user will see welcome screen
+                    console.log("👋 New user - no sessions found");
                     setInitializing(false);
                 }
             } catch (err) {
@@ -52,14 +45,14 @@ export function useChat(initialSessionId?: number) {
     }, [initialSessionId]);
 
     // ============================================================
-    // 1. LOAD MESSAGES (Triggers when sessionId is set)
+    // 2. LOAD MESSAGES when sessionId is set
     // ============================================================
     useEffect(() => {
         const loadMessages = async () => {
-            if (!sessionId) return; // Wait until we have an ID
+            if (!sessionId) return;
 
             try {
-                setInitializing(true); // Ensure loading state is on
+                setInitializing(true);
                 const history = await chatService.getSessionMessages(sessionId);
 
                 const formattedMessages: ChatMessage[] = history.map(
@@ -71,6 +64,7 @@ export function useChat(initialSessionId?: number) {
                     }),
                 );
                 setMessages(formattedMessages);
+                console.log(`✅ Loaded ${formattedMessages.length} messages`);
             } catch (err) {
                 console.error("Failed to load history", err);
                 setError("Could not load chat history");
@@ -83,61 +77,68 @@ export function useChat(initialSessionId?: number) {
     }, [sessionId]);
 
     // ============================================================
-    // 2. SEND MESSAGE LOGIC (Unchanged)
+    // 3. START NEW SESSION (Called by welcome screen)
+    // ============================================================
+    const startNewSession = useCallback(async () => {
+        if (sessionId) {
+            console.log("⚠️ Session already exists:", sessionId);
+            return;
+        }
+
+        setLoading(true);
+        try {
+            console.log("🆕 Creating new session...");
+            const newSession = await chatService.createChat();
+            setSessionId(newSession.id);
+            console.log("✅ Session created:", newSession.id);
+        } catch (err) {
+            console.error("Failed to create session", err);
+            setError("Could not start chat session");
+        } finally {
+            setLoading(false);
+        }
+    }, [sessionId]);
+
+    // ============================================================
+    // 4. SEND MESSAGE (No session creation here!)
     // ============================================================
     const sendMessage = useCallback(
         async (text: string) => {
             if (!text.trim()) return;
+            if (!sessionId) {
+                console.error("❌ Cannot send message without sessionId");
+                return;
+            }
 
             setLoading(true);
             setError(null);
 
             const userTimestamp = Date.now();
+
             setMessages((prev) => [
                 ...prev,
                 { role: "user", content: text, timestamp: userTimestamp },
             ]);
 
             try {
-                let currentSessionId = sessionId;
-
-                // Create new session if none exists
-                if (!currentSessionId) {
-                    if (creationLock.current) return;
-                    creationLock.current = true;
-
-                    const newSession = await chatService.createChat();
-                    currentSessionId = newSession.id;
-                    setSessionId(currentSessionId);
-                    creationLock.current = false;
-                }
-
-                if (currentSessionId) {
-                    await chatService.saveMessage(
-                        currentSessionId,
-                        "user",
-                        text,
-                    );
-                }
-
                 const assistantTimestamp = Date.now() + 1;
                 setMessages((prev) => [
                     ...prev,
                     {
                         role: "assistant",
-                        content: "Thinking...",
+                        content: "",
                         timestamp: assistantTimestamp,
+                        aiStatus: "thinking",
                     },
                 ]);
 
-                let responseBuffer = "";
                 let isFirstToken = true;
 
                 await chatService.sendMessage(
-                    currentSessionId!,
+                    sessionId,
                     text,
-                    (token) => {
-                        responseBuffer += token;
+                    (token, status) => {
+                        setAiStatus(status); // <- receive status from WS
 
                         setMessages((prev) =>
                             prev.map((msg) => {
@@ -160,8 +161,7 @@ export function useChat(initialSessionId?: number) {
                 setError(errorMessage);
                 setMessages((prev) =>
                     prev.map((msg) =>
-                        msg.role === "assistant" &&
-                        msg.content === "Thinking..."
+                        msg.role === "assistant" && msg.content === ""
                             ? { ...msg, content: `⚠️ Error: ${errorMessage}` }
                             : msg,
                     ),
@@ -170,7 +170,7 @@ export function useChat(initialSessionId?: number) {
                 setLoading(false);
             }
         },
-        [sessionId],
+        [sessionId, aiStatus],
     );
 
     return {
@@ -180,5 +180,6 @@ export function useChat(initialSessionId?: number) {
         initializing,
         error,
         sendMessage,
+        startNewSession, // ✅ New function exposed
     };
 }

@@ -66,13 +66,19 @@ export default function ProtectedRouteLayout() {
                 name="plans"
                 options={{
                     tabBarIcon: ({ focused }) => (
-                        <LucideDumbbell
-                            color={
-                                focused
-                                    ? COLORS.textPrimary
-                                    : COLORS.textSecondary
-                            }
-                        />
+                        <View
+                            style={{
+                                transform: [{ rotate: "45deg" }],
+                            }}
+                        >
+                            <LucideDumbbell
+                                color={
+                                    focused
+                                        ? COLORS.textPrimary
+                                        : COLORS.textSecondary
+                                }
+                            />
+                        </View>
                     ),
                 }}
             />
@@ -80,13 +86,15 @@ export default function ProtectedRouteLayout() {
                 name="profile"
                 options={{
                     tabBarIcon: ({ focused }) => (
-                        <User2
-                            color={
-                                focused
-                                    ? COLORS.textPrimary
-                                    : COLORS.textSecondary
-                            }
-                        />
+                        <View>
+                            <User2
+                                color={
+                                    focused
+                                        ? COLORS.textPrimary
+                                        : COLORS.textSecondary
+                                }
+                            />
+                        </View>
                     ),
                 }}
             />

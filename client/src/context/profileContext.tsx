@@ -13,6 +13,7 @@ import {
     UpdateUserProps,
     UserProfileContextType,
 } from "../types/context";
+import { workoutService } from "../services/workoutService";
 
 const UserProfileContext = createContext<UserProfileContextType | null>(null);
 
@@ -22,6 +23,7 @@ export const UserProfileProvider = ({
     children: React.ReactNode;
 }) => {
     const [profile, setProfile] = useState<UserProfile | null>(null);
+
     const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
 
