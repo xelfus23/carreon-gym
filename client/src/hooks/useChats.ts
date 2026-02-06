@@ -11,7 +11,6 @@ export function useChat(initialSessionId?: number) {
     const [loading, setLoading] = useState(false);
     const [initializing, setInitializing] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [aiStatus, setAiStatus] = useState<null | string>(null);
 
     // ============================================================
     // 1. AUTO-RESUME: Check for existing sessions on mount
@@ -61,10 +60,28 @@ export function useChat(initialSessionId?: number) {
                         role: msg.role,
                         content: msg.content,
                         timestamp: new Date(msg.created_at).getTime(),
+                        // Preserve tool call data
+                        tool_calls: msg.tool_calls
+                            ? typeof msg.tool_calls === "string"
+                                ? JSON.parse(msg.tool_calls)
+                                : msg.tool_calls
+                            : undefined,
+                        tool_call_id: msg.tool_call_id,
+                        name: msg.name,
+                        aiStatus: msg.aiStatus,
                     }),
                 );
                 setMessages(formattedMessages);
                 console.log(`✅ Loaded ${formattedMessages.length} messages`);
+                // Log tool calls found
+                const toolMessages = formattedMessages.filter(
+                    (m) => m.tool_calls || m.role === "tool",
+                );
+                if (toolMessages.length > 0) {
+                    console.log(
+                        `📞 Found ${toolMessages.length} messages with tool calls/results`,
+                    );
+                }
             } catch (err) {
                 console.error("Failed to load history", err);
                 setError("Could not load chat history");
@@ -128,29 +145,29 @@ export function useChat(initialSessionId?: number) {
                         role: "assistant",
                         content: "",
                         timestamp: assistantTimestamp,
-                        aiStatus: "thinking",
+                        aiStatus: "Thinking",
                     },
                 ]);
-
-                let isFirstToken = true;
 
                 await chatService.sendMessage(
                     sessionId,
                     text,
-                    (token, status) => {
-                        setAiStatus(status); // <- receive status from WS
-
+                    (token) => {
                         setMessages((prev) =>
-                            prev.map((msg) => {
-                                if (msg.timestamp === assistantTimestamp) {
-                                    const newContent = isFirstToken
-                                        ? token
-                                        : msg.content + token;
-                                    isFirstToken = false;
-                                    return { ...msg, content: newContent };
-                                }
-                                return msg;
-                            }),
+                            prev.map((msg) =>
+                                msg.timestamp === assistantTimestamp
+                                    ? { ...msg, content: msg.content + token }
+                                    : msg,
+                            ),
+                        );
+                    },
+                    (state) => {
+                        setMessages((prev) =>
+                            prev.map((msg) =>
+                                msg.timestamp === assistantTimestamp
+                                    ? { ...msg, aiStatus: state }
+                                    : msg,
+                            ),
                         );
                     },
                 );
@@ -170,7 +187,7 @@ export function useChat(initialSessionId?: number) {
                 setLoading(false);
             }
         },
-        [sessionId, aiStatus],
+        [sessionId],
     );
 
     return {

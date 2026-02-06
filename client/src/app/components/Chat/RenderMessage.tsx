@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, ScrollView } from "react-native";
+import { View, TouchableOpacity, ScrollView, Text } from "react-native";
 import React from "react";
 import { RotateCw, ThumbsUp, ThumbsDown, CopyIcon } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
@@ -9,18 +9,29 @@ import { ChatMessage } from "@/src/types/chats";
 
 export default function renderMessageItem({ item }: { item: ChatMessage }) {
     const isUser = item.role === "user";
+    const isTool = item.role === "tool";
 
-    // Merge parseResponse with live status
-    const { thought: parsedThought, content: parsedContent } = !isUser
-        ? parseResponse(item.content)
-        : { thought: null, content: item.content };
+    // 🛠️ Handle tool messages
+    if (isTool) {
+        return (
+            <View className="mb-2 items-start w-full gap-2 p-4">
+                <View className="rounded-2xl bg-surface/50 border border-primary-dark px-4 py-3 max-w-[85%]">
+                    <Text className="text-text-secondary text-sm">
+                        {JSON.parse(item.content).message}
+                    </Text>
+                </View>
+            </View>
+        );
+    }
 
-    const isThinking =
-        !isUser && (item.aiStatus != null || parsedThought != null);
+    let parsedContent = item.content;
 
-    // Choose which text to display
-    const thought = parsedThought || "";
-    const content = parsedContent;
+    if (!isUser && item.content) {
+        const parseResult = parseResponse(item.content);
+        parsedContent = parseResult.content;
+    }
+
+    const content = parsedContent || "";
 
     return (
         <View
@@ -33,13 +44,7 @@ export default function renderMessageItem({ item }: { item: ChatMessage }) {
                         : "mr-0 bg-transparent"
                 }`}
             >
-                {!isUser && (content === "" || thought) && (
-                    <ThinkingBlock
-                        thought={thought || ""}
-                        isThinking={isThinking}
-                        status={item.aiStatus!}
-                    />
-                )}
+                {!isUser && <ThinkingBlock status={item.aiStatus! || "Done"} />}
 
                 {content ? (
                     <Markdown
@@ -252,7 +257,7 @@ export default function renderMessageItem({ item }: { item: ChatMessage }) {
                     </Markdown>
                 ) : null}
             </View>
-            {!isUser && !isThinking && (
+            {!isUser && (
                 <View className="flex flex-row gap-4 pl-4">
                     <TouchableOpacity>
                         <ThumbsUp color={COLORS.textSecondary} size={18} />

@@ -5,12 +5,16 @@ import { workoutService } from "@/src/services/workoutService";
 import Loader from "../../components/Loader";
 import { Ionicons } from "@expo/vector-icons";
 import { WorkoutPlanProps } from "@/src/types/workout";
+import { useRouter } from "expo-router";
+import { COLORS } from "@/src/consts/colors";
 
 export default function Plans() {
     const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlanProps[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [expandedPlan, setExpandedPlan] = useState<number | null>(null);
     const [expandedDay, setExpandedDay] = useState<number | null>(null);
+
+    const router = useRouter();
 
     const refreshWorkoutPlan = useCallback(async () => {
         setIsLoading(true);
@@ -375,13 +379,14 @@ export default function Plans() {
                 <TouchableOpacity
                     className="bg-primary p-4 rounded-2xl flex-row items-center justify-center gap-2 mt-2"
                     activeOpacity={0.8}
+                    onPress={() => router.navigate("/(app)/(home)/chat")}
                 >
                     <Ionicons
                         name="add-circle-outline"
                         size={24}
-                        color="white"
+                        color={COLORS.background}
                     />
-                    <Text className="text-white font-bold text-base">
+                    <Text className="text-background font-bold text-base">
                         Create New Plan with AI
                     </Text>
                 </TouchableOpacity>

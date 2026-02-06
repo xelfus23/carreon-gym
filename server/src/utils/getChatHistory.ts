@@ -6,13 +6,9 @@ export const getChatHistory = async (
     userId: number,
     sessionId: number,
 ): Promise<any[]> => {
-    console.log("\n📚 Fetching chat history...");
-    console.log("User ID:", userId, "Session ID:", sessionId);
-
     // Get system instructions
     const systemPrompt = await Instructions(userId);
 
-    // Get chat messages
     const result = await pool.query(
         `SELECT role, content, tool_calls, name, tool_call_id, created_at
          FROM chat_messages 
@@ -21,15 +17,12 @@ export const getChatHistory = async (
         [sessionId],
     );
 
-    console.log("✅ Found", result.rows.length, "messages");
-
     const messages = [
         {
             role: "system",
             content: systemPrompt,
         },
         ...result.rows.map((row) => {
-            // Handle tool messages
             if (row.role === "tool") {
                 return {
                     role: "tool",
@@ -39,7 +32,6 @@ export const getChatHistory = async (
                 };
             }
 
-            // Handle assistant messages with tool calls
             if (row.role === "assistant" && row.tool_calls) {
                 return {
                     role: "assistant",

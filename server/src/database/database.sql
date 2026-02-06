@@ -20,6 +20,7 @@
 
 -- CREATE TABLE user_profiles (
 --     user_id INT PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
+--     profile_picture_url TEXT,
 --     height_cm INT CHECK (height_cm > 0),
 --     gender TEXT CHECK (gender IN ('male', 'female', 'other')),
 --     birth_date DATE,
@@ -59,8 +60,12 @@
 -- CREATE TABLE chat_messages (
 --     id SERIAL PRIMARY KEY,
 --     session_id INT REFERENCES chat_sessions (id) ON DELETE CASCADE,
---     role TEXT CHECK (role IN ('user', 'assistant')) NOT NULL,
---     content TEXT NOT NULL,
+--     user_id INT REFERENCES users (id) ON DELETE CASCADE,
+--     role TEXT CHECK (role IN ('user', 'assistant', 'system', 'tool')) NOT NULL,
+--     content TEXT,
+--     tool_calls JSONB, -- Stores array of tool calls from assistant
+--     tool_call_id TEXT, -- Links tool result to the tool call
+--     name TEXT, -- Tool name for tool role messages
 --     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 -- );
 

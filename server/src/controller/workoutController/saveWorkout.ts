@@ -21,7 +21,7 @@ export const saveWorkoutPlan = async (
     try {
         let args = toolCall.arguments;
         console.log("Arguments type:", typeof args);
-        console.log("Raw arguments:", args);
+        console.log("Raw arguments:", JSON.stringify(args));
 
         if (typeof args === "string") {
             console.log("🔄 Parsing arguments from string...");

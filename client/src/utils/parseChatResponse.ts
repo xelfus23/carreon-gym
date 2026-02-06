@@ -1,4 +1,9 @@
-export const parseResponse = (rawContent: string) => {
+export const parseResponse = (rawContent: string | null | undefined) => {
+    // Handle null/undefined gracefully
+    if (!rawContent || typeof rawContent !== "string") {
+        return { thought: null, content: "", isThinking: false };
+    }
+
     if (!rawContent.startsWith("[THINK]")) {
         return { thought: null, content: rawContent };
     }
