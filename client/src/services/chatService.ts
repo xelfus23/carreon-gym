@@ -69,24 +69,22 @@ export const chatService = {
         }
     },
 
-    // src/services/chatService.ts
     sendMessage: (
         sessionId: number,
         text: string,
-        onToken: (token: string, status: string | null) => void,
+        onToken: (token: string) => void,
+        onState: (state: string) => void,
     ): Promise<void> => {
         return new Promise((resolve, reject) => {
             const token = authService.getToken();
-
             if (!token) {
                 reject(new Error("No auth token"));
                 return;
             }
 
-            // ✅ sessionId is guaranteed to exist at this point
-            const socketUrl = `ws://${WS_URL}/?token=${token}&session_id=${sessionId}`;
+            const socketUrl = `ws://${WS_URL}?token=${token}&session_id=${sessionId}`;
 
-            if (ws) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.close();
             }
 
@@ -96,7 +94,6 @@ export const chatService = {
                 ws?.send(
                     JSON.stringify({
                         message: text,
-                        session_id: sessionId,
                     }),
                 );
             };
@@ -106,18 +103,17 @@ export const chatService = {
                     const data = JSON.parse(e.data as string);
 
                     if (data.type === "token") {
-                        onToken(data.content, null);
-                    } else if (data.type === "status") {
-                        onToken("", data.state);
-                    } else if (data.type === "tool_result") {
-                        console.log("✅ Tool used:", data.toolName);
-                    } else if (data.type === "done") {
-                        ws?.close();
-                        ws = null;
+                        onToken(data.content);
+                    }
+
+                    if (data.type === "state") {
+                        onState(data.state);
+                    }
+
+                    if (data.type === "done") {
                         resolve();
-                    } else if (data.type === "error") {
+                        onState("Done");
                         ws?.close();
-                        reject(new Error(data.message));
                     }
                 } catch (err) {
                     console.error("WS Parse error", err);
@@ -125,14 +121,13 @@ export const chatService = {
             };
 
             ws.onerror = (e) => {
-                const errorMessage =
-                    (e as any).message || "WebSocket error occurred";
                 console.error("WebSocket error:", e);
-                reject(new Error(errorMessage));
+                onState(`Error: ${e}`);
+                reject(new Error("WebSocket error"));
             };
 
             ws.onclose = () => {
-                console.log("Connection closed");
+                console.log("WS closed");
             };
         });
     },

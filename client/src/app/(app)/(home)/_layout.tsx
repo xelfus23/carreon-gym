@@ -32,7 +32,25 @@ export default function ProtectedRouteLayout() {
                     </Text>
                 ),
             }}
+            initialRouteName="chat"
         >
+            <Tabs.Screen
+                name="profile"
+                options={{
+                    tabBarIcon: ({ focused }) => (
+                        <View>
+                            <User2
+                                color={
+                                    focused
+                                        ? COLORS.textPrimary
+                                        : COLORS.textSecondary
+                                }
+                            />
+                        </View>
+                    ),
+                }}
+            />
+
             <Tabs.Screen
                 name="chat"
                 options={{
@@ -48,6 +66,7 @@ export default function ProtectedRouteLayout() {
                     tabBarHideOnKeyboard: true,
                 }}
             />
+
             <Tabs.Screen
                 name="dashboard"
                 options={{
@@ -62,6 +81,7 @@ export default function ProtectedRouteLayout() {
                     ),
                 }}
             />
+
             <Tabs.Screen
                 name="plans"
                 options={{
@@ -82,22 +102,7 @@ export default function ProtectedRouteLayout() {
                     ),
                 }}
             />
-            <Tabs.Screen
-                name="profile"
-                options={{
-                    tabBarIcon: ({ focused }) => (
-                        <View>
-                            <User2
-                                color={
-                                    focused
-                                        ? COLORS.textPrimary
-                                        : COLORS.textSecondary
-                                }
-                            />
-                        </View>
-                    ),
-                }}
-            />
+
             <Tabs.Screen
                 name="camera"
                 options={{

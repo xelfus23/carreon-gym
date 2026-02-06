@@ -5,8 +5,8 @@ import userRouter from "./routes/user.route.ts";
 import authRouter from "./routes/auth.route.ts";
 import chatRouter from "./routes/chat.routes.ts";
 import equipmentRouter from "./routes/equipment.route.ts";
-import { setupWebSocket } from "./services/websocketHandler.ts";
 import workoutPlanRouter from "./routes/workoutPlan.route.ts";
+import { WebsocketHandler } from "./services/websocketHandler.ts";
 
 dotenv.config({ path: ".env" });
 
@@ -14,8 +14,7 @@ const app = express();
 app.use(express.json());
 
 const server = app.listen(3000);
-
-setupWebSocket(server);
+WebsocketHandler(server);
 
 app.use(
     cors({

@@ -1,274 +1,321 @@
-// websocket/websocket.ts
-import { WebSocketServer, WebSocket as WsWebSocket } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
-import jwt from "jsonwebtoken";
-import pool from "../config/pool.ts";
-import { handleToolCall } from "./handleToolCall.ts";
-import { tools } from "../utils/tools.ts";
+import { WSAuthentication } from "./webSocketAuth.ts";
 import { getChatHistory } from "../utils/getChatHistory.ts";
-import { AIProviderService } from "./AIprovider.ts";
+import { LMstudioStream } from "./aiProvider/LMStudioStream.ts";
+import { handleToolCall } from "./handleToolCall.ts";
+import { saveMessageService } from "./saveMessageService.ts";
+import type { ToolCall, ChatMessage } from "../types/index.ts";
 
-type ToolCall = {
-    id: string;
-    type: "function";
-    function: {
-        name: string;
-        arguments: string;
-    };
-};
-
-// Helper functions
-function tryParseJSON(raw: string): any | null {
-    if (!raw || raw.trim() === "") return {};
-    try {
-        return JSON.parse(raw);
-    } catch {
-        return null;
-    }
-}
-
-function stripThinkBlocks(text: string): string {
-    return text.replace(/\[THINK\][\s\S]*?\[\/THINK\]/g, "").trim();
-}
-
-function sendStatus(ws: WsWebSocket, state: string, extra?: any) {
-    if (ws.readyState !== ws.OPEN) return;
-    ws.send(JSON.stringify({ type: "status", state, ...extra }));
-}
-
-export const setupWebSocket = (server: Server) => {
+export const WebsocketHandler = async (server: Server) => {
     const wss = new WebSocketServer({ server });
-    const aiService = new AIProviderService();
 
-    wss.on("connection", (ws, req) => {
-        let userId: number | null = null;
-        let session_Id: number | null = null;
+    wss.on("connection", async (ws: WebSocket, req: any) => {
+        const auth = await WSAuthentication(ws, req);
+        if (!auth) return;
 
-        try {
-            const url = new URL(req.url!, "http://localhost");
-            const token = url.searchParams.get("token");
-            const sessionIdStr = url.searchParams.get("session_id");
-
-            if (!token || !sessionIdStr) throw new Error("Missing auth params");
-
-            const payload = jwt.verify(token, process.env.JWT_SECRET_KEY!) as {
-                id: number;
-            };
-            userId = payload.id;
-            session_Id = parseInt(sessionIdStr);
-            console.log("✅ WS authenticated:", userId, session_Id);
-        } catch (err) {
-            console.error("❌ WS auth failed:", err);
-            ws.close();
-            return;
-        }
+        const { userId, sessionId } = auth;
 
         ws.on("message", async (message) => {
-            if (!userId || !session_Id) return;
-
-            console.log("\n========================================");
-            console.log("📨 NEW MESSAGE RECEIVED");
-            console.log("========================================");
-
             try {
-                const { message: userPrompt } = JSON.parse(message.toString());
-                console.log("👤 User:", userPrompt);
+                const parsed = JSON.parse(message.toString());
+                const userMessage = parsed.message;
 
-                // Save user message
-                await pool.query(
-                    `INSERT INTO chat_messages (session_id, role, content) VALUES ($1, $2, $3)`,
-                    [session_Id, "user", userPrompt],
-                );
-
-                // Get chat history (includes system prompt)
-                const messagesPayload = await getChatHistory(
-                    userId,
-                    session_Id,
-                );
-                sendStatus(ws, "thinking");
-
-                console.log("\n🤖 Phase 1: Checking for tool calls...");
-                const aiResponse = await aiService.getNonStreamingResponse(
-                    messagesPayload,
-                    tools,
-                );
-
-                let { toolCalls, content: assistantMessage } = aiResponse;
-                console.log(`  Found ${toolCalls.length} tool call(s)`);
-
-                if (toolCalls.length > 0) {
-                    // Log detected tool calls
-                    toolCalls.forEach((tc, idx) => {
-                        console.log(`  ${idx + 1}. ${tc.function.name}`);
-                    });
-                }
-
-                // Execute tools if found
-                if (toolCalls.length > 0) {
-                    console.log("\n🚀 Phase 2A: Executing tools...");
-                    const toolResults: any[] = [];
-
-                    for (const tc of toolCalls) {
-                        console.log(`\n  → Executing: ${tc.function.name}`);
-                        console.log(`    Tool ID: ${tc.id}`);
-
-                        try {
-                            sendStatus(ws, "executing_tool", {
-                                tool: tc.function.name,
-                            });
-
-                            const result = await handleToolCall(
-                                {
-                                    name: tc.function.name,
-                                    arguments: tc.function.arguments,
-                                },
-                                userId,
-                            );
-
-                            console.log(`    ✅ Tool executed successfully`);
-
-                            toolResults.push({
-                                tool_call_id: tc.id,
-                                role: "tool",
-                                name: tc.function.name,
-                                content: JSON.stringify(
-                                    result || { success: true },
-                                ),
-                            });
-
-                            ws.send(
-                                JSON.stringify({
-                                    type: "tool_result",
-                                    tool: tc.function.name,
-                                    success: true,
-                                }),
-                            );
-                        } catch (err) {
-                            console.error(`    ❌ Tool execution failed:`, err);
-
-                            toolResults.push({
-                                tool_call_id: tc.id,
-                                role: "tool",
-                                name: tc.function.name,
-                                content: JSON.stringify({
-                                    error: String(err),
-                                    success: false,
-                                }),
-                            });
-
-                            ws.send(
-                                JSON.stringify({
-                                    type: "tool_result",
-                                    tool: tc.function.name,
-                                    success: false,
-                                    error: String(err),
-                                }),
-                            );
-                        }
-                    }
-
-                    // Phase 2B: Stream follow-up response
-                    console.log("\n📤 Phase 2B: Getting follow-up response...");
-                    sendStatus(ws, "responding");
-                    let finalText = "";
-
-                    await aiService.streamChat(
-                        [
-                            ...messagesPayload,
-                            {
-                                role: "assistant",
-                                content: assistantMessage || null,
-                                tool_calls: toolCalls,
-                            },
-                            ...toolResults,
-                        ],
-                        tools,
-                        (chunk) => {
-                            if (chunk.content && ws.readyState === ws.OPEN) {
-                                finalText += chunk.content;
-                                ws.send(
-                                    JSON.stringify({
-                                        type: "token",
-                                        content: chunk.content,
-                                    }),
-                                );
-                            }
-                        },
-                    );
-
-                    const cleaned = stripThinkBlocks(finalText).trim();
-                    if (cleaned) {
-                        sendStatus(ws, "saving");
-                        await pool.query(
-                            `INSERT INTO chat_messages (session_id, role, content) VALUES ($1, $2, $3)`,
-                            [session_Id, "assistant", cleaned],
-                        );
-                    }
-                } else {
-                    // Phase 2C: No tools, stream response directly
-                    console.log(
-                        "\n📤 Phase 2C: Streaming response (no tools)...",
-                    );
-                    sendStatus(ws, "responding");
-                    let streamedText = "";
-
-                    await aiService.streamChat(
-                        messagesPayload,
-                        tools,
-                        (chunk) => {
-                            if (chunk.content && ws.readyState === ws.OPEN) {
-                                streamedText += chunk.content;
-                                ws.send(
-                                    JSON.stringify({
-                                        type: "token",
-                                        content: chunk.content,
-                                    }),
-                                );
-                            }
-                        },
-                    );
-
-                    const cleaned = stripThinkBlocks(streamedText).trim();
-                    if (cleaned) {
-                        sendStatus(ws, "saving");
-                        await pool.query(
-                            `INSERT INTO chat_messages (session_id, role, content) VALUES ($1, $2, $3)`,
-                            [session_Id, "assistant", cleaned],
-                        );
-                    }
-                }
-
-                sendStatus(ws, "done");
-                ws.send(JSON.stringify({ type: "done" }));
-                console.log("✅ Complete\n");
-            } catch (err) {
-                console.error("❌ Error:", err);
-                console.error("Stack:", (err as Error).stack);
-
-                sendStatus(ws, "error", {
-                    message: err instanceof Error ? err.message : "Error",
+                // 💾 Save user message to database
+                await saveMessageService(ws, sessionId, userId, {
+                    role: "user",
+                    content: userMessage,
                 });
 
-                if (ws.readyState === ws.OPEN) {
-                    ws.send(
-                        JSON.stringify({
-                            type: "error",
-                            message:
-                                err instanceof Error
-                                    ? err.message
-                                    : "Unknown error",
-                        }),
-                    );
-                }
+                const chatHistory = await getChatHistory(userId, sessionId);
+
+                let messages: ChatMessage[] = [
+                    ...chatHistory,
+                    { role: "user", content: userMessage },
+                ];
+
+                // 🔹 STREAM MODEL AND HANDLE TOOL CALLS
+                await handleModelStreamWithTools(
+                    messages,
+                    userId,
+                    sessionId,
+                    ws,
+                );
+            } catch (err) {
+                console.error("WS message error:", err);
+                ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        message: "Streaming failed",
+                    }),
+                );
             }
         });
 
         ws.on("close", () => {
-            console.log("🔌 WS closed - User:", userId);
-        });
-
-        ws.on("error", (error) => {
-            console.error("❌ WS error:", error);
+            console.log("🔌 WebSocket closed:", userId);
         });
     });
+
+    // Example of improved error handling in handleModelStreamWithTools
+    async function handleModelStreamWithTools(
+        messages: ChatMessage[],
+        userId: number,
+        sessionId: number,
+        ws: WebSocket,
+    ) {
+        try {
+            const { toolCalls, assistantContent } = await streamModel(
+                messages,
+                ws,
+            );
+
+            if (toolCalls.length > 0) {
+                console.log(`\n📞 Detected ${toolCalls.length} tool call(s)`);
+
+                const assistantMessageWithTools = {
+                    role: "assistant",
+                    content: assistantContent || undefined,
+                    tool_calls: toolCalls.map((tc) => ({
+                        id: tc.id,
+                        type: "function",
+                        function: {
+                            name: tc.name,
+                            arguments: tc.arguments,
+                        },
+                    })),
+                } as any;
+
+                messages.push(assistantMessageWithTools);
+
+                // 💾 Save assistant message with tool calls
+                await saveMessageService(
+                    ws,
+                    sessionId,
+                    userId,
+                    assistantMessageWithTools,
+                );
+
+                // Execute each tool call
+                for (const toolCall of toolCalls) {
+                    try {
+                        const toolResult = await handleToolCall(
+                            ws,
+                            toolCall,
+                            userId,
+                        );
+
+                        const toolMessage: ChatMessage = {
+                            role: "tool",
+                            tool_call_id: toolCall.id,
+                            content: JSON.stringify(toolResult),
+                        };
+
+                        messages.push(toolMessage);
+
+                        // 💾 Save tool result message
+                        await saveMessageService(
+                            ws,
+                            sessionId,
+                            userId,
+                            toolMessage,
+                        );
+
+                        ws.send(
+                            JSON.stringify({
+                                type: "tool_result",
+                                name: toolCall.name,
+                                result: toolResult,
+                            }),
+                        );
+                    } catch (toolErr) {
+                        console.error(
+                            `❌ Tool error (${toolCall.name}):`,
+                            toolErr,
+                        );
+                        const errorMessage: ChatMessage = {
+                            role: "tool",
+                            tool_call_id: toolCall.id,
+                            content: JSON.stringify({
+                                error: `Tool execution failed: ${toolErr instanceof Error ? toolErr.message : "Unknown error"}`,
+                            }),
+                        };
+
+                        messages.push(errorMessage);
+
+                        // 💾 Save error message
+                        await saveMessageService(
+                            ws,
+                            sessionId,
+                            userId,
+                            errorMessage,
+                        );
+                    }
+                }
+
+                // 🔹 SECOND PASS: Stream model again with tool results
+                console.log(
+                    "\n🔄 Second pass: Streaming model with tool results",
+                );
+                const { assistantContent: finalContent } = await streamModel(
+                    messages,
+                    ws,
+                );
+
+                // 💾 Save final assistant message
+                if (finalContent) {
+                    const finalMessage: ChatMessage = {
+                        role: "assistant",
+                        content: finalContent,
+                    };
+                    await saveMessageService(
+                        ws,
+                        sessionId,
+                        userId,
+                        finalMessage,
+                    );
+                }
+            } else {
+                // 💾 No tool calls - save simple assistant response
+                if (assistantContent) {
+                    console.log(
+                        "\n💬 No tool calls detected, saving assistant response",
+                    );
+                    const assistantMessage: ChatMessage = {
+                        role: "assistant",
+                        content: assistantContent,
+                    };
+                    await saveMessageService(
+                        ws,
+                        sessionId,
+                        userId,
+                        assistantMessage,
+                    );
+                }
+            }
+
+            ws.send(JSON.stringify({ type: "done" }));
+        } catch (error) {
+            console.error("Error in handleModelStreamWithTools:", error);
+            ws.send(
+                JSON.stringify({
+                    type: "error",
+                    message: "Internal server error",
+                }),
+            );
+        }
+    }
+
+    // 🔹 HELPER: Stream from model and collect tool calls + content
+    async function streamModel(
+        messages: ChatMessage[],
+        ws: WebSocket,
+    ): Promise<{ toolCalls: ToolCall[]; assistantContent: string }> {
+        ws.send(
+            JSON.stringify({
+                type: "state",
+                state: "thinking",
+            }),
+        );
+
+        const response = await LMstudioStream(messages);
+
+        const reader = response.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let toolCallBuffer: Record<string, ToolCall> = {};
+        let assistantContent = "";
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed.startsWith("data:")) continue;
+
+                const data = trimmed.replace("data:", "").trim();
+
+                if (data === "[DONE]") break;
+
+                try {
+                    const json = JSON.parse(data);
+                    const delta = json.choices?.[0]?.delta;
+
+                    // 🔹 Handle text content
+                    if (delta?.content) {
+                        assistantContent += delta.content;
+                        ws.send(
+                            JSON.stringify({
+                                type: "token",
+                                content: delta.content,
+                            }),
+                        );
+                    }
+
+                    // 🔹 Handle tool calls (streamed)
+                    if (delta?.tool_calls) {
+                        for (const tc of delta.tool_calls) {
+                            const index = tc.index ?? 0;
+
+                            if (!toolCallBuffer[index]) {
+                                toolCallBuffer[index] = {
+                                    id: tc.id || `tool_${index}`,
+                                    name: tc.function?.name || "",
+                                    arguments: tc.function?.arguments || "",
+                                };
+                                console.log(
+                                    `📥 Tool call chunk [${index}] - name: "${tc.function?.name || ""}"`,
+                                );
+                            } else {
+                                // Append streaming chunks
+                                if (tc.id) toolCallBuffer[index].id = tc.id;
+                                if (tc.function?.name) {
+                                    toolCallBuffer[index].name +=
+                                        tc.function.name;
+                                }
+                                if (tc.function?.arguments) {
+                                    const oldLen =
+                                        toolCallBuffer[index].arguments.length;
+                                    toolCallBuffer[index].arguments +=
+                                        tc.function.arguments;
+                                    console.log(
+                                        `📥 Tool call chunk [${index}] - appended ${tc.function.arguments.length} chars (total: ${toolCallBuffer[index].arguments.length})`,
+                                    );
+                                }
+                            }
+                        }
+                    }
+                } catch (parseErr) {
+                    // Log parse errors but don't fail - could be partial JSON
+                    console.warn(
+                        "⚠️  Could not parse data chunk (may be partial):",
+                        (parseErr as Error).message.substring(0, 80),
+                    );
+                }
+            }
+        }
+
+        // 🔹 Validate tool calls before returning
+        const toolCalls = Object.values(toolCallBuffer);
+
+        if (toolCalls.length > 0) {
+            console.log(`\n✅ Collected ${toolCalls.length} tool call(s)`);
+            for (let i = 0; i < toolCalls.length; i++) {
+                const tc = toolCalls[i]!;
+                console.log(
+                    `   [${i}] ${tc.name}: ${tc.arguments.length} chars of arguments`,
+                );
+            }
+        }
+
+        return {
+            toolCalls,
+            assistantContent,
+        };
+    }
 };
