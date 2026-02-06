@@ -4,14 +4,10 @@ import { useFocusEffect } from "@react-navigation/native";
 import { workoutService } from "@/src/services/workoutService";
 import Loader from "../../components/Loader";
 import { Ionicons } from "@expo/vector-icons";
-
-type WorkoutPlan = {
-    id: number;
-    status: "active";
-};
+import { WorkoutPlanProps } from "@/src/types/workout";
 
 export default function Plans() {
-    const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
+    const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlanProps[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [expandedPlan, setExpandedPlan] = useState<number | null>(null);
     const [expandedDay, setExpandedDay] = useState<number | null>(null);
