@@ -24,7 +24,6 @@ export default function Login() {
             if (email === "" || password === "") {
                 throw new Error("Enter email and Password");
             }
-
             await login(email, password);
         } catch (err) {
             if (err instanceof Error) {

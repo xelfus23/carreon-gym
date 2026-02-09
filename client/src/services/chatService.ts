@@ -13,7 +13,6 @@ export const chatService = {
         });
 
         if (!response.ok) throw new Error("Failed to fetch history");
-
         return await response.json();
     },
 
@@ -42,30 +41,10 @@ export const chatService = {
             });
 
             if (!response.ok) throw new Error("Failed to create chat");
-            return await response.json(); // Should return { id: 123 }
+            return await response.json();
         } catch (error) {
             console.error("createChat error:", error);
             throw error;
-        }
-    },
-
-    saveMessage: async (
-        sessionId: number,
-        role: "user" | "assistant",
-        content: string,
-    ) => {
-        try {
-            await fetch(`${API_URL}/api/chats/messages`, {
-                method: "POST",
-                headers: authService.getHeaders(),
-                body: JSON.stringify({
-                    session_id: sessionId,
-                    role: role,
-                    content: content,
-                }),
-            });
-        } catch (error) {
-            console.error("saveMessage error:", error);
         }
     },
 

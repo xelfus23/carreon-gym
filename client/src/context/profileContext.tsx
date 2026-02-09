@@ -13,7 +13,6 @@ import {
     UpdateUserProps,
     UserProfileContextType,
 } from "../types/context";
-import { workoutService } from "../services/workoutService";
 
 const UserProfileContext = createContext<UserProfileContextType | null>(null);
 

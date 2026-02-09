@@ -1,12 +1,10 @@
-// utils/getChatHistory.ts
+import { Instructions } from "../ai/prompts/system.prompt.ts";
 import pool from "../config/pool.ts";
-import { Instructions } from "./getInstructions.ts";
 
 export const getChatHistory = async (
     userId: number,
     sessionId: number,
 ): Promise<any[]> => {
-    // Get system instructions
     const systemPrompt = await Instructions(userId);
 
     const result = await pool.query(
@@ -40,7 +38,6 @@ export const getChatHistory = async (
                 };
             }
 
-            // Regular messages
             return {
                 role: row.role,
                 content: row.content,

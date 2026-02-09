@@ -46,7 +46,12 @@ export const authService = {
                 contactNumber,
             }),
         });
+
         const data = await res.json();
+
+        if (!data.success) {
+            throw new Error(data.message);
+        }
 
         if (data?.data?.token) {
             authToken = data.data.token;
@@ -66,6 +71,10 @@ export const authService = {
         });
 
         const data = await res.json();
+
+        if (!data.success) {
+            throw new Error(data.message);
+        }
 
         if (data?.data?.token) {
             authToken = data.data.token;
