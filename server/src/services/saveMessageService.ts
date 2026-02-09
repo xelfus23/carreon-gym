@@ -12,7 +12,6 @@ export const saveMessageService = async (
         console.log(`\n💾 Saving message: role=${message.role}`);
 
         if (message.role === "user") {
-            // Save regular user message
             await pool.query(
                 `INSERT INTO chat_messages (session_id, user_id, role, content) 
                  VALUES ($1, $2, $3, $4)`,
@@ -20,7 +19,6 @@ export const saveMessageService = async (
             );
             console.log("✅ User message saved");
         } else if (message.role === "assistant") {
-            // Save assistant message (with or without tool calls)
             const toolCallsJson = message.tool_calls
                 ? JSON.stringify(message.tool_calls)
                 : null;

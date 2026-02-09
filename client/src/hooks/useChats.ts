@@ -23,7 +23,15 @@ export function useChat(initialSessionId?: number) {
 
         const findLatestSession = async () => {
             try {
-                const sessions = await chatService.getHistory();
+                const result = await chatService.getHistory();
+
+                console.log("RESULT:", result);
+
+                if (!result.success) {
+                    throw new Error(result.message);
+                }
+
+                const sessions = result.data;
 
                 if (sessions && sessions.length > 0) {
                     const latestSession = sessions[0];
@@ -52,7 +60,13 @@ export function useChat(initialSessionId?: number) {
 
             try {
                 setInitializing(true);
-                const history = await chatService.getSessionMessages(sessionId);
+                const result = await chatService.getSessionMessages(sessionId);
+
+                if (!result.success) {
+                    throw new Error(result.message);
+                }
+
+                const history = result.data;
 
                 const formattedMessages: ChatMessage[] = history.map(
                     (msg: any) => ({
@@ -71,6 +85,7 @@ export function useChat(initialSessionId?: number) {
                         aiStatus: msg.aiStatus,
                     }),
                 );
+
                 setMessages(formattedMessages);
                 console.log(`✅ Loaded ${formattedMessages.length} messages`);
                 // Log tool calls found
@@ -105,7 +120,14 @@ export function useChat(initialSessionId?: number) {
         setLoading(true);
         try {
             console.log("🆕 Creating new session...");
-            const newSession = await chatService.createChat();
+            const result = await chatService.createChat();
+
+            if (!result.success) {
+                throw new Error(result.message);
+            }
+
+            const newSession = result.data;
+
             setSessionId(newSession.id);
             console.log("✅ Session created:", newSession.id);
         } catch (err) {
@@ -197,6 +219,6 @@ export function useChat(initialSessionId?: number) {
         initializing,
         error,
         sendMessage,
-        startNewSession, // ✅ New function exposed
+        startNewSession,
     };
 }

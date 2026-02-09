@@ -1,18 +1,22 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
 import { WSAuthentication } from "./webSocketAuth.ts";
-import { getChatHistory } from "../utils/getChatHistory.ts";
-import { LMstudioStream } from "./aiProvider/LMStudioStream.ts";
-import { handleToolCall } from "./handleToolCall.ts";
 import { saveMessageService } from "./saveMessageService.ts";
 import type { ToolCall, ChatMessage } from "../types/index.ts";
+import { getChatHistory } from "../utils/getChatHistory.ts";
+import { handleToolCall } from "../ai/tools/handleToolCall.ts";
+import { LMstudio } from "../ai/client/LMstudio.ts";
 
 export const WebsocketHandler = async (server: Server) => {
     const wss = new WebSocketServer({ server });
 
     wss.on("connection", async (ws: WebSocket, req: any) => {
         const auth = await WSAuthentication(ws, req);
-        if (!auth) return;
+
+        if (!auth) {
+            ws.close(1008, "Unauthorized");
+            return;
+        }
 
         const { userId, sessionId } = auth;
 
@@ -21,7 +25,6 @@ export const WebsocketHandler = async (server: Server) => {
                 const parsed = JSON.parse(message.toString());
                 const userMessage = parsed.message;
 
-                // 💾 Save user message to database
                 await saveMessageService(ws, sessionId, userId, {
                     role: "user",
                     content: userMessage,
@@ -29,12 +32,8 @@ export const WebsocketHandler = async (server: Server) => {
 
                 const chatHistory = await getChatHistory(userId, sessionId);
 
-                let messages: ChatMessage[] = [
-                    ...chatHistory,
-                    { role: "user", content: userMessage },
-                ];
+                let messages: ChatMessage[] = [...chatHistory];
 
-                // 🔹 STREAM MODEL AND HANDLE TOOL CALLS
                 await handleModelStreamWithTools(
                     messages,
                     userId,
@@ -57,7 +56,6 @@ export const WebsocketHandler = async (server: Server) => {
         });
     });
 
-    // Example of improved error handling in handleModelStreamWithTools
     async function handleModelStreamWithTools(
         messages: ChatMessage[],
         userId: number,
@@ -71,8 +69,6 @@ export const WebsocketHandler = async (server: Server) => {
             );
 
             if (toolCalls.length > 0) {
-                console.log(`\n📞 Detected ${toolCalls.length} tool call(s)`);
-
                 const assistantMessageWithTools = {
                     role: "assistant",
                     content: assistantContent || undefined,
@@ -88,7 +84,6 @@ export const WebsocketHandler = async (server: Server) => {
 
                 messages.push(assistantMessageWithTools);
 
-                // 💾 Save assistant message with tool calls
                 await saveMessageService(
                     ws,
                     sessionId,
@@ -96,7 +91,6 @@ export const WebsocketHandler = async (server: Server) => {
                     assistantMessageWithTools,
                 );
 
-                // Execute each tool call
                 for (const toolCall of toolCalls) {
                     try {
                         const toolResult = await handleToolCall(
@@ -113,7 +107,6 @@ export const WebsocketHandler = async (server: Server) => {
 
                         messages.push(toolMessage);
 
-                        // 💾 Save tool result message
                         await saveMessageService(
                             ws,
                             sessionId,
@@ -133,6 +126,7 @@ export const WebsocketHandler = async (server: Server) => {
                             `❌ Tool error (${toolCall.name}):`,
                             toolErr,
                         );
+
                         const errorMessage: ChatMessage = {
                             role: "tool",
                             tool_call_id: toolCall.id,
@@ -143,7 +137,6 @@ export const WebsocketHandler = async (server: Server) => {
 
                         messages.push(errorMessage);
 
-                        // 💾 Save error message
                         await saveMessageService(
                             ws,
                             sessionId,
@@ -206,7 +199,6 @@ export const WebsocketHandler = async (server: Server) => {
         }
     }
 
-    // 🔹 HELPER: Stream from model and collect tool calls + content
     async function streamModel(
         messages: ChatMessage[],
         ws: WebSocket,
@@ -214,11 +206,15 @@ export const WebsocketHandler = async (server: Server) => {
         ws.send(
             JSON.stringify({
                 type: "state",
-                state: "thinking",
+                state: "Thinking",
             }),
         );
 
-        const response = await LMstudioStream(messages);
+        const response = await LMstudio(messages);
+
+        if (!response) {
+            throw new Error("Error Response");
+        }
 
         const reader = response.getReader();
         const decoder = new TextDecoder();
@@ -291,7 +287,6 @@ export const WebsocketHandler = async (server: Server) => {
                         }
                     }
                 } catch (parseErr) {
-                    // Log parse errors but don't fail - could be partial JSON
                     console.warn(
                         "⚠️  Could not parse data chunk (may be partial):",
                         (parseErr as Error).message.substring(0, 80),
