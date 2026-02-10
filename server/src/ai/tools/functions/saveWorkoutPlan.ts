@@ -7,13 +7,6 @@ export const saveWorkoutPlan = async (
     toolCall: ToolCall,
     userId: number,
 ) => {
-    ws.send(
-        JSON.stringify({
-            type: "state",
-            state: "saving workout plan",
-        }),
-    );
-
     let parsedArgs;
 
     try {

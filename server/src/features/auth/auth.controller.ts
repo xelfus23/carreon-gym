@@ -4,6 +4,8 @@ import { generateToken } from "../../utils/generateToken.ts";
 
 export const loginController = async (req: Request, res: Response) => {
     try {
+        console.log(req.body);
+
         const user = await loginDomain(req.body);
         const token = await generateToken(user.id);
 

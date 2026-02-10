@@ -68,13 +68,18 @@ export function useChat(initialSessionId?: number) {
 
                 const history = result.data;
 
-                const formattedMessages: ChatMessage[] = history.map(
-                    (msg: any) => ({
+                console.log(JSON.stringify(history));
+
+                const formattedMessages: ChatMessage[] = history
+                    .filter(
+                        (msg: any) =>
+                            msg.role !== "tool" && msg.content !== null,
+                    )
+                    .map((msg: any) => ({
                         id: msg.id,
                         role: msg.role,
                         content: msg.content,
                         timestamp: new Date(msg.created_at).getTime(),
-                        // Preserve tool call data
                         tool_calls: msg.tool_calls
                             ? typeof msg.tool_calls === "string"
                                 ? JSON.parse(msg.tool_calls)
@@ -83,8 +88,7 @@ export function useChat(initialSessionId?: number) {
                         tool_call_id: msg.tool_call_id,
                         name: msg.name,
                         aiStatus: msg.aiStatus,
-                    }),
-                );
+                    }));
 
                 setMessages(formattedMessages);
                 console.log(`✅ Loaded ${formattedMessages.length} messages`);

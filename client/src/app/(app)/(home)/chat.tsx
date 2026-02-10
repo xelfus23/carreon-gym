@@ -1,4 +1,3 @@
-// src/app/(tabs)/chats.tsx
 import {
     View,
     Text,
@@ -35,7 +34,6 @@ export default function Chats() {
     const isAtBottom = useRef(true);
     const [showScrollButton, setShowScrollButton] = useState(false);
 
-    // ✅ Show loading spinner during initialization
     if (initializing) {
         return (
             <ScreenWrapper>

@@ -77,10 +77,10 @@ export const saveWorkoutPlanParams = {
                                     description:
                                         "Target reps per set (e.g., 8, 10, 12). Use middle of range for rep ranges. Null for time-based or cardio.",
                                 },
-                                duration_minutes: {
+                                duration_seconds: {
                                     type: "number",
                                     description:
-                                        "Duration for cardio or time-based exercises (e.g., 20, 30). Null for strength exercises.",
+                                        "Duration for cardio or time-based exercises (e.g., 30, 60, 120). Null for strength exercises.",
                                 },
                                 rest_seconds: {
                                     type: "number",

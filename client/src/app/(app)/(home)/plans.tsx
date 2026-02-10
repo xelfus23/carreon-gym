@@ -19,8 +19,16 @@ export default function Plans() {
     const refreshWorkoutPlan = useCallback(async () => {
         setIsLoading(true);
         try {
-            const { data } = await workoutService.getWorkout();
-            console.log(data[0]);
+            const response = await workoutService.getWorkout();
+
+            console.log(response)
+
+            if (!response.success) {
+                throw new Error(response.message);
+            }
+
+            const data = response.data;
+
             setWorkoutPlans(data);
             // Auto-expand first plan if exists
             if (data.length > 0) {

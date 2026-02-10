@@ -1,0 +1,163 @@
+[
+    {
+        "id": 497,
+        "session_id": 11,
+        "role": "user",
+        "content": "hello",
+        "created_at": "2026-02-10T10:21:54.719Z",
+        "tool_calls": null,
+        "name": null,
+        "tool_call_id": null,
+        "user_id": 1
+    },
+    {
+        "id": 498,
+        "session_id": 11,
+        "role": "assistant",
+        "content": "Hey Patrick! How’s it going? Hope you’re having a great week at the gym. What’s on your mind today—hitting the weights, trying something new, or just looking for some motivation?",
+        "created_at": "2026-02-10T10:21:56.822Z",
+        "tool_calls": null,
+        "name": null,
+        "tool_call_id": null,
+        "user_id": 1
+    },
+    {
+        "id": 499,
+        "session_id": 11,
+        "role": "user",
+        "content": "How many workout plans do i have",
+        "created_at": "2026-02-10T10:22:06.697Z",
+        "tool_calls": null,
+        "name": null,
+        "tool_call_id": null,
+        "user_id": 1
+    },
+    {
+        "id": 500,
+        "session_id": 11,
+        "role": "assistant",
+        "content": null,
+        "created_at": "2026-02-10T10:22:07.497Z",
+        "tool_calls": [
+            {
+                "id": "859149540",
+                "type": "function",
+                "function": {
+                    "name": "get_user_workout_plans",
+                    "arguments": "{}"
+                }
+            }
+        ],
+        "name": null,
+        "tool_call_id": null,
+        "user_id": 1
+    },
+    {
+        "id": 501,
+        "session_id": 11,
+        "role": "tool",
+        "content": "[]",
+        "created_at": "2026-02-10T10:22:07.502Z",
+        "tool_calls": null,
+        "name": "859149540",
+        "tool_call_id": "859149540",
+        "user_id": 1
+    },
+    {
+        "id": 502,
+        "session_id": 11,
+        "role": "assistant",
+        "content": "You don’t have any saved workout plans yet. Want me to help you create one? Maybe start with a beginner-friendly full-body routine or focus on a specific area like legs, back, or arms? Let me know what you’re looking for!",
+        "created_at": "2026-02-10T10:22:09.725Z",
+        "tool_calls": null,
+        "name": null,
+        "tool_call_id": null,
+        "user_id": 1
+    },
+    {
+        "id": 503,
+        "session_id": 11,
+        "role": "user",
+        "content": "Yes create me something for my upper body muscles ",
+        "created_at": "2026-02-10T10:22:30.193Z",
+        "tool_calls": null,
+        "name": null,
+        "tool_call_id": null,
+        "user_id": 1
+    },
+    {
+        "id": 504,
+        "session_id": 11,
+        "role": "assistant",
+        "content": "Got it! I’ll design an **Upper Body** workout plan just for you. Since you’re a beginner, we’ll keep it simple and effective.\n\nFirst, do you have any preferences?\n- Should we focus on **push** (chest, shoulders, triceps) or **pull** (back, biceps) today?\n- Any equipment you’d like to prioritize?",
+        "created_at": "2026-02-10T10:22:33.800Z",
+        "tool_calls": null,
+        "name": null,
+        "tool_call_id": null,
+        "user_id": 1
+    },
+    {
+        "id": 505,
+        "session_id": 11,
+        "role": "user",
+        "content": "I want to use the gym equipments",
+        "created_at": "2026-02-10T10:22:42.285Z",
+        "tool_calls": null,
+        "name": null,
+        "tool_call_id": null,
+        "user_id": 1
+    },
+    {
+        "id": 506,
+        "session_id": 11,
+        "role": "assistant",
+        "content": "Perfect! I’ll use the available machines and free weights in our gym. Here’s a balanced **Upper Body Push/Pull** workout for you:\n\n---\n\n### 🎯 Focus: Upper Body (Push & Pull)\n### 🔥 Warmup:\n- **5 minutes on the Cardio Bike** – Light resistance, moderate pace\n- **Arm Circles** – 30 seconds forward, 30 seconds backward\n- **Band Pull-Aparts** – 2 sets of 12 reps (using Resistance Bands)\n\n---\n\n### 💪 The Workout:\n\n| Exercise | Sets | Reps | Rest | Equipment Used |\n|----------|------|------|------|----------------|\n| **Barbell Bench Press** | 3 | 8-10 | 60 sec | Barbells (Free Weight) |\n| **Cable Row** | 3 | 10-12 | 60 sec | Cable Row (Machine) |\n| **Pec Deck Machine** | 3 | 12-15 | 45 sec | Pec Deck (Machine) |\n| **Lat Pulldown** | 3 | 10-12 | 60 sec | Lat Pulldown (Machine) |\n| **Dumbbell Lateral Raises** | 3 | 12-15 | 45 sec | Dumbbells (Free Weight) |\n\n---\n\n### 💡 Trainer Tips:\n- **Barbell Bench Press:** Keep your feet planted, lower the bar to mid-chest, and push up without locking your elbows.\n- **Cable Row:** Squeeze your shoulder blades together at the top—this is where the work happens!\n- **Dumbbell Lateral Raises:** Go slow on the way up; this isn’t about speed, it’s about control.\n\n---",
+        "created_at": "2026-02-10T10:22:59.001Z",
+        "tool_calls": null,
+        "name": null,
+        "tool_call_id": null,
+        "user_id": 1
+    },
+    {
+        "id": 507,
+        "session_id": 11,
+        "role": "user",
+        "content": "can u add this to my workout plan?",
+        "created_at": "2026-02-10T10:23:38.288Z",
+        "tool_calls": null,
+        "name": null,
+        "tool_call_id": null,
+        "user_id": 1
+    },
+    {
+        "id": 508,
+        "session_id": 11,
+        "role": "assistant",
+        "content": null,
+        "created_at": "2026-02-10T10:24:01.558Z",
+        "tool_calls": [
+            {
+                "id": "654161544",
+                "type": "function",
+                "function": {
+                    "name": "save_workout_plan",
+                    "arguments": "{\"title\": \"Upper Body Push & Pull\", \"description\": \"A balanced beginner-friendly routine focusing on upper body strength and muscle development using available gym equipment.\", \"duration_weeks\": 4, \"days_per_week\": 1, \"difficulty_level\": \"beginner\", \"days\": [{\"day_order\": 1, \"title\": \"Upper Body Push & Pull\", \"is_rest_day\": false, \"exercises\": [{\"exercise_order\": 1, \"exercise_name\": \"Barbell Bench Press\", \"equipment_id\": 2, \"sets\": 3, \"reps\": 8, \"rest_seconds\": 60, \"weight_guidance\": \"Moderate weight, focus on form\", \"tempo\": \"2-0-2-0\", \"description\": \"Lie on the bench with feet planted. Lower the bar to mid-chest and push up without locking elbows.\", \"notes\": \"Start with an empty bar or light weight if needed.\"}, {\"exercise_order\": 2, \"exercise_name\": \"Cable Row\", \"equipment_id\": 6, \"sets\": 3, \"reps\": 10, \"rest_seconds\": 60, \"weight_guidance\": \"Moderate resistance, focus on squeezing shoulder blades.\", \"tempo\": \"2-0-2-0\", \"description\": \"Sit with back straight, pull the handle to your waist, and squeeze your back muscles at the end of the motion.\", \"notes\": \"Adjust seat so you’re at a 45-degree angle.\"}, {\"exercise_order\": 3, \"exercise_name\": \"Pec Deck Machine\", \"equipment_id\": 4, \"sets\": 3, \"reps\": 12, \"rest_seconds\": 45, \"weight_guidance\": \"Light to moderate resistance for controlled movements.\", \"tempo\": \"2-0-2-0\", \"description\": \"Sit with back straight and press the pads away from your chest while keeping elbows at a 90-degree angle.\", \"notes\": \"Focus on the stretch at the beginning of each rep.\"}, {\"exercise_order\": 4, \"exercise_name\": \"Lat Pulldown\", \"equipment_id\": 7, \"sets\": 3, \"reps\": 10"
+                }
+            }
+        ],
+        "name": null,
+        "tool_call_id": null,
+        "user_id": 1
+    },
+    {
+        "id": 509,
+        "session_id": 11,
+        "role": "tool",
+        "content": "{\"error\":\"Tool execution failed: Invalid tool arguments JSON: Expected ',' or '}' after property value in JSON at position 1624 (line 1 column 1625). Arguments may be incomplete or malformed.\"}",
+        "created_at": "2026-02-10T10:24:01.565Z",
+        "tool_calls": null,
+        "name": "654161544",
+        "tool_call_id": "654161544",
+        "user_id": 1
+    }
+]

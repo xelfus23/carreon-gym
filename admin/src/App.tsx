@@ -1,35 +1,110 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from "react";
+import Login from "./components/Login";
+import { useAuth } from "./contexts/useAuth";
+import Sidebar from "./components/sideBar";
+import DashboardHome from "./components/DashboardHome";
+import MemberManagement from "./components/MemberManagement";
+import AssistantTab from "./components/AssistantTab";
+import { NavItem } from "./types";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App: React.FC = () => {
+    const [currentTab, setCurrentTab] = useState<NavItem>(NavItem.DASHBOARD);
+    const { isAuthenticated, isLoading, user, logout } = useAuth();
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-950">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                        Careon Gym Initializing
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
-export default App
+    if (!isAuthenticated) {
+        return <Login />;
+    }
+
+    const renderContent = () => {
+        switch (currentTab) {
+            case NavItem.DASHBOARD:
+                return <DashboardHome />;
+            case NavItem.MEMBERS:
+                return <MemberManagement />;
+            case NavItem.AI_INSIGHTS:
+                return <AssistantTab />;
+            default:
+                return (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
+                        <div className="text-6xl">🚧</div>
+                        <h2 className="text-2xl font-bold">
+                            Module Under Construction
+                        </h2>
+                        <p>
+                            We're polishing this feature to perfection. Check
+                            back soon!
+                        </p>
+                        <button
+                            onClick={() => setCurrentTab(NavItem.DASHBOARD)}
+                            className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+                        >
+                            Back to Dashboard
+                        </button>
+                    </div>
+                );
+        }
+    };
+
+    return (
+        <div className="flex h-screen overflow-hidden">
+            <Sidebar currentTab={currentTab} setTab={setCurrentTab} />
+
+            <main className="flex-1 overflow-y-auto bg-slate-50 relative">
+                <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200 px-10 py-4 flex justify-between items-center">
+                    <div className="flex flex-col">
+                        <h2 className="text-xl font-bold text-slate-900 capitalize">
+                            {currentTab.toLowerCase().replace("_", " ")}
+                        </h2>
+                        <p className="text-xs text-slate-500">
+                            Welcome back, {user?.firstName || "Administrator"}
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                        <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all">
+                            <span className="text-xl">🔔</span>
+                            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full"></span>
+                        </button>
+                        <div className="flex items-center gap-3 pl-6 border-l border-slate-200 group">
+                            <div className="text-right">
+                                <p className="text-sm font-bold text-slate-900">
+                                    {user?.firstName} {user?.lastName}
+                                </p>
+                                <button
+                                    onClick={() => logout()}
+                                    className="text-[10px] text-rose-500 uppercase tracking-tighter font-black hover:underline cursor-pointer"
+                                >
+                                    Logout
+                                </button>
+                            </div>
+                            <img
+                                src={`https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=6366f1&color=fff`}
+                                className="w-10 h-10 rounded-full border-2 border-slate-100 object-cover"
+                                alt="Profile"
+                            />
+                        </div>
+                    </div>
+                </header>
+
+                <div className="p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-80px)]">
+                    {renderContent()}
+                </div>
+            </main>
+        </div>
+    );
+};
+
+export default App;

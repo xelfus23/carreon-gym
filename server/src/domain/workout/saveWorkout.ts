@@ -106,7 +106,7 @@ export const saveWorkoutPlanDomain = async (params: {
                         await client.query(
                             `INSERT INTO workout_exercises 
                              (workout_day_id, exercise_order, exercise_name, equipment_id, 
-                              sets, reps, duration_minutes, rest_seconds, weight_guidance, 
+                              sets, reps, duration_seconds, rest_seconds, weight_guidance, 
                               tempo, description, notes, is_warmup, is_superset, superset_group)
                              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
                             [
@@ -116,7 +116,7 @@ export const saveWorkoutPlanDomain = async (params: {
                                 exercise.equipment_id,
                                 exercise.sets,
                                 exercise.reps,
-                                exercise.duration_minutes,
+                                exercise.duration_seconds,
                                 exercise.rest_seconds,
                                 exercise.weight_guidance,
                                 exercise.tempo || "2-0-2-0",

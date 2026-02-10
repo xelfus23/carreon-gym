@@ -113,14 +113,6 @@ export const WebsocketHandler = async (server: Server) => {
                             userId,
                             toolMessage,
                         );
-
-                        ws.send(
-                            JSON.stringify({
-                                type: "tool_result",
-                                name: toolCall.name,
-                                result: toolResult,
-                            }),
-                        );
                     } catch (toolErr) {
                         console.error(
                             `❌ Tool error (${toolCall.name}):`,
@@ -146,16 +138,15 @@ export const WebsocketHandler = async (server: Server) => {
                     }
                 }
 
-                // 🔹 SECOND PASS: Stream model again with tool results
                 console.log(
                     "\n🔄 Second pass: Streaming model with tool results",
                 );
+
                 const { assistantContent: finalContent } = await streamModel(
                     messages,
                     ws,
                 );
 
-                // 💾 Save final assistant message
                 if (finalContent) {
                     const finalMessage: ChatMessage = {
                         role: "assistant",

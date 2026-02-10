@@ -11,18 +11,6 @@ export default function renderMessageItem({ item }: { item: ChatMessage }) {
     const isUser = item.role === "user";
     const isTool = item.role === "tool";
 
-    // 🛠️ Handle tool messages
-    if (isTool) {
-        return (
-            <View className="mb-2 items-start w-full gap-2 p-4">
-                <View className="rounded-2xl bg-surface/50 border border-primary-dark px-4 py-3 max-w-[85%]">
-                    <Text className="text-text-secondary text-sm">
-                        {JSON.parse(item.content).message}
-                    </Text>
-                </View>
-            </View>
-        );
-    }
 
     let parsedContent = item.content;
 
@@ -260,16 +248,16 @@ export default function renderMessageItem({ item }: { item: ChatMessage }) {
             {!isUser && (
                 <View className="flex flex-row gap-4 pl-4">
                     <TouchableOpacity>
-                        <ThumbsUp color={COLORS.textSecondary} size={18} />
+                        <ThumbsUp color={COLORS.textSecondary} size={14} />
                     </TouchableOpacity>
                     <TouchableOpacity>
-                        <ThumbsDown color={COLORS.textSecondary} size={18} />
+                        <ThumbsDown color={COLORS.textSecondary} size={14} />
                     </TouchableOpacity>
                     <TouchableOpacity>
-                        <RotateCw color={COLORS.textSecondary} size={18} />
+                        <RotateCw color={COLORS.textSecondary} size={14} />
                     </TouchableOpacity>
                     <TouchableOpacity>
-                        <CopyIcon color={COLORS.textSecondary} size={18} />
+                        <CopyIcon color={COLORS.textSecondary} size={14} />
                     </TouchableOpacity>
                 </View>
             )}

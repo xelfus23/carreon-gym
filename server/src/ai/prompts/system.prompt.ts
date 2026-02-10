@@ -14,7 +14,7 @@ const formatInventory = (equipments: any[]) => {
 
 const formatUserProfile = (user: any, metrics: any) => {
     return `
-    - Name: ${user.first_name || "Member"}
+    - Name: ${user.first_name || "Member"} ${user.last_name}
     - Gender: ${user.gender || "Not specific"}
     - Goal: ${user.goal || "General Fitness"}
     - Experience Level: ${user.activity_level || "Beginner"}

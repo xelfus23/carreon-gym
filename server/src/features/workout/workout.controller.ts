@@ -10,8 +10,9 @@ export const getWorkoutPlan = async (req: Request, res: Response) => {
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        const plans = await getWorkoutPlansDomain(userId);
+        const plans = await getWorkoutPlansDomain({ userId: userId });
 
+        console.log(plans);
         return res.status(200).json({
             success: true,
             data: plans,

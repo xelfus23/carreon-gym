@@ -24,40 +24,18 @@ export async function handleToolCall(
     toolCall: ToolCall,
     userId: number,
 ): Promise<any> {
-    
-    console.log("\n========================================");
-    console.log("🛠️  HANDLE TOOL CALL");
-    console.log("========================================");
-    console.log("Tool name:", toolCall.name);
-    console.log("User ID:", userId);
-    console.log("Tool ID:", toolCall.id);
-    console.log("Arguments length:", toolCall.arguments.length);
-    console.log(
-        "Raw arguments:",
-        toolCall.arguments.substring(0, 200) +
-            (toolCall.arguments.length > 200 ? "..." : ""),
-    );
-
     const handler = toolHandlers[toolCall.name];
 
     if (!handler) {
-        console.error("❌ Unknown tool:", toolCall.name);
         throw new Error(`Unknown tool: ${toolCall.name}`);
     }
 
     try {
-        // Validate and parse arguments
         let parsedArgs;
+        
         try {
             parsedArgs = JSON.parse(toolCall.arguments);
         } catch (parseErr) {
-            console.error("❌ Failed to parse tool arguments as JSON");
-            console.error(
-                "   Argument string length:",
-                toolCall.arguments.length,
-            );
-            console.error("   Last 100 chars:", toolCall.arguments.slice(-100));
-            console.error("   Parse error:", parseErr);
             throw new Error(
                 `Invalid tool arguments JSON: ${(parseErr as Error).message}. Arguments may be incomplete or malformed.`,
             );
@@ -66,7 +44,6 @@ export async function handleToolCall(
         const result = await handler(ws, toolCall, userId);
         return result;
     } catch (error) {
-        console.error(`❌ Tool error (${toolCall.name}):`, error);
         throw error;
     }
 }
