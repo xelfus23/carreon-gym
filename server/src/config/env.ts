@@ -18,9 +18,13 @@ export const env = {
     // DATABASE_URL: requireEnv("DATABASE_URL"),
     CORS_ORIGIN: requireEnv("CORS_ORIGIN"),
     // Auth
-    JWT_SECRET: requireEnv("JWT_SECRET"),
+    JWT_ACCESS_SECRET: requireEnv("JWT_SECRET"),
+    JWT_REFRESH_SECRET: requireEnv("JWT_REFRESH_SECRET"),
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? "7d",
 
+    RESEND_API_KEY: requireEnv("RESEND_API_KEY"),
+    EMAIL_FROM: requireEnv("EMAIL_FROM"),
+    EMAIL_PROVIDER: requireEnv("EMAIL_PROVIDER"),
     // AWS S3
     // AWS_REGION: requireEnv("AWS_REGION"),
     AWS_ACCESS_KEY_ID: requireEnv("AWS_ACCESS_KEY_ID"),

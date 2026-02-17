@@ -5,18 +5,17 @@ import type { ToolCall } from "../../../types/index.ts";
 
 export const addWorkoutDay = async (
     ws: WebSocket,
-    toolCall: ToolCall,
+    args: any,
     userId: number,
 ) => {
     ws.send(
         JSON.stringify({
             type: "state",
-            state: "adding workout day",
+            state: "Adding new day",
         }),
     );
 
-    const parsedArgs = JSON.parse(toolCall.arguments);
-    const result = await addWorkoutDayDomain({ toolCall: parsedArgs, userId });
-    console.log("✅ add_workout_day result:", result);
+    const result = await addWorkoutDayDomain({ args, userId });
+
     return result;
 };

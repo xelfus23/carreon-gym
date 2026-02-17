@@ -19,6 +19,12 @@ export type Profile = {
         | "active"
         | "very_active";
 };
+export type Subscription = {
+    status: "active" | "expired" | "pending" | "cancelled";
+    planName: string;
+    expiryDate: Date;
+    startDate: Date;
+};
 
 export type CurrentStats = {
     weightKg: number;
@@ -32,11 +38,14 @@ export type UserProfile = {
     id: number;
     firstName: string;
     lastName: string;
+    verified: boolean;
     username?: string;
     email: string;
     role: string;
     phoneNumber: string;
+    profileImageUrl?: string;
     profile: Profile;
     currentStats?: CurrentStats;
+    subscription?: Subscription;
     createdAt: string;
 };

@@ -1,5 +1,3 @@
-import { authService } from "./authService";
-
 let ws: WebSocket | null = null;
 
 const BASE_URL = "192.168.1.150:6000";
@@ -10,7 +8,7 @@ export const chatService = {
     getHistory: async () => {
         const response = await fetch(`${API_URL}/api/chats/sessions`, {
             method: "GET",
-            headers: authService.getHeaders(),
+            headers: { "Content-Type": "application/json" },
         });
 
         if (!response.ok) throw new Error("Failed to fetch history");
@@ -23,7 +21,7 @@ export const chatService = {
                 `${API_URL}/api/chats/sessions/${sessionId}/messages`,
                 {
                     method: "GET",
-                    headers: authService.getHeaders(),
+                    headers: { "Content-Type": "application/json" },
                 },
             );
             if (!response.ok) throw new Error("Failed to fetch messages");
@@ -38,7 +36,7 @@ export const chatService = {
         try {
             const response = await fetch(`${API_URL}/api/chats/sessions`, {
                 method: "POST",
-                headers: authService.getHeaders(),
+                headers: { "Content-Type": "application/json" },
             });
 
             if (!response.ok) throw new Error("Failed to create chat");
@@ -56,19 +54,15 @@ export const chatService = {
         onState: (state: string) => void,
     ): Promise<void> => {
         return new Promise((resolve, reject) => {
-            const token = authService.getToken();
+            const token = localStorage.getItem("careon_user");
             if (!token) {
                 reject(new Error("No auth token"));
                 return;
             }
 
-            const socketUrl = `${WS_URL}?token=${token}&session_id=${sessionId}`;
+            const socketUrl = `ws://${WS_URL}?token=${token}&session_id=${sessionId}`;
 
-            if (
-                ws &&
-                (ws.readyState === WebSocket.OPEN ||
-                    ws.readyState === WebSocket.CONNECTING)
-            ) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.close();
             }
 
@@ -86,7 +80,6 @@ export const chatService = {
                 try {
                     const data = JSON.parse(e.data as string);
 
-                    // Mapping backend types to the internal handlers
                     if (data.type === "token") {
                         onToken(data.content);
                     }
@@ -95,15 +88,9 @@ export const chatService = {
                         onState(data.state);
                     }
 
-                    if (data.type === "done" || data.done) {
-                        onState("Done");
+                    if (data.type === "done") {
                         resolve();
-                        ws?.close();
-                    }
-
-                    if (data.type === "error") {
-                        onState(`Error: ${data.content}`);
-                        reject(new Error(data.content));
+                        onState("Done");
                         ws?.close();
                     }
                 } catch (err) {
@@ -113,7 +100,7 @@ export const chatService = {
 
             ws.onerror = (e) => {
                 console.error("WebSocket error:", e);
-                onState(`Error connecting to AI service`);
+                onState(`Error: ${e}`);
                 reject(new Error("WebSocket error"));
             };
 
@@ -127,7 +114,7 @@ export const chatService = {
         try {
             await fetch(`${API_URL}/api/chats/messages/${messageId}`, {
                 method: "DELETE",
-                headers: authService.getHeaders(),
+                headers: { "Content-Type": "application/json" },
             });
         } catch (error) {
             console.error("Delete error", error);

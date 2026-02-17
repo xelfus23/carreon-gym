@@ -1,18 +1,12 @@
 import pool from "../../config/pool.ts";
 
 export async function deleteWorkoutDayDomain(params: {
-    toolCall: any;
+    args: any;
     userId: string | number;
 }) {
-    const { toolCall, userId } = params;
+    const { args, userId } = params;
 
     if (!userId) throw new Error("Unauthorized");
-
-    let args = toolCall.arguments;
-
-    if (typeof args === "string") {
-        args = JSON.parse(args);
-    }
 
     const { plan_id, day_order } = args;
 

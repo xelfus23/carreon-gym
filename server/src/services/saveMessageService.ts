@@ -9,15 +9,12 @@ export const saveMessageService = async (
     message: ChatMessage,
 ) => {
     try {
-        console.log(`\n💾 Saving message: role=${message.role}`);
-
         if (message.role === "user") {
             await pool.query(
                 `INSERT INTO chat_messages (session_id, user_id, role, content) 
                  VALUES ($1, $2, $3, $4)`,
                 [sessionId, userId, "user", message.content],
             );
-            console.log("✅ User message saved");
         } else if (message.role === "assistant") {
             const toolCallsJson = message.tool_calls
                 ? JSON.stringify(message.tool_calls)
@@ -34,7 +31,6 @@ export const saveMessageService = async (
                     toolCallsJson,
                 ],
             );
-            console.log("✅ Assistant message saved");
 
             if (message.tool_calls) {
                 console.log(
@@ -42,13 +38,6 @@ export const saveMessageService = async (
                 );
             }
         } else if (message.role === "tool") {
-            ws.send(
-                JSON.stringify({
-                    type: "state",
-                    message: "Saving Workout Plan",
-                }),
-            );
-            // Save tool result message
             await pool.query(
                 `INSERT INTO chat_messages (session_id, user_id, role, content, tool_call_id, name) 
                  VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -61,7 +50,6 @@ export const saveMessageService = async (
                     message.tool_call_id || "unknown_tool",
                 ],
             );
-            console.log("✅ Tool result message saved");
         }
     } catch (err) {
         console.error("❌ Failed to save message:", err);

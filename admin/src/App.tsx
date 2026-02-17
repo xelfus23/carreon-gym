@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import Login from "./components/Login";
 import { useAuth } from "./contexts/useAuth";
-import Sidebar from "./components/sideBar";
 import DashboardHome from "./components/DashboardHome";
 import MemberManagement from "./components/MemberManagement";
 import AssistantTab from "./components/AssistantTab";
 import { NavItem } from "./types";
+import Sidebar from "./components/SideBar";
 
 const App: React.FC = () => {
     const [currentTab, setCurrentTab] = useState<NavItem>(NavItem.DASHBOARD);

@@ -47,7 +47,6 @@ export default function Chats() {
         );
     }
 
-    // ✅ Show welcome screen if no session exists
     if (!sessionId) {
         return (
             <ScreenWrapper>

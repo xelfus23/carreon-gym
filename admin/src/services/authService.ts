@@ -1,33 +1,13 @@
+// authService.ts
 const BASE_URL = "192.168.1.150:4545";
 const API_URL = `http://${BASE_URL}`;
 
-let authToken: string | null = localStorage.getItem("careon_token");
-
 export const authService = {
-    setToken(token: string | null) {
-        authToken = token;
-        if (token) {
-            localStorage.setItem("careon_token", token);
-        } else {
-            localStorage.removeItem("careon_token");
-        }
-    },
-
-    getToken() {
-        return authToken;
-    },
-
-    getHeaders() {
-        return {
-            "Content-Type": "application/json",
-            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-        };
-    },
-
     async login(email: string, password: string) {
-        const res = await fetch(`${API_URL}/api/login`, {
+        const res = await fetch(`${API_URL}/api/auth/web`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({ email, password }),
         });
 
@@ -37,23 +17,53 @@ export const authService = {
             throw new Error(data.message || "Login failed");
         }
 
-        if (data?.data?.token) {
-            this.setToken(data.data.token);
-        }
-
         return data;
     },
 
     async me() {
-        const res = await fetch(`${API_URL}/api/users/me`, {
-            headers: this.getHeaders(),
+        const res = await fetch(`${API_URL}/api/users/web/me`, {
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
         });
-        if (!res.ok) throw new Error("Unauthorized");
+
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.message || "Unauthorized");
+        }
         return res.json();
     },
 
     async logout() {
-        this.setToken(null);
-        localStorage.removeItem("careon_user");
+        try {
+            const res = await fetch(`${API_URL}/api/auth/web/logout`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+            });
+
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.error("Logout error:", error);
+            throw error;
+        }
+    },
+
+    async refreshToken() {
+        try {
+            const res = await fetch(`${API_URL}/api/auth/web/refresh`, {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (!res.ok) {
+                throw new Error("Token refresh failed");
+            }
+
+            return res.json();
+        } catch (error) {
+            console.error("Token refresh error:", error);
+            throw error;
+        }
     },
 };

@@ -17,30 +17,16 @@ export const saveWorkoutPlanDomain = async (params: {
             days,
         } = args;
 
-        console.log("\n--- Plan Details ---");
-        console.log("Title:", title);
-        console.log("Description:", description);
-        console.log("Duration (weeks):", duration_weeks);
-        console.log("Days per week:", days_per_week);
-        console.log("Difficulty:", difficulty_level);
-        console.log("Number of days:", days?.length);
-
-        // Validate required fields
         if (!title) {
-            console.error("❌ Missing title");
             throw new Error("Workout plan must have a title");
         }
 
         if (!days || days.length === 0) {
-            console.error("❌ No days provided");
             throw new Error("Workout plan must have at least one day");
         }
 
-        console.log("\n🔄 Starting database transaction...");
-        await pool.query("BEGIN");
+        await client.query("BEGIN");
 
-        // Create the plan with all fields
-        console.log("\n📝 Inserting workout plan into database...");
         const planResult = await client.query(
             `INSERT INTO workout_plans 
              (user_id, title, description, duration_weeks, days_per_week, difficulty_level) 
@@ -56,17 +42,9 @@ export const saveWorkoutPlanDomain = async (params: {
             ],
         );
         const planId = planResult.rows[0].id;
-        console.log("✅ Workout plan created with ID:", planId);
 
-        // Loop Days
-        console.log("\n🔄 Processing", days.length, "days...");
         for (let i = 0; i < days.length; i++) {
             const day = days[i];
-            console.log(`\n--- Day ${i + 1}/${days.length} ---`);
-            console.log("Day order:", day.day_order);
-            console.log("Title:", day.title);
-            console.log("Is rest day:", day.is_rest_day);
-            console.log("Exercises:", day.exercises?.length || 0);
 
             const dayResult = await client.query(
                 `INSERT INTO workout_days 
@@ -82,25 +60,10 @@ export const saveWorkoutPlanDomain = async (params: {
                 ],
             );
             const dayId = dayResult.rows[0].id;
-            console.log("✅ Day created with ID:", dayId);
 
-            // Loop Exercises
             if (day.exercises && day.exercises.length > 0) {
-                console.log(
-                    `🔄 Processing ${day.exercises.length} exercises for day ${i + 1}...`,
-                );
-
                 for (let j = 0; j < day.exercises.length; j++) {
                     const exercise = day.exercises[j];
-                    console.log(
-                        `\n  Exercise ${j + 1}/${day.exercises.length}:`,
-                    );
-                    console.log("  - Name:", exercise.exercise_name);
-                    console.log("  - Order:", exercise.exercise_order);
-                    console.log("  - Equipment ID:", exercise.equipment_id);
-                    console.log("  - Sets:", exercise.sets);
-                    console.log("  - Reps:", exercise.reps);
-                    console.log("  - Rest:", exercise.rest_seconds, "sec");
 
                     try {
                         await client.query(
@@ -127,30 +90,16 @@ export const saveWorkoutPlanDomain = async (params: {
                                 exercise.superset_group,
                             ],
                         );
-                        console.log("  ✅ Exercise saved successfully");
                     } catch (exerciseErr) {
-                        console.error(
-                            "  ❌ Failed to save exercise:",
-                            exerciseErr,
-                        );
-                        console.error(
-                            "  Exercise data:",
-                            JSON.stringify(exercise, null, 2),
-                        );
                         throw exerciseErr;
                     }
                 }
-                console.log(
-                    `✅ All ${day.exercises.length} exercises saved for day ${i + 1}`,
-                );
             } else {
                 console.log("⚠️ No exercises for this day (rest day?)");
             }
         }
 
-        console.log("\n✅ Committing transaction...");
         await client.query("COMMIT");
-        console.log("✅ Transaction committed successfully");
 
         const result = {
             success: true,
@@ -158,29 +107,13 @@ export const saveWorkoutPlanDomain = async (params: {
             message: `Successfully saved "${title}" to your plans!`,
         };
 
-        console.log("\n========================================");
-        console.log("✅ SAVE WORKOUT PLAN - SUCCESS");
-        console.log("========================================");
-        console.log("Result:", result);
-
         return result;
     } catch (err) {
-        console.error("\n========================================");
-        console.error("❌ SAVE WORKOUT PLAN - ERROR");
-        console.error("========================================");
-        console.error("Error:", err);
-        console.error("Error message:", (err as Error).message);
-        console.error("Error stack:", (err as Error).stack);
-
-        console.log("🔄 Rolling back transaction...");
         await client.query("ROLLBACK");
-        console.log("✅ Transaction rolled back");
-
         throw new Error(
             `Failed to save workout plan: ${(err as Error).message}`,
         );
     } finally {
         client.release();
-        console.log("🔌 Database client released");
     }
 };

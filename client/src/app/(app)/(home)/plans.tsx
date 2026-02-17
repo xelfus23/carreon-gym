@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { WorkoutPlanProps } from "@/src/types/workout";
 import { useRouter } from "expo-router";
 import { COLORS } from "@/src/consts/colors";
+import { Dumbbell } from "lucide-react-native";
 
 export default function Plans() {
     const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlanProps[]>([]);
@@ -21,7 +22,7 @@ export default function Plans() {
         try {
             const response = await workoutService.getWorkout();
 
-            console.log(response)
+            console.log(response);
 
             if (!response.success) {
                 throw new Error(response.message);
@@ -65,10 +66,31 @@ export default function Plans() {
         );
     }
 
+    const NavigateButton = () => {
+        return (
+            <TouchableOpacity
+                className="bg-primary p-4 rounded-2xl flex-row items-center justify-center gap-2 mt-2"
+                activeOpacity={0.8}
+                onPress={() => router.navigate("/(app)/(home)/chat")}
+            >
+                <Ionicons
+                    name="add-circle-outline"
+                    size={24}
+                    color={COLORS.background}
+                />
+                <Text className="text-background font-bold text-base">
+                    Create New Plan with AI
+                </Text>
+            </TouchableOpacity>
+        );
+    };
+
     if (workoutPlans.length === 0) {
         return (
-            <View className="flex-1 bg-background items-center justify-center p-6">
-                <Ionicons name="barbell-outline" size={64} color="#6B7280" />
+            <View className="items-center justify-center flex-1 bg-background p-12">
+                <View className="rotate-45">
+                    <Dumbbell color={COLORS.textSecondary} size={45}/>
+                </View>
                 <Text className="text-text-primary font-bold text-xl mt-4 text-center">
                     No Workout Plans Yet
                 </Text>
@@ -384,22 +406,9 @@ export default function Plans() {
                 ))}
 
                 {/* Add Plan Button */}
-                <TouchableOpacity
-                    className="bg-primary p-4 rounded-2xl flex-row items-center justify-center gap-2 mt-2"
-                    activeOpacity={0.8}
-                    onPress={() => router.navigate("/(app)/(home)/chat")}
-                >
-                    <Ionicons
-                        name="add-circle-outline"
-                        size={24}
-                        color={COLORS.background}
-                    />
-                    <Text className="text-background font-bold text-base">
-                        Create New Plan with AI
-                    </Text>
-                </TouchableOpacity>
             </View>
 
+            <NavigateButton />
             {/* Bottom Padding */}
             <View className="h-6" />
         </ScrollView>

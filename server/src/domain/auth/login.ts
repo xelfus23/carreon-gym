@@ -7,8 +7,6 @@ export const loginDomain = async (params: {
 }) => {
     const { email, password } = params;
 
-    console.log(email, password)
-
     if (!email || !password) {
         throw new Error("Incomplete Details");
     }
@@ -31,6 +29,7 @@ export const loginDomain = async (params: {
 
     return {
         id: user.id,
+        role: user.role as "member" | "admin",
         firstName: user.first_name,
         lastName: user.last_name,
         email: user.email,

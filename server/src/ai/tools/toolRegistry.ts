@@ -1,53 +1,32 @@
-import { saveWorkoutDayParams } from "./params/addWorkoutDay.ts";
-import { saveWorkoutPlanParams } from "./params/saveWorkoutPlan.ts";
-
 export const tools = [
     {
         type: "function",
         function: {
-            name: "save_workout_plan",
+            name: "create_workout_plan",
             description:
-                "CALL THIS when the user asks to save/store/keep a workout plan. This is the ONLY way to save plans to their account. User says things like: 'save this', 'save it', 'add to my plans', 'keep this workout'. ALWAYS call this when user mentions saving.",
-            parameters: saveWorkoutPlanParams,
-        },
-    },
-    {
-        type: "function",
-        function: {
-            name: "delete_workout_plan",
-            description:
-                "CALL THIS when the user asks to delete/remove a workout plan.",
+                "PHASE 1: CALL THIS FIRST to initialize a plan. You MUST wait for the returned plan_id before proceeding to add days.",
             parameters: {
                 type: "object",
                 properties: {
-                    plan_id: {
+                    title: { type: "string", description: "Program title" },
+                    description: {
+                        type: "string",
+                        description: "Brief overview",
+                    },
+                    duration_weeks: {
                         type: "number",
-                        description: "ID of the workout plan to delete.",
+                        description: "Total weeks (Integer only)",
+                    },
+                    days_per_week: {
+                        type: "number",
+                        description: "Frequency (Integer only)",
+                    },
+                    difficulty_level: {
+                        type: "string",
+                        enum: ["beginner", "intermediate", "advanced"],
                     },
                 },
-                required: ["plan_id"],
-            },
-        },
-    },
-    {
-        type: "function",
-        function: {
-            name: "delete_workout_day",
-            description:
-                "CALL THIS when the user asks to delete/remove a specific workout day.",
-            parameters: {
-                type: "object",
-                properties: {
-                    plan_id: {
-                        type: "number",
-                        description: "Workout plan ID",
-                    },
-                    day_order: {
-                        type: "number",
-                        description: "Day number in the plan (1-based)",
-                    },
-                },
-                required: ["plan_id", "day_order"],
+                required: ["title"],
             },
         },
     },
@@ -56,17 +35,107 @@ export const tools = [
         function: {
             name: "add_workout_day",
             description:
-                "CALL THIS to add a new workout day to an existing plan. User says: 'add another day', 'add more exercises', 'extend my plan'. ALWAYS call this when user wants to add to their existing plan.",
-            parameters: saveWorkoutDayParams,
+                "PHASE 2: Add a training day using a valid plan_id. Wait for the returned day_id before adding exercises.",
+            parameters: {
+                type: "object",
+                properties: {
+                    plan_id: {
+                        type: "number",
+                        description: "The ID returned from create_workout_plan",
+                    },
+                    day_order: {
+                        type: "number",
+                        description: "Sequence (e.g., 1 for Monday)",
+                    },
+                    title: { type: "string", description: "e.g., 'Push Day'" },
+                    is_rest_day: { type: "boolean" },
+                    rest_day_notes: { type: "string" },
+                },
+                required: ["plan_id", "day_order", "title"],
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "add_exercise",
+            description:
+                "PHASE 3: Add exercises one by one using a valid day_id. DO NOT include units (e.g., '60s') in numeric fields.",
+            parameters: {
+                type: "object",
+                properties: {
+                    day_id: {
+                        type: "number",
+                        description: "The ID returned from add_workout_day",
+                    },
+                    exercise_order: {
+                        type: "number",
+                        description: "Position in workout",
+                    },
+                    exercise_name: { type: "string" },
+                    equipment_id: {
+                        type: "number",
+                        description:
+                            "The numeric ID from the inventory list provided in system prompt",
+                    },
+                    sets: {
+                        type: "number",
+                        description: "Whole numbers only. No text.",
+                    },
+                    reps: {
+                        type: "number",
+                        description:
+                            "Number of reps. USE ONLY for strength exercises. Set to null if duration_seconds is used.",
+                    },
+                    duration_seconds: {
+                        type: "number",
+                        description:
+                            "Time in seconds. USE ONLY for cardio or isometric holds. Set to null if reps is used.",
+                    },
+                    rest_seconds: {
+                        type: "number",
+                        description: "Rest in seconds (Integer).",
+                    },
+                    weight_guidance: {
+                        type: "string",
+                        description:
+                            "Text based guidance (e.g., '70% 1RM' or 'Hold for 30-60s')",
+                    },
+                    tempo: { type: "string" },
+                    description: { type: "string" },
+                    notes: { type: "string" },
+                    is_warmup: { type: "boolean" },
+                    is_superset: { type: "boolean" },
+                    superset_group: { type: "number" },
+                },
+                required: [
+                    "day_id",
+                    "exercise_order",
+                    "exercise_name",
+                    "equipment_id",
+                ],
+            },
         },
     },
     {
         type: "function",
         function: {
             name: "get_user_workout_plans",
-            description:
-                "CALL THIS when user asks to see/list/check their workout plans. User says things like: 'show my workouts', 'what plans do I have', 'my saved routines', 'list my workouts'. ALWAYS call this when user asks about their plans.",
+            description: "Lists all current workout plans for the member.",
             parameters: { type: "object", properties: {}, required: [] },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "delete_workout_plan",
+            description:
+                "Removes an entire plan and its associated days/exercises.",
+            parameters: {
+                type: "object",
+                properties: { plan_id: { type: "number" } },
+                required: ["plan_id"],
+            },
         },
     },
 ];

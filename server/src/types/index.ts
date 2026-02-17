@@ -7,6 +7,7 @@ export interface ToolCall {
 export interface ChatMessage {
     role: "user" | "assistant" | "system" | "tool";
     content?: string;
+    name?: string;
     tool_calls?: Array<{
         id: string;
         type: "function";

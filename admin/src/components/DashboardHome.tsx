@@ -9,7 +9,7 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import { STATS, REVENUE_DATA } from "../constants";
-import { chatService } from "../services/chatService";
+import { chatService } from "../services/AIService";
 
 const DashboardHome: React.FC = () => {
     const [aiAnalysis, setAiAnalysis] = useState<string>(

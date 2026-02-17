@@ -18,14 +18,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         const restoreSession = async () => {
             try {
-                const { user, token } = await authStorage.load();
-                if (user && token) {
+                const { user, accessToken, refreshToken } =
+                    await authStorage.load();
+                if (user && accessToken && refreshToken) {
                     setUser(user);
                     setIsAuthenticated(true);
-                    authService.setToken(token);
+                    authService.setTokens(accessToken, refreshToken);
                 }
             } catch (e) {
-                console.error(e);
+                if (e instanceof Error) {
+                    console.error("FROM AUTH CONTEXT:", e.message);
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -62,13 +65,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 password,
                 contactNumber,
             );
-
-            if (!result.success) throw new Error(result.message);
-
-            const { user, token } = result.data;
+            const { user, accessToken, refreshToken } = result.data;
             setUser(user);
             setIsAuthenticated(true);
-            await authStorage.save(user, token);
+            authService.setTokens(accessToken, refreshToken);
+            await authStorage.save(user, accessToken, refreshToken);
             return true;
         } finally {
             setIsLoading(false);
@@ -79,11 +80,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsLoading(true);
         try {
             const result = await authService.login(email, password);
-            const { user, token } = result.data;
+            const { user, accessToken, refreshToken } = result.data;
             setUser(user);
             setIsAuthenticated(true);
-            authService.setToken(token);
-            await authStorage.save(user, token);
+            authService.setTokens(accessToken, refreshToken);
+            await authStorage.save(user, accessToken, refreshToken);
             return true;
         } finally {
             setIsLoading(false);
@@ -95,7 +96,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsAuthenticated(false);
         await authService.logout();
         await authStorage.clear();
-        // Router will automatically redirect to '/' due to the useEffect above
     };
 
     return (

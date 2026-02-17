@@ -1,16 +1,15 @@
 import { Router } from "express";
-import { authentication } from "../../middleware/authenticate.ts";
 import {
     getSession,
     createSession,
     getSessionMessages,
     deletemessage,
 } from "./chat.controller.ts";
+import { mobileAuthMiddleware } from "../../middleware/authenticate.ts";
 
 const chatRoutes = Router();
 
-chatRoutes.use(authentication);
-
+chatRoutes.use(mobileAuthMiddleware);
 chatRoutes.get("/sessions", getSession);
 chatRoutes.post("/sessions", createSession);
 chatRoutes.get("/sessions/:sessionId/messages", getSessionMessages);

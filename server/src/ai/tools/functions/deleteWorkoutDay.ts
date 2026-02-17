@@ -4,23 +4,17 @@ import { deleteWorkoutDayDomain } from "../../../domain/workout/deleteWorkoutDay
 
 export const deleteWorkoutDay = async (
     ws: WebSocket,
-    toolCall: ToolCall,
+    args: any,
     userId: number,
 ) => {
     ws.send(
         JSON.stringify({
             type: "state",
-            state: "deleting workout day",
+            state: "Deleting workout day",
         }),
     );
 
-    const parsedArgs = JSON.parse(toolCall.arguments);
+    const result = await deleteWorkoutDayDomain({ args, userId });
 
-    const result = await deleteWorkoutDayDomain({
-        toolCall: parsedArgs,
-        userId: userId,
-    });
-
-    console.log("✅ delete_workout_day result:", result);
     return result;
 };

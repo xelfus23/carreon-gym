@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { MOCK_MEMBERS } from '../constants';
-import { chatService } from '../services/chatService';
+import { chatService } from '../services/AIService';
 import type { Member } from '../types';
 
 const MemberManagement: React.FC = () => {

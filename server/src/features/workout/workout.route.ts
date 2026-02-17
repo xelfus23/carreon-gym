@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { authentication } from "../../middleware/authenticate.ts";
 import { getWorkoutPlan } from "./workout.controller.ts";
+import { mobileAuthMiddleware } from "../../middleware/authenticate.ts";
 
 const workoutRoutes = Router();
 
-workoutRoutes.get("/", authentication, getWorkoutPlan);
+workoutRoutes.get("/", mobileAuthMiddleware, getWorkoutPlan);
 
 export default workoutRoutes;

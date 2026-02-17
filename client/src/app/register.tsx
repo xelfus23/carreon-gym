@@ -100,6 +100,7 @@ export default function Register() {
         } catch (err) {
             if (err instanceof Error) {
                 setErrMsg(err.message);
+                console.error(err.message);
             }
         }
     };

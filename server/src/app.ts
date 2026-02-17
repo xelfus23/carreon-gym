@@ -6,24 +6,28 @@ import authRoutes from "./features/auth/auth.route.ts";
 import chatRoutes from "./features/chat/chat.route.ts";
 import equipmentRoutes from "./features/equipment/equipment.route.ts";
 import workoutRoutes from "./features/workout/workout.route.ts";
+import cookieParser from "cookie-parser";
+
 
 dotenv.config({ path: ".env" });
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(
     cors({
-        origin: "*",
+        origin: ["http://192.168.1.150:5173"],
         methods: ["GET", "POST"],
         allowedHeaders: ["Content-Type", "Authorization"],
+        credentials: true,
     }),
 );
 
 /* ---------- ROUTES ---------- */
 app.use("/api/users", userRoutes);
-app.use("/api/login", authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/equipments", equipmentRoutes);
 app.use("/api/workoutplan", workoutRoutes);

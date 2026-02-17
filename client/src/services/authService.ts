@@ -1,30 +1,89 @@
+import * as SecureStore from "expo-secure-store";
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-let authToken: string | null = null;
+let accessToken: string | null = null;
+let refreshToken: string | null = null;
 
 export const authService = {
     /** --------------------
      * Token Management
      * -------------------- */
-    setToken(token: string | null) {
-        authToken = token;
+
+    async fetchWithAuth(url: string, options: RequestInit = {}) {
+        let res = await fetch(url, {
+            ...options,
+            headers: {
+                ...this.getHeaders(),
+                ...options.headers,
+            },
+        });
+
+        // If access token expired
+        if (res.status === 401) {
+            try {
+                await this.refreshAccessToken();
+
+                res = await fetch(url, {
+                    ...options,
+                    headers: {
+                        ...this.getHeaders(),
+                        ...options.headers,
+                    },
+                });
+            } catch (error) {
+                if (error instanceof Error) {
+                    console.error(error);
+                }
+                await this.logout();
+                throw new Error("Session expired");
+            }
+        }
+
+        return res;
+    },
+
+    setTokens(newAccessToken: string | null, newRefreshToken?: string | null) {
+        accessToken = newAccessToken;
+
+        if (newRefreshToken !== undefined) {
+            refreshToken = newRefreshToken;
+        }
     },
 
     getToken() {
-        if (!authToken) {
-            return;
-        }
-
-        return authToken;
+        return accessToken;
     },
 
     getHeaders() {
         return {
             "Content-Type": "application/json",
-            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         };
     },
 
+    async refreshAccessToken() {
+        if (!refreshToken) throw new Error("No refresh token");
+
+        const res = await fetch(`${API_URL}/api/auth/mobile/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refreshToken }),
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            throw new Error(`REFRESH FAILED: ${data.message}`);
+        }
+
+        const newAccessToken = String(data.data.accessToken);
+        accessToken = newAccessToken;
+
+        await SecureStore.setItemAsync("access_token", newAccessToken);
+
+        return newAccessToken;
+    },
     /** --------------------
      * Register new user
      * -------------------- */
@@ -35,7 +94,7 @@ export const authService = {
         password: string,
         contactNumber: string,
     ) {
-        const res = await fetch(`${API_URL}/api/users`, {
+        const res = await fetch(`${API_URL}/api/users/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -43,7 +102,7 @@ export const authService = {
                 lastName,
                 email,
                 password,
-                contactNumber,
+                phoneNumber: contactNumber,
             }),
         });
 
@@ -53,8 +112,14 @@ export const authService = {
             throw new Error(data.message);
         }
 
-        if (data?.data?.token) {
-            authToken = data.data.token;
+        if (data?.data?.accessToken) {
+            const newAccessToken = String(data.data.accessToken);
+            accessToken = newAccessToken;
+        }
+
+        if (data?.data?.refreshToken) {
+            const newRefreshToken = String(data.data.refreshToken);
+            refreshToken = newRefreshToken;
         }
 
         return data;
@@ -64,7 +129,7 @@ export const authService = {
      * Login user
      * -------------------- */
     async login(email: string, password: string) {
-        const res = await fetch(`${API_URL}/api/login`, {
+        const res = await fetch(`${API_URL}/api/auth/app`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
@@ -76,8 +141,14 @@ export const authService = {
             throw new Error(data.message);
         }
 
-        if (data?.data?.token) {
-            authToken = data.data.token;
+        if (data?.data?.accessToken) {
+            const newAccessToken = String(data.data.accessToken);
+            accessToken = newAccessToken;
+        }
+
+        if (data?.data?.refreshToken) {
+            const newRefreshToken = String(data.data.refreshToken);
+            refreshToken = newRefreshToken;
         }
 
         return data;
@@ -87,18 +158,33 @@ export const authService = {
      * Get current authenticated user
      * -------------------- */
     async me() {
-        const res = await fetch(`${API_URL}/api/users/me`, {
-            headers: this.getHeaders(),
-        });
+        const res = await this.fetchWithAuth(`${API_URL}/api/users/mobile/me`);
 
-        return res.json();
+        const data = await res.json();
+
+        if (!data.success) {
+            throw new Error(`Error Fetching Profile: ${data.message}`);
+        }
+
+        return data;
     },
 
     /** --------------------
      * Logout user
      * -------------------- */
     async logout() {
-        authToken = null;
+        if (refreshToken) {
+            await fetch(`${API_URL}/api/logout`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refreshToken }),
+            });
+        }
+
+        accessToken = null;
+        refreshToken = null;
+
+        await SecureStore.deleteItemAsync("access_token");
     },
 
     /** --------------------

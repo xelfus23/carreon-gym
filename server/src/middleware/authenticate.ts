@@ -1,34 +1,102 @@
+// middleware/authMiddleware.ts
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.ts";
 
-export const authentication = (
+// Web Admin - Cookie-based auth
+export const webAuthMiddleware = async (
     req: Request,
     res: Response,
     next: NextFunction,
 ) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ message: "No token" });
-
-    const token = authHeader.split(" ")[1];
-
     try {
-        const payload = jwt.verify(token!, env.JWT_SECRET!);
+        const accessToken = req.cookies.accessToken;
 
-        if (
-            typeof payload === "object" &&
-            payload !== null &&
-            "id" in payload
-        ) {
-            req.user = {
-                id: (payload as any).id as number,
-                role: (payload as any).role as "member" | "trainer" | "admin",
-            };
-            next();
-        } else {
-            return res.status(401).json({ message: "Invalid token" });
+        if (!accessToken) {
+            return res.status(401).json({
+                success: false,
+                message: "No access token provided",
+            });
         }
-    } catch {
-        return res.status(401).json({ message: "Invalid token" });
+
+        const decoded = jwt.verify(
+            accessToken,
+            env.JWT_ACCESS_SECRET,
+        ) as unknown as {
+            sub: number;
+            role: string;
+        };
+
+        // Attach user info to request
+        (req as any).user = {
+            id: decoded.sub,
+            role: decoded.role,
+        };
+
+        next();
+    } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+            return res.status(401).json({
+                success: false,
+                message: "Access token expired",
+                code: "TOKEN_EXPIRED",
+            });
+        }
+
+        return res.status(401).json({
+            success: false,
+            message: "Invalid access token",
+        });
+    }
+};
+
+// Mobile App - Bearer token auth
+export const mobileAuthMiddleware = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({
+                success: false,
+                message: "No access token provided",
+            });
+        }
+
+        const accessToken = authHeader.split(" ")[1];
+
+        if (!accessToken)
+            return res
+                .status(401)
+                .json({ success: false, message: "Malformed token" });
+
+        const decoded = jwt.verify(
+            accessToken,
+            env.JWT_ACCESS_SECRET,
+        ) as unknown as { sub: number; role: string };
+
+        // Attach user info to request
+        (req as any).user = {
+            id: decoded.sub,
+            role: decoded.role,
+        };
+
+        next();
+    } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+            return res.status(401).json({
+                success: false,
+                message: "Access token expired",
+                code: "TOKEN_EXPIRED",
+            });
+        }
+
+        return res.status(401).json({
+            success: false,
+            message: "Invalid access token",
+        });
     }
 };

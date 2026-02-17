@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { getEquipment } from "./quipment.controller.ts";
-import { authentication } from "../../middleware/authenticate.ts";
+import {
+    mobileAuthMiddleware,
+    webAuthMiddleware,
+} from "../../middleware/authenticate.ts";
 
 const equipmentRoutes = Router();
 
-equipmentRoutes.get("/", authentication, getEquipment);
+equipmentRoutes.get("/mobile", mobileAuthMiddleware, getEquipment);
+equipmentRoutes.get("/web", webAuthMiddleware, getEquipment);
 
 export default equipmentRoutes;

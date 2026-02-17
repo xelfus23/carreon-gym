@@ -3,7 +3,10 @@ import jwt from "jsonwebtoken";
 import { env } from "../config/env.ts";
 
 type JWTPayload = {
-    id: number;
+    sub: number;
+    role: "member" | "admin";
+    iat?: number;
+    exp?: number;
 };
 
 export const WSAuthentication = async (ws: WebSocket, req: any) => {
@@ -14,11 +17,13 @@ export const WSAuthentication = async (ws: WebSocket, req: any) => {
         const sessionId = url.searchParams.get("session_id");
 
         if (!token || !sessionId) throw new Error("Missing auth params");
-        console.log(token, sessionId);
 
-        const payload = jwt.verify(token, env.JWT_SECRET!) as JWTPayload;
+        const payload = jwt.verify(
+            token,
+            env.JWT_ACCESS_SECRET!,
+        ) as unknown as JWTPayload;
 
-        return { sessionId: parseInt(sessionId), userId: payload.id };
+        return { sessionId: parseInt(sessionId), userId: payload.sub };
     } catch (err) {
         if (err instanceof Error) {
             console.error("WebSocket auth error:", err);

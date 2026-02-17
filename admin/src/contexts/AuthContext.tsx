@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// AuthProvider.tsx
+import React, { useEffect, useState, useCallback } from "react";
 import { authService } from "../services/authService";
 import { AuthContext } from "./createContext";
 
@@ -15,32 +16,65 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Define logout with useCallback to avoid recreation
+    const logout = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            await authService.logout();
+        } catch (error) {
+            console.error("Logout error:", error);
+        } finally {
+            setUser(null);
+            setIsAuthenticated(false);
+            localStorage.removeItem("careon_user");
+            setIsLoading(false);
+        }
+    }, []);
+
+    // Automatic token refresh
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        const refreshInterval = setInterval(
+            async () => {
+                try {
+                    await authService.refreshToken();
+                    console.log("Token refreshed automatically");
+                } catch (error) {
+                    console.error("Auto refresh failed:", error);
+                    logout();
+                }
+            },
+            14 * 60 * 1000,
+        );
+
+        return () => clearInterval(refreshInterval);
+    }, [isAuthenticated, logout]);
+
+    // Restore session on mount
     useEffect(() => {
         const restoreSession = async () => {
             try {
-                const token = authService.getToken();
-                const savedUser = localStorage.getItem("careon_user");
+                // Try to get user from backend using cookie
+                const res = await authService.me();
 
-                if (token && savedUser) {
-                    setUser(JSON.parse(savedUser));
+                if (res.success && res.data?.user) {
+                    setUser(res.data.user);
                     setIsAuthenticated(true);
-                    // Verify token with backend
-                    try {
-                        const res = await authService.me();
-                        if (res.success) {
-                            setUser(res.data.user);
-                            localStorage.setItem(
-                                "careon_user",
-                                JSON.stringify(res.data.user),
-                            );
-                        }
-                    } catch (e) {
-                        console.error("Token verification failed", e);
-                        logout();
-                    }
+                    localStorage.setItem(
+                        "careon_user",
+                        JSON.stringify(res.data.user),
+                    );
+                } else {
+                    localStorage.removeItem("careon_user");
+                    setIsAuthenticated(false);
+                    setUser(null);
                 }
             } catch (e) {
-                console.error("Restore session error:", e);
+                console.error("Session restore failed:", e);
+                localStorage.removeItem("careon_user");
+                setIsAuthenticated(false);
+                setUser(null);
             } finally {
                 setIsLoading(false);
             }
@@ -53,25 +87,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsLoading(true);
         try {
             const result = await authService.login(email, password);
-            const { user, token } = result.data;
+
+            if (!result.success || !result.data?.user) {
+                throw new Error(result.message || "Login failed");
+            }
+
+            const { user } = result.data;
 
             setUser(user);
             setIsAuthenticated(true);
-            authService.setToken(token);
             localStorage.setItem("careon_user", JSON.stringify(user));
+
             return true;
         } catch (error) {
             console.error("Login Error:", error);
+            setIsAuthenticated(false);
+            setUser(null);
             throw error;
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const logout = async () => {
-        setUser(null);
-        setIsAuthenticated(false);
-        await authService.logout();
     };
 
     return (

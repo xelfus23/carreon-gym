@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { chatService } from "../services/chatService";
+import { chatService } from "../services/AIService";
 
 const AssistantTab: React.FC = () => {
     const [messages, setMessages] = useState<

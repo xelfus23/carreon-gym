@@ -2,7 +2,7 @@
 -- -- ============================================================================
 -- -- USER MANAGEMENT
 -- -- ============================================================================
--- CREATE TYPE user_role AS ENUM ('member', 'admin', 'trainer');
+-- CREATE TYPE user_role AS ENUM ('member', 'admin');
 -- CREATE TABLE users (
 --     id SERIAL PRIMARY KEY,
 --     username TEXT UNIQUE,
@@ -170,20 +170,20 @@ CREATE TABLE
 -- -- ============================================================================
 -- -- WORKOUT LOGGING & TRACKING
 -- -- ============================================================================
--- CREATE TABLE workout_logs (
---     id SERIAL PRIMARY KEY,
---     user_id INT REFERENCES users(id) ON DELETE CASCADE,
---     workout_exercise_id INT REFERENCES workout_exercises(id) ON DELETE CASCADE,
---     -- What the user actually completed
---     completed_sets INT CHECK (completed_sets >= 0),
---     completed_reps INT CHECK (completed_reps >= 0),
---     weight_used_kg NUMERIC(6, 2), -- Actual weight used
---     duration_minutes INT, -- For cardio
---     -- User feedback
---     difficulty_rating INT CHECK (difficulty_rating BETWEEN 1 AND 10), -- RPE or subjective difficulty
---     notes TEXT, -- User's notes about the workout
---     logged_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
--- );
+CREATE TABLE workout_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    workout_exercise_id INT REFERENCES workout_exercises(id) ON DELETE CASCADE,
+    -- What the user actually completed
+    completed_sets INT CHECK (completed_sets >= 0),
+    completed_reps INT CHECK (completed_reps >= 0),
+    weight_used_kg NUMERIC(6, 2), -- Actual weight used
+    duration_minutes INT, -- For cardio
+    -- User feedback
+    difficulty_rating INT CHECK (difficulty_rating BETWEEN 1 AND 10), -- RPE or subjective difficulty
+    notes TEXT, -- User's notes about the workout
+    logged_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
 -- -- ============================================================================
 -- -- INDEXES FOR PERFORMANCE
 -- -- ============================================================================

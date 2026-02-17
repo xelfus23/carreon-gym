@@ -2,40 +2,29 @@ import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthUser } from "../types/users";
 
+const ACCESS_TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
 const USER_KEY = "@auth_user";
-const TOKEN_KEY = "auth_token";
 
 export const authStorage = {
-    async save(user: AuthUser, token: string) {
-        try {
-            await SecureStore.setItemAsync(TOKEN_KEY, token);
-            await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
-        } catch (err) {
-            console.error("Error saving auth data:", err);
-        }
+    async save(user: AuthUser, accessToken: string, refreshToken: string) {
+        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+        await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
     },
 
-    // Load user and token
-    async load(): Promise<{ user: AuthUser | null; token: string | null }> {
-        try {
-            const token = await SecureStore.getItemAsync(TOKEN_KEY);
-            const userStr = await AsyncStorage.getItem(USER_KEY);
-            const user = userStr ? JSON.parse(userStr) : null;
+    async load() {
+        const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+        const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+        const userStr = await AsyncStorage.getItem(USER_KEY);
+        const user = userStr ? JSON.parse(userStr) : null;
 
-            return { user, token };
-        } catch (err) {
-            console.error("Error loading auth data:", err);
-            return { user: null, token: null };
-        }
+        return { user, accessToken, refreshToken };
     },
 
-    // Clear user and token
     async clear() {
-        try {
-            await SecureStore.deleteItemAsync(TOKEN_KEY);
-            await AsyncStorage.removeItem(USER_KEY);
-        } catch (err) {
-            console.error("Error clearing auth data:", err);
-        }
+        await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+        await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+        await AsyncStorage.removeItem(USER_KEY);
     },
 };
