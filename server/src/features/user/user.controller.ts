@@ -230,9 +230,11 @@ export const uploadPicture = async (req: Request, res: Response) => {
     } catch (err) {
         if (err instanceof Error) {
             console.error(err.message);
-            return res
-                .status(500)
-                .json({ success: false, message: "Server Error" });
+            return res.status(500).json({
+                success: false,
+                message: "Server Error",
+            });
         }
     }
 };
+

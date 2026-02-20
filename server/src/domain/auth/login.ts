@@ -29,7 +29,7 @@ export const loginDomain = async (params: {
 
     return {
         id: user.id,
-        role: user.role as "member" | "admin",
+        role: user.role as "admin" | "member",
         firstName: user.first_name,
         lastName: user.last_name,
         email: user.email,

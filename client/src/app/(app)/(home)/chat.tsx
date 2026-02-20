@@ -109,7 +109,7 @@ export default function Chats() {
                             ref={scrollRef}
                             data={messages}
                             keyExtractor={(item, index) =>
-                                item.timestamp.toString() + item.id
+                                JSON.stringify(item.id) + index
                             }
                             onScroll={handleScroll}
                             scrollEventThrottle={16}

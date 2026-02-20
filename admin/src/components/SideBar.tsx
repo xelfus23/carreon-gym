@@ -1,5 +1,14 @@
 import React from "react";
 import { NavItem } from "../types";
+import {
+    BicepsFlexed,
+    CalendarDays,
+    ChartColumnBig,
+    QrCode,
+    Settings,
+    Sparkles,
+    UsersRound,
+} from "lucide-react";
 
 interface SidebarProps {
     currentTab: NavItem;
@@ -8,18 +17,57 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
     const menuItems = [
-        { id: NavItem.DASHBOARD, label: "Dashboard", icon: "📊" },
-        { id: NavItem.MEMBERS, label: "Members", icon: "👥" },
-        { id: NavItem.TRAINERS, label: "Trainers", icon: "💪" },
-        { id: NavItem.CLASSES, label: "Classes", icon: "🗓️" },
-        { id: NavItem.AI_INSIGHTS, label: "AI Insights", icon: "✨" },
-        { id: NavItem.SETTINGS, label: "Settings", icon: "⚙️" },
+        {
+            id: NavItem.DASHBOARD,
+            label: "Dashboard",
+            icon: <ChartColumnBig />,
+        },
+        {
+            id: NavItem.QRCODE,
+            label: "QR",
+            icon: <QrCode />,
+        },
+        {
+            id: NavItem.MEMBERS,
+
+            label: "Members",
+
+            icon: <UsersRound />,
+        },
+        {
+            id: NavItem.TRAINERS,
+
+            label: "Trainers",
+
+            icon: <BicepsFlexed />,
+        },
+        {
+            id: NavItem.CLASSES,
+
+            label: "Classes",
+
+            icon: <CalendarDays />,
+        },
+        {
+            id: NavItem.AI_INSIGHTS,
+
+            label: "AI Insights",
+
+            icon: <Sparkles />,
+        },
+        {
+            id: NavItem.SETTINGS,
+
+            label: "Settings",
+
+            icon: <Settings />,
+        },
     ];
 
     return (
-        <aside className="w-64 bg-slate-900 h-screen flex flex-col text-slate-300">
+        <aside className="w-64 bg-surface h-screen flex flex-col text-text-secondary">
             <div className="p-6 flex items-center gap-3">
-                <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white font-bold">
+                <div className="w-8 h-8 bg-primary-dark rounded-lg flex items-center justify-center text-white font-bold">
                     C
                 </div>
                 <h1 className="text-xl font-bold text-white tracking-tight">
@@ -34,11 +82,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
                         onClick={() => setTab(item.id)}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                             currentTab === item.id
-                                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
-                                : "hover:bg-slate-800 hover:text-white"
+                                ? "bg-primary-dark text-text-primary shadow-lg shadow-indigo-500/20"
+                                : "hover:bg-primary-dark/20 hover:text-text-primary"
                         }`}
                     >
-                        <span className="text-lg">{item.icon}</span>
+                        {item.icon}
                         <span className="font-medium">{item.label}</span>
                     </button>
                 ))}

@@ -15,6 +15,10 @@ export const webLoginController = async (req: Request, res: Response) => {
 
         const user = await loginDomain(req.body);
 
+        if (user.role === "member") {
+            throw new Error("Unauthorized Admin Only");
+        }
+
         const { accessToken, refreshToken } = generateTokens({
             sub: user.id,
             role: user.role,
@@ -98,11 +102,9 @@ export const mobileLoginController = async (req: Request, res: Response) => {
     }
 };
 
-
 //====================================================
 //====================================================
 //====================================================
-
 
 export const webLogoutController = async (req: Request, res: Response) => {
     try {
@@ -265,6 +267,3 @@ export const mobileLogoutController = async (req: Request, res: Response) => {
         });
     }
 };
-
-
-

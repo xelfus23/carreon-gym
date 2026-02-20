@@ -21,6 +21,8 @@ export const env = {
     JWT_ACCESS_SECRET: requireEnv("JWT_SECRET"),
     JWT_REFRESH_SECRET: requireEnv("JWT_REFRESH_SECRET"),
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? "7d",
+    GYM_QR_SECRET: requireEnv("GYM_QR_SECRET"),
+    QR_EXPIRY_SECONDS: requireEnv("QR_EXPIRY_SECONDS"),
 
     RESEND_API_KEY: requireEnv("RESEND_API_KEY"),
     EMAIL_FROM: requireEnv("EMAIL_FROM"),

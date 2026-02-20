@@ -7,7 +7,10 @@ const model = {
     ministral14B: "mistralai/ministral-3-14b-reasoning",
 };
 
-export const LMstudio = async (messages: ChatMessage[]) => {
+export const LMstudio = async (
+    messages: ChatMessage[],
+    options?: { disableTools: boolean },
+) => {
     const response = await fetch(env.LMSTUDIO_BASE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

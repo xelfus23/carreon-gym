@@ -9,10 +9,12 @@ import { UserProfile } from "../types/users";
 import { useAuth } from "./authContext";
 import { authService } from "../services/authService";
 import {
+    SessionData,
     UpdateProfileProps,
     UpdateUserProps,
     UserProfileContextType,
 } from "../types/context";
+import { CheckInService } from "../services/checkInService";
 
 const UserProfileContext = createContext<UserProfileContextType | null>(null);
 
@@ -22,6 +24,9 @@ export const UserProfileProvider = ({
     children: React.ReactNode;
 }) => {
     const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [sessionStatus, setSessionStatus] = useState<SessionData | null>(
+        null,
+    );
 
     const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
@@ -29,9 +34,16 @@ export const UserProfileProvider = ({
     const refreshProfile = useCallback(async () => {
         setIsLoading(true);
         try {
-            const { data } = await authService.me();
-
-            setProfile(data.user);
+            const { user } = await authService.me();
+            const sessionData = await CheckInService.getSessionStatus();
+            setSessionStatus(sessionData.data);
+            setProfile(user);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error("Refresh Error:", err.message);
+                // Don't swallow the session expired error —
+                // authService already called onSessionExpired() which triggers logout
+            }
         } finally {
             setIsLoading(false);
         }
@@ -42,15 +54,13 @@ export const UserProfileProvider = ({
         try {
             const data = await authService.updateUser(user?.id!, updates);
 
-            if (data.success && data.data?.user) {
-                setProfile((prev) => {
-                    if (!prev) return null;
-                    return {
-                        ...prev,
-                        ...data.data.user,
-                    };
-                });
-            }
+            setProfile((prev) => {
+                if (!prev) return null;
+                return {
+                    ...prev,
+                    ...data.user,
+                };
+            });
         } finally {
             setIsLoading(false);
         }
@@ -59,20 +69,21 @@ export const UserProfileProvider = ({
     const updateProfile = async (updates: UpdateProfileProps) => {
         setIsLoading(true);
         try {
-            const data = await authService.updateProfile(user?.id!, updates);
+            const { profile } = await authService.updateProfile(
+                user?.id!,
+                updates,
+            );
 
-            if (data.success && data.data?.profile) {
-                setProfile((prev) => {
-                    if (!prev) return null;
-                    return {
-                        ...prev,
-                        profile: {
-                            ...prev.profile,
-                            ...data.data.profile,
-                        },
-                    };
-                });
-            }
+            setProfile((prev) => {
+                if (!prev) return null;
+                return {
+                    ...prev,
+                    profile: {
+                        ...prev.profile,
+                        ...profile,
+                    },
+                };
+            });
         } finally {
             setIsLoading(false);
         }
@@ -92,6 +103,7 @@ export const UserProfileProvider = ({
                 refreshProfile,
                 updateProfile,
                 updateUser,
+                sessionStatus,
             }}
         >
             {children}

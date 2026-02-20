@@ -1,5 +1,6 @@
 export enum NavItem {
     DASHBOARD = "DASHBOARD",
+    QRCODE = "QRCODE",
     MEMBERS = "MEMBERS",
     TRAINERS = "TRAINERS",
     CLASSES = "CLASSES",
@@ -7,14 +8,37 @@ export enum NavItem {
     SETTINGS = "SETTINGS",
 }
 
-export interface Member {
-    id: string;
-    name: string;
+export type SubscriptionStatus = "active" | "expired" | "pending" | "cancelled";
+
+export type AccountStatus = "active" | "suspended" | "deleted";
+
+export interface AdminMemberListItem {
+    id: number;
+
+    // Basic Info
+    first_name: string;
+    last_name: string;
     email: string;
-    plan: "Gold" | "Silver" | "Bronze";
-    status: "Active" | "Inactive" | "Pending";
-    joinDate: string;
-    attendanceRate: number;
+    phone_number: string | null;
+    verified: boolean;
+    account_status: AccountStatus;
+    last_login: string | null; // ISO string
+    created_at: string; // ISO string
+
+    // Subscription Info (nullable because LEFT JOIN)
+    plan_name: string | null;
+    subscription_status: SubscriptionStatus | null;
+    expiry_date: string | null;
+
+    // Latest Body Metric (nullable)
+    weight_kg: number | null;
+    weight_recorded_at: string | null;
+
+    // Attendance
+    last_check_in: string | null; // ISO string
+    total_visits_all_time: number | null;
+    total_visits_this_month: number | null;
+    attendance_rate: number;
 }
 
 export interface Trainer {

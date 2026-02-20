@@ -7,7 +7,7 @@ const pool = new Pool({
     password: "2026",
     host: "localhost",
     port: 5432,
-    database: "careon_db",
+    database: "careon_gym_db",
     // connectionString: process.env.DATABASE_URL,
     // ssl: {
     //     rejectUnauthorized: false,

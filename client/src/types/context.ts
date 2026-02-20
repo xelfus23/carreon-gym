@@ -17,6 +17,7 @@ export interface AuthContextType {
 
 export interface UserProfileContextType {
     profile: UserProfile | null;
+    sessionStatus: SessionData | null;
     isLoading: boolean;
     refreshProfile: () => Promise<void>;
     updateProfile: (updates: UpdateProfileProps) => Promise<void>;
@@ -37,3 +38,13 @@ export type UpdateUserProps = Partial<{
     email: string;
     contactNumber: string;
 }>;
+
+export type SessionData = {
+    has_active_session: boolean;
+    session: {
+        checked_in_at: string;
+        current_duration_minutes: number;
+        session_id: number;
+        status: "checked_in" | "checked_out";
+    };
+};

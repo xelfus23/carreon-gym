@@ -18,7 +18,6 @@ export const authStorage = {
         const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
         const userStr = await AsyncStorage.getItem(USER_KEY);
         const user = userStr ? JSON.parse(userStr) : null;
-
         return { user, accessToken, refreshToken };
     },
 

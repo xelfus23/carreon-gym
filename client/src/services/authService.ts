@@ -1,43 +1,75 @@
 import * as SecureStore from "expo-secure-store";
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+import { request } from "../utils/request";
 
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
+
+// Refresh lock — prevents concurrent refresh races
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+let onSessionExpired: (() => void) | null = null;
+
+function subscribeToRefresh(callback: (token: string) => void) {
+    refreshSubscribers.push(callback);
+}
+
+function notifyRefreshSubscribers(token: string) {
+    refreshSubscribers.forEach((cb) => cb(token));
+    refreshSubscribers = [];
+}
 
 export const authService = {
     /** --------------------
      * Token Management
      * -------------------- */
+    setSessionExpiredHandler(handler: () => void) {
+        onSessionExpired = handler;
+    },
 
-    async fetchWithAuth(url: string, options: RequestInit = {}) {
-        let res = await fetch(url, {
-            ...options,
-            headers: {
-                ...this.getHeaders(),
-                ...options.headers,
-            },
-        });
+    async fetchWithAuth(
+        url: string,
+        options: RequestInit = {},
+    ): Promise<Response> {
+        const makeRequest = (token: string | null) =>
+            fetch(url, {
+                ...options,
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    ...options.headers,
+                },
+            });
 
-        // If access token expired
-        if (res.status === 401) {
-            try {
-                await this.refreshAccessToken();
+        let res = await makeRequest(accessToken);
+        if (res.status !== 401) return res;
 
-                res = await fetch(url, {
-                    ...options,
-                    headers: {
-                        ...this.getHeaders(),
-                        ...options.headers,
-                    },
+        if (isRefreshing) {
+            return new Promise((resolve, reject) => {
+                subscribeToRefresh(async (newToken) => {
+                    try {
+                        resolve(await makeRequest(newToken));
+                    } catch (e) {
+                        reject(e);
+                    }
                 });
-            } catch (error) {
-                if (error instanceof Error) {
-                    console.error(error);
-                }
+            });
+        }
+
+        isRefreshing = true;
+        try {
+            const newToken = await this.refreshAccessToken();
+            notifyRefreshSubscribers(newToken);
+            res = await makeRequest(newToken);
+        } catch (error) {
+            if (error instanceof Error) {
+                refreshSubscribers = [];
                 await this.logout();
-                throw new Error("Session expired");
+                onSessionExpired?.();
+                console.error(error.message);
+                throw new Error("Session expired. Please log in again.");
             }
+        } finally {
+            isRefreshing = false;
         }
 
         return res;
@@ -45,7 +77,6 @@ export const authService = {
 
     setTokens(newAccessToken: string | null, newRefreshToken?: string | null) {
         accessToken = newAccessToken;
-
         if (newRefreshToken !== undefined) {
             refreshToken = newRefreshToken;
         }
@@ -63,27 +94,24 @@ export const authService = {
     },
 
     async refreshAccessToken() {
-        if (!refreshToken) throw new Error("No refresh token");
+        if (!refreshToken) throw new Error("No refresh token available");
 
-        const res = await fetch(`${API_URL}/api/auth/mobile/refresh`, {
+        const data = await request(`/auth/mobile/refresh`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ refreshToken }),
         });
 
-        const data = await res.json();
-
-        if (!data.success) {
-            throw new Error(`REFRESH FAILED: ${data.message}`);
-        }
-
         const newAccessToken = String(data.data.accessToken);
+
         accessToken = newAccessToken;
 
+        // Persist updated token so restore works correctly after background/kill
         await SecureStore.setItemAsync("access_token", newAccessToken);
 
         return newAccessToken;
     },
+
     /** --------------------
      * Register new user
      * -------------------- */
@@ -94,7 +122,7 @@ export const authService = {
         password: string,
         contactNumber: string,
     ) {
-        const res = await fetch(`${API_URL}/api/users/register`, {
+        const data = await request(`/users/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -106,67 +134,37 @@ export const authService = {
             }),
         });
 
-        const data = await res.json();
+        this.setTokens(
+            data?.data?.accessToken ?? null,
+            data?.data?.refreshToken ?? null,
+        );
 
-        if (!data.success) {
-            throw new Error(data.message);
-        }
-
-        if (data?.data?.accessToken) {
-            const newAccessToken = String(data.data.accessToken);
-            accessToken = newAccessToken;
-        }
-
-        if (data?.data?.refreshToken) {
-            const newRefreshToken = String(data.data.refreshToken);
-            refreshToken = newRefreshToken;
-        }
-
-        return data;
+        return data.data;
     },
 
     /** --------------------
      * Login user
      * -------------------- */
     async login(email: string, password: string) {
-        const res = await fetch(`${API_URL}/api/auth/app`, {
+        const data = await request(`/auth/mobile`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
         });
 
-        const data = await res.json();
+        this.setTokens(
+            data?.data?.accessToken ?? null,
+            data?.data?.refreshToken ?? null,
+        );
 
-        if (!data.success) {
-            throw new Error(data.message);
-        }
-
-        if (data?.data?.accessToken) {
-            const newAccessToken = String(data.data.accessToken);
-            accessToken = newAccessToken;
-        }
-
-        if (data?.data?.refreshToken) {
-            const newRefreshToken = String(data.data.refreshToken);
-            refreshToken = newRefreshToken;
-        }
-
-        return data;
+        return data.data;
     },
 
     /** --------------------
      * Get current authenticated user
      * -------------------- */
     async me() {
-        const res = await this.fetchWithAuth(`${API_URL}/api/users/mobile/me`);
-
-        const data = await res.json();
-
-        if (!data.success) {
-            throw new Error(`Error Fetching Profile: ${data.message}`);
-        }
-
-        return data;
+        return (await request(`/users/mobile/me`)).data;
     },
 
     /** --------------------
@@ -174,11 +172,15 @@ export const authService = {
      * -------------------- */
     async logout() {
         if (refreshToken) {
-            await fetch(`${API_URL}/api/logout`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ refreshToken }),
-            });
+            try {
+                await request(`/api/auth/mobile/logout`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ refreshToken }),
+                });
+            } catch {
+                // Fire-and-forget — clear locally regardless of server response
+            }
         }
 
         accessToken = null;
@@ -199,18 +201,16 @@ export const authService = {
             contactNumber: string;
         }>,
     ) {
-        const res = await fetch(`${API_URL}/api/users/${userId}`, {
-            method: "PATCH", // or "PUT" if your API expects full update
-            headers: this.getHeaders(),
-            body: JSON.stringify(updates),
-        });
-
-        const data = await res.json();
-        return data;
+        return (
+            await request(`/users/${userId}`, {
+                method: "PATCH",
+                body: JSON.stringify(updates),
+            })
+        ).data;
     },
 
     /** --------------------
-     * Update profile info (height, goal, activityLevel, etc.)
+     * Update profile info
      * -------------------- */
     async updateProfile(
         userId: string | number,
@@ -222,13 +222,11 @@ export const authService = {
             activityLevel: string;
         }>,
     ) {
-        const res = await fetch(`${API_URL}/api/user-profiles/${userId}`, {
-            method: "PATCH", // adjust if your API uses PUT
-            headers: this.getHeaders(),
-            body: JSON.stringify(profileUpdates),
-        });
-
-        const data = await res.json();
-        return data;
+        return (
+            await request(`/user-profiles/${userId}`, {
+                method: "PATCH",
+                body: JSON.stringify(profileUpdates),
+            })
+        ).data;
     },
 };

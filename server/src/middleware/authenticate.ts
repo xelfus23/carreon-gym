@@ -50,7 +50,6 @@ export const webAuthMiddleware = async (
     }
 };
 
-// Mobile App - Bearer token auth
 export const mobileAuthMiddleware = async (
     req: Request,
     res: Response,
@@ -69,16 +68,16 @@ export const mobileAuthMiddleware = async (
         const accessToken = authHeader.split(" ")[1];
 
         if (!accessToken)
-            return res
-                .status(401)
-                .json({ success: false, message: "Malformed token" });
+            return res.status(401).json({
+                success: false,
+                message: "Malformed token",
+            });
 
         const decoded = jwt.verify(
             accessToken,
             env.JWT_ACCESS_SECRET,
         ) as unknown as { sub: number; role: string };
 
-        // Attach user info to request
         (req as any).user = {
             id: decoded.sub,
             role: decoded.role,
@@ -90,7 +89,6 @@ export const mobileAuthMiddleware = async (
             return res.status(401).json({
                 success: false,
                 message: "Access token expired",
-                code: "TOKEN_EXPIRED",
             });
         }
 

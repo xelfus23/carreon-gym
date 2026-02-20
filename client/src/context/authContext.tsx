@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 import { authService } from "../services/authService";
 import { AuthUser } from "../types/users";
 import { AuthContextType } from "../types/context";
@@ -15,19 +21,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const segments = useSegments();
     const router = useRouter();
 
+    const logout = useCallback(async () => {
+        setUser(null);
+        setIsAuthenticated(false);
+        await authService.logout();
+        await authStorage.clear();
+    }, []);
+
+    useEffect(() => {
+        authService.setSessionExpiredHandler(logout);
+    }, [logout]);
+
     useEffect(() => {
         const restoreSession = async () => {
             try {
                 const { user, accessToken, refreshToken } =
                     await authStorage.load();
+
                 if (user && accessToken && refreshToken) {
-                    setUser(user);
-                    setIsAuthenticated(true);
                     authService.setTokens(accessToken, refreshToken);
+
+                    try {
+                        const data = await authService.me();
+                        setUser(data.user ?? user);
+                        setIsAuthenticated(true);
+                    } catch (e) {
+                        if (
+                            e instanceof Error &&
+                            e.message ===
+                                "Session expired. Please log in again."
+                        ) {
+                            // Refresh token is also expired — force logout
+                            await logout();
+                        } else {
+                            // Network error or other transient issue — trust stored session
+                            setUser(user);
+                            setIsAuthenticated(true);
+                            authService.setTokens(accessToken, refreshToken);
+                        }
+                    }
                 }
             } catch (e) {
                 if (e instanceof Error) {
-                    console.error("FROM AUTH CONTEXT:", e.message);
+                    console.error("Session restore failed:", e.message);
                 }
             } finally {
                 setIsLoading(false);
@@ -35,7 +71,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
 
         restoreSession();
-    }, []);
+    }, [logout]);
 
     useEffect(() => {
         if (isLoading) return;
@@ -58,14 +94,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     ) => {
         setIsLoading(true);
         try {
-            const result = await authService.register(
-                firstName,
-                lastName,
-                email,
-                password,
-                contactNumber,
-            );
-            const { user, accessToken, refreshToken } = result.data;
+            const { user, accessToken, refreshToken } =
+                await authService.register(
+                    firstName,
+                    lastName,
+                    email,
+                    password,
+                    contactNumber,
+                );
+
             setUser(user);
             setIsAuthenticated(true);
             authService.setTokens(accessToken, refreshToken);
@@ -79,8 +116,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const login = async (email: string, password: string) => {
         setIsLoading(true);
         try {
-            const result = await authService.login(email, password);
-            const { user, accessToken, refreshToken } = result.data;
+            const { user, accessToken, refreshToken } = await authService.login(
+                email,
+                password,
+            );
+
+            console.log(user)
+
             setUser(user);
             setIsAuthenticated(true);
             authService.setTokens(accessToken, refreshToken);
@@ -89,13 +131,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const logout = async () => {
-        setUser(null);
-        setIsAuthenticated(false);
-        await authService.logout();
-        await authStorage.clear();
     };
 
     return (

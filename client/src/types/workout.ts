@@ -1,7 +1,7 @@
 export type exerciseProps = {
     id: number;
-    name: string;
-    equipment: string[];
+    exercise_name: string;
+    equipment_name: string[];
     sets: number;
     reps: number;
     notes: string;
@@ -14,6 +14,7 @@ export type dayProps = {
     rest_day_notes: string;
     title: string;
     exercises: exerciseProps[];
+    day_order: number;
 };
 
 export type WorkoutPlanProps = {
@@ -22,4 +23,5 @@ export type WorkoutPlanProps = {
     title: string;
     description: string;
     days: dayProps[];
+    is_active: boolean;
 };

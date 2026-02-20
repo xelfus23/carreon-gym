@@ -26,16 +26,16 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-950 p-6">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-slate-950"></div>
+        <div className="min-h-screen flex items-center justify-center bg-background p-6">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-slate-950"></div>
 
             <div className="w-full max-w-md relative animate-in fade-in slide-in-from-bottom-8 duration-700">
-                <div className="bg-slate-900/50 backdrop-blur-xl p-8 rounded-[2rem] border border-slate-800 shadow-2xl">
+                <div className="bg-surface backdrop-blur-xl p-8 rounded-4xl border border-border shadow-2xl">
                     <div className="flex flex-col items-center mb-8">
-                        <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-indigo-500/20 mb-4">
+                        <div className="w-16 h-16 bg-primary-dark rounded-2xl flex items-center justify-center text-text-primary text-3xl font-bold shadow-lg shadow-indigo-500/20 mb-4">
                             I
                         </div>
-                        <h1 className="text-2xl font-bold text-white tracking-tight">
+                        <h1 className="text-2xl font-bold text-text-primary tracking-tight">
                             Careon Gym Admin
                         </h1>
                         <p className="text-slate-400 text-sm mt-1">
@@ -81,7 +81,7 @@ const Login: React.FC = () => {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center"
+                            className="w-full py-4 bg-primary hover:bg-primary-dark disabled:bg-primary/50 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center"
                         >
                             {isSubmitting ? (
                                 <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>

@@ -1,20 +1,21 @@
 export type ChatMessage = {
-    id?: number; // Optional because optimistic messages won't have an ID yet
+    id?: number | string;
     role: "user" | "assistant" | "system" | "tool";
     content: string;
-    timestamp: number;
+    timestamp?: number | string;
     aiStatus?: string;
-    // Tool call support
-    tool_calls?: {
-        id: string;
-        type: "function";
-        function: {
-            name: string;
-            arguments: string;
-        };
-    }[];
-    tool_call_id?: string; // Links tool result to the original call
-    name?: string; // Tool name for tool role messages
+    // tool_calls?: ToolCall[];
+    // tool_call_id?: string;
+    // name?: string;
+};
+
+export type ToolCall = {
+    id: string;
+    type: "function";
+    function: {
+        name: string;
+        arguments: string;
+    };
 };
 
 export interface ThinkingProps {
@@ -22,7 +23,6 @@ export interface ThinkingProps {
 }
 
 export interface ChatBubbleProps {
-    content: string;
-    role: "user" | "assistant";
-    index: number;
+    message: ChatMessage;
+    isStreaming?: boolean;
 }

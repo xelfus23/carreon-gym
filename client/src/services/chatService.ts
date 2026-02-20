@@ -1,124 +1,145 @@
+// chatService.ts
+import { request } from "../utils/request";
 import { authService } from "./authService";
 
-let ws: WebSocket | null = null;
-
 const WS_URL = process.env.EXPO_PUBLIC_WS_URL;
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+// Single shared socket — one connection at a time
+let activeSocket: WebSocket | null = null;
 
 export const chatService = {
+    /** --------------------
+     * Use fetchWithAuth everywhere so 401s auto-refresh
+     * -------------------- */
     getHistory: async () => {
-        const response = await fetch(`${API_URL}/api/chats/sessions`, {
-            method: "GET",
-            headers: authService.getHeaders(),
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch history");
-        return await response.json();
+        return (await request(`/chats/sessions`)).data;
     },
 
     getSessionMessages: async (sessionId: number) => {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/chats/sessions/${sessionId}/messages`,
-                {
-                    method: "GET",
-                    headers: authService.getHeaders(),
-                },
-            );
-            if (!response.ok) throw new Error("Failed to fetch messages");
-            return await response.json();
-        } catch (error) {
-            console.error("getSessionMessages error:", error);
-            return [];
-        }
+        return (await request(`/chats/sessions/${sessionId}/messages`)).data;
     },
 
     createChat: async () => {
-        try {
-            const response = await fetch(`${API_URL}/api/chats/sessions`, {
+        return (
+            await request(`/chats/sessions`, {
                 method: "POST",
-                headers: authService.getHeaders(),
-            });
-
-            if (!response.ok) throw new Error("Failed to create chat");
-            return await response.json();
-        } catch (error) {
-            console.error("createChat error:", error);
-            throw error;
-        }
+            })
+        ).data;
     },
 
+    deleteMessage: async (messageId: string) => {
+        return (
+            await request(`/chats/messages/${messageId}`, {
+                method: "DELETE",
+            })
+        ).data;
+    },
+
+    /** --------------------
+     * WebSocket — token sent in first payload, not URL
+     * -------------------- */
     sendMessage: (
         sessionId: number,
         text: string,
         onToken: (token: string) => void,
         onState: (state: string) => void,
+        signal?: AbortSignal,
     ): Promise<void> => {
         return new Promise((resolve, reject) => {
             const token = authService.getToken();
+
             if (!token) {
-                reject(new Error("No auth token"));
+                reject(new Error("No auth token available"));
                 return;
             }
 
-            const socketUrl = `ws://${WS_URL}?token=${token}&session_id=${sessionId}`;
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.close();
+            if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
+                activeSocket.close(1000, "New message sent");
             }
 
-            ws = new WebSocket(socketUrl);
+            const baseUrl = WS_URL?.startsWith("ws")
+                ? WS_URL
+                : `ws://${WS_URL}`;
 
-            ws.onopen = () => {
-                ws?.send(
-                    JSON.stringify({
-                        message: text,
-                    }),
-                );
+            // Token in URL — backend authenticates on handshake
+            activeSocket = new WebSocket(
+                `${baseUrl}?token=${token}&session_id=${sessionId}`,
+            );
+
+            const socket = activeSocket;
+            let settled = false;
+
+            const settle = (fn: () => void) => {
+                if (!settled) {
+                    settled = true;
+                    fn();
+                }
             };
 
-            ws.onmessage = (e) => {
+            const handleAbort = () => {
+                socket.close(1000, "Aborted");
+                settle(() => reject(new Error("Aborted")));
+            };
+            signal?.addEventListener("abort", handleAbort);
+
+            const cleanup = () => {
+                signal?.removeEventListener("abort", handleAbort);
+            };
+
+            socket.onopen = () => {
+                socket.send(JSON.stringify({ message: text }));
+            };
+
+            socket.onmessage = (e) => {
                 try {
                     const data = JSON.parse(e.data as string);
 
                     if (data.type === "token") {
                         onToken(data.content);
-                    }
-
-                    if (data.type === "state") {
+                    } else if (data.type === "state") {
                         onState(data.state);
-                    }
-
-                    if (data.type === "done") {
-                        resolve();
+                    } else if (data.type === "error") {
+                        cleanup();
+                        settle(() =>
+                            reject(new Error(data.message ?? "Server error")),
+                        );
+                        socket.close();
+                    } else if (data.type === "done") {
                         onState("Done");
-                        ws?.close();
+                        cleanup();
+                        settle(() => resolve());
+                        socket.close(1000, "Done");
                     }
-                } catch (err) {
-                    console.error("WS Parse error", err);
+                } catch {
+                    // Non-JSON frame — ignore
                 }
             };
 
-            ws.onerror = (e) => {
-                console.error("WebSocket error:", e);
-                onState(`Error: ${e}`);
-                reject(new Error("WebSocket error"));
+            socket.onerror = () => {
+                cleanup();
+                settle(() => reject(new Error("WebSocket connection failed")));
             };
 
-            ws.onclose = () => {
-                console.log("WS closed");
+            socket.onclose = (e) => {
+                cleanup();
+                if (!e.wasClean && e.code !== 1000) {
+                    settle(() =>
+                        reject(
+                            new Error(
+                                `WebSocket closed unexpectedly (${e.code})`,
+                            ),
+                        ),
+                    );
+                }
             };
         });
     },
 
-    deleteMessage: async (messageId: string) => {
-        try {
-            await fetch(`${API_URL}/api/chats/messages/${messageId}`, {
-                method: "DELETE",
-                headers: authService.getHeaders(),
-            });
-        } catch (error) {
-            console.error("Delete error", error);
+    /** Close active socket — call on logout or screen unmount */
+    disconnect: () => {
+        if (activeSocket) {
+            activeSocket.close(1000, "Disconnected");
+            activeSocket = null;
         }
     },
 };

@@ -10,8 +10,9 @@ export default function SubscriptionCard() {
     const getSubscriptionTextColor = (status: string | undefined) => {
         switch (status?.toLowerCase()) {
             case "active":
-                return "text-success";
+                return "text-primary";
             case "expired":
+                return "text-text-secondary";
             case "cancelled":
                 return "text-danger";
             case "pending":

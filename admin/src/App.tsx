@@ -6,6 +6,7 @@ import MemberManagement from "./components/MemberManagement";
 import AssistantTab from "./components/AssistantTab";
 import { NavItem } from "./types";
 import Sidebar from "./components/SideBar";
+import Attendance from "./components/Attendance";
 
 const App: React.FC = () => {
     const [currentTab, setCurrentTab] = useState<NavItem>(NavItem.DASHBOARD);
@@ -36,9 +37,11 @@ const App: React.FC = () => {
                 return <MemberManagement />;
             case NavItem.AI_INSIGHTS:
                 return <AssistantTab />;
+            case NavItem.QRCODE:
+                return <Attendance />;
             default:
                 return (
-                    <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
+                    <div className="flex flex-col items-center justify-center h-full text-text-secondary space-y-4">
                         <div className="text-6xl">🚧</div>
                         <h2 className="text-2xl font-bold">
                             Module Under Construction
@@ -62,13 +65,13 @@ const App: React.FC = () => {
         <div className="flex h-screen overflow-hidden">
             <Sidebar currentTab={currentTab} setTab={setCurrentTab} />
 
-            <main className="flex-1 overflow-y-auto bg-slate-50 relative">
-                <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200 px-10 py-4 flex justify-between items-center">
+            <main className="flex-1 overflow-y-auto bg-background relative">
+                <header className="sticky top-0 z-10 bg-surface backdrop-blur-md border-b border-border px-10 py-4 flex justify-between items-center">
                     <div className="flex flex-col">
-                        <h2 className="text-xl font-bold text-slate-900 capitalize">
+                        <h2 className="text-xl font-bold text-text-primary capitalize">
                             {currentTab.toLowerCase().replace("_", " ")}
                         </h2>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-text-secondary">
                             Welcome back, {user?.firstName || "Administrator"}
                         </p>
                     </div>
@@ -99,7 +102,7 @@ const App: React.FC = () => {
                     </div>
                 </header>
 
-                <div className="p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-80px)]">
+                <div className="p-10 max-w-400 mx-auto min-h-[calc(100vh-80px)]">
                     {renderContent()}
                 </div>
             </main>
