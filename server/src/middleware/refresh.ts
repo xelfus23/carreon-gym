@@ -64,51 +64,67 @@ export const webRefresh = async (req: Request, res: Response) => {
     }
 };
 
-// Mobile refresh - uses request body (keep your existing logic)
+// ✅ Add rotation to mobileRefresh
 export const mobileRefresh = async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
-        return res.status(401).json({
-            success: false,
-            message: "No refresh token",
-        });
+        return res
+            .status(401)
+            .json({ success: false, message: "No refresh token" });
     }
 
     try {
         const payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as any;
-
         const hashed = hashToken(refreshToken);
 
         const session = await pool.query(
             `SELECT * FROM user_sessions 
-             WHERE user_id = $1 
-             AND refresh_token_hash = $2`,
+             WHERE user_id = $1 AND refresh_token_hash = $2`,
             [payload.sub, hashed],
         );
 
         if (session.rowCount === 0) {
-            return res.status(403).json({
-                success: false,
-                message: "Invalid session",
-            });
+            return res
+                .status(403)
+                .json({ success: false, message: "Invalid session" });
         }
 
+        // ✅ Generate new access token
         const accessToken = jwt.sign(
             { sub: payload.sub, role: payload.role },
             env.JWT_ACCESS_SECRET,
             { expiresIn: "15m" },
         );
 
+        // ✅ Rotate refresh token (sliding session window)
+        const newRefreshToken = jwt.sign(
+            { sub: payload.sub, role: payload.role },
+            env.JWT_REFRESH_SECRET,
+            { expiresIn: "7d" },
+        );
+
+        const newHashed = hashToken(newRefreshToken);
+
+        // ✅ Replace old refresh token hash in DB
+        //    and extend session validity while user stays active
+        await pool.query(
+            `UPDATE user_sessions 
+             SET refresh_token_hash = $1,
+                 last_used_at = NOW(),
+                 expires_at = NOW() + INTERVAL '7 days'
+             WHERE user_id = $2 AND refresh_token_hash = $3`,
+            [newHashed, payload.sub, hashed],
+        );
+
         return res.json({
             success: true,
             message: "Token Generated",
-            data: { accessToken: accessToken },
+            data: { accessToken, refreshToken: newRefreshToken },
         });
     } catch {
-        return res.status(403).json({
-            success: false,
-            message: "Refresh Error: Invalid Token",
-        });
+        return res
+            .status(403)
+            .json({ success: false, message: "Refresh Error: Invalid Token" });
     }
 };

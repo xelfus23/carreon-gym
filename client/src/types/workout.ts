@@ -3,7 +3,8 @@ export type exerciseProps = {
     exercise_name: string;
     equipment_name: string[];
     sets: number;
-    reps: number;
+    reps: number | null;
+    duration_seconds: number | null;
     notes: string;
 };
 

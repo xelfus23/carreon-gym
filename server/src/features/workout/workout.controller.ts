@@ -34,6 +34,7 @@ export const logComplete = async (req: Request, res: Response) => {
         workout_exercise_id,
         completed_sets,
         completed_reps,
+        duration_minutes,
         weight_used_kg,
         difficulty_rating,
         notes,
@@ -47,30 +48,59 @@ export const logComplete = async (req: Request, res: Response) => {
     }
 
     try {
-        const result = await pool.query(
-            `INSERT INTO workout_logs
-                (user_id, workout_exercise_id, completed_sets, completed_reps,
-                 weight_used_kg, difficulty_rating, notes, logged_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-             ON CONFLICT ON CONSTRAINT workout_logs_user_exercise_day_unique
-             DO UPDATE SET
-                completed_sets    = EXCLUDED.completed_sets,
-                completed_reps    = EXCLUDED.completed_reps,
-                weight_used_kg    = EXCLUDED.weight_used_kg,
-                difficulty_rating = EXCLUDED.difficulty_rating,
-                notes             = EXCLUDED.notes,
-                logged_at         = NOW()
-             RETURNING *`,
-            [
-                userId,
-                workout_exercise_id,
-                completed_sets ?? null,
-                completed_reps ?? null,
-                weight_used_kg ?? null,
-                difficulty_rating ?? null,
-                notes ?? null,
-            ],
+        // Check if a log already exists for this exercise today
+        const existingLog = await pool.query(
+            `SELECT id FROM workout_logs
+             WHERE user_id = $1
+               AND workout_exercise_id = $2
+               AND logged_at::date = CURRENT_DATE`,
+            [userId, workout_exercise_id],
         );
+
+        let result;
+        if (existingLog.rows.length > 0) {
+            // Update existing log
+            result = await pool.query(
+                `UPDATE workout_logs
+                 SET completed_sets = $1,
+                     completed_reps = $2,
+                     duration_minutes = $3,
+                     weight_used_kg = $4,
+                     difficulty_rating = $5,
+                     notes = $6,
+                     logged_at = NOW()
+                 WHERE id = $7
+                 RETURNING *`,
+                [
+                    completed_sets ?? null,
+                    completed_reps ?? null,
+                    duration_minutes ?? null,
+                    weight_used_kg ?? null,
+                    difficulty_rating ?? null,
+                    notes ?? null,
+                    existingLog.rows[0].id,
+                ],
+            );
+        } else {
+            // Insert new log
+            result = await pool.query(
+                `INSERT INTO workout_logs
+                    (user_id, workout_exercise_id, completed_sets, completed_reps,
+                     duration_minutes, weight_used_kg, difficulty_rating, notes, logged_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+                 RETURNING *`,
+                [
+                    userId,
+                    workout_exercise_id,
+                    completed_sets ?? null,
+                    completed_reps ?? null,
+                    duration_minutes ?? null,
+                    weight_used_kg ?? null,
+                    difficulty_rating ?? null,
+                    notes ?? null,
+                ],
+            );
+        }
 
         return res.status(201).json({ success: true, data: result.rows[0] });
     } catch (error) {
@@ -78,6 +108,33 @@ export const logComplete = async (req: Request, res: Response) => {
         return res.status(500).json({
             success: false,
             message: "Failed to log workout",
+        });
+    }
+};
+
+/** All of today's logs for the user (for restoring completion state on app load). */
+export const getTodayLogs = async (req: Request, res: Response) => {
+    const userId = (req as any).user.id;
+
+    try {
+        const result = await pool.query(
+            `SELECT wl.*, we.workout_day_id
+             FROM workout_logs wl
+             JOIN workout_exercises we ON we.id = wl.workout_exercise_id
+             WHERE wl.user_id = $1
+               AND wl.logged_at::date = CURRENT_DATE
+             ORDER BY wl.logged_at DESC`,
+            [userId],
+        );
+
+        return res
+            .status(200)
+            .json({ success: true, message: "Success", data: result.rows });
+    } catch (error) {
+        console.error("Error fetching today's workout logs:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch today's logs",
         });
     }
 };

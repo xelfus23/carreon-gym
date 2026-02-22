@@ -4,6 +4,8 @@ import { generateTokens } from "../../utils/generateTokens.ts";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import pool from "../../config/pool.ts";
+import { hashToken } from "../../utils/hashToken.ts";
+import { saveSessionToDB } from "../../services/saveSession.ts";
 
 //====================================================
 //====================================================
@@ -81,6 +83,15 @@ export const mobileLoginController = async (req: Request, res: Response) => {
         const { accessToken, refreshToken } = generateTokens({
             sub: user.id,
             role: user.role,
+        });
+
+        // Persist refresh token as a session so mobileRefresh can validate it
+        const refreshTokenHash = hashToken(refreshToken);
+        await saveSessionToDB({
+            userId: user.id,
+            tokenHash: refreshTokenHash,
+            deviceInfo: req.headers["user-agent"] ?? null,
+            ip: req.ip || null,
         });
 
         return res.status(200).json({

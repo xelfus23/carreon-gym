@@ -4,6 +4,7 @@ import { metricsQuery, userQuery } from "../../repositories/user.repository.ts";
 const formatInventory = (equipments: any[]) => {
     if (!equipments || equipments.length === 0) return "No equipment found.";
     // Added ID mapping so the AI knows which equipment_id to send to the tool
+    console.log(equipments)
     return equipments
         .map(
             (item) =>
@@ -23,7 +24,7 @@ const formatUserProfile = (user: any, metrics: any) => {
   `;
 };
 
-export const Instructions = async (userId: string | number) => {
+export const Instructions = async (userId: number) => {
     const userData = await userQuery(userId);
     const userMetrics = await metricsQuery(userId);
     const equipmentResult = await getEquipmentDomain();

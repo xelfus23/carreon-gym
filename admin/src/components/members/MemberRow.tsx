@@ -29,11 +29,13 @@ export default function MemberRow({
     isLoading,
     isSelected,
     fetchInsight,
+    onSetPlan,
 }: {
     m: AdminMemberListItem;
     isLoading: boolean;
     isSelected: boolean;
     fetchInsight: (m: AdminMemberListItem) => void;
+    onSetPlan: (m: AdminMemberListItem) => void;
 }) {
     const attendanceColor =
         m.attendance_rate > 80
@@ -163,19 +165,27 @@ export default function MemberRow({
                 </div>
             </td>
 
-            {/* AI action */}
+            {/* Actions */}
             <td className="px-5 py-3.5 text-right">
-                <button
-                    onClick={() => fetchInsight(m)}
-                    disabled={isLoading}
-                    className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all ${
-                        isSelected
-                            ? "bg-indigo-600 text-white opacity-100"
-                            : "text-indigo-600 hover:bg-indigo-50 opacity-0 group-hover:opacity-100"
-                    } disabled:opacity-30`}
-                >
-                    {isSelected && isLoading ? "…" : "✨ AI Insight"}
-                </button>
+                <div className="flex items-center justify-end gap-1">
+                    <button
+                        onClick={() => onSetPlan(m)}
+                        className="text-[11px] font-bold px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                        Set plan
+                    </button>
+                    <button
+                        onClick={() => fetchInsight(m)}
+                        disabled={isLoading}
+                        className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all ${
+                            isSelected
+                                ? "bg-indigo-600 text-white opacity-100"
+                                : "text-indigo-600 hover:bg-indigo-50 opacity-0 group-hover:opacity-100"
+                        } disabled:opacity-30`}
+                    >
+                        {isSelected && isLoading ? "…" : "✨ AI Insight"}
+                    </button>
+                </div>
             </td>
         </tr>
     );

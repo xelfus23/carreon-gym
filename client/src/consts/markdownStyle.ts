@@ -13,29 +13,29 @@ export const markdownStyle = {
         color: COLORS.textPrimary,
         fontSize: 28,
         fontWeight: "bold",
-        marginTop: 20,
-        marginBottom: 12,
+        // marginTop: 20,
+        // marginBottom: 12,
     },
     heading2: {
         color: COLORS.textPrimary,
         fontSize: 24,
         fontWeight: "bold",
-        marginTop: 16,
-        marginBottom: 10,
+        // marginTop: 16,
+        // marginBottom: 10,
     },
     heading3: {
         color: COLORS.textPrimary,
         fontSize: 20,
         fontWeight: "600",
-        marginTop: 14,
-        marginBottom: 8,
+        // marginTop: 14,
+        // marginBottom: 8,
     },
     heading4: {
         color: COLORS.textPrimary,
         fontSize: 18,
         fontWeight: "600",
-        marginTop: 12,
-        marginBottom: 6,
+        // marginTop: 12,
+        // marginBottom: 6,
     },
     heading5: {
         color: COLORS.textPrimary,
@@ -61,6 +61,7 @@ export const markdownStyle = {
         color: COLORS.textPrimary,
         fontWeight: "bold",
     },
+
     em: {
         fontStyle: "italic",
     },
@@ -70,7 +71,7 @@ export const markdownStyle = {
 
     // Links
     link: {
-        color: COLORS.primary || "#007AFF",
+        color: COLORS.primary,
         textDecorationLine: "underline",
     },
 

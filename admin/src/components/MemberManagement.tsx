@@ -3,6 +3,7 @@ import { chatService } from "../services/AIService";
 import type { AdminMemberListItem } from "../types";
 import { useMember } from "../hooks/useMember";
 import MemberRow from "./members/MemberRow";
+import SubscriptionModal from "./members/SubscriptionModal";
 
 type SortKey = keyof AdminMemberListItem | null;
 type SortDir = "asc" | "desc";
@@ -10,7 +11,9 @@ type FilterStatus = "all" | "active" | "suspended" | "deleted";
 type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
 const MemberManagement: React.FC = () => {
-    const { members } = useMember();
+    const { members, refetch } = useMember();
+    const [subscriptionMember, setSubscriptionMember] =
+        useState<AdminMemberListItem | null>(null);
 
     // Selection & AI
     const [selectedMember, setSelectedMember] =
@@ -310,6 +313,7 @@ const MemberManagement: React.FC = () => {
                                                 selectedMember?.id === m.id
                                             }
                                             fetchInsight={fetchInsight}
+                                            onSetPlan={setSubscriptionMember}
                                         />
                                     ))
                                 )}
@@ -518,6 +522,14 @@ const MemberManagement: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {subscriptionMember && (
+                <SubscriptionModal
+                    member={subscriptionMember}
+                    onClose={() => setSubscriptionMember(null)}
+                    onSuccess={refetch}
+                />
+            )}
         </div>
     );
 };

@@ -12,6 +12,7 @@ export interface PlanRow {
     exercise_name: string | null;
     sets: number | null;
     reps: number | null;
+    duration_seconds: number | null;
     notes: string | null;
     equipment_name: string | null;
 }
@@ -32,6 +33,7 @@ export async function getWorkoutPlansDomain(params: { userId: number }) {
       we.exercise_name,
       we.sets,
       we.reps,
+      we.duration_seconds,
       we.notes,
       eq.name AS equipment_name
     FROM workout_plans wp
@@ -77,6 +79,7 @@ export async function getWorkoutPlansDomain(params: { userId: number }) {
                 equipment: row.equipment_name ?? "Bodyweight",
                 sets: row.sets,
                 reps: row.reps,
+                duration_seconds: row.duration_seconds,
                 notes: row.notes,
             });
         }

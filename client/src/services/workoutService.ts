@@ -4,6 +4,7 @@ export type WorkoutLogPayload = {
     workout_exercise_id: number;
     completed_sets?: number | null;
     completed_reps?: number | null;
+    duration_minutes?: number | null;
     weight_used_kg?: number | null;
     difficulty_rating?: number | null;
     notes?: string | null;
@@ -13,6 +14,7 @@ export type WorkoutLog = WorkoutLogPayload & {
     id: number;
     user_id: number;
     logged_at: string;
+    duration_minutes?: number | null;
 };
 
 export const workoutService = {
@@ -33,28 +35,29 @@ export const workoutService = {
         ).data;
     },
 
-    /**
-     * Fetch all of today's logs for a specific workout day.
-     * Note: uses workout_day_id (matches workout_exercises.workout_day_id
-     * in the schema), NOT workout_plan_day_id.
-     */
     getDayLogs: async (workoutDayId: number) => {
-        return (
-            await request("/workoutplan/logs", {
-                method: "POST",
-                body: JSON.stringify({
-                    workout_day_id: workoutDayId,
-                }),
-            })
-        ).data;
+        const res = await request(
+            `/workoutplan/logs?workout_day_id=${workoutDayId}`,
+            { method: "GET" },
+        );
+        return res.data ?? [];
     },
 
-    /**
-     * Remove today's log for an exercise (called when the user unchecks it).
-     */
+    /** All logs for today (for restoring completion state on app load). */
+    getTodayLogs: async (): Promise<WorkoutLog[]> => {
+        const res = await request(`/workoutplan/logs/today`, {
+            method: "GET",
+        });
+        return (res.data ?? []) as WorkoutLog[];
+    },
+
     removeLog: async (
         workoutExerciseId: number,
     ): Promise<{ success: boolean; message?: string }> => {
-        return (await request(`/workout-logs/${workoutExerciseId}`)).data;
+        return (
+            await request(`/workoutplan/${workoutExerciseId}`, {
+                method: "DELETE",
+            })
+        ).data;
     },
 };

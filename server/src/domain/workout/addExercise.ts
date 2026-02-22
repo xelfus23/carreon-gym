@@ -31,6 +31,8 @@ export const addExerciseDomain = async (params: {
     // If reps is provided, duration must be null. If duration is provided, reps must be null.
     // We also treat 0 or undefined as null to satisfy the DB constraint.
     const finalReps = reps && reps > 0 ? reps : null;
+    // Only set duration if reps is not set AND duration_seconds is provided and > 0
+    // This ensures we don't accidentally set duration when reps should be used
     const finalDuration =
         !finalReps && duration_seconds && duration_seconds > 0
             ? duration_seconds
