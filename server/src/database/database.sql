@@ -622,3 +622,96 @@ COMMENT ON COLUMN workout_exercises.weight_guidance IS 'Intensity prescription: 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- SCHEMA COMPLETE ✅
 -- ═══════════════════════════════════════════════════════════════════════════
+
+
+
+
+--------------------------------
+
+
+
+-- ============================================================================
+-- MIGRATION: Add subscription plans + payments
+-- ============================================================================
+
+-- ── 1. Subscription Plans (price templates) ──────────────────────────────────
+-- Stores the gym's available plans so admins pick from a list instead of
+-- manually typing a price each time. Prices can be updated over time without
+-- breaking historical payment records.
+
+CREATE TABLE subscription_plans (
+    id          SERIAL PRIMARY KEY,
+    name        TEXT NOT NULL UNIQUE,          -- e.g. "Monthly", "Quarterly", "Annual"
+    description TEXT,
+    price       NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
+    duration_days INT NOT NULL CHECK (duration_days > 0), -- 30, 90, 365, etc.
+    is_active   BOOLEAN DEFAULT TRUE,          -- hide retired plans without deleting
+    created_at  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ── 2. Link subscriptions to a plan (optional but recommended) ──────────────
+-- Adds a reference to subscription_plans on the existing subscriptions table.
+-- plan_name is kept for display; plan_id is the FK for joins.
+ALTER TABLE subscriptions
+    ADD COLUMN plan_id INT REFERENCES subscription_plans(id) ON DELETE SET NULL;
+
+-- ── 3. Payments ───────────────────────────────────────────────────────────────
+-- One payment record per transaction. Admin creates this manually when a member
+-- pays. Linked to a subscription so you know what was paid for.
+
+CREATE TYPE payment_status AS ENUM ('paid', 'pending', 'refunded', 'cancelled');
+CREATE TYPE payment_method AS ENUM ('cash', 'gcash', 'maya', 'bank_transfer', 'card', 'other');
+
+CREATE TABLE payments (
+    id              SERIAL PRIMARY KEY,
+    user_id         INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    subscription_id INT REFERENCES subscriptions(id) ON DELETE SET NULL,
+    plan_id         INT REFERENCES subscription_plans(id) ON DELETE SET NULL,
+
+    -- The actual amount collected (admin can override plan price if needed,
+    -- e.g. for discounts or prorated payments)
+    amount          NUMERIC(10, 2) NOT NULL CHECK (amount >= 0),
+    currency        TEXT DEFAULT 'PHP',
+
+    status          payment_status DEFAULT 'paid',
+    method          payment_method DEFAULT 'cash',
+
+    -- Admin who recorded the payment
+    recorded_by     INT REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Optional reference number (GCash ref, bank ref, receipt no.)
+    reference_no    TEXT,
+    notes           TEXT,
+
+    paid_at         TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_payments_user       ON payments(user_id);
+CREATE INDEX idx_payments_status     ON payments(status);
+CREATE INDEX idx_payments_paid_at    ON payments(paid_at DESC);
+CREATE INDEX idx_payments_sub        ON payments(subscription_id);
+
+-- Trigger for updated_at
+CREATE TRIGGER update_subscription_plans_updated_at
+BEFORE UPDATE ON subscription_plans
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_payments_updated_at
+BEFORE UPDATE ON payments
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ── 4. Seed: default plans ────────────────────────────────────────────────────
+-- Adjust prices to match your gym's actual rates.
+
+INSERT INTO subscription_plans (name, description, price, duration_days) VALUES
+    ('Monthly',    '1-month gym access',   799.00,  30),
+    ('Quarterly',  '3-month gym access',  2199.00,  90),
+    ('Semi-Annual','6-month gym access',  3999.00, 180),
+    ('Annual',     '12-month gym access', 6999.00, 365);
+
+-- ============================================================================
+-- MIGRATION COMPLETE ✅
+-- ============================================================================

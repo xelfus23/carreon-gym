@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import {
     AreaChart,
     Area,
+    BarChart,
+    Bar,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -9,12 +11,15 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import { chatService } from "../services/AIService";
-// import { useMember } from "../hooks/useMember";
 import { useStats } from "../hooks/useStats";
 
 const DashboardHome: React.FC = () => {
-    // const { members } = useMember();
-    const { stats, chartData, isLoading: statsLoading } = useStats();
+    const {
+        stats,
+        chartData,
+        peakHourData,
+        isLoading: statsLoading,
+    } = useStats();
 
     const [aiAnalysis, setAiAnalysis] = useState<string>(
         "Initializing analysis session...",
@@ -22,7 +27,6 @@ const DashboardHome: React.FC = () => {
     const [isTyping, setIsTyping] = useState(false);
 
     useEffect(() => {
-        // Don't run until we have real stats loaded
         if (statsLoading || !stats) return;
 
         const fetchAnalysis = async () => {
@@ -34,6 +38,10 @@ const DashboardHome: React.FC = () => {
                     `New members this month: ${stats.new_members_this_month}`,
                     `Active subscriptions: ${stats.active_subscriptions}`,
                     `Today's check-ins: ${stats.todays_checkins}`,
+                    `Revenue this month: ₱${stats.revenue_this_month}`,
+                    `Revenue growth: ${stats.revenue_growth_percent}%`,
+                    `Subscriptions expiring soon: ${stats.expiring_soon}`,
+                    `Peak hour today: ${stats.peak_hour_today !== null ? formatHour(stats.peak_hour_today) : "N/A"}`,
                 ].join(", ");
 
                 const prompt =
@@ -61,11 +69,11 @@ const DashboardHome: React.FC = () => {
         };
 
         fetchAnalysis();
-    }, [stats, statsLoading]); // Re-runs when stats load
+    }, [stats, statsLoading]);
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            {/* ── Stat Cards ── */}
+            {/* ── Row 1: Stat Cards ── */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     title="Total Members"
@@ -74,11 +82,7 @@ const DashboardHome: React.FC = () => {
                             ? "—"
                             : (stats?.total_members ?? 0).toLocaleString()
                     }
-                    trend={
-                        statsLoading
-                            ? "Loading..."
-                            : `+${stats?.new_members_this_month ?? 0} this month`
-                    }
+                    trend={`+${stats?.new_members_this_month ?? 0} this month`}
                     color="indigo"
                     loading={statsLoading}
                 />
@@ -91,7 +95,13 @@ const DashboardHome: React.FC = () => {
                                   stats?.active_subscriptions ?? 0
                               ).toLocaleString()
                     }
-                    trend="Currently active plans"
+                    trend={
+                        statsLoading
+                            ? "Loading..."
+                            : stats?.expiring_soon
+                              ? `⚠ ${stats.expiring_soon} expiring in 7 days`
+                              : "All subscriptions healthy"
+                    }
                     color="emerald"
                     loading={statsLoading}
                 />
@@ -102,26 +112,37 @@ const DashboardHome: React.FC = () => {
                             ? "—"
                             : (stats?.todays_checkins ?? 0).toLocaleString()
                     }
-                    trend="Live gym occupancy"
+                    trend={
+                        statsLoading
+                            ? "Loading..."
+                            : stats?.peak_hour_today !== null &&
+                                stats?.peak_hour_today !== undefined
+                              ? `Peak today: ${formatHour(stats.peak_hour_today)}`
+                              : "Live gym occupancy"
+                    }
                     color="amber"
                     loading={statsLoading}
                 />
                 <StatCard
-                    title="New This Month"
+                    title="Revenue This Month"
                     value={
                         statsLoading
                             ? "—"
-                            : (
-                                  stats?.new_members_this_month ?? 0
-                              ).toLocaleString()
+                            : `₱${(stats?.revenue_this_month ?? 0).toLocaleString()}`
                     }
-                    trend="Member growth"
+                    trend={
+                        statsLoading
+                            ? "Loading..."
+                            : stats?.revenue_growth_percent !== undefined
+                              ? `${stats.revenue_growth_percent >= 0 ? "+" : ""}${stats.revenue_growth_percent}% vs last month`
+                              : "Monthly revenue"
+                    }
                     color="rose"
                     loading={statsLoading}
                 />
             </div>
 
-            {/* ── Chart + AI ── */}
+            {/* ── Row 2: Attendance Chart + AI Insight ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Attendance Chart */}
                 <div className="lg:col-span-2 bg-surface p-6 rounded-3xl border border-border shadow-sm">
@@ -136,11 +157,9 @@ const DashboardHome: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="h-75 w-full">
+                    <div className="h-64 w-full">
                         {statsLoading ? (
-                            <div className="h-full flex items-center justify-center">
-                                <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin" />
-                            </div>
+                            <ChartSkeleton />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={chartData}>
@@ -182,14 +201,7 @@ const DashboardHome: React.FC = () => {
                                         tick={{ fill: "#B3B3B3", fontSize: 12 }}
                                     />
                                     <Tooltip
-                                        contentStyle={{
-                                            borderRadius: "12px",
-                                            border: "1px solid #2A2A2A",
-                                            backgroundColor: "#1A1A1A",
-                                            color: "#FFFFFF",
-                                            boxShadow:
-                                                "0 10px 15px -3px rgb(0 0 0 / 0.4)",
-                                        }}
+                                        contentStyle={tooltipStyle}
                                         labelStyle={{ color: "#B3B3B3" }}
                                         cursor={{
                                             stroke: "#7CFF00",
@@ -253,9 +265,229 @@ const DashboardHome: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            {/* ── Row 3: Revenue Chart + Peak Hours ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Monthly Revenue Chart */}
+                <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm">
+                    <div className="mb-6">
+                        <h3 className="text-lg font-bold text-text-primary">
+                            Monthly Revenue
+                        </h3>
+                        <p className="text-xs text-text-secondary mt-0.5">
+                            Subscription income over the last 6 months
+                        </p>
+                    </div>
+
+                    <div className="h-56 w-full">
+                        {statsLoading ? (
+                            <ChartSkeleton />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={chartData}>
+                                    <defs>
+                                        <linearGradient
+                                            id="colorRevenue"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="5%"
+                                                stopColor="#60A5FA"
+                                                stopOpacity={0.2}
+                                            />
+                                            <stop
+                                                offset="95%"
+                                                stopColor="#60A5FA"
+                                                stopOpacity={0}
+                                            />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        vertical={false}
+                                        stroke="#2A2A2A"
+                                    />
+                                    <XAxis
+                                        dataKey="month"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: "#B3B3B3", fontSize: 12 }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: "#B3B3B3", fontSize: 12 }}
+                                        tickFormatter={(v) =>
+                                            `₱${(v / 1000).toFixed(0)}k`
+                                        }
+                                    />
+                                    <Tooltip
+                                        contentStyle={tooltipStyle}
+                                        labelStyle={{ color: "#B3B3B3" }}
+                                        formatter={(
+                                            value: number | undefined,
+                                        ) => [
+                                            `₱${value?.toLocaleString()}`,
+                                            "Revenue",
+                                        ]}
+                                        cursor={{
+                                            stroke: "#60A5FA",
+                                            strokeWidth: 1,
+                                            strokeDasharray: "4 4",
+                                        }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="revenue"
+                                        stroke="#60A5FA"
+                                        strokeWidth={2.5}
+                                        fillOpacity={1}
+                                        fill="url(#colorRevenue)"
+                                        dot={{
+                                            fill: "#60A5FA",
+                                            r: 3,
+                                            strokeWidth: 0,
+                                        }}
+                                        activeDot={{ r: 5, fill: "#60A5FA" }}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
+                </div>
+
+                {/* Peak Hours Chart */}
+                <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm">
+                    <div className="mb-6">
+                        <h3 className="text-lg font-bold text-text-primary">
+                            Peak Hours
+                        </h3>
+                        <p className="text-xs text-text-secondary mt-0.5">
+                            Hourly check-in distribution — last 30 days
+                        </p>
+                    </div>
+
+                    <div className="h-56 w-full">
+                        {statsLoading ? (
+                            <ChartSkeleton />
+                        ) : peakHourData.length === 0 ? (
+                            <div className="h-full flex items-center justify-center text-text-secondary text-sm">
+                                No check-in data yet
+                            </div>
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={peakHourData} barSize={14}>
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        vertical={false}
+                                        stroke="#2A2A2A"
+                                    />
+                                    <XAxis
+                                        dataKey="hour"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: "#B3B3B3", fontSize: 11 }}
+                                        dy={8}
+                                        interval={1}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: "#B3B3B3", fontSize: 12 }}
+                                    />
+                                    <Tooltip
+                                        contentStyle={tooltipStyle}
+                                        labelStyle={{ color: "#B3B3B3" }}
+                                        formatter={(
+                                            value: number | undefined,
+                                        ) => [value, "Check-ins"]}
+                                        cursor={{
+                                            fill: "rgba(251,191,36,0.08)",
+                                        }}
+                                    />
+                                    <Bar
+                                        dataKey="checkins"
+                                        fill="#FBBF24"
+                                        radius={[4, 4, 0, 0]}
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Row 4: Quick Metrics ── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <MetricTile
+                    label="Avg. Session Duration"
+                    value={
+                        statsLoading
+                            ? "—"
+                            : stats?.avg_daily_duration_minutes
+                              ? `${stats.avg_daily_duration_minutes} min`
+                              : "No data"
+                    }
+                    icon="⏱"
+                    loading={statsLoading}
+                />
+                <MetricTile
+                    label="Expiring Subscriptions"
+                    value={
+                        statsLoading
+                            ? "—"
+                            : `${stats?.expiring_soon ?? 0} in 7 days`
+                    }
+                    icon="⚠️"
+                    loading={statsLoading}
+                    alert={(stats?.expiring_soon ?? 0) > 0}
+                />
+                <MetricTile
+                    label="Revenue Growth"
+                    value={
+                        statsLoading
+                            ? "—"
+                            : stats?.revenue_growth_percent !== undefined
+                              ? `${stats.revenue_growth_percent >= 0 ? "+" : ""}${stats.revenue_growth_percent}%`
+                              : "N/A"
+                    }
+                    icon="📈"
+                    loading={statsLoading}
+                    positive={
+                        stats ? stats.revenue_growth_percent >= 0 : undefined
+                    }
+                />
+            </div>
         </div>
     );
 };
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const formatHour = (h: number): string => {
+    if (h === 0) return "12AM";
+    if (h < 12) return `${h}AM`;
+    if (h === 12) return "12PM";
+    return `${h - 12}PM`;
+};
+
+const tooltipStyle: React.CSSProperties = {
+    borderRadius: "12px",
+    border: "1px solid #2A2A2A",
+    backgroundColor: "#1A1A1A",
+    color: "#FFFFFF",
+    boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.4)",
+};
+
+const ChartSkeleton: React.FC = () => (
+    <div className="h-full flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin" />
+    </div>
+);
 
 // ── StatCard ──────────────────────────────────────────────────────────────────
 
@@ -293,5 +525,42 @@ const StatCard: React.FC<{
         </div>
     );
 };
+
+// ── MetricTile ────────────────────────────────────────────────────────────────
+
+const MetricTile: React.FC<{
+    label: string;
+    value: string;
+    icon: string;
+    loading?: boolean;
+    alert?: boolean;
+    positive?: boolean;
+}> = ({ label, value, icon, loading, alert, positive }) => (
+    <div
+        className={`bg-surface p-5 rounded-2xl border shadow-sm flex items-center gap-4 ${
+            alert ? "border-amber-500/40" : "border-border"
+        }`}
+    >
+        <span className="text-2xl">{icon}</span>
+        <div>
+            <p className="text-xs text-text-secondary font-medium">{label}</p>
+            <p
+                className={`text-xl font-black mt-0.5 transition-opacity ${
+                    loading
+                        ? "opacity-30 animate-pulse text-text-primary"
+                        : positive === undefined
+                          ? alert
+                              ? "text-amber-400"
+                              : "text-text-primary"
+                          : positive
+                            ? "text-emerald-400"
+                            : "text-rose-400"
+                }`}
+            >
+                {value}
+            </p>
+        </div>
+    </div>
+);
 
 export default DashboardHome;

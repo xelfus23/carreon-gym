@@ -117,7 +117,13 @@ export default function MemberRow({
                         {m.expiry_date && (
                             <div className="text-[11px] text-text-secondary mt-0.5">
                                 Expires{" "}
-                                {new Date(m.expiry_date).toLocaleDateString()}
+                                {new Date(m.expiry_date).toLocaleString([], {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
                             </div>
                         )}
                     </div>

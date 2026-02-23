@@ -3,6 +3,7 @@ import {
     cancelForMember,
     createForMember,
     getForMember,
+    getPlans,
 } from "./subscription.admin.controller.ts";
 import { webAuthMiddleware } from "../../middleware/authenticate.ts";
 import { protectAdmin } from "../../middleware/protectAdmin.ts";
@@ -13,6 +14,7 @@ subscriptionAdminRoutes.use(webAuthMiddleware);
 subscriptionAdminRoutes.use(protectAdmin);
 
 subscriptionAdminRoutes.post("/", createForMember);
+subscriptionAdminRoutes.get("/plans", getPlans);
 subscriptionAdminRoutes.post("/cancel", cancelForMember);
 subscriptionAdminRoutes.get("/:userId", getForMember);
 

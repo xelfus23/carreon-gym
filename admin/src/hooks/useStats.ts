@@ -6,24 +6,32 @@ export interface DashboardStats {
     active_subscriptions: number;
     todays_checkins: number;
     new_members_this_month: number;
+    // Revenue
+    revenue_this_month: number;
+    revenue_last_month: number;
+    revenue_growth_percent: number;
+    // Peak hours
+    peak_hour_today: number | null; // 0–23
+    avg_daily_duration_minutes: number;
+    // Retention
+    expiring_soon: number; // subscriptions expiring in next 7 days
 }
 
 export interface ChartDataPoint {
     month: string; // e.g. "Jan", "Feb"
     visits: number;
+    revenue?: number;
 }
 
-// interface UseStatsReturn {
-//     stats: DashboardStats | null;
-//     chartData: ChartDataPoint[];
-//     isLoading: boolean;
-//     error: string | null;
-//     refetch: () => void;
-// }
+export interface PeakHourDataPoint {
+    hour: string;  // e.g. "6AM", "7AM"
+    checkins: number;
+}
 
 export const useStats = () => {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+    const [peakHourData, setPeakHourData] = useState<PeakHourDataPoint[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [trigger, setTrigger] = useState(0);
@@ -37,13 +45,12 @@ export const useStats = () => {
 
             try {
                 const { data } = await statsService.getStats();
-
-                setStats(data.stats);
-                setChartData(data.chartData);
-
+                
+                console.log(data)
                 if (!cancelled) {
                     setStats(data.stats);
                     setChartData(data.chartData);
+                    setPeakHourData(data.peakHourData);
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -66,5 +73,5 @@ export const useStats = () => {
 
     const refetch = () => setTrigger((t) => t + 1);
 
-    return { stats, chartData, isLoading, error, refetch };
+    return { stats, chartData, peakHourData, isLoading, error, refetch };
 };
