@@ -2,10 +2,7 @@ export enum NavItem {
     DASHBOARD = "DASHBOARD",
     QRCODE = "QRCODE",
     MEMBERS = "MEMBERS",
-    TRAINERS = "TRAINERS",
-    CLASSES = "CLASSES",
     AI_INSIGHTS = "AI_INSIGHTS",
-    SETTINGS = "SETTINGS",
 }
 
 export type SubscriptionStatus = "active" | "expired" | "pending" | "cancelled";

@@ -14,10 +14,10 @@ const App: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-950">
+            <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                    <div className="w-12 h-12 border-4 border-primary-dark border-t-surface rounded-full animate-spin"></div>
+                    <p className="text-text-primary text-xs font-bold uppercase tracking-widest">
                         Careon Gym Initializing
                     </p>
                 </div>
@@ -77,24 +77,24 @@ const App: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all">
+                        <button className="relative p-2 text-text-primary hover:text-text-secondary hover:bg-border rounded-full transition-all">
                             <span className="text-xl">🔔</span>
-                            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full"></span>
+                            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 border-2 border-border rounded-full"></span>
                         </button>
                         <div className="flex items-center gap-3 pl-6 border-l border-slate-200 group">
                             <div className="text-right">
-                                <p className="text-sm font-bold text-slate-900">
+                                <p className="text-sm font-bold text-text-primary">
                                     {user?.firstName} {user?.lastName}
                                 </p>
                                 <button
                                     onClick={() => logout()}
-                                    className="text-[10px] text-rose-500 uppercase tracking-tighter font-black hover:underline cursor-pointer"
+                                    className="text-[10px] text-danger uppercase tracking-tighter font-black hover:underline cursor-pointer"
                                 >
                                     Logout
                                 </button>
                             </div>
                             <img
-                                src={`https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=6366f1&color=fff`}
+                                src={`https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=5ECC0080&color=FFFFFF`}
                                 className="w-10 h-10 rounded-full border-2 border-slate-100 object-cover"
                                 alt="Profile"
                             />

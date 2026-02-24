@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavItem } from "../types";
 import {
-    BicepsFlexed,
-    CalendarDays,
     ChartColumnBig,
+    PanelLeftClose,
+    PanelLeftOpen,
     QrCode,
-    Settings,
     Sparkles,
     UsersRound,
 } from "lucide-react";
@@ -16,6 +15,8 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
+    const [sideBarOn, setSideBarOn] = useState<boolean>(false);
+
     const menuItems = [
         {
             id: NavItem.DASHBOARD,
@@ -34,20 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
 
             icon: <UsersRound />,
         },
-        {
-            id: NavItem.TRAINERS,
 
-            label: "Trainers",
-
-            icon: <BicepsFlexed />,
-        },
-        {
-            id: NavItem.CLASSES,
-
-            label: "Classes",
-
-            icon: <CalendarDays />,
-        },
         {
             id: NavItem.AI_INSIGHTS,
 
@@ -55,39 +43,47 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
 
             icon: <Sparkles />,
         },
-        {
-            id: NavItem.SETTINGS,
-
-            label: "Settings",
-
-            icon: <Settings />,
-        },
     ];
 
     return (
-        <aside className="w-64 bg-surface h-screen flex flex-col text-text-secondary">
-            <div className="p-6 flex items-center gap-3">
-                <div className="w-8 h-8 bg-primary-dark rounded-lg flex items-center justify-center text-white font-bold">
-                    C
+        <aside
+            className={`${sideBarOn ? "w-64" : "w-20"} transition-all bg-surface h-screen flex flex-col text-text-secondary`}
+        >
+            <div className="p-4 flex gap-3 w-full ">
+                {sideBarOn && (
+                    <img
+                        src="/careon/brand-logo.png"
+                        className="h-8 object-contain self-start"
+                    />
+                )}
+                <div className="h-8 self-end place-self-end">
+                    {sideBarOn ? (
+                        <PanelLeftClose
+                            onClick={() => setSideBarOn(false)}
+                            className="aspect-square h-8"
+                        />
+                    ) : (
+                        <PanelLeftOpen
+                            onClick={() => setSideBarOn(true)}
+                            className="aspect-square h-8"
+                        />
+                    )}
                 </div>
-                <h1 className="text-xl font-bold text-white tracking-tight">
-                    Careon Gym
-                </h1>
             </div>
 
-            <nav className="flex-1 px-4 mt-4 space-y-1">
+            <nav className="flex-1 px-4 mt-4 space-y-2">
                 {menuItems.map((item) => (
                     <button
                         key={item.id}
                         onClick={() => setTab(item.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                        className={`w-full h-10 flex items-center ${sideBarOn ? "justify-normal" : "justify-center"} gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                             currentTab === item.id
                                 ? "bg-primary-dark text-text-primary shadow-lg shadow-indigo-500/20"
                                 : "hover:bg-primary-dark/20 hover:text-text-primary"
                         }`}
                     >
-                        {item.icon}
-                        <span className="font-medium">{item.label}</span>
+                        <p className="">{item.icon}</p>
+                        {sideBarOn && <span className={``}>{item.label}</span>}
                     </button>
                 ))}
             </nav>

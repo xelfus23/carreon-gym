@@ -6,12 +6,12 @@ import {
 } from "../../services/subscriptionService";
 
 const PAYMENT_METHODS = [
-    { value: "cash",          label: "💵 Cash" },
-    { value: "gcash",         label: "📱 GCash" },
-    { value: "maya",          label: "📱 Maya" },
-    { value: "bank_transfer", label: "🏦 Bank Transfer" },
-    { value: "card",          label: "💳 Card" },
-    { value: "other",         label: "Other" },
+    { value: "cash",          label: "Cash",  icon: "💵" },
+    { value: "gcash",         label: "GCash", icon: "📱" },
+    { value: "maya",          label: "Maya",  icon: "💜" },
+    { value: "bank_transfer", label: "Bank",  icon: "🏦" },
+    { value: "card",          label: "Card",  icon: "💳" },
+    { value: "other",         label: "Other", icon: "···" },
 ];
 
 interface SubscriptionModalProps {
@@ -25,24 +25,20 @@ export default function SubscriptionModal({
     onClose,
     onSuccess,
 }: SubscriptionModalProps) {
-    // Plans
-    const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+    const [plans, setPlans]               = useState<SubscriptionPlan[]>([]);
     const [plansLoading, setPlansLoading] = useState(true);
-    const [plansError, setPlansError] = useState<string | null>(null);
+    const [plansError, setPlansError]     = useState<string | null>(null);
 
-    // Form state
     const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
     const [amountOverride, setAmountOverride] = useState<string>("");
-    const [customDays, setCustomDays] = useState<string>("1");
-    const [method, setMethod] = useState<string>("cash");
-    const [referenceNo, setReferenceNo] = useState<string>("");
-    const [notes, setNotes] = useState<string>("");
+    const [customDays, setCustomDays]         = useState<string>("1");
+    const [method, setMethod]                 = useState<string>("cash");
+    const [referenceNo, setReferenceNo]       = useState<string>("");
+    const [notes, setNotes]                   = useState<string>("");
 
-    // Submission
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError]     = useState<string | null>(null);
 
-    // Fetch plans on mount
     useEffect(() => {
         if (!member) return;
         setPlansLoading(true);
@@ -52,7 +48,6 @@ export default function SubscriptionModal({
             .getPlans()
             .then((data) => {
                 setPlans(data);
-                // Default to first non-custom plan
                 const defaultPlan = data.find((p) => !p.is_custom);
                 if (defaultPlan) {
                     setSelectedPlanId(defaultPlan.id);
@@ -69,15 +64,20 @@ export default function SubscriptionModal({
 
     const selectedPlan = plans.find((p) => p.id === selectedPlanId) ?? null;
     const isCustomPlan = selectedPlan?.is_custom ?? false;
+    const parsedAmount = parseFloat(amountOverride);
+    const hasDiscount  =
+        !isCustomPlan &&
+        selectedPlan &&
+        amountOverride !== "" &&
+        !isNaN(parsedAmount) &&
+        parsedAmount !== Number(selectedPlan.price);
 
     const handlePlanChange = (planId: number) => {
         setSelectedPlanId(planId);
         const plan = plans.find((p) => p.id === planId);
         if (plan && !plan.is_custom) {
-            // Pre-fill amount with plan's default price
             setAmountOverride(String(plan.price));
         } else {
-            // Custom — clear so admin must enter
             setAmountOverride("");
             setCustomDays("1");
         }
@@ -86,36 +86,23 @@ export default function SubscriptionModal({
 
     const handleCreate = async () => {
         setError(null);
-
-        if (!selectedPlanId) {
-            setError("Please select a plan.");
-            return;
-        }
-
-        const parsedAmount = parseFloat(amountOverride);
-        if (isNaN(parsedAmount) || parsedAmount < 0) {
-            setError("Please enter a valid amount.");
-            return;
-        }
-
+        if (!selectedPlanId) { setError("Please select a plan."); return; }
+        if (isNaN(parsedAmount) || parsedAmount < 0) { setError("Please enter a valid amount."); return; }
         if (isCustomPlan) {
-            const parsedDays = parseInt(customDays, 10);
-            if (isNaN(parsedDays) || parsedDays <= 0) {
-                setError("Please enter a valid number of days for the custom plan.");
-                return;
-            }
+            const d = parseInt(customDays, 10);
+            if (isNaN(d) || d <= 0) { setError("Please enter a valid number of days."); return; }
         }
 
         setLoading(true);
         try {
             await subscriptionService.createSubscription({
-                user_id: member.id,
-                plan_id: selectedPlanId,
-                amount_override: parsedAmount,
+                user_id:           member.id,
+                plan_id:           selectedPlanId,
+                amount_override:   parsedAmount,
                 duration_override: isCustomPlan ? parseInt(customDays, 10) : undefined,
                 method,
                 reference_no: referenceNo.trim() || undefined,
-                notes: notes.trim() || undefined,
+                notes:        notes.trim() || undefined,
             });
             onSuccess();
             onClose();
@@ -126,7 +113,7 @@ export default function SubscriptionModal({
         }
     };
 
-    const handleCancel = async () => {
+    const handleCancelSub = async () => {
         if (!confirm(`Cancel subscription for ${member.first_name} ${member.last_name}?`)) return;
         setError(null);
         setLoading(true);
@@ -143,202 +130,270 @@ export default function SubscriptionModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
         >
             <div
-                className="bg-surface rounded-2xl border border-border shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto"
+                className="bg-surface w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl border border-border shadow-2xl flex flex-col max-h-[92vh]"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Header */}
-                <h3 className="text-lg font-bold text-text-primary mb-1">
-                    Manage Subscription
-                </h3>
-                <p className="text-sm text-text-secondary mb-5">
-                    {member.first_name} {member.last_name} · {member.email}
-                </p>
-
-                {/* Plan loading / error state */}
-                {plansLoading ? (
-                    <div className="flex items-center justify-center py-10">
-                        <div className="w-7 h-7 border-4 border-border border-t-primary rounded-full animate-spin" />
-                    </div>
-                ) : plansError ? (
-                    <p className="text-sm text-rose-600 bg-rose-50 px-3 py-2 rounded-xl mb-4">
-                        {plansError}
-                    </p>
-                ) : (
-                    <div className="space-y-5">
-
-                        {/* ── Plan selector ── */}
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-2">
-                                Plan
-                            </label>
-                            <div className="grid grid-cols-2 gap-2">
-                                {plans.map((plan) => (
-                                    <button
-                                        key={plan.id}
-                                        type="button"
-                                        onClick={() => handlePlanChange(plan.id)}
-                                        className={`px-3 py-3 rounded-xl text-sm font-medium border transition-colors text-left ${
-                                            selectedPlanId === plan.id
-                                                ? "bg-primary-dark text-white border-primary-dark"
-                                                : "bg-surface border-border hover:bg-primary/10 text-text-primary"
-                                        }`}
-                                    >
-                                        <p className="font-bold">{plan.name}</p>
-                                        {!plan.is_custom && (
-                                            <p className={`text-xs mt-0.5 ${
-                                                selectedPlanId === plan.id
-                                                    ? "text-white/70"
-                                                    : "text-text-secondary"
-                                            }`}>
-                                                ₱{Number(plan.price).toLocaleString()} · {plan.duration_days}d
-                                            </p>
-                                        )}
-                                        {plan.is_custom && (
-                                            <p className={`text-xs mt-0.5 ${
-                                                selectedPlanId === plan.id
-                                                    ? "text-white/70"
-                                                    : "text-text-secondary"
-                                            }`}>
-                                                Set price & days
-                                            </p>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
+                {/* ── Header ─────────────────────────────────────────────── */}
+                <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border flex-shrink-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                        {/* Avatar: uses primary color as accent */}
+                        <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm font-black text-primary tracking-tight">
+                                {member.first_name[0]}{member.last_name[0]}
+                            </span>
                         </div>
+                        <div className="min-w-0">
+                            <h3 className="text-base font-bold text-text-primary leading-tight truncate">
+                                {member.first_name} {member.last_name}
+                            </h3>
+                            <p className="text-xs text-text-secondary truncate">{member.email}</p>
+                        </div>
+                    </div>
 
-                        {/* ── Custom duration (only for custom plan) ── */}
-                        {isCustomPlan && (
-                            <div>
-                                <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1">
-                                    Duration (days)
-                                </label>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={730}
-                                    value={customDays}
-                                    onChange={(e) => setCustomDays(e.target.value)}
-                                    placeholder="e.g. 45"
-                                    className="w-full px-3 py-2 border border-border rounded-xl text-sm bg-surface focus:ring-2 focus:ring-primary outline-none"
-                                />
-                            </div>
-                        )}
+                    <button
+                        onClick={onClose}
+                        className="w-8 h-8 flex items-center justify-center rounded-xl text-text-secondary hover:bg-border hover:text-text-primary transition-colors flex-shrink-0 ml-4"
+                    >
+                        <svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            <path d="M1 1l10 10M11 1L1 11"/>
+                        </svg>
+                    </button>
+                </div>
 
-                        {/* ── Amount ── */}
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1">
-                                Amount Collected (₱)
-                                {!isCustomPlan && (
-                                    <span className="ml-1 text-text-secondary font-normal normal-case tracking-normal">
-                                        — override to apply discount
+                {/* ── Scrollable body ─────────────────────────────────────── */}
+                <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6">
+                    {plansLoading ? (
+                        <div className="flex flex-col items-center justify-center py-16 gap-3">
+                            {/* Spinner uses primary color */}
+                            <div className="w-8 h-8 border-[3px] border-border border-t-primary rounded-full animate-spin" />
+                            <p className="text-xs text-text-secondary">Loading plans…</p>
+                        </div>
+                    ) : plansError ? (
+                        <ErrorBanner message={plansError} />
+                    ) : (
+                        <>
+                            {/* ── Plan grid ── */}
+                            <section>
+                                <SectionLabel>Select Plan</SectionLabel>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                    {plans.map((plan) => {
+                                        const active = selectedPlanId === plan.id;
+                                        return (
+                                            <button
+                                                key={plan.id}
+                                                type="button"
+                                                onClick={() => handlePlanChange(plan.id)}
+                                                className={`relative px-4 py-3.5 rounded-2xl text-left border transition-all duration-150 ${
+                                                    active
+                                                        // Selected: primary green background
+                                                        ? "bg-primary text-background border-primary shadow-md"
+                                                        // Unselected: surface with border, primary tint on hover
+                                                        : "bg-background border-border hover:border-primary/40 hover:bg-primary/5"
+                                                }`}
+                                            >
+                                                {/* Checkmark badge */}
+                                                {active && (
+                                                    <span className="absolute top-2.5 right-2.5 w-4 h-4 bg-background/20 rounded-full flex items-center justify-center">
+                                                        <svg width="8" height="6" viewBox="0 0 8 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-background">
+                                                            <path d="M1 3l2 2 4-4"/>
+                                                        </svg>
+                                                    </span>
+                                                )}
+                                                <p className={`text-sm font-bold leading-tight ${
+                                                    active ? "text-background" : "text-text-primary"
+                                                }`}>
+                                                    {plan.name}
+                                                </p>
+                                                <p className={`text-xs mt-1 ${
+                                                    active ? "text-background/70" : "text-text-secondary"
+                                                }`}>
+                                                    {plan.is_custom
+                                                        ? "Custom price & duration"
+                                                        : `₱${Number(plan.price).toLocaleString()} · ${plan.duration_days}d`
+                                                    }
+                                                </p>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+
+                            {/* ── Custom duration ── */}
+                            {isCustomPlan && (
+                                <section>
+                                    <SectionLabel>Duration</SectionLabel>
+                                    <div className="relative mt-2">
+                                        <input
+                                            type="number"
+                                            min={1} max={730}
+                                            value={customDays}
+                                            onChange={(e) => setCustomDays(e.target.value)}
+                                            placeholder="e.g. 45"
+                                            className="w-full pl-4 pr-14 py-3 border border-border rounded-2xl text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-secondary pointer-events-none">
+                                            days
+                                        </span>
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* ── Amount ── */}
+                            <section>
+                                <div className="flex items-center justify-between">
+                                    <SectionLabel>Amount Collected</SectionLabel>
+                                    {!isCustomPlan && selectedPlan && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setAmountOverride(String(selectedPlan.price))}
+                                            className="text-[10px] font-semibold text-primary hover:text-primary-dark transition-colors mb-2"
+                                        >
+                                            Reset to ₱{Number(selectedPlan.price).toLocaleString()}
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-text-secondary pointer-events-none select-none">
+                                        ₱
                                     </span>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        step="0.01"
+                                        value={amountOverride}
+                                        onChange={(e) => setAmountOverride(e.target.value)}
+                                        placeholder={selectedPlan ? String(selectedPlan.price) : "0.00"}
+                                        className="w-full pl-8 pr-4 py-3 border border-border rounded-2xl text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                    />
+                                </div>
+                                {hasDiscount && (
+                                    <p className="flex items-center gap-1.5 text-[11px] text-amber-400 mt-2">
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                            <path fillRule="evenodd" d="M6 1a5 5 0 100 10A5 5 0 006 1zm0 3a.75.75 0 01.75.75v2a.75.75 0 01-1.5 0v-2A.75.75 0 016 4zm0 5.5a.75.75 0 100-1.5.75.75 0 000 1.5z"/>
+                                        </svg>
+                                        Adjusted amount — discount or override applied
+                                    </p>
                                 )}
-                            </label>
-                            <input
-                                type="number"
-                                min={0}
-                                step="0.01"
-                                value={amountOverride}
-                                onChange={(e) => setAmountOverride(e.target.value)}
-                                placeholder={selectedPlan ? `Default: ₱${selectedPlan.price}` : "0.00"}
-                                className="w-full px-3 py-2 border border-border rounded-xl text-sm bg-surface focus:ring-2 focus:ring-primary outline-none"
-                            />
-                        </div>
+                            </section>
 
-                        {/* ── Payment method ── */}
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-2">
-                                Payment Method
-                            </label>
-                            <div className="grid grid-cols-3 gap-2">
-                                {PAYMENT_METHODS.map((m) => (
-                                    <button
-                                        key={m.value}
-                                        type="button"
-                                        onClick={() => setMethod(m.value)}
-                                        className={`px-2 py-2 rounded-xl text-xs font-medium border transition-colors ${
-                                            method === m.value
-                                                ? "bg-primary-dark text-white border-primary-dark"
-                                                : "bg-surface border-border hover:bg-primary/10 text-text-primary"
-                                        }`}
-                                    >
-                                        {m.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                            {/* ── Payment method ── */}
+                            <section>
+                                <SectionLabel>Payment Method</SectionLabel>
+                                <div className="grid grid-cols-3 gap-2 mt-2">
+                                    {PAYMENT_METHODS.map((m) => {
+                                        const active = method === m.value;
+                                        return (
+                                            <button
+                                                key={m.value}
+                                                type="button"
+                                                onClick={() => setMethod(m.value)}
+                                                className={`flex flex-col items-center gap-1.5 py-3 rounded-2xl border text-xs font-semibold transition-all duration-150 ${
+                                                    active
+                                                        ? "bg-primary border-primary text-background"
+                                                        : "bg-background border-border text-text-secondary hover:border-primary/40 hover:text-text-primary"
+                                                }`}
+                                            >
+                                                <span className="text-base leading-none">{m.icon}</span>
+                                                <span>{m.label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </section>
 
-                        {/* ── Reference No. (shown for non-cash methods) ── */}
-                        {method !== "cash" && (
-                            <div>
-                                <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1">
-                                    Reference No. <span className="font-normal normal-case">(optional)</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={referenceNo}
-                                    onChange={(e) => setReferenceNo(e.target.value)}
-                                    placeholder="GCash / bank reference number"
-                                    className="w-full px-3 py-2 border border-border rounded-xl text-sm bg-surface focus:ring-2 focus:ring-primary outline-none"
+                            {/* ── Reference No. ── */}
+                            {method !== "cash" && (
+                                <section>
+                                    <SectionLabel optional>Reference No.</SectionLabel>
+                                    <input
+                                        type="text"
+                                        value={referenceNo}
+                                        onChange={(e) => setReferenceNo(e.target.value)}
+                                        placeholder="GCash / bank reference number"
+                                        className="mt-2 w-full px-4 py-3 border border-border rounded-2xl text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                    />
+                                </section>
+                            )}
+
+                            {/* ── Notes ── */}
+                            <section>
+                                <SectionLabel optional>Notes</SectionLabel>
+                                <textarea
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder="e.g. Student discount, promo code used…"
+                                    rows={2}
+                                    className="mt-2 w-full px-4 py-3 border border-border rounded-2xl text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
                                 />
-                            </div>
-                        )}
+                            </section>
 
-                        {/* ── Notes ── */}
-                        <div>
-                            <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1">
-                                Notes <span className="font-normal normal-case">(optional)</span>
-                            </label>
-                            <textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="e.g. Student discount applied"
-                                rows={2}
-                                className="w-full px-3 py-2 border border-border rounded-xl text-sm bg-surface focus:ring-2 focus:ring-primary outline-none resize-none"
-                            />
-                        </div>
+                            {/* ── Error ── */}
+                            {error && <ErrorBanner message={error} />}
+                        </>
+                    )}
+                </div>
 
-                        {/* Error */}
-                        {error && (
-                            <p className="text-sm text-rose-600 bg-rose-50 px-3 py-2 rounded-xl">
-                                {error}
-                            </p>
-                        )}
-                    </div>
-                )}
-
-                {/* ── Actions ── */}
-                <div className="flex flex-col gap-2 mt-6">
+                {/* ── Footer ──────────────────────────────────────────────── */}
+                <div className="px-6 pb-6 pt-4 border-t border-border flex-shrink-0 space-y-2">
                     <button
                         type="button"
                         onClick={handleCreate}
                         disabled={loading || plansLoading || !!plansError}
-                        className="w-full py-2.5 bg-primary-dark text-white font-semibold rounded-xl hover:bg-primary-dark/90 disabled:opacity-50 transition-colors"
+                        className="w-full py-3 bg-primary hover:bg-primary-dark active:scale-[0.99] text-background font-bold rounded-2xl disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-sm"
                     >
-                        {loading ? "Saving…" : "Save Subscription & Record Payment"}
+                        {loading ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+                                Saving…
+                            </>
+                        ) : (
+                            <>
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M7 1v12M1 7h12"/>
+                                </svg>
+                                Save & Record Payment
+                            </>
+                        )}
                     </button>
+
                     <button
                         type="button"
-                        onClick={handleCancel}
+                        onClick={handleCancelSub}
                         disabled={loading}
-                        className="w-full py-2.5 border border-rose-200 text-rose-600 font-semibold rounded-xl hover:bg-rose-50 disabled:opacity-50 transition-colors"
+                        className="w-full py-2.5 border border-danger/25 text-danger font-semibold rounded-2xl hover:bg-danger/8 hover:border-danger/40 disabled:opacity-50 transition-all text-sm"
                     >
                         Cancel Subscription
                     </button>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="w-full py-2 text-text-secondary text-sm hover:text-text-primary"
-                    >
-                        Close
-                    </button>
                 </div>
             </div>
+        </div>
+    );
+}
+
+// ── Small helpers ─────────────────────────────────────────────────────────────
+
+function SectionLabel({ children, optional }: { children: React.ReactNode; optional?: boolean }) {
+    return (
+        <p className="text-[11px] font-bold uppercase tracking-widest text-text-secondary flex items-center gap-1">
+            {children}
+            {optional && (
+                <span className="font-normal normal-case tracking-normal text-text-secondary/50">
+                    (optional)
+                </span>
+            )}
+        </p>
+    );
+}
+
+function ErrorBanner({ message }: { message: string }) {
+    return (
+        <div className="flex items-start gap-3 bg-danger/10 border border-danger/20 rounded-2xl px-4 py-3">
+            <span className="text-danger flex-shrink-0 mt-px text-sm">⚠</span>
+            <p className="text-sm text-danger leading-snug">{message}</p>
         </div>
     );
 }

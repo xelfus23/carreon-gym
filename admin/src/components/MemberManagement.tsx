@@ -10,6 +10,62 @@ type SortDir = "asc" | "desc";
 type FilterStatus = "all" | "active" | "suspended" | "deleted";
 type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
+// ── Confirm dialog ────────────────────────────────────────────────────────────
+function ConfirmDialog({
+    title,
+    message,
+    confirmLabel,
+    variant,
+    onConfirm,
+    onCancel,
+}: {
+    title: string;
+    message: string;
+    confirmLabel: string;
+    variant: "warning" | "danger";
+    onConfirm: () => void;
+    onCancel: () => void;
+}) {
+    const btnCls =
+        variant === "danger"
+            ? "bg-rose-600 hover:bg-rose-700 text-white"
+            : "bg-amber-500 hover:bg-amber-600 text-white";
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+            onClick={onCancel}
+        >
+            <div
+                className="bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-sm p-6"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <h3 className="text-base font-bold text-text-primary mb-2">
+                    {title}
+                </h3>
+                <p className="text-sm text-text-secondary mb-6 leading-relaxed">
+                    {message}
+                </p>
+                <div className="flex gap-3">
+                    <button
+                        onClick={onCancel}
+                        className="flex-1 py-2 text-sm font-semibold border border-border rounded-xl text-text-secondary hover:bg-border/50 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className={`flex-1 py-2 text-sm font-bold rounded-xl transition-colors ${btnCls}`}
+                    >
+                        {confirmLabel}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 const MemberManagement: React.FC = () => {
     const { members, refetch } = useMember();
     const [subscriptionMember, setSubscriptionMember] =
@@ -31,7 +87,72 @@ const MemberManagement: React.FC = () => {
     const [page, setPage] = useState(1);
     const PAGE_SIZE = 10;
 
-    // Derived list
+    // Confirm dialog state
+    const [confirmDialog, setConfirmDialog] = useState<{
+        title: string;
+        message: string;
+        confirmLabel: string;
+        variant: "warning" | "danger";
+        onConfirm: () => void;
+    } | null>(null);
+
+    // ── Action handlers ────────────────────────────────────────────────────
+
+    const handleSuspend = (m: AdminMemberListItem) => {
+        const isSuspended = m.account_status === "suspended";
+        setConfirmDialog({
+            title: isSuspended ? "Unsuspend Member" : "Suspend Member",
+            message: isSuspended
+                ? `Restore access for ${m.first_name} ${m.last_name}? They will be able to log in again.`
+                : `Suspend ${m.first_name} ${m.last_name}? They won't be able to log in until unsuspended.`,
+            confirmLabel: isSuspended ? "Unsuspend" : "Suspend",
+            variant: "warning",
+            onConfirm: async () => {
+                setConfirmDialog(null);
+                // TODO: call memberService.suspend(m.id, !isSuspended)
+                console.log("suspend/unsuspend", m.id);
+                refetch();
+            },
+        });
+    };
+
+    const handleBan = (m: AdminMemberListItem) => {
+        setConfirmDialog({
+            title: "Ban / Blacklist Member",
+            message: `Permanently ban ${m.first_name} ${m.last_name}? This will cancel their subscription and block future access.`,
+            confirmLabel: "Ban Member",
+            variant: "danger",
+            onConfirm: async () => {
+                setConfirmDialog(null);
+                // TODO: call memberService.ban(m.id)
+                console.log("ban", m.id);
+                refetch();
+            },
+        });
+    };
+
+    const handleDelete = (m: AdminMemberListItem) => {
+        setConfirmDialog({
+            title: "Delete Member",
+            message: `Permanently delete ${m.first_name} ${m.last_name}'s account? This action cannot be undone and will remove all their data.`,
+            confirmLabel: "Delete",
+            variant: "danger",
+            onConfirm: async () => {
+                setConfirmDialog(null);
+                // TODO: call memberService.delete(m.id)
+                console.log("delete", m.id);
+                refetch();
+            },
+        });
+    };
+
+    const handleSendEmail = (m: AdminMemberListItem) => {
+        // TODO: open email composer modal
+        alert(`Sending email to ${m.email}…`);
+    };
+
+    // ── Table logic ───────────────────────────────────────────────────────
+
     const filtered = useMemo(() => {
         let list = [...members];
 
@@ -137,9 +258,7 @@ const MemberManagement: React.FC = () => {
                 {sortDir === "asc" ? "↑" : "↓"}
             </span>
         ) : (
-            <span className="ml-1 text-text-secondary group-hover:text-text-secondary">
-                ↕
-            </span>
+            <span className="ml-1 opacity-30 group-hover:opacity-60">↕</span>
         );
 
     return (
@@ -150,7 +269,7 @@ const MemberManagement: React.FC = () => {
                     {
                         label: "Total Members",
                         value: stats.total,
-                        color: "bg-slate-500 text-slate-50",
+                        color: "bg-slate-500  text-slate-50",
                     },
                     {
                         label: "Active Accounts",
@@ -160,12 +279,12 @@ const MemberManagement: React.FC = () => {
                     {
                         label: "Suspended",
                         value: stats.suspended,
-                        color: "bg-amber-500 text-amber-50",
+                        color: "bg-amber-500   text-amber-50",
                     },
                     {
                         label: "Active Subs",
                         value: stats.activeSubs,
-                        color: "bg-indigo-500 text-indigo-50",
+                        color: "bg-indigo-500  text-indigo-50",
                     },
                     {
                         label: "Avg Attendance",
@@ -191,7 +310,6 @@ const MemberManagement: React.FC = () => {
                 <div className="flex-1 bg-surface rounded-3xl border border-border shadow-sm overflow-hidden min-w-0">
                     {/* Toolbar */}
                     <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
-                        {/* Search */}
                         <div className="relative flex-1 min-w-48">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">
                                 🔍
@@ -204,18 +322,17 @@ const MemberManagement: React.FC = () => {
                                 }}
                                 type="text"
                                 placeholder="Search name, email, phone…"
-                                className="w-full pl-9 pr-4 py-2 bg-surface border border-border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                className="w-full pl-9 pr-4 py-2 bg-surface border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none transition-all text-text-primary"
                             />
                         </div>
 
-                        {/* Account status filter */}
                         <select
                             value={filterStatus}
                             onChange={(e) => {
                                 setFilterStatus(e.target.value as FilterStatus);
                                 setPage(1);
                             }}
-                            className="px-3 py-2 bg-surface border border-border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer"
+                            className="px-3 py-2 bg-surface border border-border rounded-xl text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
                         >
                             <option value="all">All Accounts</option>
                             <option value="active">Active</option>
@@ -223,14 +340,13 @@ const MemberManagement: React.FC = () => {
                             <option value="deleted">Deleted</option>
                         </select>
 
-                        {/* Subscription filter */}
                         <select
                             value={filterSub}
                             onChange={(e) => {
                                 setFilterSub(e.target.value as FilterSub);
                                 setPage(1);
                             }}
-                            className="px-3 py-2 bg-surface border border-border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer"
+                            className="px-3 py-2 bg-surface border border-border rounded-xl text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
                         >
                             <option value="all">All Plans</option>
                             <option value="active">Active Plan</option>
@@ -247,9 +363,9 @@ const MemberManagement: React.FC = () => {
 
                     {/* Table */}
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
+                        <table className="text-left text-sm w-full">
                             <thead>
-                                <tr className="bg-surface text-text-primary text-[11px] font-bold uppercase tracking-wider border-b border-border">
+                                <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
                                     {(
                                         [
                                             {
@@ -285,7 +401,11 @@ const MemberManagement: React.FC = () => {
                                             onClick={() =>
                                                 key && handleSort(key)
                                             }
-                                            className={`px-5 py-3.5 group ${key ? "cursor-pointer select-none hover:text-text-secondary" : ""}`}
+                                            className={`px-5 text-xs py-3.5 group ${
+                                                key
+                                                    ? "cursor-pointer select-none hover:text-text-secondary"
+                                                    : ""
+                                            }`}
                                         >
                                             {label}
                                             {key && <SortIcon col={key} />}
@@ -293,12 +413,12 @@ const MemberManagement: React.FC = () => {
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-border">
                                 {paginated.length === 0 ? (
                                     <tr>
                                         <td
                                             colSpan={8}
-                                            className="px-5 py-16 text-center text-slate-400 text-sm"
+                                            className="px-5 py-16 text-center text-text-secondary text-sm"
                                         >
                                             No members match your filters.
                                         </td>
@@ -314,6 +434,10 @@ const MemberManagement: React.FC = () => {
                                             }
                                             fetchInsight={fetchInsight}
                                             onSetPlan={setSubscriptionMember}
+                                            onSuspend={handleSuspend}
+                                            onBan={handleBan}
+                                            onDelete={handleDelete}
+                                            onSendEmail={handleSendEmail}
                                         />
                                     ))
                                 )}
@@ -323,8 +447,8 @@ const MemberManagement: React.FC = () => {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/40 flex items-center justify-between">
-                            <span className="text-xs text-slate-500">
+                        <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
+                            <span className="text-xs text-text-secondary">
                                 Page {page} of {totalPages}
                             </span>
                             <div className="flex gap-1">
@@ -333,7 +457,7 @@ const MemberManagement: React.FC = () => {
                                         setPage((p) => Math.max(1, p - 1))
                                     }
                                     disabled={page === 1}
-                                    className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 transition-colors"
+                                    className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
                                 >
                                     ← Prev
                                 </button>
@@ -355,7 +479,7 @@ const MemberManagement: React.FC = () => {
                                                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
                                                     p === page
                                                         ? "bg-indigo-600 border-indigo-600 text-white"
-                                                        : "border-slate-200 bg-white hover:bg-slate-50 text-slate-600"
+                                                        : "border-border bg-surface hover:bg-border text-text-primary"
                                                 }`}
                                             >
                                                 {p}
@@ -370,7 +494,7 @@ const MemberManagement: React.FC = () => {
                                         )
                                     }
                                     disabled={page === totalPages}
-                                    className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 transition-colors"
+                                    className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
                                 >
                                     Next →
                                 </button>
@@ -381,14 +505,13 @@ const MemberManagement: React.FC = () => {
 
                 {/* ── AI Insight panel ── */}
                 <div className="lg:w-80 space-y-4 shrink-0">
-                    <div className="bg-linear-to-br from-primary-dark to-primary-dark/20 rounded-3xl p-6 text-white">
+                    <div className="bg-gradient-to-br from-indigo-700 to-indigo-900 rounded-3xl p-6 text-white">
                         <h4 className="text-base font-bold mb-4 flex items-center gap-2">
                             <span className="text-lg">✨</span> Member Coach AI
                         </h4>
 
                         {selectedMember ? (
                             <div className="space-y-4">
-                                {/* Member mini-card */}
                                 <div className="pb-4 border-b border-white/20">
                                     <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mb-1">
                                         Analysing
@@ -424,10 +547,10 @@ const MemberManagement: React.FC = () => {
                                                 key={label}
                                                 className="bg-white/10 rounded-xl p-2"
                                             >
-                                                <p className="text-[9px] text-indigo-200 uppercase font-bold">
+                                                <p className="text-[9px] text-white/60 uppercase font-bold">
                                                     {label}
                                                 </p>
-                                                <p className="text-sm font-black truncate">
+                                                <p className="text-sm font-black truncate text-white">
                                                     {val}
                                                 </p>
                                             </div>
@@ -435,7 +558,6 @@ const MemberManagement: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* AI output */}
                                 <div className="text-sm leading-relaxed text-indigo-50 bg-black/20 p-4 rounded-2xl min-h-30 max-h-64 overflow-y-auto">
                                     {isLoading && !insight ? (
                                         <div className="flex flex-col gap-2 items-center justify-center h-24">
@@ -454,22 +576,19 @@ const MemberManagement: React.FC = () => {
                                     )}
                                 </div>
 
-                                {/* Actions */}
                                 <div className="space-y-2">
                                     <button
                                         onClick={() =>
                                             fetchInsight(selectedMember)
                                         }
                                         disabled={isLoading}
-                                        className="w-full py-2.5 border border-white/20 text-text-primary text-sm font-semibold rounded-xl transition-colors disabled:opacity-40"
+                                        className="w-full py-2.5 border border-white/20 text-white text-sm font-semibold rounded-xl hover:bg-white/10 transition-colors disabled:opacity-40"
                                     >
                                         🔄 Regenerate Insight
                                     </button>
                                     <button
                                         onClick={() =>
-                                            alert(
-                                                `Sending email to ${selectedMember.email}…`,
-                                            )
+                                            handleSendEmail(selectedMember)
                                         }
                                         disabled={isLoading || !insight}
                                         className="w-full py-2.5 bg-white text-indigo-700 text-sm font-bold rounded-xl hover:bg-indigo-50 transition-colors shadow-sm disabled:opacity-40"
@@ -493,9 +612,9 @@ const MemberManagement: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Quick legend */}
-                    <div className="bg-surface rounded-2xl border border-slate-200 p-4 space-y-2">
-                        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                    {/* Legend */}
+                    <div className="bg-surface rounded-2xl border border-border p-4 space-y-2">
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-text-secondary">
                             Attendance Legend
                         </p>
                         {[
@@ -511,10 +630,10 @@ const MemberManagement: React.FC = () => {
                         ].map(({ color, label }) => (
                             <div
                                 key={label}
-                                className="flex items-center gap-2 text-xs text-slate-600"
+                                className="flex items-center gap-2 text-xs text-text-secondary"
                             >
                                 <span
-                                    className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${color}`}
+                                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${color}`}
                                 />
                                 {label}
                             </div>
@@ -523,11 +642,19 @@ const MemberManagement: React.FC = () => {
                 </div>
             </div>
 
+            {/* ── Modals ── */}
             {subscriptionMember && (
                 <SubscriptionModal
                     member={subscriptionMember}
                     onClose={() => setSubscriptionMember(null)}
                     onSuccess={refetch}
+                />
+            )}
+
+            {confirmDialog && (
+                <ConfirmDialog
+                    {...confirmDialog}
+                    onCancel={() => setConfirmDialog(null)}
                 />
             )}
         </div>
