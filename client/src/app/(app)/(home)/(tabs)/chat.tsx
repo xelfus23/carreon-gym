@@ -6,19 +6,28 @@ import {
     TouchableOpacity,
     KeyboardAvoidingView,
     Platform,
-    ActivityIndicator,
 } from "react-native";
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Send, ArrowDown } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import { useHeaderHeight } from "@react-navigation/elements";
-import ScreenWrapper from "../../components/ScreenWrapper";
+import ScreenWrapper from "../../../components/ScreenWrapper";
 import { useChat } from "@/src/hooks/useChats";
-import renderMessageItem from "../../components/Chat/RenderMessage";
+import renderMessageItem from "../../../components/Chat/RenderMessage";
 import { ChatMessage } from "@/src/types/chats";
-import WelcomeScreen from "../../components/chatWelcome";
+import WelcomeScreen from "../../../components/chatWelcome";
+import { useFocusEffect } from "expo-router";
+import { CustomLoader } from "@/src/app/components/Plans/PlansLoading";
+import SubscriptionReminder from "@/src/app/components/SubscriptionReminder";
+import { useUserProfile } from "@/src/context/profileContext";
 
 export default function Chats() {
+    const { profile } = useUserProfile();
+
+    const [reminderOpen, setReminderOpen] = useState(
+        profile?.subscription?.status !== "active",
+    );
+
     const {
         messages,
         sessionId,
@@ -26,7 +35,8 @@ export default function Chats() {
         loading,
         initializing,
         startNewSession,
-    } = useChat();
+        refreshMessages,
+    } = useChat({ profile, setReminderOpen });
 
     const [text, setText] = useState("");
     const headerHeight = useHeaderHeight();
@@ -34,17 +44,14 @@ export default function Chats() {
     const isAtBottom = useRef(true);
     const [showScrollButton, setShowScrollButton] = useState(false);
 
+    useFocusEffect(
+        useCallback(() => {
+            refreshMessages();
+        }, [refreshMessages]),
+    );
+
     if (initializing) {
-        return (
-            <ScreenWrapper>
-                <View className="flex-1 bg-background justify-center items-center">
-                    <ActivityIndicator size="large" color={COLORS.primary} />
-                    <Text className="text-text-secondary mt-4">
-                        Loading your training history...
-                    </Text>
-                </View>
-            </ScreenWrapper>
-        );
+        return <CustomLoader text="Loading your chat history..." />;
     }
 
     if (!sessionId) {
@@ -103,6 +110,12 @@ export default function Chats() {
                     Platform.OS === "ios" ? 90 : headerHeight
                 }
             >
+                {reminderOpen && (
+                    <SubscriptionReminder
+                        text="Subscribe to continue"
+                        setReminderOpen={setReminderOpen}
+                    />
+                )}
                 <View className="flex-1">
                     <View className="flex-1 bg-background relative">
                         <FlatList

@@ -14,11 +14,14 @@ interface AuthUser {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isInitializing, setIsInitializing] = useState(true);
+
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Define logout with useCallback to avoid recreation
     const logout = useCallback(async () => {
-        setIsLoading(true);
+        setIsInitializing(true);
         try {
             await authService.logout();
         } catch (error) {
@@ -27,7 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(null);
             setIsAuthenticated(false);
             localStorage.removeItem("careon_user");
-            setIsLoading(false);
+            setIsInitializing(false);
         }
     }, []);
 
@@ -76,7 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setIsAuthenticated(false);
                 setUser(null);
             } finally {
-                setIsLoading(false);
+                setIsInitializing(false);
             }
         };
 
@@ -85,6 +88,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const login = async (email: string, password: string) => {
         setIsLoading(true);
+        setErrorMsg(null);
+
         try {
             const result = await authService.login(email, password);
 
@@ -97,13 +102,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(user);
             setIsAuthenticated(true);
             localStorage.setItem("careon_user", JSON.stringify(user));
-
-            return true;
         } catch (error) {
-            console.error("Login Error:", error);
             setIsAuthenticated(false);
             setUser(null);
-            throw error;
+
+            if (error instanceof Error) {
+                setErrorMsg(error.message);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -115,7 +120,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 login,
                 logout,
                 isAuthenticated,
+                isInitializing,
                 isLoading,
+                errorMsg,
                 user,
             }}
         >

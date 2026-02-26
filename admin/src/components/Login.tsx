@@ -1,28 +1,16 @@
 import React, { useState } from "react";
-import { useAuth } from "../contexts/useAuth";
+import { useAuthContext } from "../hooks/useAuth";
+import { Loader2 } from "lucide-react";
 
 const Login: React.FC = () => {
+    const { login, errorMsg, isLoading } = useAuthContext();
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const { login } = useAuth();
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError("");
-        setIsSubmitting(true);
-        try {
-            await login(email, password);
-        } catch (err) {
-            if (err instanceof Error) {
-                setError(
-                    err.message || "Invalid credentials. Please try again.",
-                );
-            }
-        } finally {
-            setIsSubmitting(false);
-        }
+        await login(email, password);
     };
 
     return (
@@ -37,8 +25,6 @@ const Login: React.FC = () => {
                     </p>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {error && <div className="">{error}</div>}
-
                     <div className="space-y-2">
                         <label className="text-text-primary">
                             Email Address
@@ -64,13 +50,22 @@ const Login: React.FC = () => {
                             placeholder="••••••••"
                         />
                     </div>
+                    {errorMsg && (
+                        <div className="text-danger text-xs text-center">
+                            {errorMsg}
+                        </div>
+                    )}
 
                     <button
                         type="submit"
-                        disabled={isSubmitting}
-                        className="text-text-primary bg-primary-dark w-full py-2 rounded-xl cursor-pointer hover:bg-primary hover:text-surface font-bold"
+                        disabled={isLoading}
+                        className="text-text-primary flex items-center justify-center bg-primary-dark w-full py-2 rounded-xl cursor-pointer hover:bg-primary hover:text-surface font-bold"
                     >
-                        {isSubmitting ? <div className=""></div> : "Sign In"}
+                        {isLoading ? (
+                            <Loader2 className="animate-spin stroke-surface" />
+                        ) : (
+                            "Sign In"
+                        )}
                     </button>
                 </form>
             </div>

@@ -18,7 +18,7 @@ export const webLoginController = async (req: Request, res: Response) => {
         const user = await loginDomain(req.body);
 
         if (user.role === "member") {
-            throw new Error("Unauthorized Admin Only");
+            throw new Error("You don't have permission to access this website.");
         }
 
         const { accessToken, refreshToken } = generateTokens({

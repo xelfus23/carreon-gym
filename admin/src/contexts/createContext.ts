@@ -9,10 +9,12 @@ interface AuthUser {
 }
 
 interface AuthContextType {
-    login: (email: string, password: string) => Promise<boolean>;
+    login: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     isAuthenticated: boolean;
+    isInitializing: boolean;
     isLoading: boolean;
+    errorMsg: string | null;
     user: AuthUser | null;
 }
 

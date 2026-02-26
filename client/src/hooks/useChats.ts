@@ -1,27 +1,54 @@
 // useChat.ts
-import { useState, useCallback, useEffect, useRef } from "react";
+import {
+    useState,
+    useCallback,
+    useEffect,
+    useRef,
+    Dispatch,
+    SetStateAction,
+} from "react";
 import { chatService } from "@/src/services/chatService";
 import { ChatMessage } from "../types/chats";
+import { UserProfile } from "../types/users";
 
 // Stable ID for the streaming placeholder — avoids index-based ref
 let tempIdCounter = 0;
 const newTempId = () => `__streaming_${tempIdCounter++}__`;
 
-export function useChat(initialSessionId?: number) {
+export function useChat(params?: {
+    initialSessionId?: number;
+    profile?: UserProfile | null;
+    setReminderOpen?: Dispatch<SetStateAction<boolean>> | null;
+}) {
     const [sessionId, setSessionId] = useState<number | null>(
-        initialSessionId ?? null,
+        params?.initialSessionId ?? null,
     );
+
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [loading, setLoading] = useState(false);
     const [initializing, setInitializing] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (error?.includes("SUBSCRIPTION_EXPIRED")) {
+            setError(
+                "Your subscription has expired. Subscribe again to continue using chat.",
+            );
+        }
+
+        if (error?.includes("SUBSCRIPTION_REQUIRED")) {
+            setError(
+                "You currently have no subscriptions. Subscribe to use our chat feature.",
+            );
+        }
+    }, [error]);
 
     // Abort controller so we can cancel in-flight stream on unmount
     const abortRef = useRef<AbortController | null>(null);
     const mountedRef = useRef(true);
 
     // Track if we've done the initial session lookup
-    const sessionResolvedRef = useRef(!!initialSessionId);
+    const sessionResolvedRef = useRef(!!params?.initialSessionId);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -36,8 +63,7 @@ export function useChat(initialSessionId?: number) {
     /** Step 1 — resolve which session to use */
     useEffect(() => {
         if (sessionResolvedRef.current) {
-            // initialSessionId was provided — skip lookup, go straight to loading
-            if (initialSessionId) setInitializing(false); // messages load handled below
+            if (params?.initialSessionId) setInitializing(false);
             return;
         }
 
@@ -63,53 +89,46 @@ export function useChat(initialSessionId?: number) {
         };
 
         findLatestSession();
-    }, [initialSessionId]);
+    }, [params?.initialSessionId]);
 
-    /** Step 2 — load messages once sessionId is known */
-    useEffect(() => {
+    const loadMessages = useCallback(async () => {
         if (!sessionId) return;
+        setInitializing(true);
+        try {
+            const data = await chatService.getSessionMessages(sessionId);
+            if (!mountedRef.current) return;
 
-        const loadMessages = async () => {
-            setInitializing(true);
-            try {
-                const data = await chatService.getSessionMessages(sessionId);
+            const formatted: ChatMessage[] = data
+                .filter(
+                    (msg: any) => msg.role !== "tool" && msg.content !== null,
+                )
+                .map((msg: any) => ({
+                    id: msg.id,
+                    role: msg.role,
+                    content: msg.content,
+                    timestamp: new Date(msg.created_at).getTime(),
+                    tool_calls: msg.tool_calls
+                        ? typeof msg.tool_calls === "string"
+                            ? JSON.parse(msg.tool_calls)
+                            : msg.tool_calls
+                        : undefined,
+                    tool_call_id: msg.tool_call_id,
+                    name: msg.name,
+                    aiStatus: msg.aiStatus,
+                }));
 
-                if (!mountedRef.current) return;
-
-                const formatted: ChatMessage[] = data
-                    .filter(
-                        (msg: any) =>
-                            msg.role !== "tool" && msg.content !== null,
-                    )
-                    .map((msg: any) => ({
-                        id: msg.id,
-                        role: msg.role,
-                        content: msg.content,
-                        timestamp: new Date(msg.created_at).getTime(),
-                        tool_calls: msg.tool_calls
-                            ? typeof msg.tool_calls === "string"
-                                ? JSON.parse(msg.tool_calls)
-                                : msg.tool_calls
-                            : undefined,
-                        tool_call_id: msg.tool_call_id,
-                        name: msg.name,
-                        aiStatus: msg.aiStatus,
-                    }));
-
-                setMessages(formatted);
-                console.log(
-                    `✅ Loaded ${formatted.length} messages for session ${sessionId}`,
-                );
-            } catch (err) {
-                console.error("Failed to load messages:", err);
-                if (mountedRef.current) setError("Could not load chat history");
-            } finally {
-                if (mountedRef.current) setInitializing(false);
-            }
-        };
-
-        loadMessages();
+            setMessages(formatted);
+        } catch (err) {
+            console.error("Failed to load messages:", err);
+            if (mountedRef.current) setError("Could not load chat history");
+        } finally {
+            if (mountedRef.current) setInitializing(false);
+        }
     }, [sessionId]);
+
+    useEffect(() => {
+        loadMessages();
+    }, [loadMessages]);
 
     /** Creates a new session — pass force=true to replace an existing one */
     const startNewSession = useCallback(
@@ -140,6 +159,13 @@ export function useChat(initialSessionId?: number) {
     const sendMessage = useCallback(
         async (text: string) => {
             if (!text.trim() || !sessionId) return;
+
+            if (
+                params?.setReminderOpen &&
+                params.profile?.subscription?.status !== "active"
+            ) {
+                params.setReminderOpen(true);
+            }
 
             abortRef.current?.abort();
             abortRef.current = new AbortController();
@@ -223,6 +249,7 @@ export function useChat(initialSessionId?: number) {
         },
         [sessionId],
     );
+
     return {
         messages,
         sessionId,
@@ -231,5 +258,6 @@ export function useChat(initialSessionId?: number) {
         error,
         sendMessage,
         startNewSession,
+        refreshMessages: loadMessages, // 👈 expose this
     };
 }

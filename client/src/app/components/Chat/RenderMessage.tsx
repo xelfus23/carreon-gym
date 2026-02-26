@@ -1,7 +1,5 @@
-import { View, TouchableOpacity, ScrollView } from "react-native";
+import { View, ScrollView } from "react-native";
 import React from "react";
-// import { RotateCw, ThumbsUp, ThumbsDown, CopyIcon } from "lucide-react-native";
-// import { COLORS } from "@/src/consts/colors";
 import Markdown from "react-native-markdown-display";
 import ThinkingBlock from "./ThinkingBlock";
 import { parseResponse } from "@/src/utils/parseChatResponse";
@@ -51,22 +49,6 @@ export default function renderMessageItem({ item }: { item: ChatMessage }) {
                     {content}
                 </Markdown>
             </View>
-            {/* {!isUser && (
-                <View className="flex flex-row gap-4 pl-4">
-                    <TouchableOpacity>
-                        <ThumbsUp color={COLORS.textSecondary} size={14} />
-                    </TouchableOpacity>
-                    <TouchableOpacity>
-                        <ThumbsDown color={COLORS.textSecondary} size={14} />
-                    </TouchableOpacity>
-                    <TouchableOpacity>
-                        <RotateCw color={COLORS.textSecondary} size={14} />
-                    </TouchableOpacity>
-                    <TouchableOpacity>
-                        <CopyIcon color={COLORS.textSecondary} size={14} />
-                    </TouchableOpacity>
-                </View>
-            )} */}
         </View>
     );
 }

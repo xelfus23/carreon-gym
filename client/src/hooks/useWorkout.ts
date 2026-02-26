@@ -153,10 +153,12 @@ export function useWorkout() {
             setFormSets(String(existing?.completed_sets ?? defaultSets ?? ""));
             setFormReps(String(existing?.completed_reps ?? defaultReps ?? ""));
             // Convert duration_minutes from log to seconds for display
-            const existingDurationSeconds = existing?.duration_minutes 
-                ? existing.duration_minutes * 60 
+            const existingDurationSeconds = existing?.duration_minutes
+                ? existing.duration_minutes * 60
                 : null;
-            setFormDuration(String(existingDurationSeconds ?? defaultDuration ?? ""));
+            setFormDuration(
+                String(existingDurationSeconds ?? defaultDuration ?? ""),
+            );
             setFormWeight(String(existing?.weight_used_kg ?? ""));
             setFormDifficulty(String(existing?.difficulty_rating ?? ""));
             setModal({
@@ -198,10 +200,10 @@ export function useWorkout() {
         setIsSaving(true);
         try {
             // Convert duration_seconds to duration_minutes for the API
-            const durationMinutes = formDuration 
-                ? Math.round(parseInt(formDuration) / 60) 
+            const durationMinutes = formDuration
+                ? Math.round(parseInt(formDuration) / 60)
                 : null;
-            
+
             const data = await workoutService.logExercise({
                 workout_exercise_id: modal.exerciseId,
                 completed_sets: formSets ? parseInt(formSets) : null,

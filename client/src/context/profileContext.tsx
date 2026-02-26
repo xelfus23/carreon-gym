@@ -15,6 +15,7 @@ import {
     UserProfileContextType,
 } from "../types/context";
 import { CheckInService } from "../services/checkInService";
+import { useFocusEffect } from "expo-router";
 
 const UserProfileContext = createContext<UserProfileContextType | null>(null);
 

@@ -1,6 +1,18 @@
 import { WebSocket } from "ws";
 import type { ChatMessage, ToolCall } from "../../types/index.ts";
 import { LMstudio } from "../client/LMstudio.ts";
+import { Gemini } from "../client/Gemini.ts";
+import { env } from "../../config/env.ts";
+
+export const modelProvider = async (
+    messages: ChatMessage[],
+    options?: { disableTools: boolean },
+) => {
+    if (env.PROVIDER === "gemini") {
+        return Gemini(messages, options);
+    }
+    return LMstudio(messages, options);
+};
 
 export async function streamModel(
     messages: ChatMessage[],
@@ -9,7 +21,7 @@ export async function streamModel(
 ): Promise<{ toolCalls: ToolCall[]; assistantContent: string }> {
     ws.send(JSON.stringify({ type: "state", state: "Thinking" }));
 
-    const response = await LMstudio(messages, {
+    const response = await modelProvider(messages, {
         disableTools: params?.disableTools ?? false,
     });
 

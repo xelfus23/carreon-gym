@@ -21,19 +21,19 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
         {
             id: NavItem.DASHBOARD,
             label: "Dashboard",
-            icon: <ChartColumnBig />,
+            icon: <ChartColumnBig className="h-5 stroke-2" />,
         },
         {
             id: NavItem.QRCODE,
             label: "QR",
-            icon: <QrCode />,
+            icon: <QrCode className="h-5 stroke-2" />,
         },
         {
             id: NavItem.MEMBERS,
 
             label: "Members",
 
-            icon: <UsersRound />,
+            icon: <UsersRound className="h-5 stroke-2" />,
         },
 
         {
@@ -41,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
 
             label: "AI Insights",
 
-            icon: <Sparkles />,
+            icon: <Sparkles className="h-5 stroke-2" />,
         },
     ];
 
@@ -49,26 +49,26 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
         <aside
             className={`${sideBarOn ? "w-64" : "w-20"} transition-all bg-surface h-screen flex flex-col text-text-secondary`}
         >
-            <div className="p-4 flex gap-3 w-full ">
+            <div
+                className={`p-4 flex ${sideBarOn ? "justify-between" : "justify-center"}`}
+            >
                 {sideBarOn && (
                     <img
                         src="/careon/brand-logo.png"
-                        className="h-8 object-contain self-start"
+                        className="object-contain self-start h-10 transition-all"
                     />
                 )}
-                <div className="h-8 self-end place-self-end">
-                    {sideBarOn ? (
-                        <PanelLeftClose
-                            onClick={() => setSideBarOn(false)}
-                            className="aspect-square h-8"
-                        />
-                    ) : (
-                        <PanelLeftOpen
-                            onClick={() => setSideBarOn(true)}
-                            className="aspect-square h-8"
-                        />
-                    )}
-                </div>
+                {sideBarOn ? (
+                    <PanelLeftClose
+                        onClick={() => setSideBarOn(false)}
+                        className="aspect-square h-10 transition-all"
+                    />
+                ) : (
+                    <PanelLeftOpen
+                        onClick={() => setSideBarOn(true)}
+                        className="aspect-square h-10 transition-all"
+                    />
+                )}
             </div>
 
             <nav className="flex-1 px-4 mt-4 space-y-2">
@@ -76,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
                     <button
                         key={item.id}
                         onClick={() => setTab(item.id)}
-                        className={`w-full h-10 flex items-center ${sideBarOn ? "justify-normal" : "justify-center"} gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                        className={`w-full h-10 flex items-center ${sideBarOn ? "justify-normal aspect-auto" : "aspect-square justify-center"} gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                             currentTab === item.id
                                 ? "bg-primary-dark text-text-primary shadow-lg shadow-indigo-500/20"
                                 : "hover:bg-primary-dark/20 hover:text-text-primary"
@@ -88,19 +88,21 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
                 ))}
             </nav>
 
-            <div className="p-6">
-                <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700">
-                    <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-2">
-                        System Status
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className="text-sm text-slate-300">
-                            Live Services Active
-                        </span>
+            {sideBarOn && (
+                <div className="p-6">
+                    <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700">
+                        <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-2">
+                            System Status
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                            <span className="text-sm text-slate-300">
+                                Live Services Active
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </aside>
     );
 };

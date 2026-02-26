@@ -3,11 +3,19 @@ import pool from "../../config/pool.ts";
 export interface PlanRow {
     plan_id: number;
     plan_title: string;
+    plan_description: string;
+    plan_difficulty: string;
+    plan_createdAt: number;
+    plan_isActive: string;
+
+    //================
     day_id: number;
     day_title: string;
     day_order: number;
     is_rest_day: boolean;
     rest_day_notes: string | null;
+
+    //================
     exercise_id: number | null;
     exercise_name: string | null;
     sets: number | null;
@@ -15,6 +23,7 @@ export interface PlanRow {
     duration_seconds: number | null;
     notes: string | null;
     equipment_name: string | null;
+    weight_guidance: string | null;
 }
 
 export async function getWorkoutPlansDomain(params: { userId: number }) {
@@ -24,6 +33,10 @@ export async function getWorkoutPlansDomain(params: { userId: number }) {
     SELECT 
       wp.id AS plan_id,
       wp.title AS plan_title,
+      wp.description AS plan_description,
+      wp.difficulty_level as plan_difficulty,
+      wp.created_at as plan_createdAt,
+      wp.is_active AS plan_isActive,
       wd.id AS day_id,
       wd.title AS day_title,
       wd.day_order,
@@ -53,6 +66,10 @@ export async function getWorkoutPlansDomain(params: { userId: number }) {
             plansMap.set(row.plan_id, {
                 id: row.plan_id,
                 title: row.plan_title,
+                is_active: row.plan_isActive,
+                description: row.plan_description,
+                difficulty: row.plan_difficulty,
+                created_at: row.plan_createdAt,
                 days: [],
             });
         }
@@ -80,6 +97,7 @@ export async function getWorkoutPlansDomain(params: { userId: number }) {
                 sets: row.sets,
                 reps: row.reps,
                 duration_seconds: row.duration_seconds,
+                weightGuidance: row.weight_guidance,
                 notes: row.notes,
             });
         }

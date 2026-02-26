@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Login from "./components/Login";
-import { useAuth } from "./contexts/useAuth";
+import { useAuthContext } from "./hooks/useAuth";
 import DashboardHome from "./components/DashboardHome";
 import MemberManagement from "./components/MemberManagement";
 import AssistantTab from "./components/AssistantTab";
@@ -10,9 +10,9 @@ import Attendance from "./components/Attendance";
 
 const App: React.FC = () => {
     const [currentTab, setCurrentTab] = useState<NavItem>(NavItem.DASHBOARD);
-    const { isAuthenticated, isLoading, user, logout } = useAuth();
+    const { isAuthenticated, isInitializing, user, logout } = useAuthContext();
 
-    if (isLoading) {
+    if (isInitializing) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="flex flex-col items-center gap-4">
