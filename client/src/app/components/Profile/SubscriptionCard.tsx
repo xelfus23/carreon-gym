@@ -12,11 +12,11 @@ export default function SubscriptionCard() {
             case "active":
                 return "text-primary";
             case "expired":
-                return "text-text-secondary";
+                return "text-danger";
             case "cancelled":
                 return "text-danger";
             case "pending":
-                return "text-primary";
+                return "text-yellow-500";
             default:
                 return "text-text-secondary";
         }

@@ -1,6 +1,6 @@
 let ws: WebSocket | null = null;
 
-const BASE_URL = "192.168.1.150:6000";
+const BASE_URL = "192.168.1.150:4545";
 const WS_URL = `ws://${BASE_URL}`;
 const API_URL = `http://${BASE_URL}`;
 
@@ -39,7 +39,10 @@ export const chatService = {
                 headers: { "Content-Type": "application/json" },
             });
 
-            if (!response.ok) throw new Error("Failed to create chat");
+            if (!response.ok) {
+                throw new Error("Failed to create chat");
+            }
+            
             return await response.json();
         } catch (error) {
             console.error("createChat error:", error);

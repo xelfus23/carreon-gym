@@ -151,9 +151,15 @@ export const subscriptionService = {
         const result = await pool.query(
             `SELECT
                 s.*,
-                sp.price       AS plan_price,
+                sp.price AS plan_price,
                 sp.duration_days AS plan_duration_days,
-                sp.is_custom   AS plan_is_custom
+                sp.is_custom AS plan_is_custom,
+                CASE
+                    WHEN s.status = 'cancelled' THEN 'cancelled'
+                    WHEN s.status = 'pending' THEN 'pending'
+                    WHEN s.expiry_date < CURRENT_TIMESTAMP THEN 'expired'
+                    ELSE 'active'
+                END AS display_status
              FROM subscriptions s
              LEFT JOIN subscription_plans sp ON s.plan_id = sp.id
              WHERE s.user_id = $1`,
@@ -182,12 +188,12 @@ export const subscriptionService = {
     },
 
     /** Cron job: mark expired subscriptions. */
-    async checkExpiredSubscriptions() {
-        await pool.query(
-            `UPDATE subscriptions
-             SET status = 'expired', updated_at = CURRENT_TIMESTAMP
-             WHERE expiry_date < CURRENT_TIMESTAMP
-             AND status = 'active'`,
-        );
-    },
+    // async checkExpiredSubscriptions() {
+    //     await pool.query(
+    //         `UPDATE subscriptions
+    //          SET status = 'expired', updated_at = CURRENT_TIMESTAMP
+    //          WHERE expiry_date < CURRENT_TIMESTAMP
+    //          AND status = 'active'`,
+    //     );
+    // },
 };

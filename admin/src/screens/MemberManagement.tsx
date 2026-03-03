@@ -1,72 +1,17 @@
-import React, { useState, useMemo } from "react";
-import { chatService } from "../services/AIService";
-import type { AdminMemberListItem } from "../types";
+import { useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
-import MemberRow from "./members/MemberRow";
-import SubscriptionModal from "./members/SubscriptionModal";
+import type { AdminMemberListItem } from "../types";
+import { chatService } from "../services/AIService";
+import MemberRow from "../components/members/MemberRow";
+import ConfirmDialog from "../components/members/ConfirmDialog";
+import SubscriptionModal from "../components/SubscriptionModal";
 
 type SortKey = keyof AdminMemberListItem | null;
 type SortDir = "asc" | "desc";
 type FilterStatus = "all" | "active" | "suspended" | "deleted";
 type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
-// ── Confirm dialog ────────────────────────────────────────────────────────────
-function ConfirmDialog({
-    title,
-    message,
-    confirmLabel,
-    variant,
-    onConfirm,
-    onCancel,
-}: {
-    title: string;
-    message: string;
-    confirmLabel: string;
-    variant: "warning" | "danger";
-    onConfirm: () => void;
-    onCancel: () => void;
-}) {
-    const btnCls =
-        variant === "danger"
-            ? "bg-rose-600 hover:bg-rose-700 text-white"
-            : "bg-amber-500 hover:bg-amber-600 text-white";
-
-    return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
-            onClick={onCancel}
-        >
-            <div
-                className="bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-sm p-6"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <h3 className="text-base font-bold text-text-primary mb-2">
-                    {title}
-                </h3>
-                <p className="text-sm text-text-secondary mb-6 leading-relaxed">
-                    {message}
-                </p>
-                <div className="flex gap-3">
-                    <button
-                        onClick={onCancel}
-                        className="flex-1 py-2 text-sm font-semibold border border-border rounded-xl text-text-secondary hover:bg-border/50 transition-colors"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={onConfirm}
-                        className={`flex-1 py-2 text-sm font-bold rounded-xl transition-colors ${btnCls}`}
-                    >
-                        {confirmLabel}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ── Main component ────────────────────────────────────────────────────────────
-const MemberManagement: React.FC = () => {
+export default function MemberManagement() {
     const { members, refetch } = useMember();
     const [subscriptionMember, setSubscriptionMember] =
         useState<AdminMemberListItem | null>(null);
@@ -369,6 +314,10 @@ const MemberManagement: React.FC = () => {
                                     {(
                                         [
                                             {
+                                                label: "ID",
+                                                key: "id",
+                                            },
+                                            {
                                                 label: "Member",
                                                 key: "first_name",
                                             },
@@ -659,6 +608,4 @@ const MemberManagement: React.FC = () => {
             )}
         </div>
     );
-};
-
-export default MemberManagement;
+}

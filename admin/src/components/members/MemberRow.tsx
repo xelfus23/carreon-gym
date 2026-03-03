@@ -1,6 +1,21 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import {
+    useState,
+    useRef,
+    useEffect,
+    useCallback,
+    type ReactElement,
+} from "react";
 import { createPortal } from "react-dom";
 import type { AdminMemberListItem, SubscriptionStatus } from "../../types";
+import {
+    Ban,
+    ClockPlus,
+    Mail,
+    // Sparkles,
+    Trash,
+    UserKey,
+    UserLock,
+} from "lucide-react";
 
 function formatRelativeDate(iso: string | null): string {
     if (!iso) return "—";
@@ -14,21 +29,21 @@ function formatRelativeDate(iso: string | null): string {
 }
 
 const ACCOUNT_BADGE: Record<string, string> = {
-    active:    "bg-emerald-500 text-emerald-50",
+    active: "bg-emerald-500 text-emerald-50",
     suspended: "bg-amber-500 text-amber-50",
-    deleted:   "bg-rose-500 text-rose-50",
+    deleted: "bg-rose-500 text-rose-50",
 };
 
 const SUB_BADGE: Record<SubscriptionStatus, string> = {
-    active:    "bg-indigo-100 text-indigo-700",
-    expired:   "bg-slate-100 text-slate-500",
-    pending:   "bg-yellow-100 text-yellow-700",
+    active: "bg-primary-dark text-text-primary",
+    expired: "bg-danger text-text-primary",
+    pending: "bg-yellow-100 text-text-primary",
     cancelled: "bg-rose-100 text-rose-600",
 };
 
 interface ActionItem {
     label: string;
-    icon: string;
+    icon: ReactElement;
     onClick: () => void;
     variant?: "default" | "warning" | "danger";
     dividerBefore?: boolean;
@@ -45,7 +60,7 @@ function ActionMenu({
     anchorRef: React.RefObject<HTMLButtonElement | null>;
     onClose: () => void;
 }) {
-    const menuRef  = useRef<HTMLDivElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
     const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
     // Calculate position from anchor button
@@ -56,17 +71,19 @@ function ActionMenu({
         const place = () => {
             const rect = anchor.getBoundingClientRect();
             const menuHeight = menuRef.current?.offsetHeight ?? 200;
-            const menuWidth  = menuRef.current?.offsetWidth  ?? 208;
+            const menuWidth = menuRef.current?.offsetWidth ?? 208;
             const spaceBelow = window.innerHeight - rect.bottom;
-            const spaceRight = window.innerWidth  - rect.right;
+            const spaceRight = window.innerWidth - rect.right;
 
-            const top  = spaceBelow > menuHeight
-                ? rect.bottom + 6                          // open downward
-                : rect.top - menuHeight - 6;               // flip upward
+            const top =
+                spaceBelow > menuHeight
+                    ? rect.bottom + 6 // open downward
+                    : rect.top - menuHeight - 6; // flip upward
 
-            const left = spaceRight > menuWidth
-                ? rect.right - menuWidth                   // align to right edge of button
-                : rect.left  - menuWidth + rect.width;     // fallback left-align
+            const left =
+                spaceRight > menuWidth
+                    ? rect.right - menuWidth // align to right edge of button
+                    : rect.left - menuWidth + rect.width; // fallback left-align
 
             setPos({ top, left });
         };
@@ -83,26 +100,29 @@ function ActionMenu({
             if (
                 menuRef.current?.contains(e.target as Node) ||
                 anchorRef.current?.contains(e.target as Node)
-            ) return;
+            )
+                return;
             onClose();
         };
-        const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
         const onScroll = () => onClose(); // close on any scroll
 
         document.addEventListener("mousedown", onMouse);
-        document.addEventListener("keydown",   onKey);
-        window.addEventListener("scroll",      onScroll, true);
+        document.addEventListener("keydown", onKey);
+        window.addEventListener("scroll", onScroll, true);
         return () => {
             document.removeEventListener("mousedown", onMouse);
-            document.removeEventListener("keydown",   onKey);
-            window.removeEventListener("scroll",      onScroll, true);
+            document.removeEventListener("keydown", onKey);
+            window.removeEventListener("scroll", onScroll, true);
         };
     }, [onClose, anchorRef]);
 
     const variantCls: Record<string, string> = {
         default: "text-text-primary hover:bg-border/60",
         warning: "text-amber-500 hover:bg-amber-500/10",
-        danger:  "text-rose-500 hover:bg-rose-500/10",
+        danger: "text-rose-500 hover:bg-rose-500/10",
     };
 
     if (!pos) return null;
@@ -110,7 +130,6 @@ function ActionMenu({
     return createPortal(
         <div
             ref={menuRef}
-
             className="w-52 bg-surface border border-border rounded-2xl shadow-2xl shadow-black/30 overflow-hidden"
             style={{
                 position: "fixed",
@@ -134,12 +153,15 @@ function ActionMenu({
                     )}
                     <button
                         disabled={item.disabled}
-                        onClick={() => { item.onClick(); onClose(); }}
+                        onClick={() => {
+                            item.onClick();
+                            onClose();
+                        }}
                         className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors text-left
                             disabled:opacity-40 disabled:cursor-not-allowed
                             ${variantCls[item.variant ?? "default"]}`}
                     >
-                        <span className="text-base w-5 text-center flex-shrink-0">
+                        <span className="aspect-square items-center h-full flex">
                             {item.icon}
                         </span>
                         {item.label}
@@ -154,9 +176,9 @@ function ActionMenu({
 // ── MemberRow ─────────────────────────────────────────────────────────────────
 export default function MemberRow({
     m,
-    isLoading,
+    // isLoading,
     isSelected,
-    fetchInsight,
+    // fetchInsight,
     onSetPlan,
     onSuspend,
     onBan,
@@ -167,10 +189,10 @@ export default function MemberRow({
     isLoading: boolean;
     isSelected: boolean;
     fetchInsight: (m: AdminMemberListItem) => void;
-    onSetPlan:   (m: AdminMemberListItem) => void;
-    onSuspend:   (m: AdminMemberListItem) => void;
-    onBan:       (m: AdminMemberListItem) => void;
-    onDelete:    (m: AdminMemberListItem) => void;
+    onSetPlan: (m: AdminMemberListItem) => void;
+    onSuspend: (m: AdminMemberListItem) => void;
+    onBan: (m: AdminMemberListItem) => void;
+    onDelete: (m: AdminMemberListItem) => void;
     onSendEmail: (m: AdminMemberListItem) => void;
 }) {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -178,50 +200,60 @@ export default function MemberRow({
     const close = useCallback(() => setMenuOpen(false), []);
 
     const attendanceColor =
-        m.attendance_rate > 80 ? "bg-emerald-500"
-        : m.attendance_rate > 50 ? "bg-amber-500"
-        : "bg-rose-500";
+        m.attendance_rate > 80
+            ? "bg-emerald-500"
+            : m.attendance_rate > 50
+              ? "bg-amber-500"
+              : "bg-rose-500";
 
     const isSuspended = m.account_status === "suspended";
-    const isDeleted   = m.account_status === "deleted";
+    const isDeleted = m.account_status === "deleted";
 
     const actions: ActionItem[] = [
+        // {
+        //     label: "AI Insight",
+        //     icon: <Sparkles className="h-4" />,
+        //     onClick: () => fetchInsight(m),
+        //     disabled: isLoading,
+        // },
         {
-            label:   "AI Insight",
-            icon:    "✨",
-            onClick: () => fetchInsight(m),
-            disabled: isLoading,
-        },
-        {
-            label:   "Set Plan",
-            icon:    "📋",
+            label: "Set Plan",
+            icon: <ClockPlus className="h-4" />,
             onClick: () => onSetPlan(m),
         },
         {
-            label:   "Send Email",
-            icon:    "📧",
+            label: "Send Email",
+            icon: <Mail className="h-4" />,
             onClick: () => onSendEmail(m),
         },
         {
-            label:        isSuspended ? "Unsuspend Member" : "Suspend Member",
-            icon:         isSuspended ? "✅" : "⏸",
-            onClick:      () => onSuspend(m),
-            variant:      isSuspended ? "default" : "warning",
+            label: isSuspended ? "Unsuspend Member" : "Suspend Member",
+            icon: isSuspended ? (
+                <UserLock className="h-4" />
+            ) : (
+                <UserKey className="h-4" />
+            ),
+            onClick: () => onSuspend(m),
+            variant: isSuspended ? "default" : "warning",
             dividerBefore: true,
         },
         {
-            label:   "Ban / Blacklist",
-            icon:    "🚫",
+            label: "Ban / Blacklist",
+            icon: <Ban className="h-4" />,
             onClick: () => onBan(m),
             variant: "danger",
         },
-        ...(!isDeleted ? [{
-            label:        "Delete Member",
-            icon:         "🗑",
-            onClick:      () => onDelete(m),
-            variant:      "danger" as const,
-            dividerBefore: true,
-        }] : []),
+        ...(!isDeleted
+            ? [
+                  {
+                      label: "Delete Member",
+                      icon: <Trash className="h-4" />,
+                      onClick: () => onDelete(m),
+                      variant: "danger" as const,
+                      dividerBefore: true,
+                  },
+              ]
+            : []),
     ];
 
     return (
@@ -232,38 +264,59 @@ export default function MemberRow({
                     : "hover:bg-border/40"
             }`}
         >
+            <td className="px-5 py-3.5">
+                <div className="font-semibold text-text-primary leading-tight">
+                    {m.id.toString()}
+                </div>
+            </td>
+
             {/* Member */}
             <td className="px-5 py-3.5">
                 <div className="font-semibold text-text-primary leading-tight">
                     {m.first_name} {m.last_name}
                 </div>
-                <div className="text-[11px] text-text-secondary mt-0.5">{m.email}</div>
+                <div className="text-[11px] text-text-secondary mt-0.5">
+                    {m.email}
+                </div>
                 {m.phone_number && (
-                    <div className="text-[11px] text-text-secondary">{m.phone_number}</div>
+                    <div className="text-[11px] text-text-secondary">
+                        {m.phone_number}
+                    </div>
                 )}
             </td>
 
             {/* Account status */}
             <td className="px-5 py-3.5">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
-                    ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-slate-500"
-                }`}>
+                <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+                        ACCOUNT_BADGE[m.account_status] ??
+                        "bg-surface text-slate-500"
+                    }`}
+                >
                     {m.account_status}
                 </span>
                 {m.verified ? (
-                    <span className="ml-1.5 text-[10px] text-primary font-semibold">✓ Verified</span>
+                    <span className="ml-1.5 text-[10px] text-primary font-semibold">
+                        ✓ Verified
+                    </span>
                 ) : (
-                    <span className="ml-1.5 text-[10px] text-text-secondary">Unverified</span>
+                    <span className="ml-1.5 text-[10px] text-text-secondary">
+                        Unverified
+                    </span>
                 )}
             </td>
 
             {/* Plan */}
             <td className="px-5 py-3.5 text-sm">
-                <span className="font-medium text-text-primary">{m.plan_name ?? "—"}</span>
+                <span className="font-medium text-text-primary">
+                    {m.plan_name ?? "—"}
+                </span>
                 {m.weight_kg != null && (
                     <div className="text-[11px] text-text-secondary mt-0.5">
                         {m.weight_kg} kg
-                        {m.weight_recorded_at && <> · {formatRelativeDate(m.weight_recorded_at)}</>}
+                        {m.weight_recorded_at && (
+                            <> · {formatRelativeDate(m.weight_recorded_at)}</>
+                        )}
                     </div>
                 )}
             </td>
@@ -272,16 +325,22 @@ export default function MemberRow({
             <td className="px-5 py-3.5">
                 {m.subscription_status ? (
                     <div>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
-                            SUB_BADGE[m.subscription_status]
-                        }`}>
+                        <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+                                SUB_BADGE[m.subscription_status]
+                            }`}
+                        >
                             {m.subscription_status}
                         </span>
                         {m.expiry_date && (
                             <div className="text-[11px] text-text-secondary mt-0.5">
-                                Expires {new Date(m.expiry_date).toLocaleString([], {
-                                    year: "numeric", month: "short", day: "numeric",
-                                    hour: "2-digit", minute: "2-digit",
+                                Expires{" "}
+                                {new Date(m.expiry_date).toLocaleString([], {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
                                 })}
                             </div>
                         )}
@@ -319,7 +378,9 @@ export default function MemberRow({
                     <div className="flex-1 bg-border h-1.5 rounded-full overflow-hidden min-w-[60px]">
                         <div
                             className={`h-full rounded-full transition-all duration-500 ${attendanceColor}`}
-                            style={{ width: `${Math.min(100, m.attendance_rate)}%` }}
+                            style={{
+                                width: `${Math.min(100, m.attendance_rate)}%`,
+                            }}
                         />
                     </div>
                     <span className="text-xs font-semibold text-text-primary w-8 text-right tabular-nums">
@@ -339,14 +400,20 @@ export default function MemberRow({
                         aria-expanded={menuOpen}
                         className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                             opacity-0 group-hover:opacity-100 focus:opacity-100
-                            ${menuOpen
-                                ? "opacity-100 bg-border text-text-primary"
-                                : "text-text-secondary hover:bg-border hover:text-text-primary"
+                            ${
+                                menuOpen
+                                    ? "opacity-100 bg-border text-text-primary"
+                                    : "text-text-secondary hover:bg-border hover:text-text-primary"
                             }`}
                     >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                            <circle cx="8" cy="3"  r="1.4" />
-                            <circle cx="8" cy="8"  r="1.4" />
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                        >
+                            <circle cx="8" cy="3" r="1.4" />
+                            <circle cx="8" cy="8" r="1.4" />
                             <circle cx="8" cy="13" r="1.4" />
                         </svg>
                     </button>

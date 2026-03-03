@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { chatService } from "../services/AIService";
+import { Send } from "lucide-react";
 
 const AssistantTab: React.FC = () => {
     const [messages, setMessages] = useState<
@@ -82,15 +83,15 @@ const AssistantTab: React.FC = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto h-[calc(100vh-160px)] flex flex-col bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden animate-in zoom-in-95 duration-500">
-            <div className="bg-slate-900 text-white p-6 flex items-center justify-between">
+        <div className=" h-[calc(100vh-160px)] flex flex-col bg-background rounded-3xl border border-border shadow-xl overflow-hidden animate-in zoom-in-95 duration-500">
+            <div className="bg-surface text-text-primary p-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-xl">
+                    <div className="w-10 h-10 bg-primary-dark rounded-full flex items-center justify-center text-xl">
                         🤖
                     </div>
                     <div>
-                        <h3 className="font-bold">Careon Gym AI Hub</h3>
-                        <p className="text-xs text-slate-400">
+                        <h3 className="font-bold">Careon Gym AI Assistant</h3>
+                        <p className="text-xs text-text-secondary">
                             Gym Strategy & Support Engine
                         </p>
                     </div>
@@ -108,7 +109,7 @@ const AssistantTab: React.FC = () => {
                                 .createChat()
                                 .then((s) => setSessionId(s.id));
                         }}
-                        className="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors"
+                        className="text-xs bg-border hover:bg-primary/20 px-3 py-1.5 rounded-lg border border-border transition-colors"
                     >
                         New Chat
                     </button>
@@ -117,7 +118,7 @@ const AssistantTab: React.FC = () => {
 
             <div
                 ref={scrollRef}
-                className="flex-1 p-6 overflow-y-auto space-y-6 bg-slate-50/50"
+                className="flex-1 p-6 overflow-y-auto space-y-6 bg-background"
             >
                 {messages.map((msg, i) => (
                     <div
@@ -127,8 +128,8 @@ const AssistantTab: React.FC = () => {
                         <div
                             className={`max-w-[80%] p-4 rounded-2xl shadow-sm leading-relaxed ${
                                 msg.role === "user"
-                                    ? "bg-indigo-600 text-white rounded-tr-none"
-                                    : "bg-white text-slate-800 border border-slate-200 rounded-tl-none"
+                                    ? "bg-surface text-text-secondary rounded-tr-none"
+                                    : "text-text-primary"
                             }`}
                         >
                             <p className="text-sm whitespace-pre-line">
@@ -144,13 +145,13 @@ const AssistantTab: React.FC = () => {
                 ))}
                 {(isTyping || currentState) && (
                     <div className="flex justify-start">
-                        <div className="bg-white border border-slate-200 px-4 py-2 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-3">
+                        <div className="bg-background px-4 py-2 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-3">
                             <div className="flex gap-1">
                                 <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce"></div>
                                 <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce delay-100"></div>
                                 <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce delay-200"></div>
                             </div>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">
                                 {currentState || "Thinking"}
                             </span>
                         </div>
@@ -158,7 +159,7 @@ const AssistantTab: React.FC = () => {
                 )}
             </div>
 
-            <div className="p-6 bg-white border-t border-slate-100">
+            <div className="p-6 bg-background">
                 <div className="flex gap-4">
                     <input
                         type="text"
@@ -171,14 +172,14 @@ const AssistantTab: React.FC = () => {
                                 : "Connecting to AI..."
                         }
                         disabled={!sessionId || isTyping}
-                        className="flex-1 bg-slate-100 border-none px-6 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all disabled:opacity-50"
+                        className="flex-1 bg-surface border-none px-6 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all disabled:opacity-50"
                     />
                     <button
                         onClick={handleSend}
                         disabled={isTyping || !sessionId || !input.trim()}
-                        className="bg-slate-900 text-white p-4 rounded-2xl hover:bg-indigo-600 transition-all disabled:opacity-50"
+                        className="bg-surface text-text-primary p-4 rounded-2xl hover:bg-primary/20 transition-all disabled:opacity-50"
                     >
-                        🚀
+                        <Send className="stroke-text-primary" />
                     </button>
                 </div>
                 <p className="text-center text-[10px] text-slate-400 mt-4 uppercase tracking-widest font-bold">

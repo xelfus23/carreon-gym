@@ -1,3 +1,4 @@
+//MOBILE
 import {
     createContext,
     useCallback,
@@ -51,10 +52,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             e.message ===
                                 "Session expired. Please log in again."
                         ) {
-                            // Refresh token is also expired — force logout
                             await logout();
                         } else {
-                            // Network error or other transient issue — trust stored session
                             setUser(user);
                             setIsAuthenticated(true);
                             authService.setTokens(accessToken, refreshToken);
@@ -79,7 +78,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const inAuthGroup = segments[0] === "(app)";
 
         if (isAuthenticated && !inAuthGroup) {
-            router.replace("/(app)/(home)/dashboard");
+            router.replace("/(app)/(home)/(tabs)/dashboard");
         } else if (!isAuthenticated && inAuthGroup) {
             router.replace("/");
         }
@@ -121,7 +120,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 password,
             );
 
-            console.log(user)
+            console.log(user);
 
             setUser(user);
             setIsAuthenticated(true);

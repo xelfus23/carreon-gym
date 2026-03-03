@@ -19,3 +19,12 @@ export const COLORS = {
     disabled: "#3A3A3A",
     success: "#7CFF00",
 };
+
+export const PAYMENT_METHODS = [
+    { value: "cash", label: "Cash", icon: "💵" },
+    { value: "gcash", label: "GCash", icon: "📱" },
+    { value: "maya", label: "Maya", icon: "💜" },
+    { value: "bank_transfer", label: "Bank", icon: "🏦" },
+    { value: "card", label: "Card", icon: "💳" },
+    { value: "other", label: "Other", icon: "···" },
+];

@@ -237,4 +237,3 @@ export const uploadPicture = async (req: Request, res: Response) => {
         }
     }
 };
-

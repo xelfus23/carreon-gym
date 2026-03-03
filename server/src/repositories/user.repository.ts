@@ -47,11 +47,16 @@ export const metricsQuery = async (userId: number) => {
 export const subscriptionQuery = async (userId: number) => {
     return await pool.query(
         `SELECT 
-            status,
             plan_name,
             start_date,
             expiry_date,
-            auto_renew
+            auto_renew,
+            CASE
+                WHEN status = 'cancelled' THEN 'cancelled'
+                WHEN status = 'pending' THEN 'pending'
+                WHEN expiry_date < CURRENT_TIMESTAMP THEN 'expired'
+                ELSE 'active'
+            END AS status
         FROM subscriptions
         WHERE user_id = $1`,
         [userId],

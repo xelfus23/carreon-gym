@@ -15,8 +15,23 @@ export const useMember = () => {
     }, []);
 
     useEffect(() => {
-        refetch();
-    }, [refetch]);
+        let cancelled = false;
+
+        const fetchMembers = async () => {
+            try {
+                const result = await memberService.getMember();
+                if (!cancelled) setMembers(result.data ?? []);
+            } catch (err) {
+                if (err instanceof Error) console.log(err.message);
+            }
+        };
+
+        fetchMembers();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     return {
         members,

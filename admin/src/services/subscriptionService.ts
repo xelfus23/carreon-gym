@@ -1,3 +1,5 @@
+import { authService } from "./authService";
+
 const BASE_URL = "192.168.1.150:4545";
 const API_URL = `http://${BASE_URL}`;
 
@@ -12,14 +14,16 @@ export interface SubscriptionPlan {
 
 export const subscriptionService = {
     async getPlans(): Promise<SubscriptionPlan[]> {
-        const res = await fetch(`${API_URL}/api/web/subscriptions/plans`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-        });
+        const res = await authService.fetchWithRefresh(
+            `${API_URL}/api/web/subscriptions/plans`,
+            { method: "GET" },
+        );
+
         const data = await res.json();
+
         if (!data.success)
             throw new Error(data.message ?? "Failed to fetch plans");
+
         return data.data;
     },
 
@@ -27,30 +31,35 @@ export const subscriptionService = {
         user_id: number;
         plan_id: number;
         amount_override?: number;
-        duration_override?: number; // required when plan is_custom = true
+        duration_override?: number;
         method?: string;
         reference_no?: string;
         notes?: string;
     }) {
-        const res = await fetch(`${API_URL}/api/web/subscriptions`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(params),
-        });
+        const res = await authService.fetchWithRefresh(
+            `${API_URL}/api/web/subscriptions`,
+            {
+                method: "POST",
+                body: JSON.stringify(params),
+            },
+        );
+
         const data = await res.json();
+
         if (!data.success)
             throw new Error(data.message ?? "Failed to create subscription");
+
         return data;
     },
 
     async cancelSubscription(user_id: number) {
-        const res = await fetch(`${API_URL}/api/web/subscriptions/cancel`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ user_id }),
-        });
+        const res = await authService.fetchWithRefresh(
+            `${API_URL}/api/web/subscriptions/cancel`,
+            {
+                method: "POST",
+                body: JSON.stringify({ user_id }),
+            },
+        );
         const data = await res.json();
         if (!data.success)
             throw new Error(data.message ?? "Failed to cancel subscription");
@@ -58,11 +67,12 @@ export const subscriptionService = {
     },
 
     async getSubscription(userId: number) {
-        const res = await fetch(`${API_URL}/api/web/subscriptions/${userId}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-        });
+        const res = await authService.fetchWithRefresh(
+            `${API_URL}/api/web/subscriptions/${userId}`,
+            {
+                method: "GET",
+            },
+        );
         const data = await res.json();
         if (!data.success)
             throw new Error(data.message ?? "Failed to fetch subscription");
@@ -70,12 +80,10 @@ export const subscriptionService = {
     },
 
     async getPaymentHistory(userId: number) {
-        const res = await fetch(
+        const res = await authService.fetchWithRefresh(
             `${API_URL}/api/web/subscriptions/${userId}/payments`,
             {
                 method: "GET",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
             },
         );
         const data = await res.json();

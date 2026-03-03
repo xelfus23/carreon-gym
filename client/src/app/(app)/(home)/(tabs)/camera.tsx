@@ -6,7 +6,7 @@ import {
     Animated,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useEffect, useRef, useState } from "react";
+import React, { SetStateAction, useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { CheckInService } from "@/src/services/checkInService";
 import { useUserProfile } from "@/src/context/profileContext";
@@ -18,6 +18,7 @@ export default function Camera() {
     const [scanning, setScanning] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const isPermissionGranted = Boolean(permission?.granted);
+    const [checkState, setCheckState] = useState<"in" | "out">("in");
 
     useEffect(() => {
         if (!permission) requestPermission();
@@ -89,6 +90,8 @@ export default function Camera() {
                         }
                     />
                     <Overlay
+                        checkState={checkState}
+                        setCheckState={setCheckState}
                         scanning={scanning}
                         scanned={scanned}
                         error={error}
@@ -103,10 +106,14 @@ const Overlay = ({
     scanning,
     scanned,
     error,
+    checkState,
+    setCheckState,
 }: {
     scanning: boolean;
     scanned: boolean;
     error: string | null;
+    checkState: "in" | "out";
+    setCheckState: React.Dispatch<SetStateAction<"in" | "out">>;
 }) => {
     const scanLineAnim = useRef(new Animated.Value(0)).current;
     const { sessionStatus } = useUserProfile();
@@ -291,21 +298,32 @@ const Overlay = ({
                                         : "Active scanning"}
                             </Text>
                         </View>
-                        <View>
-                            <Text className="text-text-primary">
-                                Current Status:{" "}
-                                {sessionStatus?.has_active_session ? (
-                                    <Text className="text-primary">
-                                        Checked In
-                                    </Text>
-                                ) : (
-                                    <Text className="text-danger">
-                                        Checked Out
-                                    </Text>
-                                )}
-                            </Text>
-                        </View>
                     </View>
+                </View>
+            </View>
+
+            <View className="absolute z-10 bottom-4 flex items-center gap-4 justify-center w-full">
+                <Text className="text-text-primary">
+                    Current Status:{" "}
+                    {sessionStatus?.has_active_session ? (
+                        <Text className="text-primary">Checked In</Text>
+                    ) : (
+                        <Text className="text-danger">Checked Out</Text>
+                    )}
+                </Text>
+                <View className="flex flex-row w-full items-center justify-evenly">
+                    <TouchableOpacity
+                        onPress={() => setCheckState("in")}
+                        className={`bg-surface ${checkState === "in" ? "border-primary" : "border-border"} border px-12 py-4 rounded-xl`}
+                    >
+                        <Text className="text-text-primary">Check In</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => setCheckState("out")}
+                        className={`bg-surface ${checkState === "out" ? "border-primary" : "border-border"} border px-12 py-4 rounded-xl`}
+                    >
+                        <Text className="text-text-primary">Check Out</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
 

@@ -157,8 +157,15 @@ const DashboardHome: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="h-64 w-full">
-                        {statsLoading ? (
+                    <div
+                        style={{
+                            width: "100%",
+                            height: 256,
+                            minWidth: 0,
+                            minHeight: 0,
+                        }}
+                    >
+                        {statsLoading || chartData.length === 0 ? (
                             <ChartSkeleton />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
@@ -279,8 +286,16 @@ const DashboardHome: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="h-56 w-full">
-                        {statsLoading ? (
+                    <div
+                        style={{
+                            width: "100%",
+                            height: 224,
+                            minWidth: 0,
+                            minHeight: 0,
+                        }}
+                    >
+                        {" "}
+                        {statsLoading || chartData.length === 0 ? (
                             <ChartSkeleton />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
@@ -371,8 +386,15 @@ const DashboardHome: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="h-56 w-full">
-                        {statsLoading ? (
+                    <div
+                        style={{
+                            width: "100%",
+                            height: 224,
+                            minWidth: 0,
+                            minHeight: 0,
+                        }}
+                    >
+                        {statsLoading || peakHourData.length === 0 ? (
                             <ChartSkeleton />
                         ) : peakHourData.length === 0 ? (
                             <div className="h-full flex items-center justify-center text-text-secondary text-sm">

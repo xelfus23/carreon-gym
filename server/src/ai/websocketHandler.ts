@@ -33,8 +33,6 @@ export const WebsocketHandler = async (server: Server) => {
 
                 let messages: ChatMessage[] = [...chatHistory];
 
-                console.log("CHAT HISTORY: ", messages)
-
                 await handleModelStreamWithTools(
                     messages,
                     userId,

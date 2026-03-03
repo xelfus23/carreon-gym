@@ -24,7 +24,7 @@ export interface ChartDataPoint {
 }
 
 export interface PeakHourDataPoint {
-    hour: string;  // e.g. "6AM", "7AM"
+    hour: string; // e.g. "6AM", "7AM"
     checkins: number;
 }
 
@@ -45,8 +45,7 @@ export const useStats = () => {
 
             try {
                 const { data } = await statsService.getStats();
-                
-                console.log(data)
+
                 if (!cancelled) {
                     setStats(data.stats);
                     setChartData(data.chartData);

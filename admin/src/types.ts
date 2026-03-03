@@ -38,6 +38,12 @@ export interface AdminMemberListItem {
     attendance_rate: number;
 }
 
+export interface SubscriptionModalProps {
+    member: AdminMemberListItem | null;
+    onClose: () => void;
+    onSuccess: () => void;
+}
+
 export interface Trainer {
     id: string;
     name: string;

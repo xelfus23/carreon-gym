@@ -74,7 +74,7 @@ export default function WorkoutSession() {
             pulse.start();
             return () => pulse.stop();
         }
-    }, [isRunning, mode]);
+    }, [isRunning, mode, pulseAnim]);
 
     // Timer countdown logic
     useEffect(() => {
@@ -100,7 +100,7 @@ export default function WorkoutSession() {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [isRunning, mode, timeLeft]);
+    }, [isRunning, mode, timeLeft, celebrationAnim]);
 
     // Rest timer between sets
     useEffect(() => {
@@ -128,7 +128,7 @@ export default function WorkoutSession() {
                 useNativeDriver: false,
             }).start();
         }
-    }, [completedSets, totalSets]);
+    }, [completedSets, totalSets, mode, progressAnim]);
 
     // Progress bar animation (timer mode: by time)
     useEffect(() => {
@@ -139,7 +139,19 @@ export default function WorkoutSession() {
                 useNativeDriver: false,
             }).start();
         }
-    }, [timeLeft, durationSeconds]);
+    }, [timeLeft, durationSeconds, progressAnim, mode]);
+
+    const handleFinish = useCallback(
+        (setsCompleted = completedSets) => {
+            // Navigate back with exercise log data
+            // Use router.back() and pass results via a shared store / context / params
+            router.back();
+            // NOTE: Wire this to your openLogModal or directly call workoutService.logExercise
+            // by passing a callback through router params or a Zustand/context store.
+            // Example pattern shown in integration notes below.
+        },
+        [completedSets, router],
+    );
 
     const handleCompleteSet = useCallback(() => {
         Vibration.vibrate(50);
@@ -157,20 +169,11 @@ export default function WorkoutSession() {
             setCurrentSet(newCompleted + 1);
             setIsResting(true);
         }
-    }, [completedSets, totalSets]);
+    }, [completedSets, totalSets, celebrationAnim, handleFinish]);
 
     const handleSkipRest = () => {
         setIsResting(false);
         setRestTimer(60);
-    };
-
-    const handleFinish = (setsCompleted = completedSets) => {
-        // Navigate back with exercise log data
-        // Use router.back() and pass results via a shared store / context / params
-        router.back();
-        // NOTE: Wire this to your openLogModal or directly call workoutService.logExercise
-        // by passing a callback through router params or a Zustand/context store.
-        // Example pattern shown in integration notes below.
     };
 
     const handleQuit = () => {

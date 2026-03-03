@@ -1,10 +1,11 @@
+//MOBILE
+
 import * as SecureStore from "expo-secure-store";
 import { request } from "../utils/request";
 
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
 
-// Refresh lock — prevents concurrent refresh races
 let isRefreshing = false;
 type RefreshSubscriber = {
     resolve: (token: string) => void;
@@ -85,19 +86,20 @@ export const authService = {
             // making an authenticated request that would trigger another refresh attempt
             accessToken = null;
             refreshToken = null;
-            
+
             // Reject all queued subscribers so they don't hang
-            const refreshError = error instanceof Error 
-                ? error 
-                : new Error("Session expired. Please log in again.");
+            const refreshError =
+                error instanceof Error
+                    ? error
+                    : new Error("Session expired. Please log in again.");
             rejectRefreshSubscribers(refreshError);
-            
+
             // Only call onSessionExpired if we actually attempted refresh (we had a refresh token)
             onSessionExpired?.();
             console.error("Token refresh failed:", error);
             throw refreshError;
         } finally {
-            isRefreshing = false;  
+            isRefreshing = false;
         }
     },
 

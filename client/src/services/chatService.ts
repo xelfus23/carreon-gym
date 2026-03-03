@@ -7,6 +7,12 @@ const WS_URL = process.env.EXPO_PUBLIC_WS_URL;
 // Single shared socket — one connection at a time
 let activeSocket: WebSocket | null = null;
 
+const errorMsg: Record<string, string> = {
+    SUBSCRIPTION_REQUIRED: "You don't have active subscriptions.",
+    SUBSCRIPTION_EXPIRED: "Your subscription has expired.",
+    AUTHENTICATION_FAILED: "You're unauthorized to use chats.",
+};
+
 export const chatService = {
     /** --------------------
      * Use fetchWithAuth everywhere so 401s auto-refresh
@@ -123,13 +129,7 @@ export const chatService = {
             socket.onclose = (e) => {
                 cleanup();
                 if (!e.wasClean && e.code !== 1000) {
-                    settle(() =>
-                        reject(
-                            new Error(
-                                `WebSocket closed unexpectedly (${e.code})`,
-                            ),
-                        ),
-                    );
+                    settle(() => reject(new Error(`${errorMsg[e.reason]}`)));
                 }
             };
         });

@@ -14,7 +14,13 @@ export const getMembersDomain = async () => {
             u.created_at,
 
             s.plan_name,
-            s.status AS subscription_status,
+            CASE
+                WHEN s.status = 'cancelled' THEN 'cancelled'
+                WHEN s.status = 'pending' THEN 'pending'
+                WHEN s.expiry_date IS NULL THEN NULL
+                WHEN s.expiry_date < CURRENT_TIMESTAMP THEN 'expired'
+                ELSE 'active'
+            END AS subscription_status,
             s.expiry_date,
 
             bm.weight_kg,

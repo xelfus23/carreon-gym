@@ -15,7 +15,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
-    const [sideBarOn, setSideBarOn] = useState<boolean>(false);
+    const [sideBarOn, setSideBarOn] = useState<boolean>(true);
 
     const menuItems = [
         {
@@ -35,7 +35,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
 
             icon: <UsersRound className="h-5 stroke-2" />,
         },
-
         {
             id: NavItem.AI_INSIGHTS,
 

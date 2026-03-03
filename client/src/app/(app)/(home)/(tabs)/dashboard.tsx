@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { useUserProfile } from "@/src/context/profileContext";
 import { PlayIcon } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
@@ -8,6 +8,10 @@ import { useRouter } from "expo-router";
 export default function Dashboard() {
     const { profile } = useUserProfile();
     const router = useRouter();
+
+    useEffect(() => {
+        console.log(profile?.subscription);
+    }, [profile]);
 
     if (!profile) return null;
 
@@ -64,6 +68,30 @@ export default function Dashboard() {
                         <Text className="text-primary text-xs font-bold">
                             ✓{" "}
                             {profile.subscription.planName || "Premium Member"}
+                        </Text>
+                    </View>
+                )}
+
+                {profile.subscription?.status === "expired" && (
+                    <View className="bg-danger/20 border border-danger rounded-full px-3 py-1 mt-2 self-start">
+                        <Text className="text-danger text-xs font-bold">
+                            Subscription Expired
+                        </Text>
+                    </View>
+                )}
+
+                {profile.subscription?.status === "cancelled" && (
+                    <View className="bg-danger/20 border border-danger rounded-full px-3 py-1 mt-2 self-start">
+                        <Text className="text-danger text-xs font-bold">
+                            Subscription Cancelled
+                        </Text>
+                    </View>
+                )}
+
+                {profile.subscription?.status === "pending" && (
+                    <View className="bg-yellow-100/20 border border-yellow-100 rounded-full px-3 py-1 mt-2 self-start">
+                        <Text className="text-yellow-100 text-xs font-bold">
+                            Subscription Pending
                         </Text>
                     </View>
                 )}

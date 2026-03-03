@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useWorkout } from "@/src/hooks/useWorkout";
 import { useFocusEffect } from "@react-navigation/native";
 import {
@@ -70,6 +70,8 @@ function ExerciseCard({
     onUncheck,
 }: ExerciseCardProps) {
     const timed = isDurationBased(ex);
+
+    console.log(ex)
 
     const formatDuration = (secs: number) => {
         if (secs >= 60) {
@@ -280,10 +282,12 @@ export default function Plans() {
 
     for (const plan of workoutPlans) {
         // console.log(plan.is_active)
-        console.log(plan)
+        // console.log("PLAN: ", plan);
         // if (!plan.is_active) continue; // Only show active plan exercises
         for (const day of plan.days ?? []) {
             if (day.is_rest_day) continue;
+
+            console.log(day)
             for (const ex of day.exercises ?? []) {
                 allExercises.push({
                     ...(ex as Exercise),

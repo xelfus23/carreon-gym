@@ -151,7 +151,6 @@ export const cancelForMember = async (req: Request, res: Response) => {
     }
 };
 
-/** GET /api/admin/subscriptions/:userId — get subscription + plan details */
 export const getForMember = async (req: Request, res: Response) => {
     try {
         const userId = Number(req.params.userId);

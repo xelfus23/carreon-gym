@@ -247,7 +247,7 @@ export function useChat(params?: {
                 }
             }
         },
-        [sessionId],
+        [sessionId, params],
     );
 
     return {
