@@ -29,10 +29,23 @@ export const subscriptionService = {
             notes?: string | undefined;
         } = {},
     ) {
+        if (!recordedBy) {
+            throw new Error("Unauthorized");
+        }
+
         const client = await pool.connect();
 
         try {
             await client.query("BEGIN");
+
+            const userCheck = await client.query(
+                `SELECT id FROM users WHERE id = $1`,
+                [userId],
+            );
+
+            if (userCheck.rows.length === 0) {
+                throw new Error("User does not exist.");
+            }
 
             // 1. Fetch the plan
             const planResult = await client.query(
@@ -76,8 +89,25 @@ export const subscriptionService = {
                 }
             }
 
-            const expiryDate = new Date();
-            expiryDate.setDate(expiryDate.getDate() + finalDurationDays);
+            // const expiryDate = new Date();
+            // expiryDate.setDate(expiryDate.getDate() + finalDurationDays);
+
+            const existingSub = await client.query(
+                `SELECT expiry_date FROM subscriptions WHERE user_id = $1`,
+                [userId],
+            );
+
+            let baseDate = new Date();
+            const now = new Date();
+
+            if (existingSub.rows.length > 0) {
+                const currentExpiry = new Date(existingSub.rows[0].expiry_date);
+                if (currentExpiry > now) {
+                    baseDate = currentExpiry;
+                }
+            }
+
+            baseDate.setDate(baseDate.getDate() + finalDurationDays);
 
             // 3. Upsert subscription
             const subResult = await client.query(
@@ -92,7 +122,7 @@ export const subscriptionService = {
                      expiry_date = $4,
                      updated_at  = CURRENT_TIMESTAMP
                  RETURNING *`,
-                [userId, planId, plan.name, expiryDate],
+                [userId, planId, plan.name, baseDate],
             );
 
             const subscription = subResult.rows[0];

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
     subscriptionService,
     type SubscriptionPlan,
-} from "../../services/subscriptionService";
+} from "../../services/subscription.service";
 import ErrorBanner from "./ErrorBanner";
 import SectionLabel from "./SectionLabel";
 import type { SubscriptionModalProps } from "../../types";

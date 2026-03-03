@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { statsService } from "../services/statsService";
+import { statsService } from "../services/stats.service";
 
 export interface DashboardStats {
     total_members: number;

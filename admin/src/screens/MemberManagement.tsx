@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
 import type { AdminMemberListItem } from "../types";
-import { chatService } from "../services/AIService";
+import { chatService } from "../services/ai.service";
 import MemberRow from "../components/members/MemberRow";
 import ConfirmDialog from "../components/members/ConfirmDialog";
 import SubscriptionModal from "../components/SubscriptionModal";

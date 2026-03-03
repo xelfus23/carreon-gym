@@ -10,7 +10,7 @@ import {
     Tooltip,
     ResponsiveContainer,
 } from "recharts";
-import { chatService } from "../services/AIService";
+import { chatService } from "../services/ai.service";
 import { useStats } from "../hooks/useStats";
 
 const DashboardHome: React.FC = () => {

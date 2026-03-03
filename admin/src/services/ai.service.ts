@@ -42,7 +42,7 @@ export const chatService = {
             if (!response.ok) {
                 throw new Error("Failed to create chat");
             }
-            
+
             return await response.json();
         } catch (error) {
             console.error("createChat error:", error);

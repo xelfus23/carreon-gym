@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Login from "./components/Login";
-import { useAuthContext } from "./hooks/useAuth";
+import { useAuthContext } from "./hooks/contextHooks";
 import DashboardHome from "./components/DashboardHome";
 import AssistantTab from "./components/AssistantTab";
 import { NavItem } from "./types";

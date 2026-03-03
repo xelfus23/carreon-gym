@@ -1,3 +1,12 @@
+import type { Request } from "express";
+
+export interface AuthRequest extends Request {
+    user: {
+        id: number;
+        role: "member" | "trainer" | "admin";
+    };
+}
+
 export interface ToolCall {
     id: string;
     name: string;

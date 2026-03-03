@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useAuthContext } from "../hooks/useAuth";
+import { useAuthContext } from "../hooks/contextHooks";
 import { Loader2 } from "lucide-react";
 
 const Login: React.FC = () => {

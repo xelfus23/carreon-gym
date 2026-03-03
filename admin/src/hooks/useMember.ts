@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { memberService } from "../services/memberService";
+import { memberService } from "../services/member.service";
 import type { AdminMemberListItem } from "../types";
 
 export const useMember = () => {

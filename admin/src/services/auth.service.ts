@@ -1,5 +1,3 @@
-// WEB - authService.ts
-
 const BASE_URL = "192.168.1.150:4545";
 const API_URL = `http://${BASE_URL}`;
 
@@ -47,14 +45,11 @@ async function fetchWithRefresh(
 
     if (res.status !== 401) return res;
 
-    // --- 401 received, attempt silent refresh ---
-
-    // If refresh already in-flight, queue this request
     if (isRefreshing) {
         await new Promise<void>((resolve, reject) => {
             pendingRequests.push({ resolve, reject });
         });
-        // Retry after refresh succeeded
+
         return fetch(input, { ...defaults, ...init });
     }
 
@@ -72,7 +67,6 @@ async function fetchWithRefresh(
 
         resolvePending();
 
-        // Retry original request with new cookie
         return fetch(input, { ...defaults, ...init });
     } catch (err) {
         const error =
@@ -104,11 +98,11 @@ export const authService = {
         return data;
     },
 
-    /**
-     * Returns { success, data } or { success: false, status } — never throws for 401.
-     * Uses fetchWithRefresh so a single expired token is silently refreshed.
-     */
-    async me(): Promise<{ success: boolean; status?: number; data?: { user: AuthUser } }> {
+    async me(): Promise<{
+        success: boolean;
+        status?: number;
+        data?: { user: AuthUser };
+    }> {
         try {
             const res = await fetchWithRefresh(`${API_URL}/api/users/web/me`);
 
@@ -125,7 +119,6 @@ export const authService = {
             return data;
         } catch (err) {
             if (err instanceof SessionExpiredError) {
-                // Bubble up so AuthProvider can redirect to login
                 throw err;
             }
             return { success: false };
@@ -142,7 +135,6 @@ export const authService = {
             return res.json();
         } catch (error) {
             console.error("Logout error:", error);
-            // Don't rethrow — logout should always succeed client-side
         }
     },
 
@@ -159,10 +151,6 @@ export const authService = {
         return res.json();
     },
 
-    /**
-     * Use this for all authenticated API calls from the admin dashboard.
-     * It handles 401 → refresh → retry automatically.
-     */
     fetchWithRefresh,
 };
 

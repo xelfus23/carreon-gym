@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import pool from "../../config/pool.ts";
+import { AppError } from "../../utils/appError.ts";
 
 export const loginDomain = async (params: {
     email: string;
@@ -8,23 +9,18 @@ export const loginDomain = async (params: {
     const { email, password } = params;
 
     if (!email || !password) {
-        throw new Error("Incomplete Details");
+        throw new AppError("Email and password are required.", 400, "AUTH_MISSING_FIELDS");
     }
 
     const result = await pool.query("SELECT * FROM users WHERE email = $1", [
         email,
     ]);
-
-    if (result.rows.length === 0) {
-        throw new Error("Invalid Credentials");
-    }
-
     const user = result.rows[0];
 
     const isMatch = await bcrypt.compare(password, user.hashed_password);
 
     if (!isMatch) {
-        throw new Error("Unauthorized");
+        throw new AppError("Invalid Email or Password. Please try again.", 401, "INVALID_CREDENTIALS");
     }
 
     return {

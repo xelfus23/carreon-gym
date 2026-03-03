@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.ts";
+import { AppError } from "./appError.ts";
 
 export const generateTokens = ({
     sub,

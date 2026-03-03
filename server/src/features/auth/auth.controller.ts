@@ -6,19 +6,23 @@ import bcrypt from "bcrypt";
 import pool from "../../config/pool.ts";
 import { hashToken } from "../../utils/hashToken.ts";
 import { saveSessionToDB } from "../../services/saveSession.ts";
+import { catchAsync } from "../../utils/catchAsync.ts";
+import { AppError } from "../../utils/appError.ts";
 
 //====================================================
 //====================================================
 //====================================================
 
-export const webLoginController = async (req: Request, res: Response) => {
-    try {
-        console.log(req.body);
-
+export const webLoginController = catchAsync(
+    async (req: Request, res: Response) => {
         const user = await loginDomain(req.body);
 
         if (user.role === "member") {
-            throw new Error("You don't have permission to access this website.");
+            throw new AppError(
+                "Access denied. Only staff and admins can log in here.",
+                403,
+                "AUTH_FORBIDDEN_ROLE",
+            );
         }
 
         const { accessToken, refreshToken } = generateTokens({
@@ -40,7 +44,6 @@ export const webLoginController = async (req: Request, res: Response) => {
             maxAge: 15 * 60 * 1000,
         });
 
-        // Return success response with user data
         return res.status(200).json({
             success: true,
             message: "Login successful",
@@ -54,30 +57,15 @@ export const webLoginController = async (req: Request, res: Response) => {
                 },
             },
         });
-    } catch (err) {
-        if (err instanceof Error) {
-            return res.status(401).json({
-                // Use 401 for auth failures
-                success: false,
-                message: err.message,
-            });
-        }
-
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
-    }
-};
+    },
+);
 
 //====================================================
 //====================================================
 //====================================================
 
-export const mobileLoginController = async (req: Request, res: Response) => {
-    try {
-        console.log(req.body);
-
+export const mobileLoginController = catchAsync(
+    async (req: Request, res: Response) => {
         const user = await loginDomain(req.body);
 
         const { accessToken, refreshToken } = generateTokens({
@@ -85,8 +73,8 @@ export const mobileLoginController = async (req: Request, res: Response) => {
             role: user.role,
         });
 
-        // Persist refresh token as a session so mobileRefresh can validate it
         const refreshTokenHash = hashToken(refreshToken);
+
         await saveSessionToDB({
             userId: user.id,
             tokenHash: refreshTokenHash,
@@ -103,34 +91,27 @@ export const mobileLoginController = async (req: Request, res: Response) => {
                 refreshToken: refreshToken,
             },
         });
-    } catch (err) {
-        if (err instanceof Error) {
-            return res.status(500).json({
-                success: false,
-                message: err.message,
-            });
-        }
-    }
-};
+    },
+);
 
 //====================================================
 //====================================================
 //====================================================
 
-export const webLogoutController = async (req: Request, res: Response) => {
-    try {
-        // Get refresh token from cookie instead of body
+export const webLogoutController = catchAsync(
+    async (req: Request, res: Response) => {
         const refreshToken = req.cookies.refreshToken;
 
         if (!refreshToken) {
-            return res.status(400).json({
-                success: false,
-                message: "No active session",
-            });
+            throw new AppError(
+                "No active session",
+                400,
+                "MISSING_REFRESH_TOKEN",
+            );
         }
 
-        // Verify token signature first
         let decoded: any;
+
         try {
             decoded = jwt.verify(
                 refreshToken,
@@ -140,21 +121,21 @@ export const webLogoutController = async (req: Request, res: Response) => {
             // Clear cookies even if token is invalid
             res.clearCookie("accessToken");
             res.clearCookie("refreshToken");
-            return res.status(401).json({
-                success: false,
-                message: "Invalid session",
-            });
+
+            throw new AppError(
+                "Invalid Refresh Token",
+                401,
+                "INVALID_REFRESH_TOKEN",
+            );
         }
 
-        const userId = decoded.sub; // You used 'sub' in generateTokens
+        const userId = decoded.sub;
 
-        // Get all sessions of user
         const { rows } = await pool.query(
             "SELECT id, refresh_token_hash FROM user_sessions WHERE user_id = $1",
             [userId],
         );
 
-        // Find matching hash
         let sessionId: number | null = null;
 
         for (const session of rows) {
@@ -170,13 +151,11 @@ export const webLogoutController = async (req: Request, res: Response) => {
         }
 
         if (sessionId) {
-            // Delete that session only (single device logout)
             await pool.query("DELETE FROM user_sessions WHERE id = $1", [
                 sessionId,
             ]);
         }
 
-        // Clear cookies
         res.clearCookie("accessToken", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -193,47 +172,42 @@ export const webLogoutController = async (req: Request, res: Response) => {
             success: true,
             message: "Logged out successfully",
         });
-    } catch (error) {
-        console.error("Logout error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Server error",
-        });
-    }
-};
+    },
+);
 
 //====================================================
 //====================================================
 //====================================================
 
-export const mobileLogoutController = async (req: Request, res: Response) => {
-    try {
+export const mobileLogoutController = catchAsync(
+    async (req: Request, res: Response) => {
         const { refreshToken } = req.body;
 
         if (!refreshToken) {
-            return res.status(400).json({
-                success: false,
-                message: "Refresh token required",
-            });
+            throw new AppError(
+                "No active session",
+                400,
+                "MISSING_REFRESH_TOKEN",
+            );
         }
 
-        // Verify token signature first
         let decoded: any;
+
         try {
             decoded = jwt.verify(
                 refreshToken,
                 process.env.REFRESH_TOKEN_SECRET!,
             );
         } catch {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid refresh token",
-            });
+            throw new AppError(
+                "Invalid Refresh Token",
+                401,
+                "INVALID_REFRESH_TOKEN",
+            );
         }
 
         const userId = decoded.id;
 
-        // Get all sessions of user
         const { rows } = await pool.query(
             "SELECT id, refresh_token_hash FROM user_sessions WHERE user_id = $1",
             [userId],
@@ -270,11 +244,5 @@ export const mobileLogoutController = async (req: Request, res: Response) => {
             success: true,
             message: "Logged out successfully",
         });
-    } catch (error) {
-        console.error("Logout error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Server error",
-        });
-    }
-};
+    },
+);

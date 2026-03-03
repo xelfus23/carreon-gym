@@ -12,6 +12,7 @@ import statsRoutes from "./features/stats/stats.route.ts";
 import attendanceRoute from "./features/attendance/attendance.route.ts";
 import subscriptionRoutes from "./features/subscription/subscription.route.ts";
 import subscriptionAdminRoutes from "./features/subscription/subscription.admin.route.ts";
+import { globalErrorHandler } from "./services/globalErrorHandler.ts";
 
 dotenv.config({ path: ".env" });
 
@@ -40,7 +41,7 @@ app.use("/api/stats", statsRoutes);
 app.use("/api/attendance", attendanceRoute);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/web/subscriptions", subscriptionAdminRoutes);
-
+app.use(globalErrorHandler);
 /* ---------- HEALTH CHECK ---------- */
 app.get("/health", (_, res) => {
     res.status(200).json({ status: "ok" });

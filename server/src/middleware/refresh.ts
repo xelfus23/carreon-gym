@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { hashToken } from "../utils/hashToken.ts";
 import pool from "../config/pool.ts";
 import { env } from "../config/env.ts";
+import { generateTokens } from "../utils/generateTokens.ts";
 
 export const webRefresh = async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken;
@@ -36,11 +37,9 @@ export const webRefresh = async (req: Request, res: Response) => {
             });
         }
 
-        const accessToken = jwt.sign(
-            { sub: payload.sub, role: payload.role },
-            env.JWT_ACCESS_SECRET,
-            { expiresIn: "15m" },
-        );
+        console.log(payload);
+
+        const accessToken = generateTokens(payload);
 
         res.cookie("accessToken", accessToken, {
             httpOnly: true,

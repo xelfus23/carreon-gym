@@ -1,4 +1,4 @@
-import { authService } from "./authService";
+import { authService } from "./auth.service";
 
 const BASE_URL = "192.168.1.150:4545";
 const API_URL = `http://${BASE_URL}`;

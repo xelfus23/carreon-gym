@@ -1,7 +1,7 @@
 // WEB - AuthProvider.tsx
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { authService, SessionExpiredError } from "../services/authService";
+import { authService, SessionExpiredError } from "../services/auth.service";
 import { AuthContext } from "./createContext";
 
 interface AuthUser {

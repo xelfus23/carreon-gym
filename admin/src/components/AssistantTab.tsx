@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { chatService } from "../services/AIService";
+import { chatService } from "../services/ai.service";
 import { Send } from "lucide-react";
 
 const AssistantTab: React.FC = () => {
