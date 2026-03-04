@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Track the proactive refresh timer so we can clear it on logout
     const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const clearRefreshTimer = () => {
@@ -28,38 +27,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             refreshTimerRef.current = null;
         }
     };
-
-    /**
-     * Schedule a proactive token refresh 1 minute before expiry.
-     * Call this after every successful login or token refresh.
-     * Default assumes 15-minute access tokens → refresh at 14 minutes.
-     */
-    const scheduleRefresh = useCallback(
-        (expiresInMs: number = 14 * 60 * 1000) => {
-            clearRefreshTimer();
-
-            // Clamp: never schedule less than 5 seconds from now
-            const delay = Math.max(expiresInMs, 5_000);
-
-            refreshTimerRef.current = setTimeout(async () => {
-                try {
-                    await authService.refreshToken();
-                    console.log("[Auth] Token proactively refreshed.");
-                    // Schedule next refresh for another 14 minutes
-                    scheduleRefresh();
-                } catch (err) {
-                    console.warn("[Auth] Proactive refresh failed:", err);
-                    // fetchWithRefresh will handle the next 401 reactively,
-                    // so we don't force-logout here — only on SessionExpiredError
-                    if (err instanceof SessionExpiredError) {
-                        logout();
-                    }
-                }
-            }, delay);
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
-    );
 
     const logout = useCallback(async () => {
         clearRefreshTimer();
@@ -76,7 +43,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }, []);
 
-    // Restore session on mount — me() now silently refreshes on 401 internally
+    /**
+     * Schedule a proactive token refresh 1 minute before expiry.
+     * Call this after every successful login or token refresh.
+     * Default assumes 15-minute access tokens → refresh at 14 minutes.
+     */
+    const scheduleRefresh = useCallback(
+        (expiresInMs: number = 14 * 60 * 1000) => {
+            clearRefreshTimer();
+
+            const delay = Math.max(expiresInMs, 5_000);
+
+            refreshTimerRef.current = setTimeout(async () => {
+                try {
+                    await authService.refreshToken();
+                    console.log("[Auth] Token proactively refreshed.");
+                    scheduleRefresh();
+                } catch (err) {
+                    console.warn("[Auth] Proactive refresh failed:", err);
+                    if (err instanceof SessionExpiredError) {
+                        logout();
+                    }
+                }
+            }, delay);
+        },
+        [logout],
+    );
+
     useEffect(() => {
         const restoreSession = async () => {
             try {
@@ -89,16 +82,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         "careon_user",
                         JSON.stringify(res.data.user),
                     );
-                    // Token was valid (or just refreshed) — schedule next proactive refresh
                     scheduleRefresh();
                 } else {
-                    // Not authenticated — clean up any stale data
                     localStorage.removeItem("careon_user");
                     setIsAuthenticated(false);
                     setUser(null);
                 }
             } catch (err) {
-                // SessionExpiredError means refresh also failed → force to login
                 if (err instanceof SessionExpiredError) {
                     console.warn("[Auth] Session fully expired on restore.");
                 } else {
@@ -115,8 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         restoreSession();
 
         return () => clearRefreshTimer();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [scheduleRefresh]);
 
     const login = async (email: string, password: string) => {
         setIsLoading(true);
@@ -135,7 +124,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setIsAuthenticated(true);
             localStorage.setItem("careon_user", JSON.stringify(user));
 
-            // Start the proactive refresh cycle after login
             scheduleRefresh();
         } catch (error) {
             setIsAuthenticated(false);

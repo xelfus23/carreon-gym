@@ -1,4 +1,5 @@
 import pool from "../../config/pool.ts";
+import { AppError } from "../../utils/appError.ts";
 
 export const checkInDomain = async (params: { userId: number }) => {
     const { userId } = params;
@@ -13,8 +14,10 @@ export const checkInDomain = async (params: { userId: number }) => {
     );
 
     if (sub.rowCount === 0) {
-        throw new Error(
+        throw new AppError(
             "No active subscription. Please renew your plan to access the gym.",
+            401,
+            "UNAUTHORIZED_ACCESS",
         );
     }
 
@@ -29,7 +32,11 @@ export const checkInDomain = async (params: { userId: number }) => {
     );
 
     if (activeSession.rowCount && activeSession.rowCount > 0) {
-        throw new Error("You are already checked in. Please check out first.");
+        throw new AppError(
+            "You are already checked in. Please check out first.",
+            409,
+            "ALREADY_CHECKED_IN",
+        );
     }
 
     // 3. Insert new check-in record

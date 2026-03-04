@@ -1,8 +1,8 @@
 import { WebSocket } from "ws";
-import { saveMessageService } from "../../services/saveMessageService.ts";
 import type { ChatMessage } from "../../types/index.ts";
 import { handleToolCall } from "../tools/handleToolCall.ts";
 import { streamModel } from "./streamModel.ts";
+import { saveMessageDomain } from "../../domain/chat/saveMessage.ts";
 
 export async function handleModelStreamWithTools(
     messages: ChatMessage[],
@@ -47,7 +47,6 @@ export async function handleModelStreamWithTools(
             iteration++;
             log(`🔄 Loop iteration start`);
 
-            // ── streamModel ──────────────────────────────────────────────
             let toolCalls: Awaited<ReturnType<typeof streamModel>>["toolCalls"];
 
             let assistantContent: Awaited<
@@ -80,7 +79,7 @@ export async function handleModelStreamWithTools(
                         content: assistantContent,
                     };
                     try {
-                        await saveMessageService(
+                        await saveMessageDomain(
                             ws,
                             sessionId,
                             userId,
@@ -89,7 +88,7 @@ export async function handleModelStreamWithTools(
                         log("💾 Final message saved");
                     } catch (err) {
                         console.error(
-                            `[Stream][session=${sessionId}] ❌ saveMessageService (final) threw:`,
+                            `[Stream][session=${sessionId}] ❌ saveMessageDomain (final) threw:`,
                             err,
                         );
                         // Don't return — still send done so client isn't hanging
@@ -130,7 +129,7 @@ export async function handleModelStreamWithTools(
                     );
 
                     if (summary) {
-                        await saveMessageService(ws, sessionId, userId, {
+                        await saveMessageDomain(ws, sessionId, userId, {
                             role: "assistant",
                             content: summary,
                         });
@@ -161,7 +160,7 @@ export async function handleModelStreamWithTools(
             messages.push(assistantMessageWithTools);
 
             try {
-                await saveMessageService(
+                await saveMessageDomain(
                     ws,
                     sessionId,
                     userId,
@@ -170,7 +169,7 @@ export async function handleModelStreamWithTools(
                 log("💾 Assistant tool-call message saved");
             } catch (err) {
                 console.error(
-                    `[Stream][session=${sessionId}] ❌ saveMessageService (assistant+tools) threw:`,
+                    `[Stream][session=${sessionId}] ❌ saveMessageDomain (assistant+tools) threw:`,
                     err,
                 );
             }
@@ -206,12 +205,12 @@ export async function handleModelStreamWithTools(
                     result.status === "fulfilled"
                         ? JSON.stringify(result.value)
                         : JSON.stringify({
-                              error: true,
-                              message:
-                                  result.reason instanceof Error
-                                      ? result.reason.message
-                                      : "Tool execution failed",
-                          });
+                            error: true,
+                            message:
+                                result.reason instanceof Error
+                                    ? result.reason.message
+                                    : "Tool execution failed",
+                        });
 
                 const toolMessage: ChatMessage = {
                     role: "tool",
@@ -223,7 +222,7 @@ export async function handleModelStreamWithTools(
                 messages.push(toolMessage);
 
                 try {
-                    await saveMessageService(
+                    await saveMessageDomain(
                         ws,
                         sessionId,
                         userId,
@@ -232,7 +231,7 @@ export async function handleModelStreamWithTools(
                     log(`💾 Tool result saved for "${toolCall.name}"`);
                 } catch (err) {
                     console.error(
-                        `[Stream][session=${sessionId}] ❌ saveMessageService (tool result "${toolCall.name}") threw:`,
+                        `[Stream][session=${sessionId}] ❌ saveMessageDomain (tool result "${toolCall.name}") threw:`,
                         err,
                     );
                 }

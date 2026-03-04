@@ -53,7 +53,7 @@ export async function streamModel(
             const data = trimmed.slice("data:".length).trim();
 
             if (data === "[DONE]") {
-                done = true; // ✅ breaks the outer while loop too
+                done = true;
                 break;
             }
 
@@ -98,7 +98,6 @@ export async function streamModel(
                     }
                 }
             } catch (parseErr) {
-                // Partial chunk — safe to skip, will be reassembled on next read
                 console.warn(
                     `⚠️ Could not parse chunk:`,
                     (parseErr as Error).message.substring(0, 80),

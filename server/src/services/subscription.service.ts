@@ -216,14 +216,4 @@ export const subscriptionService = {
 
         return result.rows;
     },
-
-    /** Cron job: mark expired subscriptions. */
-    // async checkExpiredSubscriptions() {
-    //     await pool.query(
-    //         `UPDATE subscriptions
-    //          SET status = 'expired', updated_at = CURRENT_TIMESTAMP
-    //          WHERE expiry_date < CURRENT_TIMESTAMP
-    //          AND status = 'active'`,
-    //     );
-    // },
 };

@@ -1,10 +1,10 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
-import { WSAuthentication } from "../services/webSocketAuth.ts";
-import { saveMessageService } from "../services/saveMessageService.ts";
+import { WSAuthentication } from "../middleware/wsAuth.ts";
 import type { ChatMessage } from "../types/index.ts";
 import { getChatHistory } from "../utils/getChatHistory.ts";
 import { handleModelStreamWithTools } from "./utils/handleModelStreamWithTools.ts";
+import { saveMessageDomain } from "../domain/chat/saveMessage.ts";
 
 export const WebsocketHandler = async (server: Server) => {
     const wss = new WebSocketServer({ server });
@@ -24,7 +24,7 @@ export const WebsocketHandler = async (server: Server) => {
                 const parsed = JSON.parse(message.toString());
                 const userMessage = parsed.message;
 
-                await saveMessageService(ws, sessionId, userId, {
+                await saveMessageDomain(ws, sessionId, userId, {
                     role: "user",
                     content: userMessage,
                 });

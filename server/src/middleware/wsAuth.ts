@@ -1,7 +1,7 @@
 import { WebSocket } from "ws";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.ts";
-import { subscriptionService } from "../services/subscriptionService.ts"; // Import your service
+import { subscriptionService } from "../services/subscription.service.ts"; // Import your service
 
 type JWTPayload = {
     sub: number;

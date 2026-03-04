@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import Login from "./components/Login";
 import { useAuthContext } from "./hooks/contextHooks";
-import DashboardHome from "./components/DashboardHome";
-import AssistantTab from "./components/AssistantTab";
+import DashboardHome from "./screens/DashboardHome";
+import AssistantTab from "./screens/AssistantTab";
 import { NavItem } from "./types";
 import Sidebar from "./components/SideBar";
-import Attendance from "./components/Attendance";
+import Attendance from "./screens/Attendance";
 import MemberManagement from "./screens/MemberManagement";
+import EquipmentTab from "./screens/EquipmentTab";
 
 const App: React.FC = () => {
     const [currentTab, setCurrentTab] = useState<NavItem>(NavItem.DASHBOARD);
@@ -35,9 +36,11 @@ const App: React.FC = () => {
                 return <DashboardHome />;
             case NavItem.MEMBERS:
                 return <MemberManagement />;
+            case NavItem.GYM_EQUIPMENTS:
+                return <EquipmentTab />;
             case NavItem.AI_INSIGHTS:
                 return <AssistantTab />;
-            case NavItem.QRCODE:
+            case NavItem.QR_CODE:
                 return <Attendance />;
             default:
                 return (

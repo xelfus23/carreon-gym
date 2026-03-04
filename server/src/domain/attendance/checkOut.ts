@@ -1,9 +1,9 @@
 import pool from "../../config/pool.ts";
+import { AppError } from "../../utils/appError.ts";
 
 export const checkOutDomain = async (params: { userId: number }) => {
     const { userId } = params;
 
-    // 1. Find active session
     const activeSession = await pool.query(
         `SELECT id, check_in_time FROM gym_attendance
          WHERE user_id = $1
@@ -14,14 +14,15 @@ export const checkOutDomain = async (params: { userId: number }) => {
     );
 
     if (activeSession.rowCount === 0) {
-        throw new Error(
+        throw new AppError(
             "No active session found. You are not currently checked in.",
+            400,
+            "NOT_CHECKED_IN",
         );
     }
 
     const sessionId = activeSession.rows[0].id;
 
-    // 2. Update session with check-out time and calculate duration
     const result = await pool.query(
         `UPDATE gym_attendance
          SET check_out_time = NOW(),

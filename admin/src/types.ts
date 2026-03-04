@@ -1,7 +1,8 @@
 export enum NavItem {
     DASHBOARD = "DASHBOARD",
-    QRCODE = "QRCODE",
+    QR_CODE = "QR_CODE",
     MEMBERS = "MEMBERS",
+    GYM_EQUIPMENTS = "GYM_EQUIPMENTS",
     AI_INSIGHTS = "AI_INSIGHTS",
 }
 

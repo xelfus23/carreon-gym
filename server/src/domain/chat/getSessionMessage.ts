@@ -1,4 +1,5 @@
 import pool from "../../config/pool.ts";
+import { AppError } from "../../utils/appError.ts";
 
 export const getSessionMessagesDomain = async (params: {
     userId: number;
@@ -12,7 +13,7 @@ export const getSessionMessagesDomain = async (params: {
     );
 
     if (sessionCheck.rows.length === 0) {
-        throw new Error("Unauthorized access to this chat");
+        throw new AppError("Unauthorized access to this chat", 401, "UNAUTHORIZED_ACCESS");
     }
 
     const result = await pool.query(

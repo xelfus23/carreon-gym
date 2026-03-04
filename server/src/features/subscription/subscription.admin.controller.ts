@@ -1,6 +1,6 @@
 // controllers/admin/subscription.controller.ts
 import type { Request, Response } from "express";
-import { subscriptionService } from "../../services/subscriptionService.ts";
+import { subscriptionService } from "../../services/subscription.service.ts";
 
 // ── Plans ─────────────────────────────────────────────────────────────────────
 

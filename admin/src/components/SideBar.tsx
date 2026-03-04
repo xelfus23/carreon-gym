@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { NavItem } from "../types";
 import {
     ChartColumnBig,
+    Dumbbell,
     PanelLeftClose,
     PanelLeftOpen,
     QrCode,
@@ -24,22 +25,23 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
             icon: <ChartColumnBig className="h-5 stroke-2" />,
         },
         {
-            id: NavItem.QRCODE,
+            id: NavItem.QR_CODE,
             label: "QR",
             icon: <QrCode className="h-5 stroke-2" />,
         },
         {
             id: NavItem.MEMBERS,
-
             label: "Members",
-
             icon: <UsersRound className="h-5 stroke-2" />,
         },
         {
+            id: NavItem.GYM_EQUIPMENTS,
+            label: "Gym Equipments",
+            icon: <Dumbbell />,
+        },
+        {
             id: NavItem.AI_INSIGHTS,
-
             label: "AI Insights",
-
             icon: <Sparkles className="h-5 stroke-2" />,
         },
     ];
