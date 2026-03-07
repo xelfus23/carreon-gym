@@ -310,12 +310,12 @@ const DashboardHome: React.FC = () => {
                                         >
                                             <stop
                                                 offset="5%"
-                                                stopColor="#60A5FA"
+                                                stopColor="#FBBF24"
                                                 stopOpacity={0.2}
                                             />
                                             <stop
                                                 offset="95%"
-                                                stopColor="#60A5FA"
+                                                stopColor="#FBBF24"
                                                 stopOpacity={0}
                                             />
                                         </linearGradient>
@@ -350,7 +350,7 @@ const DashboardHome: React.FC = () => {
                                             "Revenue",
                                         ]}
                                         cursor={{
-                                            stroke: "#60A5FA",
+                                            stroke: "#FBBF24",
                                             strokeWidth: 1,
                                             strokeDasharray: "4 4",
                                         }}
@@ -358,16 +358,16 @@ const DashboardHome: React.FC = () => {
                                     <Area
                                         type="monotone"
                                         dataKey="revenue"
-                                        stroke="#60A5FA"
+                                        stroke="#FBBF24"
                                         strokeWidth={2.5}
                                         fillOpacity={1}
                                         fill="url(#colorRevenue)"
                                         dot={{
-                                            fill: "#60A5FA",
+                                            fill: "#FBBF24",
                                             r: 3,
                                             strokeWidth: 0,
                                         }}
-                                        activeDot={{ r: 5, fill: "#60A5FA" }}
+                                        activeDot={{ r: 5, fill: "#FBBF24" }}
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>

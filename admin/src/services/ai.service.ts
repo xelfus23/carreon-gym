@@ -1,6 +1,6 @@
 let ws: WebSocket | null = null;
 
-const BASE_URL = "192.168.1.150:4545";
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 const WS_URL = `ws://${BASE_URL}`;
 const API_URL = `http://${BASE_URL}`;
 

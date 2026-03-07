@@ -5,7 +5,7 @@ import DashboardHome from "./screens/DashboardHome";
 import AssistantTab from "./screens/AssistantTab";
 import { NavItem } from "./types";
 import Sidebar from "./components/SideBar";
-import Attendance from "./screens/Attendance";
+import QRTab from "./screens/QRTab";
 import MemberManagement from "./screens/MemberManagement";
 import EquipmentTab from "./screens/EquipmentTab";
 
@@ -17,7 +17,7 @@ const App: React.FC = () => {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-primary-dark border-t-surface rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-primary-dark border-t-primary rounded-full animate-spin"></div>
                     <p className="text-text-primary text-xs font-bold uppercase tracking-widest">
                         Careon Gym Initializing
                     </p>
@@ -41,7 +41,7 @@ const App: React.FC = () => {
             case NavItem.AI_INSIGHTS:
                 return <AssistantTab />;
             case NavItem.QR_CODE:
-                return <Attendance />;
+                return <QRTab />;
             default:
                 return (
                     <div className="flex flex-col items-center justify-center h-full text-text-secondary space-y-4">
@@ -55,7 +55,7 @@ const App: React.FC = () => {
                         </p>
                         <button
                             onClick={() => setCurrentTab(NavItem.DASHBOARD)}
-                            className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+                            className="px-6 py-2 bg-primary-dark text-text-primary rounded-xl hover:bg-primary hover:text-background font-bold transition-colors"
                         >
                             Back to Dashboard
                         </button>
@@ -84,7 +84,7 @@ const App: React.FC = () => {
                             <span className="text-xl">🔔</span>
                             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 border-2 border-border rounded-full"></span>
                         </button>
-                        <div className="flex items-center gap-3 pl-6 border-l border-slate-200 group">
+                        <div className="flex items-center gap-3 pl-6 border-l border-border group">
                             <div className="text-right">
                                 <p className="text-sm font-bold text-text-primary">
                                     {user?.firstName} {user?.lastName}
@@ -98,7 +98,7 @@ const App: React.FC = () => {
                             </div>
                             <img
                                 src={`https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=5ECC0080&color=FFFFFF`}
-                                className="w-10 h-10 rounded-full border-2 border-slate-100 object-cover"
+                                className="w-10 h-10 rounded-full border-2 border-border object-cover"
                                 alt="Profile"
                             />
                         </div>

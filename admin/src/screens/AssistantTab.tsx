@@ -126,17 +126,16 @@ const AssistantTab: React.FC = () => {
                         className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                         <div
-                            className={`max-w-[80%] p-4 rounded-2xl shadow-sm leading-relaxed ${
-                                msg.role === "user"
+                            className={`max-w-[80%] p-4 rounded-2xl shadow-sm leading-relaxed ${msg.role === "user"
                                     ? "bg-surface text-text-secondary rounded-tr-none"
                                     : "text-text-primary"
-                            }`}
+                                }`}
                         >
                             <p className="text-sm whitespace-pre-line">
                                 {msg.text ||
                                     (msg.role === "assistant" &&
-                                    isTyping &&
-                                    i === messages.length - 1
+                                        isTyping &&
+                                        i === messages.length - 1
                                         ? "..."
                                         : "")}
                             </p>
@@ -147,9 +146,9 @@ const AssistantTab: React.FC = () => {
                     <div className="flex justify-start">
                         <div className="bg-background px-4 py-2 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-3">
                             <div className="flex gap-1">
-                                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce"></div>
-                                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce delay-100"></div>
-                                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce delay-200"></div>
+                                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></div>
+                                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce delay-100"></div>
+                                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce delay-200"></div>
                             </div>
                             <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">
                                 {currentState || "Thinking"}
@@ -172,7 +171,7 @@ const AssistantTab: React.FC = () => {
                                 : "Connecting to AI..."
                         }
                         disabled={!sessionId || isTyping}
-                        className="flex-1 bg-surface border-none px-6 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all disabled:opacity-50"
+                        className="flex-1 bg-surface border-none px-6 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-primary outline-none transition-all disabled:opacity-50"
                     />
                     <button
                         onClick={handleSend}
@@ -182,8 +181,8 @@ const AssistantTab: React.FC = () => {
                         <Send className="stroke-text-primary" />
                     </button>
                 </div>
-                <p className="text-center text-[10px] text-slate-400 mt-4 uppercase tracking-widest font-bold">
-                    Streaming via Careon Gym Backend (192.168.1.150)
+                <p className="text-center text-[10px] text-text-secondary mt-4 uppercase tracking-widest font-bold">
+                    Streaming via Careon Gym Backend
                 </p>
             </div>
         </div>

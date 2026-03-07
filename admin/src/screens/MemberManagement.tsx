@@ -239,7 +239,7 @@ export default function MemberManagement() {
                 ].map(({ label, value, color }) => (
                     <div
                         key={label}
-                        className={`rounded-2xl px-4 py-3 ${color}`}
+                        className={`rounded-3xl px-4 py-3 ${color}`}
                     >
                         <p className="text-xs font-semibold uppercase tracking-wider opacity-70">
                             {label}
@@ -427,7 +427,7 @@ export default function MemberManagement() {
                                                 onClick={() => setPage(p)}
                                                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
                                                     p === page
-                                                        ? "bg-indigo-600 border-indigo-600 text-white"
+                                                        ? "bg-primary-dark border-primary-dark text-text-primary"
                                                         : "border-border bg-surface hover:bg-border text-text-primary"
                                                 }`}
                                             >
@@ -454,22 +454,22 @@ export default function MemberManagement() {
 
                 {/* ── AI Insight panel ── */}
                 <div className="lg:w-80 space-y-4 shrink-0">
-                    <div className="bg-gradient-to-br from-indigo-700 to-indigo-900 rounded-3xl p-6 text-white">
-                        <h4 className="text-base font-bold mb-4 flex items-center gap-2">
+                    <div className="bg-surface border border-border rounded-3xl p-6">
+                        <h4 className="text-base font-bold mb-4 flex items-center gap-2 text-text-primary">
                             <span className="text-lg">✨</span> Member Coach AI
                         </h4>
 
                         {selectedMember ? (
                             <div className="space-y-4">
-                                <div className="pb-4 border-b border-white/20">
-                                    <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mb-1">
+                                <div className="pb-4 border-b border-border">
+                                    <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest mb-1">
                                         Analysing
                                     </p>
-                                    <p className="text-lg font-black leading-tight">
+                                    <p className="text-lg font-black leading-tight text-text-primary">
                                         {selectedMember.first_name}{" "}
                                         {selectedMember.last_name}
                                     </p>
-                                    <p className="text-xs text-indigo-300 mt-0.5">
+                                    <p className="text-xs text-text-secondary mt-0.5">
                                         {selectedMember.email}
                                     </p>
 
@@ -494,12 +494,12 @@ export default function MemberManagement() {
                                         ].map(({ label, val }) => (
                                             <div
                                                 key={label}
-                                                className="bg-white/10 rounded-xl p-2"
+                                                className="bg-background rounded-xl p-2 border border-border"
                                             >
-                                                <p className="text-[9px] text-white/60 uppercase font-bold">
+                                                <p className="text-[9px] text-text-secondary uppercase font-bold">
                                                     {label}
                                                 </p>
-                                                <p className="text-sm font-black truncate text-white">
+                                                <p className="text-sm font-black truncate text-text-primary">
                                                     {val}
                                                 </p>
                                             </div>
@@ -507,11 +507,11 @@ export default function MemberManagement() {
                                     </div>
                                 </div>
 
-                                <div className="text-sm leading-relaxed text-indigo-50 bg-black/20 p-4 rounded-2xl min-h-30 max-h-64 overflow-y-auto">
+                                <div className="text-sm leading-relaxed text-text-secondary bg-background p-4 rounded-2xl min-h-30 max-h-64 overflow-y-auto border border-border">
                                     {isLoading && !insight ? (
                                         <div className="flex flex-col gap-2 items-center justify-center h-24">
-                                            <div className="w-7 h-7 border-[3px] border-white/20 border-t-white rounded-full animate-spin" />
-                                            <span className="text-[11px] text-indigo-200 animate-pulse">
+                                            <div className="w-7 h-7 border-[3px] border-border border-t-primary rounded-full animate-spin" />
+                                            <span className="text-[11px] text-text-secondary animate-pulse">
                                                 {currentState || "Connecting…"}
                                             </span>
                                         </div>
@@ -521,7 +521,7 @@ export default function MemberManagement() {
                                         </div>
                                     )}
                                     {isLoading && insight && (
-                                        <span className="inline-block w-1.5 h-4 bg-indigo-300 ml-1 animate-pulse align-middle" />
+                                        <span className="inline-block w-1.5 h-4 bg-primary ml-1 animate-pulse align-middle" />
                                     )}
                                 </div>
 
@@ -531,7 +531,7 @@ export default function MemberManagement() {
                                             fetchInsight(selectedMember)
                                         }
                                         disabled={isLoading}
-                                        className="w-full py-2.5 border border-white/20 text-white text-sm font-semibold rounded-xl hover:bg-white/10 transition-colors disabled:opacity-40"
+                                        className="w-full py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-border transition-colors disabled:opacity-40"
                                     >
                                         🔄 Regenerate Insight
                                     </button>
@@ -540,18 +540,18 @@ export default function MemberManagement() {
                                             handleSendEmail(selectedMember)
                                         }
                                         disabled={isLoading || !insight}
-                                        className="w-full py-2.5 bg-white text-indigo-700 text-sm font-bold rounded-xl hover:bg-indigo-50 transition-colors shadow-sm disabled:opacity-40"
+                                        className="w-full py-2.5 bg-primary text-background text-sm font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-sm disabled:opacity-40"
                                     >
                                         📧 Send Motivational Email
                                     </button>
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center gap-3 py-10 px-4 border-2 border-dashed border-indigo-400/50 rounded-2xl bg-white/5 text-center">
+                            <div className="flex flex-col items-center gap-3 py-10 px-4 border-2 border-dashed border-border rounded-2xl bg-background/50 text-center">
                                 <span className="text-3xl">🏋️</span>
-                                <p className="text-sm text-indigo-200 leading-relaxed">
+                                <p className="text-sm text-text-secondary leading-relaxed">
                                     Click{" "}
-                                    <strong className="text-white">
+                                    <strong className="text-text-primary">
                                         AI Insight
                                     </strong>{" "}
                                     on any member to generate personalised

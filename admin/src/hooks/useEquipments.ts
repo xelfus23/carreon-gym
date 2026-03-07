@@ -1,12 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { EquipmentService } from "../services/equipment.service";
 
-type EquipmentTypes = {
+export type EquipmentTypes = {
     id: number;
     equipment_name: string;
     category: string;
-    target_muscles: string
-}
+    target_muscles: string;
+    description?: string;
+    quantity?: number;
+};
+
+export type EquipmentPayload = {
+    equipment_name: string;
+    category: string;
+    target_muscles: string;
+    description?: string;
+    quantity?: number;
+};
 
 export const useEquipments = () => {
     const [equipments, setEquipments] = useState<EquipmentTypes[]>([]);
@@ -31,6 +41,32 @@ export const useEquipments = () => {
         }
     }, []);
 
+    const createEquipment = useCallback(
+        async (payload: EquipmentPayload) => {
+            const data = await EquipmentService.createEquipment(payload);
+            await initialize();
+            return data;
+        },
+        [initialize],
+    );
+
+    const updateEquipment = useCallback(
+        async (id: number, payload: Partial<EquipmentPayload>) => {
+            const data = await EquipmentService.updateEquipment(id, payload);
+            setEquipments((prev) =>
+                prev.map((eq) => (eq.id === id ? { ...eq, ...payload } : eq)),
+            );
+            return data;
+        },
+        [],
+    );
+
+    const deleteEquipment = useCallback(async (id: number) => {
+        const data = await EquipmentService.deleteEquipment(id);
+        setEquipments((prev) => prev.filter((eq) => eq.id !== id));
+        return data;
+    }, []);
+
     useEffect(() => {
         initialize();
     }, [initialize]);
@@ -40,5 +76,8 @@ export const useEquipments = () => {
         isLoading,
         error,
         refresh: initialize,
+        createEquipment,
+        updateEquipment,
+        deleteEquipment,
     };
 };
