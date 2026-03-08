@@ -17,9 +17,9 @@ import renderMessageItem from "../../../components/Chat/RenderMessage";
 import { ChatMessage } from "@/src/types/chats";
 import WelcomeScreen from "../../../components/chatWelcome";
 import { useFocusEffect } from "expo-router";
-import { CustomLoader } from "@/src/app/components/Plans/PlansLoading";
 import SubscriptionReminder from "@/src/app/components/SubscriptionReminder";
-import { useUserProfile } from "@/src/context/profileContext";
+import { useUserProfile } from "@/src/context/profileProvider";
+import CustomLoader from "@/src/app/components/Plans/PlansLoading";
 
 export default function Chats() {
     const { profile } = useUserProfile();

@@ -12,7 +12,7 @@ import { useNavigation } from "expo-router";
 import { COLORS } from "@/src/consts/colors";
 import { ChevronLeft } from "lucide-react-native";
 import Loader from "./components/Loader";
-import { useAuth } from "../context/authContext";
+import { useAuth } from "../context/authProvider";
 import { StackNavigationProp } from "../types/stackParam";
 import { UserInfoErrorProps, UserInfoProps } from "../types/auth";
 import { defaultBooleanValue, defaultStringValue } from "../consts/defaults";

@@ -2,10 +2,7 @@ import { Image, Text, View } from "react-native";
 import { ThinkingProps } from "@/src/types/chats";
 
 export default function ThinkingBlock({ status }: ThinkingProps) {
-    console.log(status);
-    const isDone = status === "Done" || "Error" ? true : false;
-
-    console.log(`ISDONE: ${isDone} STATUS: ${status}`);
+    const isDone = status === "Done";
 
     return (
         <View className="flex-row items-center gap-2">

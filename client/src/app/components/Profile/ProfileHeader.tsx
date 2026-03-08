@@ -1,4 +1,4 @@
-import { useUserProfile } from "@/src/context/profileContext";
+import { useUserProfile } from "@/src/context/profileProvider";
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import { useState } from "react";
 import { displayValue } from "@/src/utils/displayValue";

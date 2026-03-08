@@ -6,7 +6,7 @@ import { useNavigation } from "expo-router";
 import CustomTextInput from "./components/CustomTextInput";
 import CustomKeyboardAvoidingView from "./components/CustomKeyboardAvoidingView";
 import Loader from "./components/Loader";
-import { useAuth } from "../context/authContext";
+import { useAuth } from "../context/authProvider";
 import { StackNavigationProp } from "../types/stackParam";
 
 export default function Login() {

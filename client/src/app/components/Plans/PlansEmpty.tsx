@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 import { Dumbbell } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 
-export function PlansEmpty() {
+export default function PlansEmpty() {
     return (
         <View className="items-center justify-center flex-1 bg-background p-12">
             <View className="rotate-45">

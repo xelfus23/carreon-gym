@@ -9,7 +9,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import React, { SetStateAction, useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { CheckInService } from "@/src/services/checkInService";
-import { useUserProfile } from "@/src/context/profileContext";
+import { useUserProfile } from "@/src/context/profileProvider";
 
 export default function Camera() {
     const { sessionStatus, refreshProfile } = useUserProfile();

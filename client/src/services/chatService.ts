@@ -1,6 +1,6 @@
 // chatService.ts
 import { request } from "../utils/request";
-import { authService } from "./authService";
+import { tokenManager } from "../utils/tokenManager";
 
 const WS_URL = process.env.EXPO_PUBLIC_WS_URL;
 
@@ -14,9 +14,6 @@ const errorMsg: Record<string, string> = {
 };
 
 export const chatService = {
-    /** --------------------
-     * Use fetchWithAuth everywhere so 401s auto-refresh
-     * -------------------- */
     getHistory: async () => {
         return (await request(`/chats/sessions`)).data;
     },
@@ -52,7 +49,7 @@ export const chatService = {
         signal?: AbortSignal,
     ): Promise<void> => {
         return new Promise((resolve, reject) => {
-            const token = authService.getToken();
+            const token = tokenManager.getAccessToken();
 
             if (!token) {
                 reject(new Error("No auth token available"));

@@ -9,8 +9,8 @@ import {
 } from "react-native-safe-area-context";
 import { LogOut } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
-import { useAuth } from "@/src/context/authContext";
-import { useUserProfile } from "@/src/context/profileContext";
+import { useAuth } from "@/src/context/authProvider";
+import { useUserProfile } from "@/src/context/profileProvider";
 import { router } from "expo-router";
 
 export default function CustomDrawerContent(props: any) {

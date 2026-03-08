@@ -6,7 +6,7 @@ import {
     useCallback,
 } from "react";
 import { UserProfile } from "../types/users";
-import { useAuth } from "./authContext";
+import { useAuth } from "./authProvider";
 import { authService } from "../services/authService";
 import {
     SessionData,

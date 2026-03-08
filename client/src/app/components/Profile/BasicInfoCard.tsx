@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import InfoRow from "./InfoRow";
 import { displayValue } from "@/src/utils/displayValue";
-import { useUserProfile } from "@/src/context/profileContext";
+import { useUserProfile } from "@/src/context/profileProvider";
 
 export default function BasicInfoCard() {
     const { profile } = useUserProfile();

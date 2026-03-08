@@ -1,4 +1,4 @@
-import { AuthProvider } from "../context/authContext";
+import { AuthProvider } from "../context/authProvider";
 import "../../global.css";
 import { useFonts } from "expo-font";
 import { Slot } from "expo-router";
@@ -14,7 +14,7 @@ import {
     Montserrat_800ExtraBold,
 } from "@expo-google-fonts/montserrat";
 
-import { UserProfileProvider } from "../context/profileContext";
+import { UserProfileProvider } from "../context/profileProvider";
 
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({

@@ -5,7 +5,7 @@ type Props = {
     onChange: (value: string) => void;
 };
 
-export function DifficultySelector({ value, onChange }: Props) {
+export default function DifficultySelector({ value, onChange }: Props) {
     return (
         <View>
             <Text className="text-text-secondary text-xs mb-2">

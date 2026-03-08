@@ -1,7 +1,7 @@
 import { View, Text } from "react-native";
 import Loader from "../Loader";
 
-export function CustomLoader(params: { text: string }) {
+export default function CustomLoader(params: { text: string }) {
     return (
         <View className="flex-1 bg-background items-center justify-center">
             <Loader size={50} />

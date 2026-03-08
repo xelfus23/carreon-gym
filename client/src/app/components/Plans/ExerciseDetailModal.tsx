@@ -42,7 +42,12 @@ const exerciseName = (ex: ExerciseDetail) => ex.exercise_name ?? ex.name ?? "";
 const isDurationBased = (ex: ExerciseDetail) =>
     ex.duration_seconds != null && ex.reps == null;
 
-export function ExerciseDetailModal({ visible, dayId, exercise, onClose }: Props) {
+export default function ExerciseDetailModal({
+    visible,
+    dayId,
+    exercise,
+    onClose,
+}: Props) {
     const router = useRouter();
     const slideAnim = useRef(new Animated.Value(300)).current;
 
@@ -158,7 +163,8 @@ export function ExerciseDetailModal({ visible, dayId, exercise, onClose }: Props
                                 />
                                 <Text className="text-text-secondary text-sm">
                                     {equipmentLabel(
-                                        exercise.equipment_name ?? exercise.equipment,
+                                        exercise.equipment_name ??
+                                            exercise.equipment,
                                     )}
                                 </Text>
                             </View>
@@ -195,21 +201,24 @@ export function ExerciseDetailModal({ visible, dayId, exercise, onClose }: Props
                                         </Text>
                                     </View>
                                 )}
-                                {timedMode && exercise.duration_seconds != null && (
-                                    <View className="flex-1 bg-background rounded-2xl p-4 items-center">
-                                        <Ionicons
-                                            name="time-outline"
-                                            size={20}
-                                            color="#3B82F6"
-                                        />
-                                        <Text className="text-text-primary font-bold text-xl mt-1">
-                                            {formatDuration(exercise.duration_seconds)}
-                                        </Text>
-                                        <Text className="text-text-secondary text-xs">
-                                            Duration
-                                        </Text>
-                                    </View>
-                                )}
+                                {timedMode &&
+                                    exercise.duration_seconds != null && (
+                                        <View className="flex-1 bg-background rounded-2xl p-4 items-center">
+                                            <Ionicons
+                                                name="time-outline"
+                                                size={20}
+                                                color="#3B82F6"
+                                            />
+                                            <Text className="text-text-primary font-bold text-xl mt-1">
+                                                {formatDuration(
+                                                    exercise.duration_seconds,
+                                                )}
+                                            </Text>
+                                            <Text className="text-text-secondary text-xs">
+                                                Duration
+                                            </Text>
+                                        </View>
+                                    )}
                             </View>
 
                             {/* Muscle Groups */}
@@ -281,8 +290,8 @@ export function ExerciseDetailModal({ visible, dayId, exercise, onClose }: Props
                                         color="#3B82F6"
                                     />
                                     <Text className="text-blue-400 text-sm flex-1">
-                                        This is a timed exercise. The session will
-                                        auto-complete when the timer ends.
+                                        This is a timed exercise. The session
+                                        will auto-complete when the timer ends.
                                     </Text>
                                 </View>
                             )}

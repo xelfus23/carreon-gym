@@ -30,7 +30,6 @@ export const webMeController = catchAsync(
     },
 );
 
-// Mobile Gym App - Full profile including fitness data
 export const mobileMeController = catchAsync(
     async (req: Request, res: Response) => {
         const userId = (req as any).user?.id;

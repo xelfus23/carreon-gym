@@ -1,4 +1,4 @@
-import { useUserProfile } from "@/src/context/profileContext";
+import { useUserProfile } from "@/src/context/profileProvider";
 import { formatDate } from "@/src/utils/formatDate";
 import { Text, View } from "react-native";
 import StatCard from "./StatCard";

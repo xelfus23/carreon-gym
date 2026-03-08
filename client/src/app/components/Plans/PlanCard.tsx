@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { DayCard } from "./DayCard";
 import type { WorkoutPlanProps } from "@/src/types/workout";
 import type { WorkoutLog } from "@/src/services/workoutService";
+import DayCard from "./DayCard";
 
 type Props = {
     plan: WorkoutPlanProps;
@@ -12,11 +12,17 @@ type Props = {
     loadingDays: Record<number, boolean>;
     checkedExercises: Record<string, WorkoutLog>;
     logKey: (dayId: number, exerciseId: number) => string;
-    getDayProgress: (dayId: number, exercises: { id: number }[] | undefined) => {
+    getDayProgress: (
+        dayId: number,
+        exercises: { id: number }[] | undefined,
+    ) => {
         done: number;
         total: number;
     };
-    isDayComplete: (dayId: number, exercises: { id: number }[] | undefined) => boolean;
+    isDayComplete: (
+        dayId: number,
+        exercises: { id: number }[] | undefined,
+    ) => boolean;
     isExerciseChecked: (dayId: number, exerciseId: number) => boolean;
     onTogglePlan: (planId: number) => void;
     onToggleDay: (dayId: number) => void;
@@ -31,7 +37,7 @@ type Props = {
     onUncheckExercise: (dayId: number, exerciseId: number) => void;
 };
 
-export function PlanCard({
+export default function PlanCard({
     plan,
     planIndex,
     isExpanded,
@@ -132,16 +138,28 @@ export function PlanCard({
                             className="flex-1 p-4 items-center flex-row justify-center gap-2"
                             activeOpacity={0.7}
                         >
-                            <Ionicons name="create-outline" size={20} color="#3B82F6" />
-                            <Text className="text-blue-500 font-semibold">Edit</Text>
+                            <Ionicons
+                                name="create-outline"
+                                size={20}
+                                color="#3B82F6"
+                            />
+                            <Text className="text-blue-500 font-semibold">
+                                Edit
+                            </Text>
                         </TouchableOpacity>
                         <View className="w-px bg-border" />
                         <TouchableOpacity
                             className="flex-1 p-4 items-center flex-row justify-center gap-2"
                             activeOpacity={0.7}
                         >
-                            <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                            <Text className="text-red-500 font-semibold">Delete</Text>
+                            <Ionicons
+                                name="trash-outline"
+                                size={20}
+                                color="#EF4444"
+                            />
+                            <Text className="text-red-500 font-semibold">
+                                Delete
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 </>

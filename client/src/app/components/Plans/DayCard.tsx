@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { ExerciseRow } from "./ExerciseRow";
 import type { WorkoutLog } from "@/src/services/workoutService";
 import type { dayProps } from "@/src/types/workout";
+import ExerciseRow from "./ExerciseRow";
 
 /** Day from API can have order (server) or day_order (client types) */
 type DayWithOrder = dayProps & { order?: number };
@@ -32,10 +32,13 @@ type Props = {
         defaultDuration: number | null,
     ) => void;
     onUncheckExercise: (dayId: number, exerciseId: number) => void;
-    isDayComplete: (dayId: number, exercises: Exercise[] | undefined) => boolean;
+    isDayComplete: (
+        dayId: number,
+        exercises: Exercise[] | undefined,
+    ) => boolean;
 };
 
-export function DayCard({
+export default function DayCard({
     day,
     isExpanded,
     isLoading,
@@ -65,7 +68,11 @@ export function DayCard({
                         }`}
                     >
                         {complete ? (
-                            <Ionicons name="checkmark" size={18} color="#10B981" />
+                            <Ionicons
+                                name="checkmark"
+                                size={18}
+                                color="#10B981"
+                            />
                         ) : (
                             <Text className="text-primary font-bold text-sm">
                                 D{day.day_order ?? day.order}
@@ -112,7 +119,11 @@ export function DayCard({
                     {day.is_rest_day ? (
                         <View className="bg-blue-500/10 p-4 rounded-xl mt-2">
                             <View className="flex-row items-center gap-2 mb-2">
-                                <Ionicons name="bed-outline" size={20} color="#3B82F6" />
+                                <Ionicons
+                                    name="bed-outline"
+                                    size={20}
+                                    color="#3B82F6"
+                                />
                                 <Text className="text-blue-500 font-semibold">
                                     Rest Day Activities
                                 </Text>
@@ -125,8 +136,14 @@ export function DayCard({
                     ) : exercises.length > 0 ? (
                         <View className="gap-3 mt-2">
                             {exercises.map((exercise, exerciseIndex) => {
-                                const checked = isExerciseChecked(day.id, exercise.id);
-                                const log = checkedExercises[logKey(day.id, exercise.id)];
+                                const checked = isExerciseChecked(
+                                    day.id,
+                                    exercise.id,
+                                );
+                                const log =
+                                    checkedExercises[
+                                        logKey(day.id, exercise.id)
+                                    ];
                                 return (
                                     <ExerciseRow
                                         key={exercise.id}
@@ -137,15 +154,24 @@ export function DayCard({
                                         log={log}
                                         onToggle={() => {
                                             if (checked) {
-                                                onUncheckExercise(day.id, exercise.id);
+                                                onUncheckExercise(
+                                                    day.id,
+                                                    exercise.id,
+                                                );
                                             } else {
                                                 onOpenLogModal(
                                                     day.id,
                                                     exercise.id,
-                                                    (exercise as Exercise).exercise_name ?? (exercise as Exercise).name ?? "",
+                                                    (exercise as Exercise)
+                                                        .exercise_name ??
+                                                        (exercise as Exercise)
+                                                            .name ??
+                                                        "",
                                                     exercise.sets ?? null,
                                                     exercise.reps ?? null,
-                                                    (exercise as any).duration_seconds ?? null,
+                                                    (exercise as any)
+                                                        .duration_seconds ??
+                                                        null,
                                                 );
                                             }
                                         }}
@@ -153,10 +179,15 @@ export function DayCard({
                                             onOpenLogModal(
                                                 day.id,
                                                 exercise.id,
-                                                (exercise as Exercise).exercise_name ?? (exercise as Exercise).name ?? "",
+                                                (exercise as Exercise)
+                                                    .exercise_name ??
+                                                    (exercise as Exercise)
+                                                        .name ??
+                                                    "",
                                                 exercise.sets ?? null,
                                                 exercise.reps ?? null,
-                                                (exercise as any).duration_seconds ?? null,
+                                                (exercise as any)
+                                                    .duration_seconds ?? null,
                                             )
                                         }
                                     />

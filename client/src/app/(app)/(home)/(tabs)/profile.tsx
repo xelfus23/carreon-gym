@@ -3,7 +3,7 @@ import SubscriptionCard from "../../../components/Profile/SubscriptionCard";
 import BasicInfoCard from "../../../components/Profile/BasicInfoCard";
 import CurrentStatCard from "../../../components/Profile/CurrentStatCard";
 import ProfileHeader from "../../../components/Profile/ProfileHeader";
-import { useUserProfile } from "@/src/context/profileContext";
+import { useUserProfile } from "@/src/context/profileProvider";
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 

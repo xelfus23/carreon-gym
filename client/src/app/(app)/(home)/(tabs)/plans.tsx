@@ -2,19 +2,16 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React, { useState, useCallback, useEffect } from "react";
 import { useWorkout } from "@/src/hooks/useWorkout";
 import { useFocusEffect } from "@react-navigation/native";
-import {
-    PlansLoading,
-    PlansEmpty,
-    LogExerciseModal,
-} from "../../../components/Plans";
-import {
-    ExerciseDetailModal,
+
+import ExerciseDetailModal, {
     type ExerciseDetail,
 } from "../../../components/Plans/ExerciseDetailModal";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/consts/colors";
 import type { WorkoutLog } from "@/src/services/workoutService";
-import { CustomLoader } from "@/src/app/components/Plans/PlansLoading";
+import CustomLoader from "@/src/app/components/Plans/PlansLoading";
+import PlansEmpty from "@/src/app/components/Plans/PlansEmpty";
+import LogExerciseModal from "@/src/app/components/Plans/LogExerciseModal";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -70,8 +67,6 @@ function ExerciseCard({
     onUncheck,
 }: ExerciseCardProps) {
     const timed = isDurationBased(ex);
-
-    console.log(ex)
 
     const formatDuration = (secs: number) => {
         if (secs >= 60) {
@@ -281,13 +276,11 @@ export default function Plans() {
     const allExercises: FlatExercise[] = [];
 
     for (const plan of workoutPlans) {
-        // console.log(plan.is_active)
-        // console.log("PLAN: ", plan);
         // if (!plan.is_active) continue; // Only show active plan exercises
         for (const day of plan.days ?? []) {
             if (day.is_rest_day) continue;
 
-            console.log(day)
+            console.log(day);
             for (const ex of day.exercises ?? []) {
                 allExercises.push({
                     ...(ex as Exercise),

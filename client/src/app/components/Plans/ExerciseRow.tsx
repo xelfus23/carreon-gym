@@ -30,7 +30,7 @@ const equipmentLabel = (eq: string | string[] | undefined) =>
 
 const exerciseName = (ex: Exercise) => ex.exercise_name ?? ex.name ?? "";
 
-export function ExerciseRow({
+export default function ExerciseRow({
     dayId,
     exercise,
     exerciseIndex,

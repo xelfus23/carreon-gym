@@ -8,9 +8,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/consts/colors";
-import { DifficultySelector } from "./DifficultySelector";
 import type { LogModalState } from "@/src/hooks/useWorkout";
 import CustomKeyboardAvoidingView from "../CustomKeyboardAvoidingView";
+import DifficultySelector from "./DifficultySelector";
 
 type Props = {
     modal: LogModalState;
@@ -29,7 +29,7 @@ type Props = {
     onSave: () => void;
 };
 
-export function LogExerciseModal({
+export default function LogExerciseModal({
     modal,
     formSets,
     formReps,
