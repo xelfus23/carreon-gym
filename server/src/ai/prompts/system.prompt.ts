@@ -1,5 +1,9 @@
 import { getEquipmentDomain } from "../../domain/equipments/getEquipments.ts";
-import { metricsQuery, userQuery } from "../../repositories/user.repository.ts";
+import {
+    metricsQuery,
+    summaryQuery,
+    userQuery,
+} from "../../repositories/user.repository.ts";
 
 const formatInventory = (equipments: any[]) => {
     if (!equipments || equipments.length === 0) return "No equipment found.";
@@ -27,6 +31,7 @@ const formatUserProfile = (user: any, metrics: any) => {
 export const Instructions = async (userId: number) => {
     const userData = await userQuery(userId);
     const userMetrics = await metricsQuery(userId);
+    const summary = await summaryQuery(userId);
     const equipmentResult = await getEquipmentDomain();
 
     const inventoryList = formatInventory(equipmentResult);
@@ -87,5 +92,10 @@ ${inventoryList}
 
 ## MEMBER PROFILE
 ${userProfile}
+
+
+## CONVERSATION SUMMARY
+${summary}
+
 `;
 };

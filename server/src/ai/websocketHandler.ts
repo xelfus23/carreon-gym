@@ -5,6 +5,7 @@ import type { ChatMessage } from "../types/index.ts";
 import { getChatHistory } from "../utils/getChatHistory.ts";
 import { handleModelStreamWithTools } from "./utils/handleModelStreamWithTools.ts";
 import { saveMessageDomain } from "../domain/chat/saveMessage.ts";
+import { saveSummaryDomain } from "../domain/chat/saveSummary.ts";
 
 export const WebsocketHandler = async (server: Server) => {
     const wss = new WebSocketServer({ server });
@@ -39,6 +40,8 @@ export const WebsocketHandler = async (server: Server) => {
                     sessionId,
                     ws,
                 );
+
+                await saveSummaryDomain(sessionId);
             } catch (err) {
                 console.error("WS message error:", err);
                 ws.send(

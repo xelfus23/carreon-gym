@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import type { WorkoutPlanProps } from "@/src/types/workout";
 import type { WorkoutLog } from "@/src/services/workoutService";
 import DayCard from "./DayCard";
+import { COLORS } from "@/src/consts/colors";
 
 type Props = {
     plan: WorkoutPlanProps;
@@ -127,7 +128,7 @@ export default function PlanCard({
                             <Ionicons
                                 name="play-circle-outline"
                                 size={20}
-                                color="#10B981"
+                                color={COLORS.primary}
                             />
                             <Text className="text-green-500 font-semibold">
                                 {plan.is_active ? "Continue" : "Activate"}

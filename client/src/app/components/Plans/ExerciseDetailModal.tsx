@@ -327,9 +327,9 @@ export default function ExerciseDetailModal({
                             <Ionicons
                                 name="play-circle"
                                 size={22}
-                                color="#fff"
+                                color={COLORS.background}
                             />
-                            <Text className="text-white font-bold text-base">
+                            <Text className="text-background font-bold text-base">
                                 Start Workout
                             </Text>
                         </TouchableOpacity>

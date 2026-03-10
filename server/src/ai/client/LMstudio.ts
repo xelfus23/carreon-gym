@@ -10,14 +10,16 @@ const model = {
 
 export const LMstudio = async (
     messages: ChatMessage[],
-    options?: { disableTools: boolean },
+    options: { disableTools?: boolean; stream?: boolean },
 ) => {
+
+    console.log("OPTIONS", options)
     const response = await fetch(env.LMSTUDIO_BASE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             model: model.ministral8B,
-            stream: true,
+            stream: options.stream || false,
             messages: messages,
             tools: tools,
             reasoning: {

@@ -273,14 +273,14 @@ export default function WorkoutSession() {
                             className="items-center"
                             style={{ transform: [{ scale: celebrationAnim }] }}
                         >
-                            <View className="w-32 h-32 rounded-full bg-green-500/20 items-center justify-center mb-6">
+                            <View className="w-32 h-32 rounded-full bg-primary-dark/10 items-center justify-center mb-6">
                                 <Ionicons
                                     name="trophy"
                                     size={60}
-                                    color="#10B981"
+                                    color={COLORS.primary}
                                 />
                             </View>
-                            <Text className="text-green-500 font-bold text-2xl mb-2">
+                            <Text className="text-primary font-bold text-2xl mb-2">
                                 Exercise Complete!
                             </Text>
                             <Text className="text-text-secondary text-center">
@@ -307,7 +307,7 @@ export default function WorkoutSession() {
                                             key={i}
                                             className={`w-3 h-3 rounded-full ${
                                                 i < completedSets
-                                                    ? "bg-green-500"
+                                                    ? "bg-primary"
                                                     : i === completedSets
                                                       ? "bg-primary"
                                                       : "bg-surface"
@@ -332,13 +332,13 @@ export default function WorkoutSession() {
                                 <Ionicons
                                     name="checkmark-circle"
                                     size={24}
-                                    color="#fff"
+                                    color={COLORS.background}
                                     style={{ marginBottom: 4 }}
                                 />
-                                <Text className="text-white font-bold text-lg">
+                                <Text className="text-background font-bold text-lg">
                                     Set Done
                                 </Text>
-                                <Text className="text-white/70 text-xs mt-0.5">
+                                <Text className="text-background text-xs mt-0.5">
                                     Tap when finished
                                 </Text>
                             </TouchableOpacity>
@@ -356,14 +356,14 @@ export default function WorkoutSession() {
                             className="items-center"
                             style={{ transform: [{ scale: celebrationAnim }] }}
                         >
-                            <View className="w-32 h-32 rounded-full bg-green-500/20 items-center justify-center mb-6">
+                            <View className="w-32 h-32 rounded-full bg-primary-dark/10 items-center justify-center mb-6">
                                 <Ionicons
                                     name="trophy"
                                     size={60}
-                                    color="#10B981"
+                                    color={COLORS.primary}
                                 />
                             </View>
-                            <Text className="text-green-500 font-bold text-2xl mb-2">
+                            <Text className="text-primary font-bold text-2xl mb-2">
                                 Time&apos;s Up!
                             </Text>
                             <Text className="text-text-secondary text-center mb-8">
@@ -371,9 +371,9 @@ export default function WorkoutSession() {
                             </Text>
                             <TouchableOpacity
                                 onPress={() => handleFinish()}
-                                className="bg-green-500 rounded-2xl px-10 py-4"
+                                className="bg-primary rounded-2xl px-10 py-4"
                             >
-                                <Text className="text-white font-bold text-base">
+                                <Text className="text-background font-bold text-base">
                                     Continue
                                 </Text>
                             </TouchableOpacity>
@@ -410,9 +410,9 @@ export default function WorkoutSession() {
                                     <Ionicons
                                         name={isRunning ? "pause" : "play"}
                                         size={20}
-                                        color="#fff"
+                                        color={COLORS.background}
                                     />
-                                    <Text className="text-white font-bold text-base">
+                                    <Text className="text-background font-bold text-base">
                                         {isRunning ? "Pause" : "Start"}
                                     </Text>
                                 </TouchableOpacity>

@@ -29,6 +29,30 @@ export const userQuery = async (userId: number) => {
     );
 };
 
+export const chatQuery = async (sessionId: number) => {
+    return await pool.query(
+        `SELECT role, content, tool_calls, name, tool_call_id, created_at
+         FROM chat_messages 
+         WHERE session_id = $1 
+         ORDER BY created_at ASC`,
+        [sessionId],
+    );
+};
+
+export const summaryQuery = async (userId: number) => {
+    return await pool.query(
+        `
+            SELECT 
+                conversation_summary 
+            FROM 
+                chat_sessions 
+            WHERE 
+                user_id = $1
+        `,
+        [userId],
+    );
+};
+
 export const metricsQuery = async (userId: number) => {
     return await pool.query(
         `SELECT 
