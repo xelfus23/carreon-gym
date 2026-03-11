@@ -1,26 +1,27 @@
 export const formatChatHistory = async (
-    chats: any, // Array of chat rows
-    instructions: string, // Summarization instructions
-    existingSummary?: string,
+    chats: any,
+    instructions: string,
+    mode: "chat" | "summary" = "chat",
 ) => {
     const messages: any[] = [];
 
-    if (existingSummary) {
-        messages.push({
-            role: "system",
-            content: `Current conversation summary:\n${existingSummary}`,
-        });
-    }
-
-    // Add instructions as another system message
     messages.push({
         role: "system",
         content: instructions,
     });
 
-    console.log("CHATS: ", chats)
-
     chats.forEach((row: any) => {
+        // ── SUMMARY MODE: clean text only, no tool noise ──
+        if (mode === "summary") {
+            if (row.role === "user" || row.role === "assistant") {
+                const content =
+                    typeof row.content === "string" ? row.content : "";
+                if (!content.trim()) return; // skip empty messages
+                messages.push({ role: row.role, content });
+            }
+            return; // skip tool roles entirely
+        }
+
         if (row.role === "tool") {
             messages.push({
                 role: "tool",
@@ -28,17 +29,16 @@ export const formatChatHistory = async (
                 content: row.content,
                 tool_call_id: row.tool_call_id || `tool_${Date.now()}`,
             });
-        } else if (row.role === "assistant" && row.tool_calls) {
+        } else if (row.role === "assistant" && row.tool_calls?.length > 0) {
             messages.push({
                 role: "assistant",
-                content: row.content,
+                content: row.content ?? "",
                 tool_calls: row.tool_calls,
             });
         } else {
-            messages.push({
-                role: row.role,
-                content: row.content,
-            });
+            const content = typeof row.content === "string" ? row.content : "";
+            if (!content.trim()) return;
+            messages.push({ role: row.role, content });
         }
     });
 

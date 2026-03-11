@@ -7,8 +7,7 @@ import {
 
 const formatInventory = (equipments: any[]) => {
     if (!equipments || equipments.length === 0) return "No equipment found.";
-    // Added ID mapping so the AI knows which equipment_id to send to the tool
-    console.log(equipments);
+
     return equipments
         .map(
             (item) =>
