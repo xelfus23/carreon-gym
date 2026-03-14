@@ -63,7 +63,6 @@ export const webRefresh = async (req: Request, res: Response) => {
     }
 };
 
-// ✅ Add rotation to mobileRefresh
 export const mobileRefresh = async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
 
@@ -89,14 +88,12 @@ export const mobileRefresh = async (req: Request, res: Response) => {
                 .json({ success: false, message: "Invalid session" });
         }
 
-        // ✅ Generate new access token
         const accessToken = jwt.sign(
             { sub: payload.sub, role: payload.role },
             env.JWT_ACCESS_SECRET,
-            { expiresIn: "15m" },
+            { expiresIn: "1m" },
         );
 
-        // ✅ Rotate refresh token (sliding session window)
         const newRefreshToken = jwt.sign(
             { sub: payload.sub, role: payload.role },
             env.JWT_REFRESH_SECRET,
@@ -105,8 +102,6 @@ export const mobileRefresh = async (req: Request, res: Response) => {
 
         const newHashed = hashToken(newRefreshToken);
 
-        // ✅ Replace old refresh token hash in DB
-        //    and extend session validity while user stays active
         await pool.query(
             `UPDATE user_sessions 
              SET refresh_token_hash = $1,

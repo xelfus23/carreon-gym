@@ -15,8 +15,8 @@ export const createWorkoutPlanDomain = async (params: {
 
     const result = await pool.query(
         `INSERT INTO workout_plans 
-         (user_id, title, description, duration_weeks, days_per_week, difficulty_level) 
-         VALUES ($1, $2, $3, $4, $5, $6) 
+         (user_id, title, description, duration_weeks, days_per_week, difficulty_level, is_active) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7) 
          RETURNING id`,
         [
             userId,
@@ -25,6 +25,7 @@ export const createWorkoutPlanDomain = async (params: {
             duration_weeks,
             days_per_week,
             difficulty_level,
+            false,
         ],
     );
 

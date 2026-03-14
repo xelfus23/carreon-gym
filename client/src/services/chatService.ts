@@ -38,9 +38,6 @@ export const chatService = {
         ).data;
     },
 
-    /** --------------------
-     * WebSocket — token sent in first payload, not URL
-     * -------------------- */
     sendMessage: (
         sessionId: number,
         text: string,
@@ -64,7 +61,6 @@ export const chatService = {
                 ? WS_URL
                 : `ws://${WS_URL}`;
 
-            // Token in URL — backend authenticates on handshake
             activeSocket = new WebSocket(
                 `${baseUrl}?token=${token}&session_id=${sessionId}`,
             );

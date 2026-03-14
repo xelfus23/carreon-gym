@@ -43,7 +43,6 @@ export const workoutService = {
         return res.data ?? [];
     },
 
-    /** All logs for today (for restoring completion state on app load). */
     getTodayLogs: async (): Promise<WorkoutLog[]> => {
         const res = await request(`/workoutplan/logs/today`, {
             method: "GET",

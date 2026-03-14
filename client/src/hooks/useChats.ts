@@ -1,4 +1,3 @@
-// useChat.ts
 import {
     useState,
     useCallback,
@@ -11,7 +10,6 @@ import { chatService } from "@/src/services/chatService";
 import { ChatMessage } from "../types/chats";
 import { UserProfile } from "../types/users";
 
-// Stable ID for the streaming placeholder — avoids index-based ref
 let tempIdCounter = 0;
 const newTempId = () => `__streaming_${tempIdCounter++}__`;
 
@@ -43,14 +41,11 @@ export function useChat(params?: {
         }
     }, [error]);
 
-    // Abort controller so we can cancel in-flight stream on unmount
     const abortRef = useRef<AbortController | null>(null);
     const mountedRef = useRef(true);
 
-    // Track if we've done the initial session lookup
     const sessionResolvedRef = useRef(!!params?.initialSessionId);
 
-    // Cleanup on unmount
     useEffect(() => {
         mountedRef.current = true;
         return () => {
@@ -60,7 +55,6 @@ export function useChat(params?: {
         };
     }, []);
 
-    /** Step 1 — resolve which session to use */
     useEffect(() => {
         if (sessionResolvedRef.current) {
             if (params?.initialSessionId) setInitializing(false);
@@ -130,7 +124,6 @@ export function useChat(params?: {
         loadMessages();
     }, [loadMessages]);
 
-    /** Creates a new session — pass force=true to replace an existing one */
     const startNewSession = useCallback(
         async (force = false) => {
             if (sessionId && !force) {
@@ -173,9 +166,8 @@ export function useChat(params?: {
             setLoading(true);
             setError(null);
 
-            // Give each message a unique temp ID
             const userTempId = `__user_${Date.now()}__`;
-            const assistantTempId = newTempId(); // unique per send
+            const assistantTempId = newTempId();
 
             setMessages((prev) => [
                 ...prev,
@@ -258,6 +250,6 @@ export function useChat(params?: {
         error,
         sendMessage,
         startNewSession,
-        refreshMessages: loadMessages, // 👈 expose this
+        refreshMessages: loadMessages,
     };
 }

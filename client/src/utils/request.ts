@@ -32,17 +32,21 @@ async function refreshAccessToken() {
     if (!res.ok) throw new Error("Session expired. Please log in again.");
 
     const json = await res.json();
-    const { accessToken, refreshToken: newRefresh } = json.data;
+    const { accessToken, refreshToken: newRefresh, user } = json.data;
 
     tokenManager.set(accessToken, newRefresh);
-    await authStorage.save(json.data.user, accessToken, newRefresh);
+
+    if (user) {
+        await authStorage.save(user, accessToken, newRefresh);
+    } else {
+        await authStorage.saveTokens(accessToken, newRefresh);
+    }
 
     return accessToken;
 }
 
 async function parseAndThrowIfError(res: Response) {
     const json = await res.json();
-    // ✅ Throw so callers can catch actual API errors
     if (!res.ok) {
         throw new Error(json?.message ?? `Request failed: ${res.status}`);
     }
@@ -66,35 +70,33 @@ export async function request(path: string, options: RequestInit = {}) {
         return parseAndThrowIfError(res);
     }
 
-    // --- 401 handling ---
-    if (!isRefreshing) {
-        isRefreshing = true;
-        try {
-            const newToken = await refreshAccessToken();
-            notifySubscribers(newToken);
-            res = await makeRequest(newToken);
-            return parseAndThrowIfError(res);
-        } catch (err) {
-            // ✅ Reject all queued subscribers so they don't hang
-            rejectAllSubscribers(
-                err instanceof Error ? err : new Error("Token refresh failed"),
-            );
-            throw err;
-        } finally {
-            isRefreshing = false;
-        }
-    }
-
-    // Queue up while refresh is in progress
     return new Promise((resolve, reject) => {
         subscribers.push(async (token) => {
             try {
                 const retry = await makeRequest(token);
-                resolve(parseAndThrowIfError(retry));
+                resolve(await parseAndThrowIfError(retry));
             } catch (e) {
                 reject(e);
             }
         });
-        rejectSubscribers.push(reject); // ✅ Track rejectors too
+        rejectSubscribers.push(reject);
+
+        if (!isRefreshing) {
+            isRefreshing = true;
+            refreshAccessToken()
+                .then((newToken) => {
+                    notifySubscribers(newToken);
+                })
+                .catch((err) => {
+                    rejectAllSubscribers(
+                        err instanceof Error
+                            ? err
+                            : new Error("Token refresh failed"),
+                    );
+                })
+                .finally(() => {
+                    isRefreshing = false;
+                });
+        }
     });
 }

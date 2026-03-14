@@ -54,7 +54,6 @@ export function useWorkout() {
             setWorkoutPlans(plans);
             if (plans.length > 0) setExpandedPlan(plans[0].id);
 
-            // Restore completion state from today's logs (key = "dayId-exerciseId")
             const initial: Record<string, WorkoutLog> = {};
             for (const log of todayLogs) {
                 const dayId = (log as WorkoutLog & { workout_day_id: number })

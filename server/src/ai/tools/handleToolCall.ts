@@ -1,6 +1,5 @@
 import { WebSocket } from "ws";
 import type { ToolCall } from "../../types/index.ts";
-import { saveWorkoutPlan } from "./functions/saveWorkoutPlan.ts";
 import { deleteWorkoutDay } from "./functions/deleteWorkoutDay.ts";
 import { addWorkoutDay } from "./functions/addWorkoutDay.ts";
 import { getUserWorkoutPlan } from "./functions/getUserWorkoutPlan.ts";

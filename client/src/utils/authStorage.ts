@@ -8,22 +8,38 @@ const USER_KEY = "@auth_user";
 
 export const authStorage = {
     async save(user: AuthUser, accessToken: string, refreshToken: string) {
-        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
-        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
-        await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+        await Promise.all([
+            SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken),
+            SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken),
+            AsyncStorage.setItem(USER_KEY, JSON.stringify(user)),
+        ]);
+    },
+
+    async saveTokens(accessToken: string, refreshToken: string) {
+        await Promise.all([
+            SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken),
+            SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken),
+        ]);
     },
 
     async load() {
-        const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
-        const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
-        const userStr = await AsyncStorage.getItem(USER_KEY);
-        const user = userStr ? JSON.parse(userStr) : null;
-        return { user, accessToken, refreshToken };
+        const [accessToken, refreshToken, userStr] = await Promise.all([
+            SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
+            SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
+            AsyncStorage.getItem(USER_KEY),
+        ]);
+        return {
+            user: userStr ? (JSON.parse(userStr) as AuthUser) : null,
+            accessToken,
+            refreshToken,
+        };
     },
 
     async clear() {
-        await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-        await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-        await AsyncStorage.removeItem(USER_KEY);
+        await Promise.all([
+            SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
+            SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
+            AsyncStorage.removeItem(USER_KEY),
+        ]);
     },
 };

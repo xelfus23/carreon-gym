@@ -41,8 +41,6 @@ export const UserProfileProvider = ({
         } catch (err) {
             if (err instanceof Error) {
                 console.error("Refresh Error:", err.message);
-                // Don't swallow the session expired error —
-                // authService already called onSessionExpired() which triggers logout
             }
         } finally {
             setIsLoading(false);

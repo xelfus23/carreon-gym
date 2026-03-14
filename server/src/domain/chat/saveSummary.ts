@@ -17,22 +17,28 @@ export const saveSummaryDomain = async (sessionId: number) => {
     const recentMessages = chatsResult.rows.reverse();
 
     const instructions = await SummaryInstructions(sessionId);
-    
+
     const chatHistory = await formatChatHistory(
         recentMessages,
         instructions,
         "summary",
     );
 
-    //TODO: FIX SAVE SUMMARY 
-    console.log("Chat History: ", chatHistory);
+    const propMsg = {
+        role: "user",
+        content: "Summarize the previous 10 messages.",
+    };
+
+    const fullHistory = [...chatHistory, propMsg];
+
+    console.log("CHAT HISTORY:", fullHistory);
 
     const response = await fetch(env.LMSTUDIO_BASE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            model: model.gema,
-            messages: chatHistory,
+            model: model.ministral8B,
+            messages: fullHistory,
             stream: false,
         }),
     });

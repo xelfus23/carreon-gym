@@ -11,7 +11,11 @@ export const webAuthMiddleware = catchAsync(
         const accessToken = req.cookies.accessToken;
 
         if (!accessToken) {
-            throw new AppError("No access token provided", 400, "MISSING_ACCESS_TOKEN");
+            throw new AppError(
+                "No access token provided",
+                400,
+                "MISSING_ACCESS_TOKEN",
+            );
         }
 
         const decoded = jwt.verify(
@@ -22,7 +26,6 @@ export const webAuthMiddleware = catchAsync(
             role: "member" | "trainer" | "admin";
         };
 
-        // Attach user info to request
         req.user = {
             id: decoded.sub,
             role: decoded.role,
@@ -37,16 +40,20 @@ export const mobileAuthMiddleware = catchAsync(
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            throw new AppError("Please log in to access this resource.", 401, "AUTH_REQUIRED");
+            throw new AppError(
+                "Please log in to access this resource.",
+                401,
+                "AUTH_REQUIRED",
+            );
         }
 
         const accessToken = authHeader.split(" ")[1];
 
         if (!accessToken) {
             throw new AppError(
-
-
-                "No access token provided", 400, "MISSING_ACCESS_TOKEN"
+                "No access token provided",
+                400,
+                "MISSING_ACCESS_TOKEN",
             );
         }
 

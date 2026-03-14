@@ -22,17 +22,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const segments = useSegments();
     const router = useRouter();
 
+    useEffect(() => {
+
+    },[])
+
     const logout = useCallback(async () => {
         const token = tokenManager.getRefreshToken();
 
-        // Clear state first to prevent any re-renders using stale user
         setUser(null);
         setIsAuthenticated(false);
 
         try {
             if (token) await authService.logout(token);
         } catch (e) {
-            // Logout API failure is non-critical — local session is already cleared
             console.warn("Logout API call failed:", e);
         } finally {
             await authStorage.clear();
@@ -40,7 +42,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }, []);
 
-    // Runs ONCE on app launch to restore session from secure storage
     useEffect(() => {
         const restoreSession = async () => {
             try {
@@ -50,7 +51,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     user: storedUser,
                 } = await authStorage.load();
 
-                // ✅ Only check tokens — user state is always null on mount
                 if (!accessToken || !refreshToken) {
                     return;
                 }
@@ -58,7 +58,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 tokenManager.set(accessToken, refreshToken);
 
                 try {
-                    // Verify token is still valid with the server
                     const data = await authService.me();
                     setUser(data.user ?? storedUser);
                     setIsAuthenticated(true);
@@ -69,7 +68,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     ) {
                         await logout();
                     } else {
-                        // Network error — trust stored user and tokens
                         if (storedUser) {
                             setUser(storedUser);
                             setIsAuthenticated(true);
