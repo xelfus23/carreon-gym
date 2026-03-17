@@ -25,6 +25,9 @@ export default function RootLayout() {
         Montserrat_800ExtraBold,
     });
 
+    // This is the start
+
+    // if the font is not loaded do not render the screens yet.
     if (!fontsLoaded) return null;
 
     return (

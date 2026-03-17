@@ -3,6 +3,7 @@ import { tokenManager } from "./tokenManager";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
+// Core Variables
 let isRefreshing = false;
 let subscribers: ((token: string) => void)[] = [];
 let rejectSubscribers: ((err: Error) => void)[] = [];
@@ -46,14 +47,17 @@ async function refreshAccessToken() {
 }
 
 async function parseAndThrowIfError(res: Response) {
-    const json = await res.json();
+    const json = await res.json(); // the response json
+
     if (!res.ok) {
-        throw new Error(json?.message ?? `Request failed: ${res.status}`);
+        throw new Error(json?.message ?? `Request failed: ${res.status}`); // if the response status is not OK, throw an Error message coming from the backend.
     }
-    return json;
+
+    return json; // if response is ok then return the data
 }
 
 export async function request(path: string, options: RequestInit = {}) {
+    // A request function
     const makeRequest = (token: string | null) =>
         fetch(`${API_URL}/api${path}`, {
             ...options,
@@ -64,21 +68,23 @@ export async function request(path: string, options: RequestInit = {}) {
             },
         });
 
-    let res = await makeRequest(tokenManager.getAccessToken());
+    let res = await makeRequest(tokenManager.getAccessToken()); // call the makeRequest function and pass the AccessToken
 
     if (res.status !== 401) {
-        return parseAndThrowIfError(res);
+        return parseAndThrowIfError(res); // if the status is not an error validate.
     }
 
+    // if the status is 401 - Unauthorized get a new token.
     return new Promise((resolve, reject) => {
         subscribers.push(async (token) => {
             try {
-                const retry = await makeRequest(token);
+                const retry = await makeRequest(token); // retry refresh with the new token
                 resolve(await parseAndThrowIfError(retry));
             } catch (e) {
                 reject(e);
             }
         });
+
         rejectSubscribers.push(reject);
 
         if (!isRefreshing) {

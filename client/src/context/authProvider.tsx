@@ -14,25 +14,30 @@ import { tokenManager } from "../utils/tokenManager";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// Auth Context Provider
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+    // authentication states (user, isAuthenticated, isLoading)
     const [user, setUser] = useState<AuthUser | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
+    // segments (app pages)
     const segments = useSegments();
+
+    // router for switching page
     const router = useRouter();
 
-    useEffect(() => {
-
-    },[])
-
+    // logout function
     const logout = useCallback(async () => {
+        // get the saved refresh tokens.
         const token = tokenManager.getRefreshToken();
 
+        // reset
         setUser(null);
         setIsAuthenticated(false);
 
         try {
+            // if there is token continue logout service.
             if (token) await authService.logout(token);
         } catch (e) {
             console.warn("Logout API call failed:", e);
@@ -43,8 +48,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     useEffect(() => {
+        // useEffect - run initially
+
         const restoreSession = async () => {
+            // try to restore session if there's a refresh token available.
             try {
+                // load the tokens and the stored user.
                 const {
                     accessToken,
                     refreshToken,
@@ -52,15 +61,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 } = await authStorage.load();
 
                 if (!accessToken || !refreshToken) {
-                    return;
+                    return; // return if no tokens found. - cancel the whole function
                 }
 
-                tokenManager.set(accessToken, refreshToken);
+                tokenManager.set(accessToken, refreshToken); // there's token available - set token state
 
                 try {
-                    const data = await authService.me();
-                    setUser(data.user ?? storedUser);
-                    setIsAuthenticated(true);
+                    const data = await authService.me(); // AuthService.Me() - get the user initial data (email, contact, etc.)
+                    setUser(data.user ?? storedUser); // store the user data into User state.
+                    setIsAuthenticated(true); // set authenticated true
                 } catch (e) {
                     if (
                         e instanceof Error &&
@@ -82,7 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
 
         restoreSession();
-    }, [logout]); // ✅ Empty array — only runs once on mount
+    }, [logout]); // [logout] as function dependency — only runs once on mount and when the logout function is loaded
 
     useEffect(() => {
         if (isLoading) return;

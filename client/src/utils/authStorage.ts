@@ -8,6 +8,8 @@ const USER_KEY = "@auth_user";
 
 export const authStorage = {
     async save(user: AuthUser, accessToken: string, refreshToken: string) {
+
+        // save the user, accessToken, refreshToken into expo SecureStore
         await Promise.all([
             SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken),
             SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken),

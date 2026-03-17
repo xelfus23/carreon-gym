@@ -56,18 +56,21 @@ export const authService = {
     },
 
     async logout(refreshToken: string) {
+
+        // logout connection to backend.
         await request(`/auth/mobile/logout`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ refreshToken }),
         });
 
+        // clear existing tokens
         tokenManager.clear();
         await authStorage.clear();
     },
 
     async me() {
-        return (await request(`/users/mobile/me`)).data;
+        return (await request(`/users/mobile/me`)).data; // get the user data from the backend.
     },
 
     async updateUser(
