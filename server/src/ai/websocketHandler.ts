@@ -41,34 +41,39 @@ export const WebsocketHandler = async (server: Server) => {
 
                 let messages: ChatMessage[] = [...chatHistory];
 
-                await handleModelStreamWithTools(
-                    messages,
-                    userId,
-                    sessionId,
-                    ws,
-                );
-
-                await saveMessageDomain(ws, sessionId, userId, {
-                    role: "user",
-                    content: userMessage,
-                });
-
-                await saveMessageDomain(ws, sessionId, userId, {});
-
-                const countResult = await pool.query(
-                    `SELECT COUNT(*) FROM chat_messages WHERE session_id = $1`,
-                    [sessionId],
-                );
-
-                const messageCount = parseInt(countResult.rows[0].count);
-
-                if (messageCount % 10 === 0) {
-                    await saveSummaryDomain(sessionId);
-                } else {
-                    console.log(
-                        "Skip Summarization message count: ",
-                        messageCount,
+                const msgResult: ChatMessage | undefined =
+                    await handleModelStreamWithTools(
+                        messages,
+                        userId,
+                        sessionId,
+                        ws,
                     );
+
+                if (msgResult) {
+                    await saveMessageDomain(ws, sessionId, userId, {
+                        role: "user",
+                        content: userMessage,
+                    });
+
+                    await saveMessageDomain(ws, sessionId, userId, msgResult);
+
+                    const countResult = await pool.query(
+                        `SELECT COUNT(*) FROM chat_messages WHERE session_id = $1`,
+                        [sessionId],
+                    );
+
+                    const messageCount = parseInt(countResult.rows[0].count);
+
+                    if (messageCount % 10 === 0) {
+                        await saveSummaryDomain(sessionId);
+                    } else {
+                        console.log(
+                            "Skip Summarization message count: ",
+                            messageCount,
+                        );
+                    }
+                } else {
+                    console.log("AI did not return a response, skipping save");
                 }
             } catch (err) {
                 console.error("WS message error:", err);
