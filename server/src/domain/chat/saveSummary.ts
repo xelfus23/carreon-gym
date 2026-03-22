@@ -1,10 +1,12 @@
-import { SummaryInstructions } from "../../ai/prompts/summaryInstructions.ts";
+import { SummaryInstructions } from "../../ai/prompts/summarizer.Instructions.ts";
 import { env } from "../../config/env.ts";
 import { model } from "../../config/models.ts";
 import pool from "../../config/pool.ts";
 import { formatChatHistory } from "../../utils/formatHistory.ts";
 
 export const saveSummaryDomain = async (sessionId: number) => {
+    console.log("START SUMMARIZATION");
+
     const chatsQuery = `
         SELECT role, content
         FROM chat_messages
@@ -31,8 +33,6 @@ export const saveSummaryDomain = async (sessionId: number) => {
 
     const fullHistory = [...chatHistory, propMsg];
 
-    console.log("CHAT HISTORY:", fullHistory);
-
     const response = await fetch(env.LMSTUDIO_BASE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -51,8 +51,6 @@ export const saveSummaryDomain = async (sessionId: number) => {
     }
 
     const rawText = await response.text();
-
-    console.log("RAW RESPONSE:", rawText);
 
     let data: any;
     try {

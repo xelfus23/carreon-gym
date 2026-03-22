@@ -40,7 +40,7 @@ export const chatQuery = async (sessionId: number) => {
 };
 
 export const summaryQuery = async (userId: number) => {
-    return await pool.query(
+    const summaryResult = await pool.query(
         `
             SELECT 
                 conversation_summary 
@@ -51,6 +51,8 @@ export const summaryQuery = async (userId: number) => {
         `,
         [userId],
     );
+
+    return summaryResult.rows[0].conversation_summary;
 };
 
 export const metricsQuery = async (userId: number) => {

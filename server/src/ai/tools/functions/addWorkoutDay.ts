@@ -8,14 +8,5 @@ export const addWorkoutDay = async (
     args: any,
     userId: number,
 ) => {
-    ws.send(
-        JSON.stringify({
-            type: "state",
-            state: "Adding new day",
-        }),
-    );
-
-    const result = await addWorkoutDayDomain({ args, userId });
-
-    return result;
+    return await addWorkoutDayDomain({ args, userId });
 };

@@ -6,14 +6,5 @@ export const createWorkoutPlan = async (
     args: any,
     userId: number,
 ) => {
-    ws.send(
-        JSON.stringify({
-            type: "state",
-            state: "Creating Workout Plan",
-        }),
-    );
-
-    const result = await createWorkoutPlanDomain({ args, userId });
-
-    return result;
+    return await createWorkoutPlanDomain({ args, userId });
 };

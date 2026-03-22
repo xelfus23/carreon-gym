@@ -4,9 +4,9 @@ import { tokenManager } from "./tokenManager";
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // Core Variables
-let isRefreshing = false;
-let subscribers: ((token: string) => void)[] = [];
-let rejectSubscribers: ((err: Error) => void)[] = [];
+let isRefreshing = false; // refreshing state
+let subscribers: ((token: string) => void)[] = []; // token array
+let rejectSubscribers: ((err: Error) => void)[] = []; //
 
 function notifySubscribers(token: string) {
     subscribers.forEach((cb) => cb(token));
@@ -21,24 +21,28 @@ function rejectAllSubscribers(err: Error) {
 }
 
 async function refreshAccessToken() {
+    // main function that gets new access token
     const refreshToken = tokenManager.getRefreshToken();
-    if (!refreshToken) throw new Error("Session expired. Please log in again.");
+
+    if (!refreshToken) throw new Error("Session expired. Please log in again."); // If refresh token is not available.
 
     const res = await fetch(`${API_URL}/api/auth/mobile/refresh`, {
+        // fetch refresh and return a refresh token
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken }),
     });
 
-    if (!res.ok) throw new Error("Session expired. Please log in again.");
+    if (!res.ok) throw new Error("Session expired. Please log in again."); // if response not OK then throw error
 
     const json = await res.json();
+
     const { accessToken, refreshToken: newRefresh, user } = json.data;
 
     tokenManager.set(accessToken, newRefresh);
 
     if (user) {
-        await authStorage.save(user, accessToken, newRefresh);
+        await authStorage.save(user, accessToken, newRefresh); //
     } else {
         await authStorage.saveTokens(accessToken, newRefresh);
     }
@@ -74,7 +78,7 @@ export async function request(path: string, options: RequestInit = {}) {
         return parseAndThrowIfError(res); // if the status is not an error validate.
     }
 
-    // if the status is 401 - Unauthorized get a new token.
+    // if the status is 401 - Unauthorized, get a new token.
     return new Promise((resolve, reject) => {
         subscribers.push(async (token) => {
             try {

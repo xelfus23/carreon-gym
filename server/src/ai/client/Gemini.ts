@@ -7,7 +7,7 @@ import type { ChatMessage } from "../../types/index.ts";
 const model = "gemini-2.0-flash";
 
 /**
- * Converts your internal ChatMessage[] format to Gemini's `contents` format.
+ * Converts internal ChatMessage[] format to Gemini's `contents` format.
  * Handles: user, assistant (model), tool (function response), system
  */
 function toGeminiContents(messages: ChatMessage[]) {
@@ -19,7 +19,14 @@ function toGeminiContents(messages: ChatMessage[]) {
         if (msg.role === "user") {
             contents.push({
                 role: "user",
-                parts: [{ text: typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content) }],
+                parts: [
+                    {
+                        text:
+                            typeof msg.content === "string"
+                                ? msg.content
+                                : JSON.stringify(msg.content),
+                    },
+                ],
             });
         } else if (msg.role === "assistant") {
             const parts: any[] = [];
@@ -52,7 +59,9 @@ function toGeminiContents(messages: ChatMessage[]) {
                             response: {
                                 content: (() => {
                                     try {
-                                        return JSON.parse(msg.content as string);
+                                        return JSON.parse(
+                                            msg.content as string,
+                                        );
                                     } catch {
                                         return { result: msg.content };
                                     }
@@ -69,7 +78,7 @@ function toGeminiContents(messages: ChatMessage[]) {
 }
 
 /**
- * Converts your internal tool registry to Gemini's FunctionDeclaration format.
+ * Converts internal tool registry to Gemini's FunctionDeclaration format.
  * Assumes toolRegistry uses OpenAI-style tool definitions.
  */
 function toGeminiTools(tools: any[]) {
@@ -105,7 +114,9 @@ export const Gemini = async (
 
     const contents = toGeminiContents(messages);
     const systemInstruction = extractSystemInstruction(messages);
-    const geminiTools = options?.disableTools ? undefined : toGeminiTools(toolRegistry);
+    const geminiTools = options?.disableTools
+        ? undefined
+        : toGeminiTools(toolRegistry);
 
     const responseStream = await ai.models.generateContentStream({
         model,
@@ -151,8 +162,14 @@ export const Gemini = async (
                                                     index: 0,
                                                     id: `call_${part.functionCall.name}_${Date.now()}`,
                                                     function: {
-                                                        name: part.functionCall.name,
-                                                        arguments: JSON.stringify(part.functionCall.args ?? {}),
+                                                        name: part.functionCall
+                                                            .name,
+                                                        arguments:
+                                                            JSON.stringify(
+                                                                part
+                                                                    .functionCall
+                                                                    .args ?? {},
+                                                            ),
                                                     },
                                                 },
                                             ],
@@ -165,7 +182,9 @@ export const Gemini = async (
 
                         if (sseData) {
                             controller.enqueue(
-                                encoder.encode(`data: ${JSON.stringify(sseData)}\n\n`),
+                                encoder.encode(
+                                    `data: ${JSON.stringify(sseData)}\n\n`,
+                                ),
                             );
                         }
                     }

@@ -11,10 +11,7 @@ export const modelProvider = async (
     if (env.PROVIDER === "gemini") {
         return Gemini(messages, options);
     }
-    return LMstudio(messages, {
-        disableTools: options?.disableTools || true,
-        stream: true,
-    });
+    return LMstudio(messages);
 };
 
 export async function streamModel(

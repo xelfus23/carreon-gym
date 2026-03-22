@@ -2,35 +2,28 @@ import { WebSocket } from "ws";
 import type { ChatMessage } from "../../types/index.ts";
 import { handleToolCall } from "../tools/handleToolCall.ts";
 import { streamModel } from "./streamModel.ts";
-import { saveMessageDomain } from "../../domain/chat/saveMessage.ts";
 
 export async function handleModelStreamWithTools(
     messages: ChatMessage[],
     userId: number,
     sessionId: number,
     ws: WebSocket,
-) {
+): Promise<ChatMessage | undefined> {
     const MAX_TOOL_ITERATIONS = 10;
     let toolCallCount = 0;
     let iteration = 0;
 
     const log = (msg: string, data?: unknown) => {
         const prefix = `[Stream][session=${sessionId}][user=${userId}][iter=${iteration}]`;
-        if (data !== undefined) {
-            console.log(`${prefix} ${msg}`, data);
-        } else {
-            console.log(`${prefix} ${msg}`);
-        }
+        data !== undefined
+            ? console.log(`${prefix} ${msg}`, data)
+            : console.log(`${prefix} ${msg}`);
     };
 
     const safeSend = (payload: object) => {
         try {
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify(payload));
-            } else {
-                console.warn(
-                    `[Stream][session=${sessionId}] ⚠️ Tried to send but WS is not open (readyState=${ws.readyState})`,
-                );
             }
         } catch (err) {
             console.error(
@@ -48,7 +41,6 @@ export async function handleModelStreamWithTools(
             log(`🔄 Loop iteration start`);
 
             let toolCalls: Awaited<ReturnType<typeof streamModel>>["toolCalls"];
-
             let assistantContent: Awaited<
                 ReturnType<typeof streamModel>
             >["assistantContent"];
@@ -66,41 +58,25 @@ export async function handleModelStreamWithTools(
                     err,
                 );
                 safeSend({ type: "error", message: "Model stream failed" });
-                return;
+                return undefined;
             }
 
-            // ── Final response (no tool calls) ───────────────────────────
+            // ── Final response (no tool calls) ──────────────────────────
             if (toolCalls.length === 0) {
                 log("🏁 No tool calls — final response");
+                safeSend({ type: "done" });
 
-                if (assistantContent) {
-                    const finalMessage: ChatMessage = {
-                        role: "assistant",
-                        content: assistantContent,
-                    };
-                    try {
-                        await saveMessageDomain(
-                            ws,
-                            sessionId,
-                            userId,
-                            finalMessage,
-                        );
-                        log("💾 Final message saved");
-                    } catch (err) {
-                        console.error(
-                            `[Stream][session=${sessionId}] ❌ saveMessageDomain (final) threw:`,
-                            err,
-                        );
-                        // Don't return — still send done so client isn't hanging
-                    }
-                } else {
+                if (!assistantContent) {
                     log(
                         "⚠️ No assistant content and no tool calls — empty response",
                     );
+                    return undefined;
                 }
 
-                safeSend({ type: "done" });
-                return;
+                return {
+                    role: "assistant",
+                    content: assistantContent,
+                } as ChatMessage;
             }
 
             // ── Tool call cap check ──────────────────────────────────────
@@ -110,9 +86,7 @@ export async function handleModelStreamWithTools(
             );
 
             if (toolCallCount > MAX_TOOL_ITERATIONS) {
-                log(
-                    `⚠️ Tool call limit hit (${toolCallCount}/${MAX_TOOL_ITERATIONS}) — forcing final response`,
-                );
+                log(`⚠️ Tool call limit hit — forcing final response`);
 
                 messages.push({
                     role: "system",
@@ -127,13 +101,13 @@ export async function handleModelStreamWithTools(
                         ws,
                         { disableTools: true },
                     );
+                    safeSend({ type: "done" });
 
                     if (summary) {
-                        await saveMessageDomain(ws, sessionId, userId, {
+                        return {
                             role: "assistant",
                             content: summary,
-                        });
-                        log("💾 Summary message saved after cap");
+                        } as ChatMessage;
                     }
                 } catch (err) {
                     console.error(
@@ -142,11 +116,11 @@ export async function handleModelStreamWithTools(
                     );
                 }
 
-                safeSend({ type: "done" });
-                return;
+                return undefined;
             }
 
-            // ── Save assistant message with tool calls ───────────────────
+            // ── Push assistant message with tool calls into context ──────
+            // NOTE: NOT returned — just added to messages for next iteration
             const assistantMessageWithTools: ChatMessage = {
                 role: "assistant",
                 content: assistantContent || null,
@@ -158,21 +132,7 @@ export async function handleModelStreamWithTools(
             } as any;
 
             messages.push(assistantMessageWithTools);
-
-            try {
-                await saveMessageDomain(
-                    ws,
-                    sessionId,
-                    userId,
-                    assistantMessageWithTools,
-                );
-                log("💾 Assistant tool-call message saved");
-            } catch (err) {
-                console.error(
-                    `[Stream][session=${sessionId}] ❌ saveMessageDomain (assistant+tools) threw:`,
-                    err,
-                );
-            }
+            log("💬 Assistant tool-call message pushed to context");
 
             // ── Execute tools in parallel ────────────────────────────────
             log(
@@ -187,7 +147,7 @@ export async function handleModelStreamWithTools(
 
             log(`⚙️ Tool execution complete`);
 
-            // ── Save tool results ────────────────────────────────────────
+            // ── Push tool results into context ───────────────────────────
             for (const [i, toolCall] of toolCalls.entries()) {
                 const result = toolResults[i];
                 if (!result) continue;
@@ -205,12 +165,12 @@ export async function handleModelStreamWithTools(
                     result.status === "fulfilled"
                         ? JSON.stringify(result.value)
                         : JSON.stringify({
-                            error: true,
-                            message:
-                                result.reason instanceof Error
-                                    ? result.reason.message
-                                    : "Tool execution failed",
-                        });
+                              error: true,
+                              message:
+                                  result.reason instanceof Error
+                                      ? result.reason.message
+                                      : "Tool execution failed",
+                          });
 
                 const toolMessage: ChatMessage = {
                     role: "tool",
@@ -219,33 +179,20 @@ export async function handleModelStreamWithTools(
                     content: toolContent,
                 };
 
+                // NOTE: NOT returned — just pushed for next iteration
                 messages.push(toolMessage);
-
-                try {
-                    await saveMessageDomain(
-                        ws,
-                        sessionId,
-                        userId,
-                        toolMessage,
-                    );
-                    log(`💾 Tool result saved for "${toolCall.name}"`);
-                } catch (err) {
-                    console.error(
-                        `[Stream][session=${sessionId}] ❌ saveMessageDomain (tool result "${toolCall.name}") threw:`,
-                        err,
-                    );
-                }
+                log(`💬 Tool result pushed for "${toolCall.name}"`);
             }
 
             log("➡️ Looping back with updated messages");
+            // Loop continues to next iteration
         }
     } catch (error) {
-        // This should now only catch truly unexpected errors
-        // since each await has its own try/catch above
         console.error(
             `[Stream][session=${sessionId}] ❌ Unhandled error in stream loop:`,
             error,
         );
         safeSend({ type: "error", message: "Internal server error" });
+        return undefined;
     }
 }

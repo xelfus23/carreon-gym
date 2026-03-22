@@ -8,6 +8,8 @@ export const saveMessageDomain = async (
     userId: number,
     message: ChatMessage,
 ) => {
+    console.log("Saving...");
+
     if (message.role === "user") {
         await pool.query(
             `INSERT INTO chat_messages (session_id, user_id, role, content) 
@@ -32,9 +34,7 @@ export const saveMessageDomain = async (
         );
 
         if (message.tool_calls) {
-            console.log(
-                `   ↳ With ${message.tool_calls.length} tool call(s)`,
-            );
+            console.log(`   ↳ With ${message.tool_calls.length} tool call(s)`);
         }
     } else if (message.role === "tool") {
         await pool.query(

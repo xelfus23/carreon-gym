@@ -50,6 +50,11 @@ export const tools = [
                     title: { type: "string", description: "e.g., 'Push Day'" },
                     is_rest_day: { type: "boolean" },
                     rest_day_notes: { type: "string" },
+                    day_date: {
+                        type: "string",
+                        description:
+                            "ISO 8601 format: YYYY-MM-DD (e.g., '2026-03-22')",
+                    },
                 },
                 required: ["plan_id", "day_order", "title"],
             },

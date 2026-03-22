@@ -32,12 +32,21 @@ export const Instructions = async (userId: number) => {
     const userMetrics = await metricsQuery(userId);
     const summary = await summaryQuery(userId);
     const equipmentResult = await getEquipmentDomain();
-
     const inventoryList = formatInventory(equipmentResult);
     const userProfile = formatUserProfile(
         userData.rows[0],
         userMetrics.rows[0],
     );
+
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+
+    console.log("CURRENT SUMMARY:", summary);
 
     return `
 You are **Coach AI**, a virtual Personal Trainer for **Careon Gym**.
@@ -84,6 +93,11 @@ Call once per exercise using the confirmed \`day_id\`. Never batch or skip phase
 
 ---
 
+## TODAY'S DATE
+${formattedDate}
+
+---
+
 ## CAREON GYM INVENTORY
 ${inventoryList}
 
@@ -92,6 +106,7 @@ ${inventoryList}
 ## MEMBER PROFILE
 ${userProfile}
 
+---
 
 ## CONVERSATION SUMMARY
 ${summary}

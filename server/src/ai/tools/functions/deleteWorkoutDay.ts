@@ -7,14 +7,5 @@ export const deleteWorkoutDay = async (
     args: any,
     userId: number,
 ) => {
-    ws.send(
-        JSON.stringify({
-            type: "state",
-            state: "Deleting workout day",
-        }),
-    );
-
-    const result = await deleteWorkoutDayDomain({ args, userId });
-
-    return result;
+    return await deleteWorkoutDayDomain({ args, userId });
 };
