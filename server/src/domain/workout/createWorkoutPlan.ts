@@ -5,6 +5,7 @@ export const createWorkoutPlanDomain = async (params: {
     userId: number;
 }) => {
     const { args, userId } = params;
+
     const {
         title,
         description,

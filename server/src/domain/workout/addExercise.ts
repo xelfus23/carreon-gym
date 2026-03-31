@@ -26,7 +26,6 @@ export const addExerciseDomain = async (params: {
         is_superset,
         superset_group,
     } = args;
-
     // 2. Logic Check: Force "Reps OR Duration"
     // If reps is provided, duration must be null. If duration is provided, reps must be null.
     // We also treat 0 or undefined as null to satisfy the DB constraint.

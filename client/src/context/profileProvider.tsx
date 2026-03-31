@@ -11,10 +11,13 @@ import { authService } from "../services/authService";
 import {
     SessionData,
     UpdateProfileProps,
+    UpdateStatsProps,
     UpdateUserProps,
     UserProfileContextType,
 } from "../types/context";
 import { CheckInService } from "../services/checkInService";
+import { checkUserProfile } from "../utils/checkProfileComplete";
+import { router } from "expo-router";
 
 const UserProfileContext = createContext<UserProfileContextType | null>(null);
 
@@ -30,6 +33,16 @@ export const UserProfileProvider = ({
 
     const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (isLoading || profile === null) return;
+
+        const isComplete = checkUserProfile(profile);
+
+        if (!isComplete) {
+            router.replace("/(app)/(home)/profile-completion");
+        }
+    }, [profile, isLoading]);
 
     const refreshProfile = useCallback(async () => {
         setIsLoading(true);
@@ -57,6 +70,29 @@ export const UserProfileProvider = ({
                 return {
                     ...prev,
                     ...data.user,
+                };
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const updateStats = async (updates: UpdateStatsProps) => {
+        setIsLoading(true);
+        try {
+            const { currentStats } = await authService.updateStats(
+                user?.id!,
+                updates,
+            );
+
+            setProfile((prev) => {
+                if (!prev) return null;
+                return {
+                    ...prev,
+                    profile: {
+                        ...prev.currentStats,
+                        ...currentStats,
+                    },
                 };
             });
         } finally {
@@ -101,6 +137,7 @@ export const UserProfileProvider = ({
                 refreshProfile,
                 updateProfile,
                 updateUser,
+                updateStats,
                 sessionStatus,
             }}
         >

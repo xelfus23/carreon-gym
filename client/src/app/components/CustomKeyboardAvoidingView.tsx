@@ -8,7 +8,7 @@ export default function CustomKeyboardAvoidingView({
 }) {
     return (
         <KeyboardAvoidingView
-            className="flex-1 bg-background"
+            className="flex-1 bg-transparent"
             behavior={"padding"}
             keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
         >

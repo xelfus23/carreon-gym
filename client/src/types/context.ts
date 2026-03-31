@@ -1,4 +1,4 @@
-import { AuthUser, UserProfile } from "./users";
+import { AuthUser, CurrentStats, Profile, UserProfile } from "./users";
 
 export interface AuthContextType {
     isAuthenticated: boolean;
@@ -22,15 +22,11 @@ export interface UserProfileContextType {
     refreshProfile: () => Promise<void>;
     updateProfile: (updates: UpdateProfileProps) => Promise<void>;
     updateUser: (updates: UpdateUserProps) => Promise<void>;
+    updateStats: (updates: UpdateStatsProps) => Promise<void>;
 }
 
-export type UpdateProfileProps = Partial<{
-    heightCm: number;
-    gender: string;
-    birthDate: string;
-    goal: string;
-    activityLevel: string;
-}>;
+export type UpdateProfileProps = Partial<Profile>;
+export type UpdateStatsProps = Partial<CurrentStats>;
 
 export type UpdateUserProps = Partial<{
     firstName: string;

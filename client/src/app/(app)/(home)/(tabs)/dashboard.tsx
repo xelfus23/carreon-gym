@@ -1,28 +1,12 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
 import { useUserProfile } from "@/src/context/profileProvider";
 import { PlayIcon } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import { useRouter } from "expo-router";
-// import { checkUserProfile } from "@/src/utils/checkProfileComplete";
-import UserInputModal from "@/src/app/components/UserInput/UserInputModal";
-import { checkUserProfile } from "@/src/utils/checkProfileComplete";
 
 export default function Dashboard() {
     const { profile } = useUserProfile();
     const router = useRouter();
-
-    const [isProfileComplete, setIsProfileComplete] = useState(false);
-
-    // const check = useCallback(async () => {
-    //     if (!profile) return;
-    //     const complete = checkUserProfile(profile);
-    //     setIsProfileComplete(complete);
-    // }, [profile]);
-
-    // useEffect(() => {
-    //     check();
-    // }, [check]);
 
     if (!profile) return null;
 
@@ -64,8 +48,6 @@ export default function Dashboard() {
     return (
         <ScrollView className="flex-1 bg-background">
             {/* Header/Greeting Section */}
-
-            {/* {!isProfileComplete && <UserInputModal />} */}
 
             <View className="p-4 pt-6">
                 <Text className="text-text-secondary text-base">
@@ -219,12 +201,12 @@ export default function Dashboard() {
                                 value={`${profile.currentStats.muscleMassKg} kg`}
                             />
                         </View>
-                        <Text className="text-text-secondary text-xs text-center">
+                        {/* <Text className="text-text-secondary text-xs text-center">
                             Last updated:{" "}
                             {new Date(
-                                profile.currentStats.lastRecorded,
+                                profile?.currentStats.lastRecorded,
                             ).toLocaleDateString()}
-                        </Text>
+                        </Text> */}
                     </View>
                 </View>
             )}

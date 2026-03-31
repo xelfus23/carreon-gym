@@ -14,6 +14,15 @@ export default function HomeLayout() {
                     gestureEnabled: true,
                 }}
             />
+            <Stack.Screen
+                name="profile-completion"
+                options={{
+                    headerShown: false,
+                    presentation: "fullScreenModal",
+                    animation: "slide_from_left",
+                    gestureEnabled: false,
+                }}
+            />
         </Stack>
     );
 }

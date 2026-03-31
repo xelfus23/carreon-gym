@@ -1,3 +1,4 @@
+import { CurrentStats, Profile } from "../types/users";
 import { authStorage } from "../utils/authStorage";
 import { request } from "../utils/request";
 import { tokenManager } from "../utils/tokenManager";
@@ -56,7 +57,6 @@ export const authService = {
     },
 
     async logout(refreshToken: string) {
-
         // logout connection to backend.
         await request(`/auth/mobile/logout`, {
             method: "POST",
@@ -92,18 +92,24 @@ export const authService = {
 
     async updateProfile(
         userId: string | number,
-        profileUpdates: Partial<{
-            heightCm: number;
-            gender: string;
-            birthDate: string;
-            goal: string;
-            activityLevel: string;
-        }>,
+        profileUpdates: Partial<Profile>,
     ) {
         return (
             await request(`/user-profiles/${userId}`, {
                 method: "PATCH",
                 body: JSON.stringify(profileUpdates),
+            })
+        ).data;
+    },
+
+    async updateStats(
+        userId: string | number,
+        statsUpdate: Partial<CurrentStats>,
+    ) {
+        return (
+            await request(`/user-stats/${userId}`, {
+                method: "PATCH",
+                body: JSON.stringify(statsUpdate),
             })
         ).data;
     },

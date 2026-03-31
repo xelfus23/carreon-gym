@@ -13,6 +13,7 @@ import attendanceRoute from "./features/attendance/attendance.route.ts";
 import subscriptionRoutes from "./features/subscription/subscription.route.ts";
 import subscriptionAdminRoutes from "./features/subscription/subscription.admin.route.ts";
 import { globalErrorHandler } from "./services/globalErrorHandler.ts";
+import { env } from "./config/env.ts";
 
 dotenv.config({ path: ".env" });
 
@@ -23,7 +24,7 @@ app.use(cookieParser());
 
 app.use(
     cors({
-        origin: ["http://192.168.1.150:5173"],
+        origin: [env.CORS_ORIGIN],
         methods: ["GET", "POST"],
         allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true,
@@ -43,6 +44,7 @@ app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/web/subscriptions", subscriptionAdminRoutes);
 app.use(globalErrorHandler);
 /* ---------- HEALTH CHECK ---------- */
+
 app.get("/health", (_, res) => {
     res.status(200).json({ status: "ok" });
 });

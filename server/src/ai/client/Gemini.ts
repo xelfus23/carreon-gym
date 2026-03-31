@@ -4,7 +4,7 @@ import { env } from "../../config/env.ts";
 import { tools as toolRegistry } from "../tools/toolRegistry.ts";
 import type { ChatMessage } from "../../types/index.ts";
 
-const model = "gemini-2.0-flash";
+const model = "gemini-2.5-flash";
 
 /**
  * Converts internal ChatMessage[] format to Gemini's `contents` format.
@@ -110,7 +110,7 @@ export const Gemini = async (
     messages: ChatMessage[],
     options?: { disableTools: boolean },
 ): Promise<ReadableStream<Uint8Array> | null> => {
-    const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey: env.GOOGLE_API_KEY });
 
     const contents = toGeminiContents(messages);
     const systemInstruction = extractSystemInstruction(messages);

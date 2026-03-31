@@ -15,7 +15,7 @@ import ScreenWrapper from "../../../components/ScreenWrapper";
 import { useChat } from "@/src/hooks/useChats";
 import renderMessageItem from "../../../components/Chat/RenderMessage";
 import { ChatMessage } from "@/src/types/chats";
-import WelcomeScreen from "../../../components/chatWelcome";
+import WelcomeScreen from "../../../components/ChatWelcome";
 import { useFocusEffect } from "expo-router";
 import SubscriptionReminder from "@/src/app/components/SubscriptionReminder";
 import { useUserProfile } from "@/src/context/profileProvider";

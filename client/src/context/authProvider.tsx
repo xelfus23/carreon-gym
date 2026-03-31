@@ -54,6 +54,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             // try to restore session if there's a refresh token available.
             try {
                 // load the tokens and the stored user.
+
+                console.log("Attempting to retrieve session.");
                 const {
                     accessToken,
                     refreshToken,
@@ -61,6 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 } = await authStorage.load();
 
                 if (!accessToken || !refreshToken) {
+                    console.log("No Access or Refresh Token");
                     return; // return if no tokens found. - cancel the whole function
                 }
 

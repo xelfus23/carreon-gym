@@ -12,5 +12,5 @@
         ".expo/types/**/*.ts",
         "expo-env.d.ts",
         "nativewind-env.d.ts"
-    ]
+, "src/app/(app)/(home)/(profile-completion)/profile-completion", "src/app/(app)/(home)/profile-completion.tsx"    ]
 }

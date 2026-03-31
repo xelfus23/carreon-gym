@@ -10,7 +10,7 @@ export type AuthUser = {
 export type Profile = {
     heightCm: number;
     gender: "male" | "female" | "other";
-    birthDate: Date;
+    birthDate: string;
     goal: string;
     activityLevel:
         | "sedentary"
@@ -30,8 +30,8 @@ export type CurrentStats = {
     weightKg: number;
     bodyFatPercent: number;
     muscleMassKg: number;
-    lastRecorded: Date;
-    recorded_at: Date;
+    lastRecorded?: Date;
+    recorded_at?: Date;
 };
 
 export type UserProfile = {

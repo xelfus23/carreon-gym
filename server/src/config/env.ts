@@ -36,5 +36,5 @@ export const env = {
 
     // AI
     LMSTUDIO_BASE_URL: process.env.LMSTUDIO_BASE_URL ?? "http://localhost:1234",
-    GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY ?? "",
 };

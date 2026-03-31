@@ -110,3 +110,31 @@ export async function request(path: string, options: RequestInit = {}) {
         }
     });
 }
+
+/**
+ * Manually trigger a token refresh using the same logic as HTTP requests.
+ * Useful for WebSockets or other non-fetch based requests.
+ */
+
+export async function forceRefreshToken(): Promise<string> {
+    if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+            subscribers.push(resolve);
+            rejectSubscribers.push(reject);
+        });
+    }
+
+    isRefreshing = true;
+    try {
+        const newToken = await refreshAccessToken();
+        notifySubscribers(newToken);
+        return newToken;
+    } catch (err) {
+        const error =
+            err instanceof Error ? err : new Error("Token refresh failed");
+        rejectAllSubscribers(error);
+        throw error;
+    } finally {
+        isRefreshing = false;
+    }
+}
