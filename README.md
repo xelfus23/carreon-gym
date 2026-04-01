@@ -169,7 +169,7 @@ npm run dev
 
 ### Basics
 - [x] Member Registration
-- [-] Attendance Tracking
+- [ ] Attendance Tracking
 - [ ] Schedule Management
 - [ ] Payment Management
 
