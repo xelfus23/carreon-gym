@@ -152,3 +152,29 @@ npm run dev
 * Optimize SQL database queries and implement security best practices.
 
 ---
+
+## Specific Objectives
+
+1. To design and develop a system that automates gym management processes such as member registration, attendance tracking, scheduling, and payment management.
+
+2. To create an AI-powered module that generates personalized workout plans based on user profiles, goals, and fitness levels.
+
+3. To implement a progress tracking feature that monitors user performance and   provides adaptive recommendations over time.
+
+4. To improve user engagement and motivation through data-driven insights and personalized fitness suggestions.
+
+5. To evaluate the system’s effectiveness in terms of usability, accuracy of recommendations, and overall user satisfaction.
+
+## To do:
+
+### Basics
+- [x] Member Registration
+- [-] Attendance Tracking
+- [ ] Schedule Management
+- [ ] Payment Management
+
+### AI Integration
+- [ ] Workout Plan Generation
+
+### Progress Tracking
+- [ ] Monitor Performance
