@@ -152,12 +152,3 @@ npm run dev
 * Optimize SQL database queries and implement security best practices.
 
 ---
-<!-- 
-## Team
-
-* **Frontend (Mobile)**: Patrick John Medenilla
-* **Frontend (Admin)**: Ryan Tulipas
-* **Backend**: Patrick John Medenilla
-* **Database & AI Integration**: Patrick John Medenilla & Ryan Tulipas
-
---- -->

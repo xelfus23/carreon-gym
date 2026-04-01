@@ -18,7 +18,7 @@ import {
     NativeScrollEvent,
 } from "react-native";
 
-const ITEM_HEIGHT = 50;
+const ITEM_HEIGHT = 40;
 const VISIBLE_ITEMS = 3;
 const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 
@@ -69,7 +69,6 @@ const ScrollPicker = memo(function ScrollPicker({
                 snapToInterval={ITEM_HEIGHT}
                 decelerationRate="fast"
                 onMomentumScrollEnd={handleScroll}
-                // Important: throttle and disable scroll-to-top on re-render
                 scrollEventThrottle={16}
                 contentContainerStyle={{ paddingVertical: ITEM_HEIGHT }}
                 getItemLayout={(_, index) => ({
@@ -135,7 +134,7 @@ export default function StepBasics({
             setData((prev) => ({ ...prev, birthDate: dateString }));
         }
 
-        console.log(dateString)
+        console.log(dateString);
     }, [selectedDay, selectedMonth, selectedYear, setData, data.birthDate]);
 
     const daysInMonth = useMemo(
@@ -200,7 +199,7 @@ export default function StepBasics({
                 <View className="border-background border rounded-3xl overflow-hidden flex-row items-center px-4">
                     <View
                         pointerEvents="none"
-                        className="absolute left-0 right-0 h-12 border-y border-primary/40 bg-primary/5 self-center"
+                        className="absolute left-0 right-0 h-12 border-y border-primary/10 bg-primary/5 self-center"
                         style={{ top: ITEM_HEIGHT }}
                     />
 

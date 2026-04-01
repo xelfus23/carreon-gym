@@ -103,7 +103,7 @@ export default function StepHeight({
                     <View className="justify-center w-1/2">
                         <View className="absolute self-center w-full flex-row items-center justify-between px-2 z-10 pointer-events-none">
                             <ChevronRight size={32} color={COLORS.primary} />
-                            <View className="absolute left-0 right-0 h-12 border-y border-primary/40 bg-primary/10 -z-10" />
+                            <View className="absolute left-0 right-0 h-12 -z-10" />
                             <ChevronLeft size={32} color={COLORS.primary} />
                         </View>
 
