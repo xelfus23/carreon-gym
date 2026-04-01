@@ -1,22 +1,20 @@
-import { COLORS } from "@/src/consts/colors";
-import { CurrentStats, Profile } from "@/src/types/users";
-import { Mars, Venus, VenusAndMars } from "lucide-react-native";
-import React, {
-    Dispatch,
-    SetStateAction,
-    useState,
-    useMemo,
-    useEffect,
-    memo,
-} from "react";
 import {
-    Text,
-    TouchableOpacity,
     View,
+    Text,
+    NativeScrollEvent,
     FlatList,
     NativeSyntheticEvent,
-    NativeScrollEvent,
+    TouchableOpacity,
 } from "react-native";
+import React, {
+    Dispatch,
+    memo,
+    SetStateAction,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
+import { CurrentStats, Profile } from "@/src/types/users";
 
 const ITEM_HEIGHT = 40;
 const VISIBLE_ITEMS = 3;
@@ -100,21 +98,17 @@ const ScrollPicker = memo(function ScrollPicker({
     );
 });
 
-export default function StepBasics({
+export default function StepBirthdate({
     data,
     setData,
     onNext,
+    onBack,
 }: {
     data: CurrentStats & Profile;
     setData: Dispatch<SetStateAction<CurrentStats & Profile>>;
     onNext: () => void;
+    onBack: () => void;
 }) {
-    const GENDER_OPTIONS = [
-        { IconComponent: Mars, value: "male" },
-        { IconComponent: Venus, value: "female" },
-        { IconComponent: VenusAndMars, value: "other" },
-    ] as const;
-
     const initialDate = useMemo(
         () =>
             data.birthDate
@@ -151,58 +145,26 @@ export default function StepBasics({
     }, [daysInMonth, selectedDay]);
 
     return (
-        <View className="w-full flex-1 justify-center py-16">
-            <View className="px-4">
-                <Text className="text-3xl font-bold text-text-primary mb-2">
-                    Basic Info
-                </Text>
-                <Text className="text-text-secondary text-lg mb-10">
-                    Select your gender and birthday
-                </Text>
-            </View>
-
+        <View className="w-full flex-1 py-16 justify-between">
             <View className="flex-1 px-4 gap-4">
-                <Text className="text-text-secondary font-bold uppercase tracking-wider mb-4">
-                    Gender
-                </Text>
-                <View className="flex-row gap-3 mb-12">
-                    {GENDER_OPTIONS.map((g) => (
-                        <TouchableOpacity
-                            key={g.value}
-                            onPress={() =>
-                                setData((prev) => ({
-                                    ...prev,
-                                    gender: g.value,
-                                }))
-                            }
-                            className={`flex-1 flex-row gap-2 p-4 rounded-2xl border-2 items-center ${data.gender === g.value ? "bg-primary/10 border-primary" : "bg-surface border-border"}`}
-                        >
-                            <g.IconComponent
-                                color={
-                                    data.gender === g.value
-                                        ? COLORS.primary
-                                        : COLORS.textPrimary
-                                }
-                            />
-                            <Text
-                                className={`capitalize ${data.gender === g.value ? "text-primary font-black" : "text-text-secondary font-medium"}`}
-                            >
-                                {g.value}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                <View className="mb-8">
+                    <Text className="text-xs font-semibold text-primary tracking-widest uppercase mb-2">
+                        Birthday
+                    </Text>
+                    <Text className="text-3xl font-extrabold text-text-primary tracking-tight mb-1">
+                        Select your birthday
+                    </Text>
+                    <Text className="text-base text-text-secondary leading-relaxed">
+                        We&apos;ll use this information to calculate your age
+                        and other important information.
+                    </Text>
                 </View>
-
-                <Text className="text-text-secondary font-bold uppercase tracking-wider mb-4">
-                    Birthday
-                </Text>
                 <View className="border-background border rounded-3xl overflow-hidden flex-row items-center px-4">
                     <View
                         pointerEvents="none"
                         className="absolute left-0 right-0 h-12 border-y border-primary/10 bg-primary/5 self-center"
                         style={{ top: ITEM_HEIGHT }}
                     />
-
                     <ScrollPicker
                         items={MONTHS}
                         currentValue={MONTHS[selectedMonth]}
@@ -223,16 +185,20 @@ export default function StepBasics({
                     />
                 </View>
             </View>
-
-            <View className="px-4 mt-auto">
+            <View className="flex flex-row justify-evenly gap-4 px-4">
+                <TouchableOpacity
+                    onPress={onBack}
+                    className="flex-1 p-4 rounded-2xl bg-surface border border-border items-center"
+                >
+                    <Text className="text-text-secondary font-bold text-lg">
+                        Back
+                    </Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                     onPress={onNext}
-                    disabled={!data.gender || !data.birthDate}
-                    className={`p-4 rounded-2xl items-center ${!data.gender || !data.birthDate ? "bg-border" : "bg-primary"}`}
+                    className="flex-[2] p-4 rounded-2xl bg-primary items-center "
                 >
-                    <Text
-                        className={`font-black text-lg ${!data.gender || !data.birthDate ? "text-text-secondary" : "text-background"}`}
-                    >
+                    <Text className="text-background font-black text-lg">
                         Next
                     </Text>
                 </TouchableOpacity>

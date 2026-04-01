@@ -91,12 +91,17 @@ export default function StepHeight({
 
     return (
         <View className="bg-background w-full flex-1 justify-center py-16">
-            <Text className="text-3xl font-bold text-text-primary mb-2 px-4">
-                Height
-            </Text>
-            <Text className="text-text-secondary text-lg mb-10 px-4">
-                Precise is better
-            </Text>
+            <View className="mb-8 px-4">
+                <Text className="text-xs font-semibold text-primary tracking-widest uppercase mb-2">
+                    HEIGHT
+                </Text>
+                <Text className="text-3xl font-extrabold text-text-primary tracking-tight mb-1">
+                    Select your Height
+                </Text>
+                <Text className="text-base text-text-secondary leading-relaxed">
+                    Precise is better
+                </Text>
+            </View>
 
             <View className="flex-1 justify-center">
                 <View className="w-full items-center">

@@ -83,12 +83,17 @@ export default function StepWeight({
 
     return (
         <View className="bg-background w-full flex-1 justify-center py-16">
-            <Text className="text-3xl font-bold text-text-primary mb-2 px-4">
-                Weight
-            </Text>
-            <Text className="text-text-secondary text-lg mb-10 px-4">
-                Be honest, we&apos;re here to help
-            </Text>
+            <View className="mb-8 px-4">
+                <Text className="text-xs font-semibold text-primary tracking-widest uppercase mb-2">
+                    Weight
+                </Text>
+                <Text className="text-3xl font-extrabold text-text-primary tracking-tight mb-1">
+                    Select your weight
+                </Text>
+                <Text className="text-base text-text-secondary leading-relaxed">
+                    Be honest, we&apos;re here to help
+                </Text>
+            </View>
 
             <View className="flex-1 justify-center">
                 {/* Value Preview - Large and Centered */}
