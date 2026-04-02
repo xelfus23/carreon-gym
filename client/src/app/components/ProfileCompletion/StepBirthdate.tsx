@@ -6,15 +6,8 @@ import {
     NativeSyntheticEvent,
     TouchableOpacity,
 } from "react-native";
-import React, {
-    Dispatch,
-    memo,
-    SetStateAction,
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
-import { CurrentStats, Profile } from "@/src/types/users";
+import React, { memo, useEffect, useMemo, useState } from "react";
+import { ProfileCompletionScreenProps } from "../../(app)/(home)/profile-completion";
 
 const ITEM_HEIGHT = 40;
 const VISIBLE_ITEMS = 3;
@@ -34,22 +27,24 @@ const MONTHS = [
     "November",
     "December",
 ];
+
 const YEARS = Array.from({ length: 88 }, (_, i) =>
     (new Date().getFullYear() - 100 + i).toString(),
 ).reverse();
 
-// 1. Memoize the Picker Column to prevent cross-column flickering
+type ScrollPickerType = {
+    items: string[];
+    currentValue: string | number;
+    onValueChange: (val: string) => void;
+    flex?: number;
+};
+
 const ScrollPicker = memo(function ScrollPicker({
     items,
     currentValue,
     onValueChange,
     flex = 1,
-}: {
-    items: string[];
-    currentValue: string | number;
-    onValueChange: (val: string) => void;
-    flex?: number;
-}) {
+}: ScrollPickerType) {
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const yOffset = event.nativeEvent.contentOffset.y;
         const index = Math.round(yOffset / ITEM_HEIGHT);
@@ -103,18 +98,13 @@ export default function StepBirthdate({
     setData,
     onNext,
     onBack,
-}: {
-    data: CurrentStats & Profile;
-    setData: Dispatch<SetStateAction<CurrentStats & Profile>>;
-    onNext: () => void;
-    onBack: () => void;
-}) {
+}: ProfileCompletionScreenProps) {
     const initialDate = useMemo(
         () =>
-            data.birthDate
+            data?.birthDate
                 ? new Date(data.birthDate)
                 : new Date(new Date().getFullYear() - 13, 0, 1),
-        [data.birthDate],
+        [data?.birthDate],
     );
 
     const [selectedDay, setSelectedDay] = useState(initialDate.getDate());
@@ -124,12 +114,14 @@ export default function StepBirthdate({
     // 2. Sync with parent state silently
     useEffect(() => {
         const dateString = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(selectedDay).padStart(2, "0")}`;
-        if (data.birthDate !== dateString) {
+        if (data?.birthDate !== dateString) {
+            if (!setData) return;
+
             setData((prev) => ({ ...prev, birthDate: dateString }));
         }
 
         console.log(dateString);
-    }, [selectedDay, selectedMonth, selectedYear, setData, data.birthDate]);
+    }, [selectedDay, selectedMonth, selectedYear, setData, data?.birthDate]);
 
     const daysInMonth = useMemo(
         () => new Date(selectedYear, selectedMonth + 1, 0).getDate(),

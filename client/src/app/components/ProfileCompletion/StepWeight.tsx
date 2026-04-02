@@ -1,5 +1,4 @@
-import { CurrentStats, Profile } from "@/src/types/users";
-import { Dispatch, SetStateAction, useRef } from "react";
+import { useRef } from "react";
 import {
     Text,
     TouchableOpacity,
@@ -11,6 +10,7 @@ import {
 } from "react-native";
 import { ChevronUp } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
+import { ProfileCompletionScreenProps } from "../../(app)/(home)/profile-completion";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const ITEM_WIDTH = 15; // Narrower for horizontal so more ticks fit
@@ -23,12 +23,7 @@ export default function StepWeight({
     setData,
     onNext,
     onBack,
-}: {
-    data: CurrentStats & Profile;
-    setData: Dispatch<SetStateAction<CurrentStats & Profile>>;
-    onNext: () => void;
-    onBack: () => void;
-}) {
+}: ProfileCompletionScreenProps) {
     const flatListRef = useRef<FlatList>(null);
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -36,8 +31,8 @@ export default function StepWeight({
         const index = Math.round(xOffset / ITEM_WIDTH);
         const newValue = parseFloat(WEIGHT_DATA[index]);
 
-        if (!isNaN(newValue) && newValue !== data.weightKg) {
-            setData((prev) => ({ ...prev, weightKg: newValue }));
+        if (!isNaN(newValue) && newValue !== data?.weightKg) {
+            setData!((prev) => ({ ...prev, weightKg: newValue }));
         }
     };
 
@@ -45,14 +40,13 @@ export default function StepWeight({
         const val = parseFloat(item);
         const isMajor = val % 1 === 0;
         const isHalf = val % 0.5 === 0;
-        const isSelected = data.weightKg === val;
+        const isSelected = data?.weightKg === val;
 
         return (
             <View
                 style={{ width: ITEM_WIDTH }}
                 className="items-center justify-end pb-4"
             >
-                {/* Number (Only show for whole numbers) */}
                 <View className="h-8 justify-center">
                     {isMajor && (
                         <Text
@@ -67,7 +61,6 @@ export default function StepWeight({
                     )}
                 </View>
 
-                {/* Vertical Ruler Ticks */}
                 <View
                     className={`w-[2px] rounded-full ${
                         isMajor
@@ -100,15 +93,10 @@ export default function StepWeight({
                 <View className="items-center mb-10">
                     <View className="flex-row items-baseline">
                         <Text className="text-text-primary text-7xl font-black">
-                            {Math.floor(data.weightKg || 70)}
+                            {Math.floor(data!.weightKg)}
                         </Text>
                         <Text className="text-primary text-5xl font-bold">
-                            .
-                            {
-                                ((data.weightKg || 70) % 1)
-                                    .toFixed(1)
-                                    .split(".")[1]
-                            }
+                            .{(data!.weightKg % 1).toFixed(1).split(".")[1]}
                         </Text>
                         <Text className="text-text-secondary text-2xl ml-2 uppercase">
                             kg
@@ -146,9 +134,9 @@ export default function StepWeight({
                             index,
                         })}
                         initialScrollIndex={
-                            data.weightKg
+                            data?.weightKg
                                 ? Math.round((data.weightKg - 30) / 0.1)
-                                : 400 // Default to 70kg
+                                : 400
                         }
                     />
                 </View>

@@ -1,5 +1,4 @@
-import { CurrentStats, Profile } from "@/src/types/users";
-import { Dispatch, SetStateAction, useRef } from "react";
+import { useRef } from "react";
 import {
     Text,
     TouchableOpacity,
@@ -10,6 +9,7 @@ import {
 } from "react-native";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
+import { ProfileCompletionScreenProps } from "../../(app)/(home)/profile-completion";
 
 const ITEM_HEIGHT = 40;
 const HEIGHT_DATA = Array.from({ length: 1501 }, (_, i) =>
@@ -21,12 +21,7 @@ export default function StepHeight({
     setData,
     onNext,
     onBack,
-}: {
-    data: CurrentStats & Profile;
-    setData: Dispatch<SetStateAction<CurrentStats & Profile>>;
-    onNext: () => void;
-    onBack: () => void;
-}) {
+}: ProfileCompletionScreenProps) {
     const flatListRef = useRef<FlatList>(null);
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -34,8 +29,8 @@ export default function StepHeight({
         const index = Math.round(yOffset / ITEM_HEIGHT);
         const newValue = parseFloat(HEIGHT_DATA[index]);
 
-        if (!isNaN(newValue) && newValue !== data.heightCm) {
-            setData((prev) => ({ ...prev, heightCm: newValue }));
+        if (!isNaN(newValue) && newValue !== data?.heightCm) {
+            setData!((prev) => ({ ...prev, heightCm: newValue }));
         }
     };
 
@@ -43,7 +38,7 @@ export default function StepHeight({
         const val = parseFloat(item);
         const isMajor = val % 1 === 0; // Whole numbers (170.0)
         const isHalf = val % 0.5 === 0; // Half numbers (170.5)
-        const isSelected = data.heightCm === val;
+        const isSelected = data?.heightCm === val;
 
         return (
             <View
@@ -132,9 +127,9 @@ export default function StepHeight({
                                     index,
                                 })}
                                 initialScrollIndex={
-                                    data.heightCm
+                                    data?.heightCm
                                         ? Math.round(
-                                              (data.heightCm - 100) / 0.1,
+                                              (data?.heightCm - 100) / 0.1,
                                           )
                                         : 700
                                 }
@@ -143,14 +138,18 @@ export default function StepHeight({
                     </View>
                 </View>
 
-                {/* Value Preview with Decimal focus */}
                 <View className="items-center">
                     <View className="flex-row items-baseline">
                         <Text className="text-text-primary text-6xl font-black">
-                            {Math.floor(data.heightCm)}
+                            {Math.floor(data?.heightCm || 30)}
                         </Text>
                         <Text className="text-primary text-4xl font-bold">
-                            .{(data.heightCm % 1).toFixed(1).split(".")[1]}
+                            .
+                            {
+                                (data?.heightCm || 30 % 1)
+                                    .toFixed(1)
+                                    .split(".")[1]
+                            }
                         </Text>
                         <Text className="text-text-secondary text-xl ml-2 uppercase">
                             cm

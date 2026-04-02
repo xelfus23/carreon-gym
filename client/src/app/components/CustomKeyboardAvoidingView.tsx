@@ -8,9 +8,11 @@ export default function CustomKeyboardAvoidingView({
 }) {
     return (
         <KeyboardAvoidingView
-            className="flex-1 bg-transparent"
-            behavior={"padding"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+            style={{
+                flex: 1,
+            }}
+            behavior={Platform.OS === "ios" ? "padding" : "padding"}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
         >
             {children}
         </KeyboardAvoidingView>

@@ -1,22 +1,14 @@
 import { COLORS } from "@/src/consts/colors";
-import { CurrentStats, Profile } from "@/src/types/users";
 import { Mars, Venus, VenusAndMars } from "lucide-react-native";
-
-import React, { Dispatch, SetStateAction } from "react";
-
 import { Text, TouchableOpacity, View } from "react-native";
+import { ProfileCompletionScreenProps } from "../../(app)/(home)/profile-completion";
 
 export default function StepGender({
     data,
     setData,
     onNext,
     onBack,
-}: {
-    data: CurrentStats & Profile;
-    setData: Dispatch<SetStateAction<CurrentStats & Profile>>;
-    onNext: () => void;
-    onBack: () => void;
-}) {
+}: ProfileCompletionScreenProps) {
     const GENDER_OPTIONS = [
         { IconComponent: Mars, value: "male" },
         { IconComponent: Venus, value: "female" },
@@ -24,7 +16,7 @@ export default function StepGender({
     ] as const;
 
     return (
-        <View className="w-full flex-1 justify-between py-16">
+        <View className="w-full flex-1 py-16">
             <View className="flex-1 px-4 gap-4">
                 <View className="mb-8">
                     <Text className="text-xs font-semibold text-primary tracking-widest uppercase mb-2">
@@ -43,22 +35,22 @@ export default function StepGender({
                         <TouchableOpacity
                             key={g.value}
                             onPress={() =>
-                                setData((prev) => ({
+                                setData!((prev) => ({
                                     ...prev,
                                     gender: g.value,
                                 }))
                             }
-                            className={`flex-1 flex-row gap-2 p-4 rounded-2xl border-2 items-center ${data.gender === g.value ? "bg-primary/10 border-primary" : "bg-surface border-border"}`}
+                            className={`flex-1 flex-row gap-2 p-4 rounded-2xl border-2 items-center ${data?.gender === g.value ? "bg-primary/10 border-primary" : "bg-surface border-border"}`}
                         >
                             <g.IconComponent
                                 color={
-                                    data.gender === g.value
+                                    data?.gender === g.value
                                         ? COLORS.primary
                                         : COLORS.textPrimary
                                 }
                             />
                             <Text
-                                className={`capitalize ${data.gender === g.value ? "text-primary font-black" : "text-text-secondary font-medium"}`}
+                                className={`capitalize ${data?.gender === g.value ? "text-primary font-black" : "text-text-secondary font-medium"}`}
                             >
                                 {g.value}
                             </Text>

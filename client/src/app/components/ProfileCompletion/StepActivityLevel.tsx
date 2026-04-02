@@ -1,8 +1,7 @@
 import { View, Text, TouchableOpacity } from "react-native";
-import React, { Dispatch, SetStateAction } from "react";
-import { CurrentStats, Profile } from "@/src/types/users";
 import { Check, Zap, Turtle, Wind, Flame, Trophy } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
+import { ProfileCompletionScreenProps } from "../../(app)/(home)/profile-completion";
 
 const ACTIVITY_LEVELS = [
     {
@@ -52,7 +51,7 @@ function ActivityCard({
         <TouchableOpacity
             onPress={onPress}
             activeOpacity={0.85}
-            className={`flex-row items-center gap-4 p-4 rounded-2xl border ${
+            className={`flex-row items-center gap-4 p-5 rounded-2xl border ${
                 isSelected
                     ? "bg-primary/10 border-primary"
                     : "bg-surface border-border"
@@ -92,7 +91,11 @@ function ActivityCard({
             {/* Check badge */}
             {isSelected && (
                 <View className="w-6 h-6 rounded-full bg-primary items-center justify-center">
-                    <Check size={14} color="#fff" strokeWidth={3} />
+                    <Check
+                        size={14}
+                        color={COLORS.background}
+                        strokeWidth={3}
+                    />
                 </View>
             )}
         </TouchableOpacity>
@@ -104,14 +107,9 @@ export default function StepActivityLevel({
     setData,
     onNext,
     onBack,
-}: {
-    data: CurrentStats & Profile;
-    setData: Dispatch<SetStateAction<CurrentStats & Profile>>;
-    onNext: () => void;
-    onBack: () => void;
-}) {
+}: ProfileCompletionScreenProps) {
     return (
-        <View className="bg-background w-full flex-1 justify-center py-16">
+        <View className="w-full flex-1 py-16">
             {/* Header */}
             <View className="mb-8 px-4">
                 <Text className="text-xs font-semibold text-primary tracking-widest uppercase mb-2">
@@ -126,14 +124,17 @@ export default function StepActivityLevel({
             </View>
 
             {/* Cards */}
-            <View className="flex-1 justify-center gap-3 px-4">
+            <View className="flex-1 gap-3 px-4">
                 {ACTIVITY_LEVELS.map((activity) => (
                     <ActivityCard
                         key={activity.value}
                         activity={activity}
-                        isSelected={data.activityLevel === activity.value}
+                        isSelected={data?.activityLevel === activity.value}
                         onPress={() =>
-                            setData({ ...data, activityLevel: activity.value })
+                            setData!({
+                                ...data!,
+                                activityLevel: activity.value,
+                            })
                         }
                     />
                 ))}
