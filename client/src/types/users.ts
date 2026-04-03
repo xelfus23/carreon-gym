@@ -10,6 +10,7 @@ export type AuthUser = {
 export type Profile = {
     heightCm: number;
     gender: "male" | "female" | "other";
+    bodyType: string;
     birthDate: string;
     goal: string;
     activityLevel:

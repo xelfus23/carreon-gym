@@ -22,6 +22,7 @@ import StepBirthdate from "../../components/ProfileCompletion/StepBirthdate";
 import StepGoals from "../../components/ProfileCompletion/StepGoals";
 import StepBodyFat from "../../components/ProfileCompletion/StepBodyFat";
 import StepMuscleMass from "../../components/ProfileCompletion/StepMuscleMass";
+import StepBodyType from "../../components/ProfileCompletion/StepBodyType";
 
 export interface ProfileCompletionScreenProps {
     data?: CurrentStats & Profile;
@@ -44,11 +45,12 @@ export default function ProfileCompletion() {
         activityLevel: "moderate",
         bodyFatPercent: 0,
         muscleMassKg: 0,
+        bodyType: "",
     });
 
     const animatedWidth = useRef(new Animated.Value(0)).current;
 
-    const TOTAL_SCREENS = 9;
+    const TOTAL_SCREENS = 8;
 
     const nextStep = useCallback(() => {
         setStep((prev) => (prev < TOTAL_SCREENS ? prev + 1 : prev));
@@ -126,20 +128,27 @@ export default function ProfileCompletion() {
                 onNext={nextStep}
                 onBack={prevStep}
             />,
-            <StepBodyFat
+            <StepBodyType
                 key={8}
                 data={formData}
                 setData={setFormData}
                 onNext={nextStep}
                 onBack={prevStep}
             />,
-            <StepMuscleMass
-                key={9}
-                data={formData}
-                setData={setFormData}
-                onNext={nextStep}
-                onBack={prevStep}
-            />,
+            // <StepBodyFat
+            //     key={8}
+            //     data={formData}
+            //     setData={setFormData}
+            //     onNext={nextStep}
+            //     onBack={prevStep}
+            // />,
+            // <StepMuscleMass
+            //     key={9}
+            //     data={formData}
+            //     setData={setFormData}
+            //     onNext={nextStep}
+            //     onBack={prevStep}
+            // />,
         ],
         [formData, nextStep, prevStep],
     );
