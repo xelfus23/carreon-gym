@@ -18,13 +18,7 @@ function rejectPending(err: Error) {
     pendingRequests = [];
 }
 
-/**
- * Centralized fetch wrapper that:
- * 1. Attaches credentials (httpOnly cookie)
- * 2. On 401 → attempts one silent token refresh
- * 3. Queues concurrent requests during refresh
- * 4. Throws a typed SessionExpiredError if refresh fails
- */
+
 export class SessionExpiredError extends Error {
     constructor() {
         super("Session expired. Please log in again.");
