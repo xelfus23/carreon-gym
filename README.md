@@ -1,6 +1,6 @@
-## Careon Gym Mobile Application & Admin Dashboard
+## Careon Gym Management System with AI-Powered Personal Trainer
 
-Welcome to the **Careon Gym Management System**, a full-stack project consisting of a mobile application and an admin dashboard for managing gym activities, users, and chat interactions. This project is part of our capstone project.
+A full-stack project consisting of a mobile application and an admin dashboard for managing gym activities, users, and personal trainer chat interactions. This project is part of our capstone project.
 
 ---
 
@@ -12,7 +12,7 @@ Welcome to the **Careon Gym Management System**, a full-stack project consisting
 - [Setup & Installation](#setup--installation)  
 - [Usage](#usage)  
 - [Future Improvements](#future-improvements)  
- 
+
 
 ---
 
@@ -122,15 +122,10 @@ Create `.env` files in `client/`, `admin/`, and `server/` according to your loca
 4. **Run locally**
 
 ```bash
-# Terminal 1 (Backend) - run from repo root
-cd server
+# Terminal 1 (Admin + Backend) - run from repo root
 npm run dev
 
-# Terminal 2 (Admin dashboard) - run from repo root
-cd admin
-npm run dev
-
-# Terminal 3 (Mobile app) - run from repo root
+# Terminal 2 (Mobile app)
 cd client
 npm start
 ```
