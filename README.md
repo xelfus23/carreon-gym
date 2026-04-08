@@ -1,21 +1,21 @@
 # Careon Gym Management System 🏋️‍♂️🤖
 **Capstone Project: AI-Powered Fitness & Management Ecosystem**
 
-Careon Gym is a full-stack solution designed to modernize gym operations. It combines an **Admin Dashboard** for business management with a **Mobile App** featuring an **AI Personal Trainer** to provide personalized fitness guidance to members.
+Careon Gym is a full-stack solution designed to modernize gym operations. It combines a **Desktop Admin Dashboard** for business management with a **Mobile App** featuring an **AI Personal Trainer**.
 
 ---
 
 ## 🌟 Key Features
 
 ### 📱 Member Mobile App (Expo)
-* **AI Personal Trainer:** Get personalized workout plans based on your fitness goals.
-* **Progress Tracking:** Monitor your performance and adaptive fitness recommendations.
-* **Member Dashboard:** Manage your gym plans, profile settings, and chat with support.
+* **AI Personal Trainer:** Personalized workout plans using Gemini API/Mistral.
+* **Progress Tracking:** Performance monitoring and adaptive recommendations.
+* **Native Experience:** Built with Expo and styled with Nativewind.
 
-### 💻 Admin Dashboard (React)
-* **User Management:** Register and monitor gym members and their attendance.
-* **Equipment Tracking:** Manage gym inventory and equipment status.
-* **Activity Monitoring:** View gym usage and interact with member queries.
+### 🖥️ Admin Desktop App (Electron + Vite)
+* **Dedicated Desktop Experience:** Runs as a standalone Windows/macOS app.
+* **User Management:** Register and monitor gym members and attendance.
+* **Resource Management:** Inventory tracking and activity monitoring.
 
 ---
 
@@ -23,25 +23,25 @@ Careon Gym is a full-stack solution designed to modernize gym operations. It com
 
 | Component | Technology |
 | :--- | :--- |
-| **Mobile** | React Native (Expo), TypeScript, TailwindCSS |
-| **Web Admin** | React (Vite), TypeScript, TailwindCSS |
-| **Backend** | Node.js, Express, TypeScript |
-| **Database** | PostgreSQL / SQL |
-| **AI Engine** | LM Studio (Local LLM) / Gemini API |
+| **Mobile** | Expo (React Native), TypeScript, Nativewind |
+| **Admin Desktop** | Electron, React (Vite), TailwindCSS |
+| **Backend** | Node.js, Express, JWT Authentication |
+| **Database** | PostgreSQL (Local), AWS S3 (Storage) |
+| **AI Engine** | LM Studio (Mistral-7B) / Gemini 2.0 Flash |
 
 ---
 
-## 📁 Quick Project Structure
+## 📁 Project Structure
 
-* `/client`: The React Native mobile application.
-* `/admin`: The web-based management dashboard.
-* `/server`: The backend API handling authentication and AI logic.
+* `/mobile`: Expo React Native application.
+* `/admin`: Electron + Vite desktop application.
+* `/server`: Node.js/Express API with PostgreSQL logic.
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Installation
-Run this command in the **root**, **server**, **client**, and **admin** folders:
-```bash
-npm install
+1. **Clone the repo**
+2. **Setup Server:** Go to `/server`, run `npm install`, and configure your `.env` for PostgreSQL.
+3. **Setup Admin:** Go to `/admin`, run `npm install`, then `npm run dev` to launch the Electron window.
+4. **Setup Mobile:** Go to `/mobile`, run `npm install`, and `npx expo start`.
