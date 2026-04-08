@@ -1,6 +1,6 @@
-# Careon Gym Mobile Application & Admin Dashboard
+## Careon Gym Mobile Application & Admin Dashboard
 
-Welcome to **Careon Gym Management System**, a full-stack project consisting of a mobile application and an admin dashboard for managing gym activities, users, and chat interactions. This project is part of our capstone project.
+Welcome to the **Careon Gym Management System**, a full-stack project consisting of a mobile application and an admin dashboard for managing gym activities, users, and chat interactions. This project is part of our capstone project.
 
 ---
 
@@ -12,7 +12,7 @@ Welcome to **Careon Gym Management System**, a full-stack project consisting of 
 - [Setup & Installation](#setup--installation)  
 - [Usage](#usage)  
 - [Future Improvements](#future-improvements)  
-- [Team](#team)
+ 
 
 ---
 
@@ -43,14 +43,14 @@ Careon Gym provides:
 
 ```
 
-Careon-Gym/
+Careon Gym/
 ├── admin/          # Admin dashboard
 ├── client/         # Mobile app
 ├── server/         # Backend server
 ├── package.json    # Root dependencies
 └── README.md       # This file
 
-````
+```
 
 ### Highlights:
 
@@ -90,10 +90,11 @@ Careon-Gym/
 ### Steps
 
 1. **Clone the repository**
+
 ```bash
 git clone <repository-url>
-cd careon-gym
-````
+cd "Careon Gym"
+```
 
 2. **Install dependencies**
 
@@ -121,13 +122,17 @@ Create `.env` files in `client/`, `admin/`, and `server/` according to your loca
 4. **Run locally**
 
 ```bash
-# Admin & Backend
+# Terminal 1 (Backend) - run from repo root
+cd server
 npm run dev
 
-# Mobile App
+# Terminal 2 (Admin dashboard) - run from repo root
+cd admin
+npm run dev
+
+# Terminal 3 (Mobile app) - run from repo root
 cd client
 npm start
-
 ```
 
 ---
@@ -136,13 +141,13 @@ npm start
 
 * **Mobile App**: Login, register, navigate dashboard, chat with AI assistant, manage plans and settings.
 * **Admin Dashboard**: Manage users and gym equipment, monitor chat interactions.
-* **Chat Feature**: Currently uses LM Studio locally. API calls are routed through `server/src/services/streamFromLMStudio.ts`.
+* **Chat Feature**: Currently uses LM Studio locally. API calls are routed through `server/src/ai/client/LMstudio.ts`.
 
 ---
 
 ## Future Improvements
 
-* Migrate chat backend to **Gemini API** (`gemini-2.5-flash`) for production.
+* Migrate chat backend to **Gemini API** (for example, `gemini-2.0-flash`) for production.
 * Add push notifications for mobile app.
 * Implement analytics dashboard for admin.
 * Optimize SQL database queries and implement security best practices.
