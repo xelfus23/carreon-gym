@@ -3,14 +3,15 @@ import { useUserProfile } from "@/src/context/profileProvider";
 import { PlayIcon } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import { useRouter } from "expo-router";
+import { useWorkout } from "@/src/hooks/useWorkout";
 
 export default function Dashboard() {
     const { profile } = useUserProfile();
+    const { workoutPlans,  } = useWorkout();
     const router = useRouter();
 
     if (!profile) return null;
 
-    // Get time-based greeting
     const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour < 12) return "Good Morning";
@@ -18,7 +19,6 @@ export default function Dashboard() {
         return "Good Evening";
     };
 
-    // Mock data - replace with real data from your backend
     const todayStats = {
         workoutsCompleted: 1,
         caloriesBurned: 450,

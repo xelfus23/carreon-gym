@@ -149,62 +149,40 @@ export const updateProfileQuery = async (
         activityLevel?: string;
     },
 ) => {
-    const fields = [];
-    const values = [];
-    let paramCount = 1;
+    const keys = Object.keys(updates);
+    if (keys.length === 0) throw new Error("No fields to update");
 
-    if (updates.heightCm !== undefined) {
-        fields.push(`height_cm = $${paramCount++}`);
-        values.push(updates.heightCm);
-    }
-    if (updates.gender !== undefined) {
-        fields.push(`gender = $${paramCount++}`);
-        values.push(updates.gender);
-    }
-    if (updates.birthDate !== undefined) {
-        fields.push(`birth_date = $${paramCount++}`);
-        values.push(updates.birthDate);
-    }
-    if (updates.goal !== undefined) {
-        fields.push(`goal = $${paramCount++}`);
-        values.push(updates.goal);
-    }
-    if (updates.activityLevel !== undefined) {
-        fields.push(`activity_level = $${paramCount++}`);
-        values.push(updates.activityLevel);
-    }
+    // Map camelCase to snake_case for the DB
+    const columns = keys.map((k) => k.replace(/([A-Z])/g, "_$1").toLowerCase());
 
-    if (fields.length === 0) {
-        throw new Error("No fields to update");
-    }
+    // Create placeholders: $1, $2, etc.
+    const values = keys.map((k) => (updates as any)[k]);
+    const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
 
+    // For DO UPDATE SET, we need "column = EXCLUDED.column" or "column = $i"
+    const updateSet = columns.map((col, i) => `${col} = $${i + 1}`).join(", ");
+
+    // Add userId as the last parameter
     values.push(userId);
+    const userIdParamIndex = values.length;
 
-    // Upsert - insert if not exists, update if exists
-    return await pool.query(
-        `INSERT INTO user_profiles (user_id, ${Object.keys(updates)
-            .map((k) => k.replace(/([A-Z])/g, "_$1").toLowerCase())
-            .join(", ")})
-         VALUES ($${paramCount}, ${fields.map((_, i) => `$${i + 1}`).join(", ")})
-         ON CONFLICT (user_id) 
-         DO UPDATE SET ${fields.join(", ")}
-         RETURNING *`,
-        values,
-    );
+    const query = `
+      INSERT INTO user_profiles (user_id, ${columns.join(", ")})
+      VALUES ($${userIdParamIndex}, ${placeholders})
+      ON CONFLICT (user_id) 
+      DO UPDATE SET ${updateSet}, updated_at = NOW()
+      RETURNING *
+  `;
+
+    const res = await pool.query(query, values);
+    return res.rows[0]; // Return the object, not the whole result set
 };
 
-export const addBodyMetricQuery = async (
-    userId: number,
-    metrics: {
-        weightKg: number;
-        bodyFatPercent: number;
-        muscleMassKg: number;
-    },
-) => {
-    return await pool.query(
+export const addBodyMetricQuery = async (userId: number, metrics: any) => {
+    const res = await pool.query(
         `INSERT INTO body_metrics (user_id, weight_kg, body_fat_percent, muscle_mass_kg)
-         VALUES ($1, $2, $3, $4)
-         RETURNING *`,
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
         [
             userId,
             metrics.weightKg,
@@ -212,6 +190,7 @@ export const addBodyMetricQuery = async (
             metrics.muscleMassKg,
         ],
     );
+    return res.rows[0];
 };
 
 export const getBodyMetricsHistoryQuery = async (

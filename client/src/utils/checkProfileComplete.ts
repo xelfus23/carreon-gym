@@ -13,11 +13,7 @@ export const checkUserProfile = (profile: UserProfile) => {
         profile.profile?.activityLevel,
     ];
 
-    const currentStats = [
-        profile.currentStats?.weightKg,
-        profile.currentStats?.bodyFatPercent,
-        profile.currentStats?.muscleMassKg,
-    ];
+    const currentStats = [profile.currentStats?.weightKg];
 
     const requiredFields = [...userProfile, ...currentStats];
 

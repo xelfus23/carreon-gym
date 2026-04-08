@@ -95,7 +95,7 @@ export const authService = {
         profileUpdates: Partial<Profile>,
     ) {
         return (
-            await request(`/user-profiles/${userId}`, {
+            await request(`/users/profiles`, {
                 method: "PATCH",
                 body: JSON.stringify(profileUpdates),
             })
@@ -107,7 +107,7 @@ export const authService = {
         statsUpdate: Partial<CurrentStats>,
     ) {
         return (
-            await request(`/user-stats/${userId}`, {
+            await request(`/users/stats`, {
                 method: "PATCH",
                 body: JSON.stringify(statsUpdate),
             })

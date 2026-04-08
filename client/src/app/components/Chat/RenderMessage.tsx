@@ -24,7 +24,7 @@ export default function renderMessageItem({ item }: { item: ChatMessage }) {
         >
             <View
                 className={`rounded-2xl ${
-                    isUser ? "px-4 bg-surface" : "bg-transparent px-0 w-full"
+                    isUser ? "px-4 bg-surface max-w-[80%]" : "bg-transparent px-0 w-full max-w-[100%]"
                 }`}
             >
                 {!isUser && <ThinkingBlock status={item.aiStatus! || "Done"} />}

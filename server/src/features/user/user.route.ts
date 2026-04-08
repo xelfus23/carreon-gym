@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
     createUser,
     mobileMeController,
+    updateProfile,
+    updateStats,
     uploadPicture,
     webMeController,
 } from "./user.controller.ts";
@@ -17,6 +19,10 @@ userRoutes.get("/mobile/me", mobileAuthMiddleware, mobileMeController);
 userRoutes.get("/web/me", webAuthMiddleware, webMeController);
 
 userRoutes.post("/register", createUser);
+
+userRoutes.patch("/profiles", mobileAuthMiddleware, updateProfile);
+userRoutes.patch("/stats", mobileAuthMiddleware, updateStats);
+
 userRoutes.post("/upload", upload.single("image"), uploadPicture);
 
 export default userRoutes;

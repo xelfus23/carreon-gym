@@ -10,7 +10,7 @@ import React, { memo, useEffect, useMemo, useState } from "react";
 import { ProfileCompletionScreenProps } from "../../(app)/(home)/profile-completion";
 
 const ITEM_HEIGHT = 40;
-const VISIBLE_ITEMS = 3;
+const VISIBLE_ITEMS = 6;
 const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 
 const MONTHS = [
@@ -78,7 +78,7 @@ const ScrollPicker = memo(function ScrollPicker({
                     return (
                         <View
                             style={{ height: ITEM_HEIGHT }}
-                            className="justify-center items-center"
+                            className={"items-center justify-center"}
                         >
                             <Text
                                 className={`text-lg ${isSelected ? "text-primary font-black" : "text-text-secondary font-medium"}`}

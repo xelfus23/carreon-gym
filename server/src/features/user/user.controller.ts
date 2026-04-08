@@ -9,6 +9,11 @@ import { saveSessionToDB } from "../../services/saveSession.ts";
 import { catchAsync } from "../../utils/catchAsync.ts";
 import { AppError } from "../../utils/appError.ts";
 import { mapAdminData, mapUserData } from "../../utils/map.ts";
+import { success } from "zod";
+import {
+    addBodyMetricQuery,
+    updateProfileQuery,
+} from "../../repositories/user.repository.ts";
 
 export const webMeController = catchAsync(
     async (req: Request, res: Response) => {
@@ -109,4 +114,30 @@ export const uploadPicture = async (req: Request, res: Response) => {
             });
         }
     }
+};
+
+export const updateProfile = async (req: Request, res: Response) => {
+    const updates = req.body;
+    const userId = req.user?.id;
+
+    const updatedProfile = await updateProfileQuery(userId!, updates);
+
+    return res.status(200).json({
+        success: true,
+        message: "Profile Updated Successfully",
+        data: updatedProfile,
+    });
+};
+
+export const updateStats = async (req: Request, res: Response) => {
+    const updates = req.body;
+    const userId = req.user?.id;
+
+    const updatedStats = await addBodyMetricQuery(userId!, updates);
+
+    return res.status(200).json({
+        success: true,
+        message: "Stats Updated Successfully",
+        data: updatedStats,
+    });
 };

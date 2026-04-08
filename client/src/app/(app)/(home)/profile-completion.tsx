@@ -8,6 +8,7 @@ import React, {
     SetStateAction,
 } from "react";
 import { View, Alert, Animated } from "react-native";
+import { COLORS } from "@/src/consts/colors";
 
 import { useUserProfile } from "@/src/context/profileProvider";
 import { CurrentStats, Profile } from "@/src/types/users";
@@ -17,12 +18,10 @@ import StepHeight from "@/src/app/components/ProfileCompletion/StepHeight";
 import StepActivityLevel from "../../components/ProfileCompletion/StepActivityLevel";
 import StepGender from "../../components/ProfileCompletion/StepGender";
 import StepStart from "../../components/ProfileCompletion/StepStart";
-import { COLORS } from "@/src/consts/colors";
 import StepBirthdate from "../../components/ProfileCompletion/StepBirthdate";
 import StepGoals from "../../components/ProfileCompletion/StepGoals";
-import StepBodyFat from "../../components/ProfileCompletion/StepBodyFat";
-import StepMuscleMass from "../../components/ProfileCompletion/StepMuscleMass";
 import StepBodyType from "../../components/ProfileCompletion/StepBodyType";
+import { router } from "expo-router";
 
 export interface ProfileCompletionScreenProps {
     data?: CurrentStats & Profile;
@@ -43,9 +42,8 @@ export default function ProfileCompletion() {
         weightKg: 24,
         goal: "lose_weight",
         activityLevel: "moderate",
-        bodyFatPercent: 0,
-        muscleMassKg: 0,
-        bodyType: "",
+        bodyFatPercent: 10,
+        muscleMassKg: 11,
     });
 
     const animatedWidth = useRef(new Animated.Value(0)).current;
@@ -77,6 +75,7 @@ export default function ProfileCompletion() {
             });
 
             await refreshProfile();
+            router.push('/(app)/(home)/(tabs)/dashboard')
         } catch (error) {
             Alert.alert("Error", "Failed to save profile.");
             console.error(error);
@@ -93,6 +92,7 @@ export default function ProfileCompletion() {
                 onNext={nextStep}
                 onBack={prevStep}
             />,
+
             <StepBirthdate
                 key={3}
                 data={formData}
@@ -114,6 +114,13 @@ export default function ProfileCompletion() {
                 onNext={nextStep}
                 onBack={prevStep}
             />,
+            <StepBodyType
+                key={8}
+                data={formData}
+                setData={setFormData}
+                onNext={nextStep}
+                onBack={prevStep}
+            />,
             <StepActivityLevel
                 key={6}
                 data={formData}
@@ -125,32 +132,11 @@ export default function ProfileCompletion() {
                 key={7}
                 data={formData}
                 setData={setFormData}
-                onNext={nextStep}
+                finalSubmission={handleFinalSubmit}
                 onBack={prevStep}
             />,
-            <StepBodyType
-                key={8}
-                data={formData}
-                setData={setFormData}
-                onNext={nextStep}
-                onBack={prevStep}
-            />,
-            // <StepBodyFat
-            //     key={8}
-            //     data={formData}
-            //     setData={setFormData}
-            //     onNext={nextStep}
-            //     onBack={prevStep}
-            // />,
-            // <StepMuscleMass
-            //     key={9}
-            //     data={formData}
-            //     setData={setFormData}
-            //     onNext={nextStep}
-            //     onBack={prevStep}
-            // />,
         ],
-        [formData, nextStep, prevStep],
+        [formData, nextStep, prevStep, handleFinalSubmit],
     );
 
     useEffect(() => {

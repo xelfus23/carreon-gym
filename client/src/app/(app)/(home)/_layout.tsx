@@ -19,7 +19,7 @@ export default function HomeLayout() {
                 options={{
                     headerShown: false,
                     presentation: "fullScreenModal",
-                    animation: "slide_from_bottom",
+                    animation: "slide_from_left",
                     gestureEnabled: false,
                 }}
             />

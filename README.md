@@ -1,6 +1,6 @@
 # Careon Gym Mobile Application & Admin Dashboard
 
-Welcome to **Careon Gym**, a full-stack project consisting of a mobile application and an admin dashboard for managing gym activities, users, and chat interactions. This project is part of our capstone project.
+Welcome to **Careon Gym Management System**, a full-stack project consisting of a mobile application and an admin dashboard for managing gym activities, users, and chat interactions. This project is part of our capstone project.
 
 ---
 
@@ -121,17 +121,13 @@ Create `.env` files in `client/`, `admin/`, and `server/` according to your loca
 4. **Run locally**
 
 ```bash
-# Backend
-cd server
+# Admin & Backend
 npm run dev
 
 # Mobile App
-cd ../client
-expo start
+cd client
+npm start
 
-# Admin Dashboard
-cd ../admin
-npm run dev
 ```
 
 ---
@@ -146,7 +142,7 @@ npm run dev
 
 ## Future Improvements
 
-* Migrate chat backend to **Gemini API** (`gemini-2.0-flash`) for production.
+* Migrate chat backend to **Gemini API** (`gemini-2.5-flash`) for production.
 * Add push notifications for mobile app.
 * Implement analytics dashboard for admin.
 * Optimize SQL database queries and implement security best practices.
@@ -159,22 +155,8 @@ npm run dev
 
 2. To create an AI-powered module that generates personalized workout plans based on user profiles, goals, and fitness levels.
 
-3. To implement a progress tracking feature that monitors user performance and   provides adaptive recommendations over time.
+3. To implement a progress tracking feature that monitors user performance and provides adaptive recommendations over time.
 
 4. To improve user engagement and motivation through data-driven insights and personalized fitness suggestions.
 
 5. To evaluate the system’s effectiveness in terms of usability, accuracy of recommendations, and overall user satisfaction.
-
-## To do:
-
-### Basics
-- [x] Member Registration
-- [ ] Attendance Tracking
-- [ ] Schedule Management
-- [ ] Payment Management
-
-### AI Integration
-- [ ] Workout Plan Generation
-
-### Progress Tracking
-- [ ] Monitor Performance

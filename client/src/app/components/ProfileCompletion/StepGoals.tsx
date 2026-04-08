@@ -29,8 +29,8 @@ const GOALS = [
 export default function StepGoals({
     data,
     setData,
-    onNext,
     onBack,
+    finalSubmission,
 }: ProfileCompletionScreenProps) {
     const handleSelect = (goalId: string) => {
         setData!((prev) => ({ ...prev, goal: goalId }));
@@ -122,7 +122,7 @@ export default function StepGoals({
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    onPress={onNext}
+                    onPress={finalSubmission}
                     className="flex-[2] p-4 rounded-2xl bg-primary items-center "
                 >
                     <Text className="text-background font-black text-lg">

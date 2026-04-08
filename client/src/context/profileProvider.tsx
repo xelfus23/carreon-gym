@@ -35,6 +35,10 @@ export const UserProfileProvider = ({
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
+        console.log(profile);
+    }, [profile]);
+
+    useEffect(() => {
         if (isLoading || profile === null) return;
 
         const isComplete = checkUserProfile(profile);
