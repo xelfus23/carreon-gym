@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
                     <button
                         key={item.id}
                         onClick={() => setTab(item.id)}
-                        className={`w-full h-10 flex items-center ${sideBarOn ? "justify-normal aspect-auto" : "aspect-square justify-center"} gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                        className={`w-full h-10 flex items-center ${sideBarOn ? "justify-normal aspect-auto" : "aspect-square justify-center"} gap-3 px-4 py-3 transition-all duration-200 ${
                             currentTab === item.id
                                 ? "bg-primary-dark text-text-primary shadow-lg shadow-primary/20"
                                 : "hover:bg-primary-dark/20 hover:text-text-primary"
@@ -91,7 +91,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
 
             {sideBarOn && (
                 <div className="p-6">
-                    <div className="bg-background rounded-2xl p-4 border border-border">
+                    <div className="bg-background p-4 border border-border">
                         <p className="text-xs uppercase tracking-wider text-text-secondary font-bold mb-2">
                             System Status
                         </p>

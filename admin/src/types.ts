@@ -12,7 +12,7 @@ export type AccountStatus = "active" | "suspended" | "deleted";
 
 export interface AdminMemberListItem {
     id: number;
-
+    role: "member" | "admin";
     // Basic Info
     first_name: string;
     last_name: string;

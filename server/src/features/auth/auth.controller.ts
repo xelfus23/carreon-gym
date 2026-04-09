@@ -25,6 +25,14 @@ export const webLoginController = catchAsync(
             sub: user.id,
             role: user.role,
         });
+        const refreshTokenHash = hashToken(refreshToken);
+
+        await saveSessionToDB({
+            userId: user.id,
+            tokenHash: refreshTokenHash,
+            deviceInfo: req.headers["user-agent"] ?? null,
+            ip: req.ip || null,
+        });
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,

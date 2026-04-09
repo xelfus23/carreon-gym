@@ -1,26 +1,17 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useEquipments, type EquipmentTypes } from "../hooks/useEquipments";
+import EquipmentRow, {
+    SkeletonRow,
+} from "../components/equipment/EquipmentRow";
 import {
-    useEquipments,
-    type EquipmentTypes,
-} from "../hooks/useEquipments";
-import { EquipmentCard, SkeletonCard } from "../components/equipment/EquipmentCard";
-import { AddModal, EditModal, DeleteModal } from "../components/equipment/EquipmentModals";
+    AddModal,
+    EditModal,
+    DeleteModal,
+} from "../components/equipment/EquipmentModals";
+import { Search } from "lucide-react";
 
-// ─── Animations (scoped to this tab) ─────────────────────────────────────────
-
-const KEYFRAMES = `
-    @keyframes fadeSlideIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; } to { opacity: 1; }
-    }
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(16px) scale(0.98); }
-        to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-`;
+type SortKey = keyof EquipmentTypes | null;
+type SortDir = "asc" | "desc";
 
 // ─── Equipment Tab ─────────────────────────────────────────────────────────────
 
@@ -37,18 +28,92 @@ export default function EquipmentTab() {
 
     const [showAdd, setShowAdd] = useState(false);
     const [editTarget, setEditTarget] = useState<EquipmentTypes | null>(null);
-    const [deleteTarget, setDeleteTarget] = useState<EquipmentTypes | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<EquipmentTypes | null>(
+        null,
+    );
+    const [search, setSearch] = useState("");
+    const [filterCategory, setFilterCategory] = useState("all");
+    const [sortKey, setSortKey] = useState<SortKey>("equipment_name");
+    const [sortDir, setSortDir] = useState<SortDir>("asc");
+    const [page, setPage] = useState(1);
+    const PAGE_SIZE = 20;
+
+    const categories = useMemo(
+        () =>
+            Array.from(
+                new Set(
+                    equipments
+                        .map((eq) => eq.category?.trim())
+                        .filter((value): value is string => Boolean(value)),
+                ),
+            ),
+        [equipments],
+    );
+
+    const filtered = useMemo(() => {
+        let list = [...equipments];
+
+        if (search.trim()) {
+            const q = search.toLowerCase();
+            list = list.filter(
+                (eq) =>
+                    eq.equipment_name.toLowerCase().includes(q) ||
+                    eq.category.toLowerCase().includes(q) ||
+                    eq.target_muscles.toLowerCase().includes(q) ||
+                    eq.description?.toLowerCase().includes(q),
+            );
+        }
+
+        if (filterCategory !== "all") {
+            list = list.filter((eq) => eq.category === filterCategory);
+        }
+
+        if (sortKey) {
+            list.sort((a, b) => {
+                const av = a[sortKey] ?? "";
+                const bv = b[sortKey] ?? "";
+                const cmp = String(av).localeCompare(String(bv), undefined, {
+                    numeric: true,
+                });
+                return sortDir === "asc" ? cmp : -cmp;
+            });
+        }
+
+        return list;
+    }, [equipments, search, filterCategory, sortKey, sortDir]);
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+    const handleSort = (key: SortKey) => {
+        if (!key) return;
+        if (sortKey === key) {
+            setSortDir((dir) => (dir === "asc" ? "desc" : "asc"));
+            return;
+        }
+
+        setSortKey(key);
+        setSortDir("asc");
+    };
+
+    const SortIcon = ({ col }: { col: SortKey }) =>
+        sortKey === col ? (
+            <span className="ml-1 text-text-secondary">
+                {sortDir === "asc" ? "↑" : "↓"}
+            </span>
+        ) : (
+            <span className="ml-1 opacity-30 group-hover:opacity-60">↕</span>
+        );
 
     return (
         <>
-            <style>{KEYFRAMES}</style>
-
             <div className="flex flex-col gap-4">
                 {/* ── Toolbar ── */}
                 <div className="flex items-center justify-between">
                     {!isLoading && !error && (
                         <p className="text-xs text-text-secondary">
-                            {equipments.length} item{equipments.length !== 1 ? "s" : ""} available
+                            {filtered.length} result
+                            {filtered.length !== 1 ? "s" : ""}
                         </p>
                     )}
                     <div className="flex items-center gap-2 ml-auto">
@@ -59,7 +124,16 @@ export default function EquipmentTab() {
                                            text-text-secondary text-xs font-semibold uppercase tracking-wider
                                            hover:border-primary/40 hover:text-primary transition-all duration-150"
                             >
-                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <svg
+                                    width="11"
+                                    height="11"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
                                     <polyline points="23 4 23 10 17 10" />
                                     <polyline points="1 20 1 14 7 14" />
                                     <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
@@ -72,7 +146,15 @@ export default function EquipmentTab() {
                             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary hover:bg-primary-dark
                                        text-background text-xs font-bold tracking-wide transition-colors duration-150"
                         >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                            <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                            >
                                 <line x1="12" y1="5" x2="12" y2="19" />
                                 <line x1="5" y1="12" x2="19" y2="12" />
                             </svg>
@@ -81,57 +163,201 @@ export default function EquipmentTab() {
                     </div>
                 </div>
 
+                <div className="bg-surface border border-border shadow-sm overflow-hidden min-w-0">
+                    <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
+                        <div className="relative flex-1 min-w-48">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">
+                                <Search size={14}/>
+                            </span>
+                            <input
+                                value={search}
+                                onChange={(e) => {
+                                    setSearch(e.target.value);
+                                    setPage(1);
+                                }}
+                                type="text"
+                                placeholder="Search equipment, category, muscle..."
+                                className="w-full pl-9 pr-4 py-2 bg-surface border border-border text-sm focus:ring-2 focus:ring-primary outline-none transition-all text-text-primary"
+                            />
+                        </div>
+
+                        <select
+                            value={filterCategory}
+                            onChange={(e) => {
+                                setFilterCategory(e.target.value);
+                                setPage(1);
+                            }}
+                            className="px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+                        >
+                            <option value="all">All Categories</option>
+                            {categories.map((category) => (
+                                <option key={category} value={category}>
+                                    {category}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="text-left text-sm w-full">
+                            <thead>
+                                <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
+                                    {(
+                                        [
+                                            { label: "ID", key: "id" },
+                                            {
+                                                label: "Equipment",
+                                                key: "equipment_name",
+                                            },
+                                            {
+                                                label: "Category",
+                                                key: "category",
+                                            },
+                                            { label: "Qty", key: "quantity" },
+                                            {
+                                                label: "Target Muscles",
+                                                key: "target_muscles",
+                                            },
+                                            {
+                                                label: "Description",
+                                                key: "description",
+                                            },
+                                            { label: "", key: null },
+                                        ] as { label: string; key: SortKey }[]
+                                    ).map(({ label, key }) => (
+                                        <th
+                                            key={label || "actions"}
+                                            onClick={() => handleSort(key)}
+                                            className={`px-5 py-3.5 text-xs group ${
+                                                key
+                                                    ? "cursor-pointer select-none hover:text-text-secondary"
+                                                    : ""
+                                            }`}
+                                        >
+                                            {label}
+                                            {key && <SortIcon col={key} />}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                                {isLoading ? (
+                                    Array.from({ length: 6 }).map((_, i) => (
+                                        <SkeletonRow key={i} />
+                                    ))
+                                ) : paginated.length === 0 ? (
+                                    <tr>
+                                        <td
+                                            colSpan={7}
+                                            className="px-5 py-16 text-center text-text-secondary text-sm"
+                                        >
+                                            {equipments.length === 0
+                                                ? "No equipment found yet."
+                                                : "No equipment match your filters."}
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    paginated.map((eq) => (
+                                        <EquipmentRow
+                                            key={eq.id}
+                                            item={eq}
+                                            onEdit={setEditTarget}
+                                            onDelete={setDeleteTarget}
+                                        />
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {!isLoading && totalPages > 1 && (
+                        <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
+                            <span className="text-xs text-text-secondary">
+                                Page {page} of {totalPages}
+                            </span>
+                            <div className="flex gap-1">
+                                <button
+                                    onClick={() =>
+                                        setPage((p) => Math.max(1, p - 1))
+                                    }
+                                    disabled={page === 1}
+                                    className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
+                                >
+                                    ← Prev
+                                </button>
+                                {Array.from(
+                                    { length: Math.min(5, totalPages) },
+                                    (_, i) => {
+                                        const p =
+                                            Math.max(
+                                                1,
+                                                Math.min(
+                                                    page - 2,
+                                                    totalPages - 4,
+                                                ),
+                                            ) + i;
+                                        return (
+                                            <button
+                                                key={p}
+                                                onClick={() => setPage(p)}
+                                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                                                    p === page
+                                                        ? "bg-primary-dark border-primary-dark text-text-primary"
+                                                        : "border-border bg-surface hover:bg-border text-text-primary"
+                                                }`}
+                                            >
+                                                {p}
+                                            </button>
+                                        );
+                                    },
+                                )}
+                                <button
+                                    onClick={() =>
+                                        setPage((p) =>
+                                            Math.min(totalPages, p + 1),
+                                        )
+                                    }
+                                    disabled={page === totalPages}
+                                    className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
+                                >
+                                    Next →
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 {/* ── Error banner ── */}
                 {error && (
                     <div className="flex items-center gap-2.5 bg-danger/8 border border-danger/30 rounded-2xl px-4 py-3">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff3b3b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#ff3b3b"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="shrink-0"
+                        >
                             <circle cx="12" cy="12" r="10" />
                             <line x1="12" y1="8" x2="12" y2="12" />
                             <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
-                        <p className="text-sm text-danger font-medium">{error}</p>
-                    </div>
-                )}
-
-                {/* ── List ── */}
-                <div className="flex flex-col gap-2.5">
-                    {isLoading
-                        ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)
-                        : equipments.map((eq, i) => (
-                              <EquipmentCard
-                                  key={eq.id}
-                                  item={eq}
-                                  index={i}
-                                  onEdit={setEditTarget}
-                                  onDelete={setDeleteTarget}
-                              />
-                          ))}
-                </div>
-
-                {/* ── Empty state ── */}
-                {!isLoading && !error && equipments.length === 0 && (
-                    <div className="flex flex-col items-center py-16 text-text-secondary gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-surface border border-border flex items-center justify-center">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="8" y1="12" x2="16" y2="12" />
-                            </svg>
-                        </div>
-                        <p className="text-sm text-text-secondary text-center">No equipment found</p>
-                        <button
-                            onClick={() => setShowAdd(true)}
-                            className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/30
-                                       text-primary text-xs font-bold hover:bg-primary/20 transition-colors"
-                        >
-                            + Add your first equipment
-                        </button>
+                        <p className="text-sm text-danger font-medium">
+                            {error}
+                        </p>
                     </div>
                 )}
             </div>
 
             {/* ── Modals ── */}
             {showAdd && (
-                <AddModal onCreate={createEquipment} onClose={() => setShowAdd(false)} />
+                <AddModal
+                    onCreate={createEquipment}
+                    onClose={() => setShowAdd(false)}
+                />
             )}
             {editTarget && (
                 <EditModal

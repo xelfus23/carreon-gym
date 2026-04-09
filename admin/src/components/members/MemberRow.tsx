@@ -130,7 +130,7 @@ function ActionMenu({
     return createPortal(
         <div
             ref={menuRef}
-            className="w-52 bg-surface border border-border rounded-2xl shadow-2xl shadow-black/30 overflow-hidden"
+            className="w-52 bg-surface border border-border rounded-lg shadow-2xl shadow-black/30 overflow-hidden"
             style={{
                 position: "fixed",
                 top: pos.top,
@@ -176,9 +176,6 @@ function ActionMenu({
 // ── MemberRow ─────────────────────────────────────────────────────────────────
 export default function MemberRow({
     m,
-    // isLoading,
-    isSelected,
-    // fetchInsight,
     onSetPlan,
     onSuspend,
     onBan,
@@ -186,9 +183,6 @@ export default function MemberRow({
     onSendEmail,
 }: {
     m: AdminMemberListItem;
-    isLoading: boolean;
-    isSelected: boolean;
-    fetchInsight: (m: AdminMemberListItem) => void;
     onSetPlan: (m: AdminMemberListItem) => void;
     onSuspend: (m: AdminMemberListItem) => void;
     onBan: (m: AdminMemberListItem) => void;
@@ -210,12 +204,6 @@ export default function MemberRow({
     const isDeleted = m.account_status === "deleted";
 
     const actions: ActionItem[] = [
-        // {
-        //     label: "AI Insight",
-        //     icon: <Sparkles className="h-4" />,
-        //     onClick: () => fetchInsight(m),
-        //     disabled: isLoading,
-        // },
         {
             label: "Set Plan",
             icon: <ClockPlus className="h-4" />,
@@ -257,22 +245,15 @@ export default function MemberRow({
     ];
 
     return (
-        <tr
-            className={`transition-colors group ${
-                isSelected
-                    ? "bg-primary/5 border-l-2 border-l-primary"
-                    : "hover:bg-border/40"
-            }`}
-        >
-            <td className="px-5 py-3.5">
-                <div className="font-semibold text-text-primary leading-tight">
-                    {m.id.toString()}
-                </div>
+        <tr className={`transition-colors group hover:bg-border/40`}>
+            <td className="px-5 py-3.5  text-xs text-text-secondary font-semibold">
+                {m.id.toString()}
             </td>
-
             {/* Member */}
             <td className="px-5 py-3.5">
-                <div className="font-semibold text-text-primary leading-tight">
+                <div
+                    className={`font-semibold ${m.role === "admin" ? "text-yellow-300" : "text-primary"} leading-tight`}
+                >
                     {m.first_name} {m.last_name}
                 </div>
                 <div className="text-[11px] text-text-secondary mt-0.5">
@@ -284,7 +265,6 @@ export default function MemberRow({
                     </div>
                 )}
             </td>
-
             {/* Account status */}
             <td className="px-5 py-3.5">
                 <span
@@ -305,7 +285,6 @@ export default function MemberRow({
                     </span>
                 )}
             </td>
-
             {/* Plan */}
             <td className="px-5 py-3.5 text-sm">
                 <span className="font-medium text-text-primary">
@@ -320,7 +299,6 @@ export default function MemberRow({
                     </div>
                 )}
             </td>
-
             {/* Subscription */}
             <td className="px-5 py-3.5">
                 {m.subscription_status ? (
@@ -349,7 +327,6 @@ export default function MemberRow({
                     <span className="text-text-secondary text-xs">—</span>
                 )}
             </td>
-
             {/* Last check-in */}
             <td className="px-5 py-3.5 text-sm text-text-primary">
                 {formatRelativeDate(m.last_check_in)}
@@ -359,7 +336,6 @@ export default function MemberRow({
                     </div>
                 )}
             </td>
-
             {/* Visits */}
             <td className="px-5 py-3.5 text-center">
                 <span className="text-base font-black text-text-primary">
@@ -371,7 +347,6 @@ export default function MemberRow({
                     </div>
                 )}
             </td>
-
             {/* Attendance */}
             <td className="px-5 py-3.5">
                 <div className="flex items-center gap-2">
@@ -388,7 +363,6 @@ export default function MemberRow({
                     </span>
                 </div>
             </td>
-
             {/* ── Actions ── */}
             <td className="px-5 py-3.5">
                 <div className="flex items-center justify-end">

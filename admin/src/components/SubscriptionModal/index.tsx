@@ -150,14 +150,14 @@ export default function SubscriptionModal({
             onClick={onClose}
         >
             <div
-                className="bg-surface w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl border border-border shadow-2xl flex flex-col max-h-[92vh]"
+                className="bg-surface w-full sm:max-w-lg sm:rounded-lg rounded-t-lg border border-border shadow-2xl flex flex-col max-h-[92vh]"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* ── Header ─────────────────────────────────────────────── */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border shrink-0">
                     <div className="flex items-center gap-3 min-w-0">
                         {/* Avatar: uses primary color as accent */}
-                        <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
                             <span className="text-sm font-black text-primary tracking-tight">
                                 {member.first_name[0]}
                                 {member.last_name[0]}
@@ -175,7 +175,7 @@ export default function SubscriptionModal({
 
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center rounded-xl text-text-secondary hover:bg-border hover:text-text-primary transition-colors shrink-0 ml-4"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:bg-border hover:text-text-primary transition-colors shrink-0 ml-4"
                     >
                         <svg
                             width="12"
@@ -218,7 +218,7 @@ export default function SubscriptionModal({
                                                 onClick={() =>
                                                     handlePlanChange(plan.id)
                                                 }
-                                                className={`relative px-4 py-3.5 rounded-2xl text-left border transition-all duration-150 ${
+                                                className={`relative px-4 py-3.5 rounded-lg text-left border transition-all duration-150 ${
                                                     active
                                                         ? // Selected: primary green background
                                                           "bg-primary text-background border-primary shadow-md"
@@ -284,7 +284,7 @@ export default function SubscriptionModal({
                                                 setCustomDays(e.target.value)
                                             }
                                             placeholder="e.g. 45"
-                                            className="w-full pl-4 pr-14 py-3 border border-border rounded-2xl text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                            className="w-full pl-4 pr-14 py-3 border border-border rounded-lg text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                                         />
                                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-secondary pointer-events-none">
                                             days
@@ -333,7 +333,7 @@ export default function SubscriptionModal({
                                                 ? String(selectedPlan.price)
                                                 : "0.00"
                                         }
-                                        className="w-full pl-8 pr-4 py-3 border border-border rounded-2xl text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                        className="w-full pl-8 pr-4 py-3 border border-border rounded-lg text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                                     />
                                 </div>
                                 {hasDiscount && (
@@ -368,7 +368,7 @@ export default function SubscriptionModal({
                                                 onClick={() =>
                                                     setMethod(m.value)
                                                 }
-                                                className={`flex flex-col items-center gap-1.5 py-3 rounded-2xl border text-xs font-semibold transition-all duration-150 ${
+                                                className={`flex flex-col items-center gap-1.5 py-3 rounded-lg border text-xs font-semibold transition-all duration-150 ${
                                                     active
                                                         ? "bg-primary border-primary text-background"
                                                         : "bg-background border-border text-text-secondary hover:border-primary/40 hover:text-text-primary"
@@ -397,7 +397,7 @@ export default function SubscriptionModal({
                                             setReferenceNo(e.target.value)
                                         }
                                         placeholder="GCash / bank reference number"
-                                        className="mt-2 w-full px-4 py-3 border border-border rounded-2xl text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                        className="mt-2 w-full px-4 py-3 border border-border rounded-lg text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                                     />
                                 </section>
                             )}
@@ -410,7 +410,7 @@ export default function SubscriptionModal({
                                     onChange={(e) => setNotes(e.target.value)}
                                     placeholder="e.g. Student discount, promo code used…"
                                     rows={2}
-                                    className="mt-2 w-full px-4 py-3 border border-border rounded-2xl text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
+                                    className="mt-2 w-full px-4 py-3 border border-border rounded-lg text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
                                 />
                             </section>
 
@@ -426,7 +426,7 @@ export default function SubscriptionModal({
                         type="button"
                         onClick={handleCreate}
                         disabled={loading || plansLoading || !!plansError}
-                        className="w-full py-3 bg-primary hover:bg-primary-dark active:scale-[0.99] text-background font-bold rounded-2xl disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-sm"
+                        className="w-full py-3 bg-primary hover:bg-primary-dark active:scale-[0.99] text-background font-bold rounded-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-sm"
                     >
                         {loading ? (
                             <>
@@ -456,7 +456,7 @@ export default function SubscriptionModal({
                         type="button"
                         onClick={handleCancelSub}
                         disabled={loading}
-                        className="w-full py-2.5 border border-danger/25 text-danger font-semibold rounded-2xl hover:bg-danger/8 hover:border-danger/40 disabled:opacity-50 transition-all text-sm"
+                        className="w-full py-2.5 border border-danger/25 text-danger font-semibold rounded-lg hover:bg-danger/8 hover:border-danger/40 disabled:opacity-50 transition-all text-sm"
                     >
                         Cancel Subscription
                     </button>

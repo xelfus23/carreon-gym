@@ -387,7 +387,7 @@ export default function Plans() {
                             <SectionHeader
                                 title="Completed"
                                 count={completedExercises.length}
-                                accent="#10B981"
+                                accent={COLORS.success}
                             />
                             {completedExercises.map((ex) => (
                                 <ExerciseCard

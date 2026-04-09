@@ -6,6 +6,7 @@ export const getMembersDomain = async () => {
             u.id,
             u.first_name,
             u.last_name,
+            u.role, -- Added this so you can identify the user type
             u.email,
             u.phone_number,
             u.account_status,
@@ -57,7 +58,7 @@ export const getMembersDomain = async () => {
             WHERE user_id = u.id
         ) att ON true
 
-        WHERE u.role = 'member'
+        -- Removed WHERE u.role = 'member' to include everyone
         ORDER BY u.created_at DESC
     `;
 

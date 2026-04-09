@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
 import type { AdminMemberListItem } from "../types";
-import { chatService } from "../services/ai.service";
 import MemberRow from "../components/members/MemberRow";
 import ConfirmDialog from "../components/members/ConfirmDialog";
 import SubscriptionModal from "../components/SubscriptionModal";
+import { Search } from "lucide-react";
 
 type SortKey = keyof AdminMemberListItem | null;
 type SortDir = "asc" | "desc";
@@ -15,13 +15,6 @@ export default function MemberManagement() {
     const { members, refetch } = useMember();
     const [subscriptionMember, setSubscriptionMember] =
         useState<AdminMemberListItem | null>(null);
-
-    // Selection & AI
-    const [selectedMember, setSelectedMember] =
-        useState<AdminMemberListItem | null>(null);
-    const [insight, setInsight] = useState<string>("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [currentState, setCurrentState] = useState("");
 
     // Table controls
     const [search, setSearch] = useState("");
@@ -162,41 +155,6 @@ export default function MemberManagement() {
         [members],
     );
 
-    const fetchInsight = async (member: AdminMemberListItem) => {
-        setSelectedMember(member);
-        setIsLoading(true);
-        setInsight("");
-        setCurrentState("Initializing session...");
-
-        try {
-            const session = await chatService.createChat();
-            const lastSeen = member.last_check_in
-                ? new Date(member.last_check_in).toLocaleDateString()
-                : "unknown";
-            const prompt =
-                `Provide a quick summary and 3 motivational tips for a gym member named ` +
-                `${member.first_name} ${member.last_name} who has a ${member.plan_name ?? "standard"} plan. ` +
-                `Attendance rate: ${member.attendance_rate}%. Last check-in: ${lastSeen}. ` +
-                `Total visits this month: ${member.total_visits_this_month ?? 0}. ` +
-                `Keep it professional and encouraging.`;
-
-            await chatService.sendMessage(
-                session.id,
-                prompt,
-                (token) => setInsight((prev) => prev + token),
-                (state) => setCurrentState(state),
-            );
-        } catch (error) {
-            console.error("Insight Error:", error);
-            setInsight(
-                "Failed to connect to the AI service. Ensure the server is running.",
-            );
-        } finally {
-            setIsLoading(false);
-            setCurrentState("");
-        }
-    };
-
     const SortIcon = ({ col }: { col: SortKey }) =>
         sortKey === col ? (
             <span className="ml-1 text-text-secondary">
@@ -237,10 +195,7 @@ export default function MemberManagement() {
                         color: "bg-violet-500 text-violet-50",
                     },
                 ].map(({ label, value, color }) => (
-                    <div
-                        key={label}
-                        className={`rounded-3xl px-4 py-3 ${color}`}
-                    >
+                    <div key={label} className={`px-4 py-3 ${color}`}>
                         <p className="text-xs font-semibold uppercase tracking-wider opacity-70">
                             {label}
                         </p>
@@ -252,12 +207,12 @@ export default function MemberManagement() {
             {/* ── Main layout ── */}
             <div className="flex flex-col lg:flex-row gap-6">
                 {/* ── Table card ── */}
-                <div className="flex-1 bg-surface rounded-3xl border border-border shadow-sm overflow-hidden min-w-0">
+                <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0">
                     {/* Toolbar */}
                     <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
                         <div className="relative flex-1 min-w-48">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">
-                                🔍
+                                <Search size={14} />
                             </span>
                             <input
                                 value={search}
@@ -267,7 +222,7 @@ export default function MemberManagement() {
                                 }}
                                 type="text"
                                 placeholder="Search name, email, phone…"
-                                className="w-full pl-9 pr-4 py-2 bg-surface border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none transition-all text-text-primary"
+                                className="w-full pl-9 pr-4 py-2 bg-surface border border-border text-sm focus:ring-2 focus:ring-primary outline-none transition-all text-text-primary"
                             />
                         </div>
 
@@ -277,7 +232,7 @@ export default function MemberManagement() {
                                 setFilterStatus(e.target.value as FilterStatus);
                                 setPage(1);
                             }}
-                            className="px-3 py-2 bg-surface border border-border rounded-xl text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+                            className="px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
                         >
                             <option value="all">All Accounts</option>
                             <option value="active">Active</option>
@@ -291,7 +246,7 @@ export default function MemberManagement() {
                                 setFilterSub(e.target.value as FilterSub);
                                 setPage(1);
                             }}
-                            className="px-3 py-2 bg-surface border border-border rounded-xl text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+                            className="px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
                         >
                             <option value="all">All Plans</option>
                             <option value="active">Active Plan</option>
@@ -321,6 +276,7 @@ export default function MemberManagement() {
                                                 label: "Member",
                                                 key: "first_name",
                                             },
+
                                             {
                                                 label: "Status",
                                                 key: "account_status",
@@ -377,11 +333,6 @@ export default function MemberManagement() {
                                         <MemberRow
                                             key={m.id}
                                             m={m}
-                                            isLoading={isLoading}
-                                            isSelected={
-                                                selectedMember?.id === m.id
-                                            }
-                                            fetchInsight={fetchInsight}
                                             onSetPlan={setSubscriptionMember}
                                             onSuspend={handleSuspend}
                                             onBan={handleBan}
@@ -394,7 +345,6 @@ export default function MemberManagement() {
                         </table>
                     </div>
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
                             <span className="text-xs text-text-secondary">
@@ -443,151 +393,13 @@ export default function MemberManagement() {
                                         )
                                     }
                                     disabled={page === totalPages}
-                                    className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
+                                    className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
                                 >
                                     Next →
                                 </button>
                             </div>
                         </div>
                     )}
-                </div>
-
-                {/* ── AI Insight panel ── */}
-                <div className="lg:w-80 space-y-4 shrink-0">
-                    <div className="bg-surface border border-border rounded-3xl p-6">
-                        <h4 className="text-base font-bold mb-4 flex items-center gap-2 text-text-primary">
-                            <span className="text-lg">✨</span> Member Coach AI
-                        </h4>
-
-                        {selectedMember ? (
-                            <div className="space-y-4">
-                                <div className="pb-4 border-b border-border">
-                                    <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest mb-1">
-                                        Analysing
-                                    </p>
-                                    <p className="text-lg font-black leading-tight text-text-primary">
-                                        {selectedMember.first_name}{" "}
-                                        {selectedMember.last_name}
-                                    </p>
-                                    <p className="text-xs text-text-secondary mt-0.5">
-                                        {selectedMember.email}
-                                    </p>
-
-                                    <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                                        {[
-                                            {
-                                                label: "Plan",
-                                                val:
-                                                    selectedMember.plan_name ??
-                                                    "—",
-                                            },
-                                            {
-                                                label: "Visits",
-                                                val:
-                                                    selectedMember.total_visits_this_month ??
-                                                    0,
-                                            },
-                                            {
-                                                label: "Attendance",
-                                                val: `${selectedMember.attendance_rate}%`,
-                                            },
-                                        ].map(({ label, val }) => (
-                                            <div
-                                                key={label}
-                                                className="bg-background rounded-xl p-2 border border-border"
-                                            >
-                                                <p className="text-[9px] text-text-secondary uppercase font-bold">
-                                                    {label}
-                                                </p>
-                                                <p className="text-sm font-black truncate text-text-primary">
-                                                    {val}
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="text-sm leading-relaxed text-text-secondary bg-background p-4 rounded-2xl min-h-30 max-h-64 overflow-y-auto border border-border">
-                                    {isLoading && !insight ? (
-                                        <div className="flex flex-col gap-2 items-center justify-center h-24">
-                                            <div className="w-7 h-7 border-[3px] border-border border-t-primary rounded-full animate-spin" />
-                                            <span className="text-[11px] text-text-secondary animate-pulse">
-                                                {currentState || "Connecting…"}
-                                            </span>
-                                        </div>
-                                    ) : (
-                                        <div className="whitespace-pre-line">
-                                            {insight}
-                                        </div>
-                                    )}
-                                    {isLoading && insight && (
-                                        <span className="inline-block w-1.5 h-4 bg-primary ml-1 animate-pulse align-middle" />
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <button
-                                        onClick={() =>
-                                            fetchInsight(selectedMember)
-                                        }
-                                        disabled={isLoading}
-                                        className="w-full py-2.5 border border-border text-text-primary text-sm font-semibold rounded-xl hover:bg-border transition-colors disabled:opacity-40"
-                                    >
-                                        🔄 Regenerate Insight
-                                    </button>
-                                    <button
-                                        onClick={() =>
-                                            handleSendEmail(selectedMember)
-                                        }
-                                        disabled={isLoading || !insight}
-                                        className="w-full py-2.5 bg-primary text-background text-sm font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-sm disabled:opacity-40"
-                                    >
-                                        📧 Send Motivational Email
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center gap-3 py-10 px-4 border-2 border-dashed border-border rounded-2xl bg-background/50 text-center">
-                                <span className="text-3xl">🏋️</span>
-                                <p className="text-sm text-text-secondary leading-relaxed">
-                                    Click{" "}
-                                    <strong className="text-text-primary">
-                                        AI Insight
-                                    </strong>{" "}
-                                    on any member to generate personalised
-                                    coaching tips.
-                                </p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Legend */}
-                    <div className="bg-surface rounded-2xl border border-border p-4 space-y-2">
-                        <p className="text-[11px] font-bold uppercase tracking-widest text-text-secondary">
-                            Attendance Legend
-                        </p>
-                        {[
-                            { color: "bg-emerald-500", label: "> 80% — Great" },
-                            {
-                                color: "bg-amber-500",
-                                label: "50–80% — Moderate",
-                            },
-                            {
-                                color: "bg-rose-500",
-                                label: "< 50% — Needs attention",
-                            },
-                        ].map(({ color, label }) => (
-                            <div
-                                key={label}
-                                className="flex items-center gap-2 text-xs text-text-secondary"
-                            >
-                                <span
-                                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${color}`}
-                                />
-                                {label}
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </div>
 

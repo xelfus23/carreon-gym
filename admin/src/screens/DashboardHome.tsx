@@ -145,7 +145,7 @@ const DashboardHome: React.FC = () => {
             {/* ── Row 2: Attendance Chart + AI Insight ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Attendance Chart */}
-                <div className="lg:col-span-2 bg-surface p-6 rounded-3xl border border-border shadow-sm">
+                <div className="lg:col-span-2 bg-surface p-6 border border-border shadow-sm">
                     <div className="flex items-center justify-between mb-6">
                         <div>
                             <h3 className="text-lg font-bold text-text-primary">
@@ -237,7 +237,7 @@ const DashboardHome: React.FC = () => {
                 </div>
 
                 {/* AI Insight Panel */}
-                <div className="bg-surface border border-border text-text-primary p-6 rounded-3xl shadow-xl flex flex-col">
+                <div className="bg-surface border border-border text-text-primary p-6 shadow-xl flex flex-col">
                     <div className="flex items-center gap-3 mb-6">
                         <span className="text-2xl">✨</span>
                         <div>
@@ -251,7 +251,7 @@ const DashboardHome: React.FC = () => {
                     </div>
 
                     <div className="flex-1 overflow-auto">
-                        <div className="text-text-secondary leading-relaxed text-sm whitespace-pre-line bg-background p-4 rounded-xl border border-border min-h-[150px]">
+                        <div className="text-text-secondary leading-relaxed text-sm whitespace-pre-line bg-background p-4 border border-border min-h-[150px]">
                             {statsLoading ? (
                                 <span className="text-text-secondary text-xs animate-pulse">
                                     Waiting for stats to load…
@@ -267,7 +267,7 @@ const DashboardHome: React.FC = () => {
                         </div>
                     </div>
 
-                    <button className="mt-6 w-full py-3 bg-primary text-background font-bold rounded-xl hover:bg-primary-dark transition-colors">
+                    <button className="mt-6 w-full py-3 bg-primary text-background font-bold hover:bg-primary-dark transition-colors">
                         Generate Report
                     </button>
                 </div>
@@ -276,7 +276,7 @@ const DashboardHome: React.FC = () => {
             {/* ── Row 3: Revenue Chart + Peak Hours ── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Monthly Revenue Chart */}
-                <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm">
+                <div className="bg-surface p-6 border border-border shadow-sm">
                     <div className="mb-6">
                         <h3 className="text-lg font-bold text-text-primary">
                             Monthly Revenue
@@ -376,7 +376,7 @@ const DashboardHome: React.FC = () => {
                 </div>
 
                 {/* Peak Hours Chart */}
-                <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm">
+                <div className="bg-surface p-6 border border-border shadow-sm">
                     <div className="mb-6">
                         <h3 className="text-lg font-bold text-text-primary">
                             Peak Hours
@@ -528,7 +528,7 @@ const StatCard: React.FC<{
     };
 
     return (
-        <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm">
+        <div className="bg-surface p-6 border border-border shadow-sm">
             <p className="text-sm font-medium text-text-secondary mb-1">
                 {title}
             </p>
@@ -559,7 +559,7 @@ const MetricTile: React.FC<{
     positive?: boolean;
 }> = ({ label, value, icon, loading, alert, positive }) => (
     <div
-        className={`bg-surface p-5 rounded-2xl border shadow-sm flex items-center gap-4 ${
+        className={`bg-surface p-5 border shadow-sm flex items-center gap-4 ${
             alert ? "border-amber-500/40" : "border-border"
         }`}
     >

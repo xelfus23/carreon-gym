@@ -26,6 +26,21 @@ export class SessionExpiredError extends Error {
     }
 }
 
+async function shouldAttemptRefresh(res: Response): Promise<boolean> {
+    if (res.status === 401) return true;
+    if (res.status !== 400) return false;
+
+    try {
+        const payload = await res.clone().json();
+        return (
+            payload?.code === "MISSING_ACCESS_TOKEN" ||
+            payload?.message === "No access token provided"
+        );
+    } catch {
+        return false;
+    }
+}
+
 async function fetchWithRefresh(
     input: RequestInfo,
     init: RequestInit = {},
@@ -37,7 +52,7 @@ async function fetchWithRefresh(
 
     const res = await fetch(input, { ...defaults, ...init });
 
-    if (res.status !== 401) return res;
+    if (!(await shouldAttemptRefresh(res))) return res;
 
     if (isRefreshing) {
         await new Promise<void>((resolve, reject) => {
