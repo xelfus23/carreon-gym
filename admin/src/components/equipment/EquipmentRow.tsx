@@ -5,7 +5,7 @@ import { getMuscleStyle } from "./equipmentConstants";
 
 export function CategoryBadge({ category }: { category: string }) {
     return (
-        <span className="shrink-0 text-[0.6rem] font-bold tracking-widest uppercase text-primary bg-primary/8 border border-primary/25 rounded px-2 py-0.5 whitespace-nowrap">
+        <span className="shrink-0 text-[0.6rem] font-bold tracking-widest uppercase text-primary bg-primary/8 rounded px-2 py-0.5 whitespace-nowrap">
             {category}
         </span>
     );
@@ -17,7 +17,7 @@ export function MuscleTag({ muscle }: { muscle: string }) {
     const s = getMuscleStyle(muscle);
     return (
         <span
-            className={`text-[0.65rem] font-semibold tracking-wide ${s.text} ${s.bg} border ${s.border} rounded px-1.5 py-0.5 whitespace-nowrap`}
+            className={`text-[0.65rem] font-semibold tracking-wide ${s.text} ${s.bg} rounded px-1.5 py-0.5 whitespace-nowrap`}
         >
             {muscle.trim()}
         </span>

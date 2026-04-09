@@ -36,7 +36,7 @@ export default function EquipmentTab() {
     const [sortKey, setSortKey] = useState<SortKey>("equipment_name");
     const [sortDir, setSortDir] = useState<SortDir>("asc");
     const [page, setPage] = useState(1);
-    const PAGE_SIZE = 20;
+    const PAGE_SIZE = 50;
 
     const categories = useMemo(
         () =>
@@ -108,7 +108,6 @@ export default function EquipmentTab() {
     return (
         <>
             <div className="flex flex-col gap-4">
-                {/* ── Toolbar ── */}
                 <div className="flex items-center justify-between">
                     {!isLoading && !error && (
                         <p className="text-xs text-text-secondary">
@@ -167,7 +166,7 @@ export default function EquipmentTab() {
                     <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
                         <div className="relative flex-1 min-w-48">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">
-                                <Search size={14}/>
+                                <Search size={14} />
                             </span>
                             <input
                                 value={search}
@@ -198,9 +197,9 @@ export default function EquipmentTab() {
                         </select>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto overflow-y-scroll h-175">
                         <table className="text-left text-sm w-full">
-                            <thead>
+                            <thead className="sticky top-0">
                                 <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
                                     {(
                                         [
@@ -270,7 +269,7 @@ export default function EquipmentTab() {
                         </table>
                     </div>
 
-                    {!isLoading && totalPages > 1 && (
+                    {!isLoading && (
                         <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
                             <span className="text-xs text-text-secondary">
                                 Page {page} of {totalPages}

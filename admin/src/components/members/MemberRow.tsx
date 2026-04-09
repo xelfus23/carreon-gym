@@ -252,7 +252,7 @@ export default function MemberRow({
             {/* Member */}
             <td className="px-5 py-3.5">
                 <div
-                    className={`font-semibold ${m.role === "admin" ? "text-yellow-300" : "text-primary"} leading-tight`}
+                    className={`font-semibold text-text-primary leading-tight`}
                 >
                     {m.first_name} {m.last_name}
                 </div>

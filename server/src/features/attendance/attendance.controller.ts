@@ -19,7 +19,6 @@ export const checkIn = catchAsync(async (req: Request, res: Response) => {
         });
     }
 
-    // Validate request body
     const validation = CheckInSchema.safeParse(req.body);
 
     if (!validation.success) {
@@ -32,7 +31,7 @@ export const checkIn = catchAsync(async (req: Request, res: Response) => {
 
     const { qr_data } = validation.data;
 
-    if (qr_data !== "GYM:main") {
+    if (qr_data !== "GYM:in") {
         return res.status(400).json({
             success: false,
             message: "Invalid gym QR code. Please scan the correct QR code",
@@ -54,7 +53,26 @@ export const checkOut = catchAsync(async (req: Request, res: Response) => {
     if (!userId) {
         return res.status(401).json({
             success: false,
-            message: "Unauthorized",
+            message: "Invalid user ID provided.",
+        });
+    }
+
+    const validation = CheckInSchema.safeParse(req.body);
+
+    if (!validation.success) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid QR code data",
+            errors: validation.error,
+        });
+    }
+
+    const { qr_data } = validation.data;
+
+    if (qr_data !== "GYM:out") {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid gym QR code. Please scan the correct QR code",
         });
     }
 

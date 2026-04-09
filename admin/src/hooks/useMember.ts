@@ -4,11 +4,21 @@ import type { AdminMemberListItem } from "../types";
 
 export const useMember = () => {
     const [members, setMembers] = useState<AdminMemberListItem[]>([]);
+    const [admins, setAdmins] = useState<AdminMemberListItem[]>([]);
 
     const refetch = useCallback(async () => {
         try {
             const result = await memberService.getMember();
-            setMembers(result.data ?? []);
+            setMembers(
+                result.data.filter(
+                    (v: AdminMemberListItem) => v.role !== "admin",
+                ) ?? [],
+            );
+            setAdmins(
+                result.data.filter(
+                    (v: AdminMemberListItem) => v.role !== "member",
+                ) ?? [],
+            );
         } catch (err) {
             if (err instanceof Error) console.log(err.message);
         }
@@ -20,7 +30,19 @@ export const useMember = () => {
         const fetchMembers = async () => {
             try {
                 const result = await memberService.getMember();
-                if (!cancelled) setMembers(result.data ?? []);
+
+                if (!cancelled) {
+                    setMembers(
+                        result.data.filter(
+                            (v: AdminMemberListItem) => v.role !== "admin",
+                        ) ?? [],
+                    );
+                    setAdmins(
+                        result.data.filter(
+                            (v: AdminMemberListItem) => v.role !== "member",
+                        ) ?? [],
+                    );
+                }
             } catch (err) {
                 if (err instanceof Error) console.log(err.message);
             }
@@ -35,6 +57,7 @@ export const useMember = () => {
 
     return {
         members,
+        admins,
         refetch,
     };
 };

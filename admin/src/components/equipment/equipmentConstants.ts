@@ -12,8 +12,6 @@ export const MUSCLE_GROUPS = [
     "Cardio",
 ];
 
-// Tailwind doesn't support dynamic class names, so we map each muscle to
-// a fixed set of classes for bg, border, and text color.
 export const MUSCLE_STYLE: Record<
     string,
     { text: string; bg: string; border: string }
@@ -62,8 +60,6 @@ export const MUSCLE_STYLE: Record<
 
 export const getMuscleStyle = (muscle: string) =>
     MUSCLE_STYLE[muscle.toLowerCase().trim()] ?? MUSCLE_STYLE.default;
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export type FormState = {
     equipment_name: string;

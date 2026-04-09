@@ -23,7 +23,7 @@ export default function MemberManagement() {
     const [sortKey, setSortKey] = useState<SortKey>("created_at");
     const [sortDir, setSortDir] = useState<SortDir>("desc");
     const [page, setPage] = useState(1);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 50;
 
     // Confirm dialog state
     const [confirmDialog, setConfirmDialog] = useState<{
@@ -261,10 +261,9 @@ export default function MemberManagement() {
                         </span>
                     </div>
 
-                    {/* Table */}
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto overflow-y-auto h-162">
                         <table className="text-left text-sm w-full">
-                            <thead>
+                            <thead className="sticky top-0">
                                 <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
                                     {(
                                         [
@@ -345,7 +344,7 @@ export default function MemberManagement() {
                         </table>
                     </div>
 
-                    {totalPages > 1 && (
+                    {
                         <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
                             <span className="text-xs text-text-secondary">
                                 Page {page} of {totalPages}
@@ -399,7 +398,7 @@ export default function MemberManagement() {
                                 </button>
                             </div>
                         </div>
-                    )}
+                    }
                 </div>
             </div>
 

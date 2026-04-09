@@ -6,7 +6,7 @@ import {
     Animated,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import React, { SetStateAction, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { CheckInService } from "@/src/services/checkInService";
 import { useUserProfile } from "@/src/context/profileProvider";
@@ -18,45 +18,42 @@ export default function Camera() {
     const [scanning, setScanning] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const isPermissionGranted = Boolean(permission?.granted);
-    const [checkState, setCheckState] = useState<"in" | "out">("in");
 
     useEffect(() => {
         if (!permission) requestPermission();
     }, [permission, requestPermission]);
 
     const handleBarcodeScan = async ({ data }: { data: string }) => {
-        if (scanned || scanning) return;
+        if (scanning) return;
 
-        setScanned(true);
         setScanning(true);
         setError(null);
 
         try {
-            const result = sessionStatus?.has_active_session
-                ? await CheckInService.checkOut()
-                : await CheckInService.checkIn(data);
+            let result;
 
-            if (!result.success) {
-                setError(result.message || "Something went wrong");
-                setScanning(false);
-                setScanned(false);
+            if (data === "GYM:in") {
+                result = await CheckInService.checkIn(data);
+            } else if (data === "GYM:out") {
+                result = await CheckInService.checkOut(data);
+            } else {
+                throw new Error("Invalid QR Code");
             }
 
-            refreshProfile();
-            setScanning(false);
+            if (!result.success) {
+                throw new Error(result.message || "Action failed");
+            }
+
+            await refreshProfile();
         } catch (err: any) {
-            setError(err.message || "Failed to check in");
-            setScanning(false);
-            setScanned(false);
+            setError(err.message || "An unexpected error occurred");
+        } finally {
+            setTimeout(() => {
+                setScanning(false);
+                setError(null);
+            }, 3000);
         }
-
-        setTimeout(() => {
-            setScanned(false);
-            setScanning(false);
-            setError(null);
-        }, 3000);
     };
-
     return (
         <View className="flex-1">
             {!isPermissionGranted ? (
@@ -90,8 +87,6 @@ export default function Camera() {
                         }
                     />
                     <Overlay
-                        checkState={checkState}
-                        setCheckState={setCheckState}
                         scanning={scanning}
                         scanned={scanned}
                         error={error}
@@ -106,14 +101,10 @@ const Overlay = ({
     scanning,
     scanned,
     error,
-    checkState,
-    setCheckState,
 }: {
     scanning: boolean;
     scanned: boolean;
     error: string | null;
-    checkState: "in" | "out";
-    setCheckState: React.Dispatch<SetStateAction<"in" | "out">>;
 }) => {
     const scanLineAnim = useRef(new Animated.Value(0)).current;
     const { sessionStatus } = useUserProfile();
@@ -311,20 +302,6 @@ const Overlay = ({
                         <Text className="text-danger">Checked Out</Text>
                     )}
                 </Text>
-                <View className="flex flex-row w-full items-center justify-evenly">
-                    <TouchableOpacity
-                        onPress={() => setCheckState("in")}
-                        className={`bg-surface ${checkState === "in" ? "border-primary" : "border-border"} border px-12 py-4 rounded-xl`}
-                    >
-                        <Text className="text-text-primary">Check In</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => setCheckState("out")}
-                        className={`bg-surface ${checkState === "out" ? "border-primary" : "border-border"} border px-12 py-4 rounded-xl`}
-                    >
-                        <Text className="text-text-primary">Check Out</Text>
-                    </TouchableOpacity>
-                </View>
             </View>
 
             {/* Bottom gradient overlay */}

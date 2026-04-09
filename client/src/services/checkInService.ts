@@ -2,7 +2,7 @@ import { request } from "../utils/request";
 
 export class CheckInService {
     static async checkIn(qrData: string) {
-        if (qrData !== "GYM:main") {
+        if (qrData !== "GYM:in") {
             throw new Error(
                 "Invalid QR code. Please scan the gym entrance QR code.",
             );
@@ -18,8 +18,20 @@ export class CheckInService {
         ).data;
     }
 
-    static async checkOut() {
-        return (await request(`/attendance/checkout`)).data;
+    static async checkOut(qrData: string) {
+        if (qrData !== "GYM:out") {
+            throw new Error(
+                "Invalid QR code. Please scan the gym entrance QR code.",
+            );
+        }
+        return (
+            await request(`/attendance/checkout`, {
+                method: "POST",
+                body: JSON.stringify({
+                    qr_data: qrData,
+                }),
+            })
+        ).data;
     }
 
     static async getSessionStatus() {
