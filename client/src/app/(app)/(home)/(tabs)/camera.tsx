@@ -4,6 +4,7 @@ import {
     TouchableOpacity,
     View,
     Animated,
+    ActivityIndicator,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import React, { useEffect, useRef, useState } from "react";
@@ -12,11 +13,13 @@ import { CheckInService } from "@/src/services/checkInService";
 import { useUserProfile } from "@/src/context/profileProvider";
 
 export default function Camera() {
-    const { sessionStatus, refreshProfile } = useUserProfile();
+    const { refreshProfile } = useUserProfile();
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
     const [scanning, setScanning] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
     const isPermissionGranted = Boolean(permission?.granted);
 
     useEffect(() => {
@@ -24,38 +27,39 @@ export default function Camera() {
     }, [permission, requestPermission]);
 
     const handleBarcodeScan = async ({ data }: { data: string }) => {
-        if (scanning) return;
+        if (scanning || scanned) return;
 
         setScanning(true);
         setError(null);
+        setSuccessMessage(null);
 
         try {
-            let result;
-
             if (data === "GYM:in") {
-                result = await CheckInService.checkIn(data);
+                await CheckInService.checkIn(data);
+                setSuccessMessage("Check-in successful!");
             } else if (data === "GYM:out") {
-                result = await CheckInService.checkOut(data);
+                await CheckInService.checkOut(data);
+                setSuccessMessage("Check-out successful!");
             } else {
                 throw new Error("Invalid QR Code");
             }
 
-            if (!result.success) {
-                throw new Error(result.message || "Action failed");
-            }
-
+            setScanned(true);
             await refreshProfile();
         } catch (err: any) {
             setError(err.message || "An unexpected error occurred");
         } finally {
+            setScanning(false);
             setTimeout(() => {
-                setScanning(false);
+                setScanned(false);
                 setError(null);
+                setSuccessMessage(null);
             }, 3000);
         }
     };
+
     return (
-        <View className="flex-1">
+        <View className="flex-1 bg-black">
             {!isPermissionGranted ? (
                 <View className="bg-background flex-1 items-center justify-center gap-4 px-6">
                     <Text className="text-6xl mb-4">📷</Text>
@@ -90,6 +94,7 @@ export default function Camera() {
                         scanning={scanning}
                         scanned={scanned}
                         error={error}
+                        successMessage={successMessage}
                     />
                 </>
             )}
@@ -101,16 +106,17 @@ const Overlay = ({
     scanning,
     scanned,
     error,
+    successMessage,
 }: {
     scanning: boolean;
     scanned: boolean;
     error: string | null;
+    successMessage: string | null;
 }) => {
     const scanLineAnim = useRef(new Animated.Value(0)).current;
     const { sessionStatus } = useUserProfile();
 
     useEffect(() => {
-        // Only animate scan line when not in a final state (success/error)
         if (!scanning && !scanned && !error) {
             const animation = Animated.loop(
                 Animated.sequence([
@@ -133,57 +139,55 @@ const Overlay = ({
 
     const scanLineTranslateY = scanLineAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: [0, 250], // Height of scan box
+        outputRange: [0, 250],
     });
 
-    // Determine current state for UI
     const isError = Boolean(error);
     const isSuccess = scanned && !error;
-    const isScanning = scanning;
     const isIdle = !scanning && !scanned && !error;
 
     return (
         <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
+            {/* Top UI */}
             <LinearGradient
-                colors={["rgba(15, 15, 15, 0.95)", "rgba(15, 15, 15, 0.3)"]}
-                style={{ flex: 1 }}
+                colors={["rgba(15, 15, 15, 0.9)", "transparent"]}
+                className="h-1/3 items-center justify-center pt-10"
             >
-                <View className="flex-1 items-center justify-center">
-                    <Text className="text-text-primary text-2xl font-bold">
-                        {isSuccess
-                            ? "✅ Success!"
-                            : isError
-                              ? "❌ Error"
-                              : isScanning
-                                ? "⏳ Verifying..."
-                                : "Scan QR Code"}
-                    </Text>
-                    <Text className="text-text-secondary text-sm mt-2 text-center px-6">
-                        {isSuccess
-                            ? "Check-in successful!"
-                            : isError
-                              ? error
-                              : isScanning
-                                ? "Processing check-in..."
-                                : "Align QR code within the frame"}
-                    </Text>
-                </View>
+                <Text className="text-white text-2xl font-bold">
+                    {isSuccess
+                        ? "✅ Done!"
+                        : isError
+                          ? "❌ Error"
+                          : scanning
+                            ? "⏳ Verifying..."
+                            : "Scan QR Code"}
+                </Text>
+                <Text className="text-gray-300 text-sm mt-2 text-center px-6">
+                    {isSuccess
+                        ? successMessage
+                        : isError
+                          ? error
+                          : scanning
+                            ? "Processing..."
+                            : "Align QR code within the frame"}
+                </Text>
             </LinearGradient>
 
-            {/* Center scan box with corners */}
-            <View className="absolute inset-0 items-center justify-center">
-                <View className="relative">
-                    {/* Scan frame */}
+            {/* Center Scan Area */}
+            <View
+                className="flex-1 items-center justify-center"
+                pointerEvents="none"
+            >
+                <View className="relative w-64 h-64">
                     <View
                         className={`w-64 h-64 border-2 rounded-3xl ${
                             isSuccess
                                 ? "border-primary"
                                 : isError
                                   ? "border-danger"
-                                  : "border-text-secondary/40"
+                                  : "border-white/20"
                         }`}
                     >
-                        {/* Corner accents */}
                         <CornerAccent
                             position="top-left"
                             state={
@@ -225,16 +229,15 @@ const Overlay = ({
                             }
                         />
 
-                        {/* Animated scan line - only show when idle */}
                         {isIdle && (
                             <Animated.View
                                 style={{
                                     position: "absolute",
-                                    left: 0,
-                                    right: 0,
-                                    height: 2,
+                                    left: 10,
+                                    right: 10,
+                                    height: 3,
                                     backgroundColor: "#7CFF00",
-                                    opacity: 0.8,
+                                    borderRadius: 2,
                                     transform: [
                                         { translateY: scanLineTranslateY },
                                     ],
@@ -242,110 +245,62 @@ const Overlay = ({
                             />
                         )}
 
-                        {/* Success pulse */}
-                        {isSuccess && (
-                            <View className="absolute inset-0 bg-primary/20 rounded-3xl" />
-                        )}
-
-                        {/* Error pulse */}
-                        {isError && (
-                            <View className="absolute inset-0 bg-danger/20 rounded-3xl" />
-                        )}
-
-                        {/* Loading spinner */}
-                        {isScanning && (
+                        {scanning && (
                             <View className="absolute inset-0 items-center justify-center">
-                                <View className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                <ActivityIndicator
+                                    size="large"
+                                    color="#7CFF00"
+                                />
                             </View>
                         )}
-                    </View>
 
-                    {/* Scan area label */}
-                    <View className="absolute -bottom-24 left-0 right-0 items-center">
-                        <View
-                            className={`px-4 py-2 rounded-full border ${
-                                isSuccess
-                                    ? "bg-primary/20 border-primary"
-                                    : isError
-                                      ? "bg-danger/20 border-danger"
-                                      : "bg-surface/90 border-border"
-                            }`}
-                        >
-                            <Text
-                                className={`text-xs font-medium ${
-                                    isSuccess
-                                        ? "text-primary"
-                                        : isError
-                                          ? "text-danger"
-                                          : "text-text-secondary"
-                                }`}
-                            >
-                                {isSuccess
-                                    ? "Check-in complete"
-                                    : isError
-                                      ? "Scan failed - try again"
-                                      : isScanning
-                                        ? "Verifying..."
-                                        : "Active scanning"}
-                            </Text>
-                        </View>
+                        {(isSuccess || isError) && (
+                            <View
+                                className={`absolute inset-0 rounded-3xl ${isSuccess ? "bg-primary/20" : "bg-danger/20"}`}
+                            />
+                        )}
                     </View>
                 </View>
             </View>
 
-            <View className="absolute z-10 bottom-4 flex items-center gap-4 justify-center w-full">
-                <Text className="text-text-primary">
-                    Current Status:{" "}
-                    {sessionStatus?.has_active_session ? (
-                        <Text className="text-primary">Checked In</Text>
-                    ) : (
-                        <Text className="text-danger">Checked Out</Text>
-                    )}
-                </Text>
-            </View>
-
-            {/* Bottom gradient overlay */}
+            {/* Bottom UI */}
             <LinearGradient
-                colors={["rgba(15, 15, 15, 0.3)", "rgba(15, 15, 15, 0.95)"]}
-                style={{ flex: 1 }}
-            />
+                colors={["transparent", "rgba(15, 15, 15, 0.9)"]}
+                className="h-1/3 items-center justify-end pb-10"
+            >
+                <View className="bg-black/50 px-4 py-2 rounded-full mb-4">
+                    <Text className="text-white text-xs">
+                        Status:{" "}
+                        {sessionStatus?.has_active_session
+                            ? "Checked In"
+                            : "Checked Out"}
+                    </Text>
+                </View>
+            </LinearGradient>
         </View>
     );
 };
 
-// Corner accent component with state support
 const CornerAccent = ({
     position,
     state,
 }: {
-    position: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+    position: string;
     state: "idle" | "success" | "error";
 }) => {
-    const positionStyles = {
-        "top-left": "top-0 left-0",
-        "top-right": "top-0 right-0",
-        "bottom-left": "bottom-0 left-0",
-        "bottom-right": "bottom-0 right-0",
-    };
+    const pos = {
+        "top-left": "top-0 left-0 border-t-4 border-l-4 rounded-tl-3xl",
+        "top-right": "top-0 right-0 border-t-4 border-r-4 rounded-tr-3xl",
+        "bottom-left": "bottom-0 left-0 border-b-4 border-l-4 rounded-bl-3xl",
+        "bottom-right": "bottom-0 right-0 border-b-4 border-r-4 rounded-br-3xl",
+    }[position];
 
-    const borderStyles = {
-        "top-left": "border-t-4 border-l-4 rounded-tl-3xl",
-        "top-right": "border-t-4 border-r-4 rounded-tr-3xl",
-        "bottom-left": "border-b-4 border-l-4 rounded-bl-3xl",
-        "bottom-right": "border-b-4 border-r-4 rounded-br-3xl",
-    };
+    const color =
+        state === "success"
+            ? "border-primary"
+            : state === "error"
+              ? "border-danger"
+              : "border-white";
 
-    const stateColors = {
-        idle: "border-text-primary",
-        success: "border-primary",
-        error: "border-danger",
-    };
-
-    return (
-        <View
-            className={`absolute ${positionStyles[position]} w-8 h-8 ${
-                borderStyles[position]
-            } ${stateColors[state]}`}
-        />
-    );
+    return <View className={`absolute w-8 h-8 ${pos} ${color}`} />;
 };

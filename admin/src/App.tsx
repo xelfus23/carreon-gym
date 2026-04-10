@@ -8,6 +8,7 @@ import Sidebar from "./components/SideBar";
 import QRTab from "./screens/QRTab";
 import MemberManagement from "./screens/MemberManagement";
 import EquipmentTab from "./screens/EquipmentTab";
+import AttendanceLog from "./screens/AttendanceLog";
 
 const App: React.FC = () => {
     const [currentTab, setCurrentTab] = useState<NavItem>(NavItem.DASHBOARD);
@@ -36,6 +37,8 @@ const App: React.FC = () => {
                 return <DashboardHome />;
             case NavItem.MEMBERS:
                 return <MemberManagement />;
+            case NavItem.ATTENDANCE_LOG:
+                return <AttendanceLog />;
             case NavItem.GYM_EQUIPMENTS:
                 return <EquipmentTab />;
             case NavItem.AI_INSIGHTS:

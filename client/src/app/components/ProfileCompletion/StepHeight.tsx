@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 import {
     Text,
     TouchableOpacity,
@@ -7,14 +7,12 @@ import {
     NativeSyntheticEvent,
     NativeScrollEvent,
 } from "react-native";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { ChevronRight } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import { ProfileCompletionScreenProps } from "../../(app)/(home)/profile-completion";
 
-const ITEM_HEIGHT = 40;
-const HEIGHT_DATA = Array.from({ length: 1501 }, (_, i) =>
-    (100 + i * 0.1).toFixed(1),
-);
+const ITEM_HEIGHT = 50;
+const HEIGHT_DATA = Array.from({ length: 151 }, (_, i) => (250 - i).toString());
 
 export default function StepHeight({
     data,
@@ -23,69 +21,63 @@ export default function StepHeight({
     onBack,
 }: ProfileCompletionScreenProps) {
     const flatListRef = useRef<FlatList>(null);
+    const lastIndexRef = useRef<number>(-1);
 
-    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const yOffset = event.nativeEvent.contentOffset.y;
-        const index = Math.round(yOffset / ITEM_HEIGHT);
-        const newValue = parseFloat(HEIGHT_DATA[index]);
+    const handleScroll = useCallback(
+        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            const yOffset = event.nativeEvent.contentOffset.y;
+            const index = Math.round(yOffset / ITEM_HEIGHT);
 
-        if (!isNaN(newValue) && newValue !== data?.heightCm) {
-            setData!((prev) => ({ ...prev, heightCm: newValue }));
-        }
-    };
+            // Skip update if same index
+            if (index === lastIndexRef.current) return;
+            lastIndexRef.current = index;
 
-    const renderItem = ({ item, index }: { item: string; index: number }) => {
-        const val = parseFloat(item);
-        const isMajor = val % 1 === 0; // Whole numbers (170.0)
-        const isHalf = val % 0.5 === 0; // Half numbers (170.5)
-        const isSelected = data?.heightCm === val;
+            if (HEIGHT_DATA[index]) {
+                const newValue = parseInt(HEIGHT_DATA[index]);
+                if (!isNaN(newValue)) {
+                    setData!((prev) => ({ ...prev, heightCm: newValue }));
+                }
+            }
+        },
+        [setData],
+    );
 
-        return (
-            <View
-                style={{ height: ITEM_HEIGHT }}
-                className="flex-row items-center justify-center px-6"
-            >
-                {/* Left Ticks */}
-                <View className="flex-1 items-end pr-4">
+    const renderItem = useCallback(
+        ({ item }: { item: string }) => {
+            const val = parseInt(item);
+            const isSelected = data?.heightCm === val;
+            const isMajor = val % 10 === 0;
+
+            return (
+                <View
+                    style={{ height: ITEM_HEIGHT }}
+                    className="flex-row items-center justify-start px-4"
+                >
                     <View
                         className={`h-[2px] rounded-full ${
-                            isMajor
-                                ? "w-10 bg-primary"
-                                : isHalf
-                                  ? "w-6 bg-text-secondary"
-                                  : "w-3 bg-border"
-                        }`}
+                            isMajor ? "w-12 bg-primary" : "w-6 bg-border"
+                        } ${isSelected ? "bg-primary w-16" : ""}`}
                     />
-                </View>
-
-                {/* Number (Only show for whole numbers to avoid clutter) */}
-                <View className="w-20 items-center">
-                    {isMajor && (
+                    <View className="ml-4">
                         <Text
-                            className={`text-xl ${isSelected ? "text-primary font-black" : "text-text-secondary font-medium"}`}
+                            className={`${
+                                isSelected
+                                    ? "text-primary font-black text-lg scale-110"
+                                    : "text-text-secondary font-medium text-xs opacity-40"
+                            }`}
                         >
-                            {Math.floor(val)}
+                            {val}
                         </Text>
-                    )}
+                    </View>
                 </View>
-
-                <View className="flex-1 items-start pl-4">
-                    <View
-                        className={`h-[2px] rounded-full ${
-                            isMajor
-                                ? "w-10 bg-primary"
-                                : isHalf
-                                  ? "w-6 bg-text-secondary"
-                                  : "w-3 bg-border"
-                        }`}
-                    />
-                </View>
-            </View>
-        );
-    };
+            );
+        },
+        [data?.heightCm], // Only re-render items when selected value changes
+    );
 
     return (
         <View className="bg-background w-full flex-1 justify-center py-16">
+            {/* Header */}
             <View className="mb-8 px-4">
                 <Text className="text-xs font-semibold text-primary tracking-widest uppercase mb-2">
                     HEIGHT
@@ -93,72 +85,54 @@ export default function StepHeight({
                 <Text className="text-3xl font-extrabold text-text-primary tracking-tight mb-1">
                     Select your Height
                 </Text>
-                <Text className="text-base text-text-secondary leading-relaxed">
-                    Precise is better
-                </Text>
             </View>
 
-            <View className="flex-1 justify-center">
-                <View className="w-full items-center">
-                    <View className="justify-center w-1/2">
-                        <View className="absolute self-center w-full flex-row items-center justify-between px-2 z-10 pointer-events-none">
-                            <ChevronRight size={32} color={COLORS.primary} />
-                            <View className="absolute left-0 right-0 h-12 -z-10" />
-                            <ChevronLeft size={32} color={COLORS.primary} />
-                        </View>
-
-                        <View className="h-[400px] overflow-hidden">
-                            <FlatList
-                                ref={flatListRef}
-                                data={HEIGHT_DATA}
-                                keyExtractor={(item) => item}
-                                renderItem={renderItem}
-                                showsVerticalScrollIndicator={false}
-                                snapToInterval={ITEM_HEIGHT}
-                                decelerationRate="normal"
-                                onMomentumScrollEnd={handleScroll}
-                                onScrollBeginDrag={handleScroll}
-                                onScroll={handleScroll}
-                                scrollEventThrottle={16}
-                                contentContainerStyle={{ paddingVertical: 180 }}
-                                getItemLayout={(_, index) => ({
-                                    length: ITEM_HEIGHT,
-                                    offset: ITEM_HEIGHT * index,
-                                    index,
-                                })}
-                                initialScrollIndex={
-                                    data?.heightCm
-                                        ? Math.round(
-                                              (data?.heightCm - 100) / 0.1,
-                                          )
-                                        : 700
-                                }
-                            />
-                        </View>
-                    </View>
-                </View>
-
-                <View className="items-center">
+            <View className="flex-1 flex-row items-center">
+                {/* Left Side: Big Result Display */}
+                <View className="flex-1 items-center justify-center">
                     <View className="flex-row items-baseline">
-                        <Text className="text-text-primary text-6xl font-black">
-                            {Math.floor(data?.heightCm || 30)}
+                        <Text className="text-text-primary text-7xl font-black">
+                            {data?.heightCm || "170"}
                         </Text>
-                        <Text className="text-primary text-4xl font-bold">
-                            .
-                            {
-                                (data?.heightCm || 30 % 1)
-                                    .toFixed(1)
-                                    .split(".")[1]
-                            }
-                        </Text>
-                        <Text className="text-text-secondary text-xl ml-2 uppercase">
+                        <Text className="text-primary text-2xl ml-2 uppercase font-black">
                             cm
                         </Text>
                     </View>
                 </View>
+
+                {/* Right Side: The Ruler Picker */}
+                <View className="w-1/3 h-full justify-center">
+                    <View className="absolute left-[-20] self-center z-10 pointer-events-none">
+                        <ChevronRight size={32} color={COLORS.primary} />
+                    </View>
+
+                    <View className="h-[500px] overflow-hidden">
+                        <FlatList
+                            ref={flatListRef}
+                            data={HEIGHT_DATA}
+                            keyExtractor={(item) => item}
+                            renderItem={renderItem}
+                            showsVerticalScrollIndicator={false}
+                            snapToInterval={ITEM_HEIGHT}
+                            decelerationRate="fast"
+                            onScroll={handleScroll}
+                            scrollEventThrottle={8}
+                            contentContainerStyle={{ paddingVertical: 225 }}
+                            getItemLayout={(_, index) => ({
+                                length: ITEM_HEIGHT,
+                                offset: ITEM_HEIGHT * index,
+                                index,
+                            })}
+                            initialScrollIndex={
+                                data?.heightCm ? 250 - data.heightCm : 250 - 170
+                            }
+                        />
+                    </View>
+                </View>
             </View>
 
-            <View className="flex flex-row justify-evenly gap-4 px-4">
+            {/* Footer Buttons */}
+            <View className="flex flex-row justify-evenly gap-4 px-4 mt-8">
                 <TouchableOpacity
                     onPress={onBack}
                     className="flex-1 p-4 rounded-2xl bg-surface border border-border items-center"
@@ -169,7 +143,7 @@ export default function StepHeight({
                 </TouchableOpacity>
                 <TouchableOpacity
                     onPress={onNext}
-                    className="flex-[2] p-4 rounded-2xl bg-primary items-center "
+                    className="flex-[2] p-4 rounded-2xl bg-primary items-center shadow-lg shadow-primary/30"
                 >
                     <Text className="text-background font-black text-lg">
                         Next

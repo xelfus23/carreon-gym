@@ -3,6 +3,7 @@ import { NavItem } from "../types";
 import {
     ChartColumnBig,
     Dumbbell,
+    Logs,
     PanelLeftClose,
     PanelLeftOpen,
     QrCode,
@@ -26,8 +27,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
         },
         {
             id: NavItem.QR_CODE,
-            label: "QR",
+            label: "QR Codes",
             icon: <QrCode className="h-5 stroke-2" />,
+        },
+        {
+            id: NavItem.ATTENDANCE_LOG,
+            label: "Attendance Log",
+            icon: <Logs className="h-5 stroke-2" />,
         },
         {
             id: NavItem.MEMBERS,

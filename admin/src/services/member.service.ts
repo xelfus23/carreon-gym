@@ -20,4 +20,16 @@ export const memberService = {
 
         return data;
     },
+    getAttendance: async () => {
+        const result = await authService.fetchWithRefresh(
+            `${API_URL}/api/attendance/log`,
+            {
+                method: "GET",
+            },
+        );
+
+        const data = await result.json();
+
+        return data;
+    },
 };

@@ -53,7 +53,8 @@ export const UserProfileProvider = ({
         try {
             const { user } = await authService.me();
             const sessionData = await CheckInService.getSessionStatus();
-            setSessionStatus(sessionData.data);
+
+            setSessionStatus(sessionData);
             setProfile(user);
         } catch (err) {
             if (err instanceof Error) {
