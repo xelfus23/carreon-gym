@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, screen } from "electron";
+import { app, BrowserWindow, screen } from "electron";
 import path from "path";
 
 // const isDev = process.env.NODE_ENV === "development";
@@ -13,20 +13,17 @@ app.on("ready", () => {
         resizable: true,
         minWidth: 375,
         minHeight: 812,
-        webPreferences: {
-            contextIsolation: true,
-            nodeIntegration: false,
-        },
+        fullscreen: true,
     });
 
     if (isDev) {
         mainWindow.loadURL("http://192.168.1.150:5173");
-        mainWindow.webContents.openDevTools();
+        // mainWindow.webContents.openDevTools();
     } else {
         mainWindow.loadFile(path.join(app.getAppPath(), "dist/index.html"));
     }
 
-    Menu.setApplicationMenu(null);
+    // Menu.setApplicationMenu(null);
     mainWindow.maximize();
 });
 

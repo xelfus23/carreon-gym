@@ -41,7 +41,7 @@ function Modal({
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className={`bg-surface border rounded-2xl w-full max-w-[460px] max-h-[90vh] flex flex-col overflow-hidden
+                className={`bg-surface border w-full max-w-[460px] max-h-[90vh] flex flex-col overflow-hidden
                     animate-[slideUp_0.2s_ease]
                     ${confirmDanger ? "border-danger/25" : "border-border"}`}
             >
@@ -49,7 +49,7 @@ function Modal({
                 <div className="flex items-center justify-between px-5 pt-5 pb-3.5 border-b border-border shrink-0">
                     <div className="flex items-center gap-2.5">
                         <div
-                            className={`w-8 h-8 rounded-xl flex items-center justify-center border
+                            className={`w-8 h-8 flex items-center justify-center border
                             ${
                                 confirmDanger
                                     ? "bg-danger/10 border-danger/30"
@@ -64,7 +64,7 @@ function Modal({
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-border transition-colors duration-150 cursor-pointer"
+                        className="p-1 text-text-secondary hover:text-text-primary hover:bg-border transition-colors duration-150 cursor-pointer"
                     >
                         <svg
                             width="16"
@@ -90,7 +90,7 @@ function Modal({
                 <div className="flex gap-2 justify-end px-5 py-3.5 border-t border-border shrink-0">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 rounded-xl border border-border text-text-secondary text-xs font-semibold
+                        className="px-4 py-2 border border-border text-text-secondary text-xs font-semibold
                                    hover:border-border/80 hover:text-text-primary transition-all duration-150 cursor-pointer"
                     >
                         Cancel
@@ -98,7 +98,7 @@ function Modal({
                     <button
                         onClick={onConfirm}
                         disabled={saving}
-                        className={`px-5 py-2 rounded-xl text-xs font-extrabold tracking-wide flex items-center gap-1.5
+                        className={`px-5 py-2 text-xs font-extrabold tracking-wide flex items-center gap-1.5
                                     transition-colors duration-150 disabled:cursor-not-allowed
                             ${
                                 confirmDanger

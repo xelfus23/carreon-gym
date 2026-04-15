@@ -39,10 +39,10 @@ export default function Chats() {
     } = useChat({ profile, setReminderOpen });
 
     const [text, setText] = useState("");
-    const headerHeight = useHeaderHeight();
     const scrollRef = useRef<FlatList<ChatMessage>>(null);
     const isAtBottom = useRef(true);
     const [showScrollButton, setShowScrollButton] = useState(false);
+    const headerHeight = useHeaderHeight();
 
     useFocusEffect(
         useCallback(() => {
@@ -107,7 +107,7 @@ export default function Chats() {
                 className="bg-background"
                 behavior="padding"
                 keyboardVerticalOffset={
-                    Platform.OS === "ios" ? 90 : headerHeight
+                    Platform.OS === "ios" ? 20 : (headerHeight - 6)/ 2
                 }
             >
                 {reminderOpen && (
@@ -149,7 +149,7 @@ export default function Chats() {
                                     isAtBottom.current = true;
                                     scrollToBottom();
                                 }}
-                                className="absolute bottom-4 right-4 bg-surface p-2 rounded-full border border-white/10 shadow-lg"
+                                className="absolute bottom-40 right-4 bg-surface p-2 rounded-full border border-white/10 shadow-lg"
                             >
                                 <ArrowDown
                                     size={20}
@@ -158,7 +158,7 @@ export default function Chats() {
                             </TouchableOpacity>
                         )}
 
-                        <View className="flex-row gap-2 p-4 items-center bg-background border-t border-white/10">
+                        <View className="flex-row mb-16 gap-2 p-4 items-center bg-background border-t border-white/10">
                             <TextInput
                                 value={text}
                                 onChangeText={setText}

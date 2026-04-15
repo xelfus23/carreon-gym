@@ -1,0 +1,30 @@
+import type { Request, Response } from "express";
+import { createProductDomain } from "../../domain/products/createProductDomain.ts";
+import { catchAsync } from "../../utils/catchAsync.ts";
+import { getProductsDomain } from "../../domain/products/getProductsDomain.ts";
+import { updateProductDomain } from "../../domain/products/updateProductDomain.ts";
+import { deleteProductDomain } from "../../domain/products/deleteProductDomain.ts";
+
+export const createProduct = catchAsync(async (req: Request, res: Response) => {
+    const data = await createProductDomain(req.body);
+    res.status(201).json({ success: true, message: "Product Created", data });
+});
+
+export const getAllProducts = catchAsync(
+    async (req: Request, res: Response) => {
+        const data = await getProductsDomain();
+        res.status(200).json({ success: true, data });
+    },
+);
+
+export const updateProduct = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const data = await updateProductDomain(id as string, req.body);
+    res.status(200).json({ success: true, message: "Product Updated", data });
+});
+
+export const deleteProduct = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    await deleteProductDomain(id as string);
+    res.status(200).json({ success: true, message: "Product Deleted" });
+});

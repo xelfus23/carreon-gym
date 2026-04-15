@@ -266,7 +266,7 @@ const Overlay = ({
             {/* Bottom UI */}
             <LinearGradient
                 colors={["transparent", "rgba(15, 15, 15, 0.9)"]}
-                className="h-1/3 items-center justify-end pb-10"
+                className="h-1/3 items-center justify-end pb-14"
             >
                 <View className="bg-black/50 px-4 py-2 rounded-full mb-4">
                     <Text className="text-white text-xs">

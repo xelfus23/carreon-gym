@@ -5,8 +5,10 @@ import type { AdminMemberListItem } from "../types";
 export const useMember = () => {
     const [members, setMembers] = useState<AdminMemberListItem[]>([]);
     const [admins, setAdmins] = useState<AdminMemberListItem[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     const refetch = useCallback(async () => {
+        setIsLoading(true);
         try {
             const result = await memberService.getMember();
             setMembers(
@@ -21,13 +23,28 @@ export const useMember = () => {
             );
         } catch (err) {
             if (err instanceof Error) console.log(err.message);
+        } finally {
+            setIsLoading(false);
         }
     }, []);
+
+    const verifyMember = async (memberId: number) => {
+        setIsLoading(true);
+        try {
+            await memberService.verifyMember(memberId);
+            refetch();
+        } catch (err) {
+            if (err instanceof Error) console.log(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
         let cancelled = false;
 
         const fetchMembers = async () => {
+            setIsLoading(true);
             try {
                 const result = await memberService.getMember();
 
@@ -45,6 +62,8 @@ export const useMember = () => {
                 }
             } catch (err) {
                 if (err instanceof Error) console.log(err.message);
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -59,5 +78,7 @@ export const useMember = () => {
         members,
         admins,
         refetch,
+        verifyMember,
+        isLoading,
     };
 };

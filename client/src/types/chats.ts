@@ -20,6 +20,7 @@ export type ToolCall = {
 
 export interface ThinkingProps {
     status: string;
+    thought: string;
 }
 
 export interface ChatBubbleProps {

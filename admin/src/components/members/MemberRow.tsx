@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import type { AdminMemberListItem, SubscriptionStatus } from "../../types";
 import {
     Ban,
+    Check,
     ClockPlus,
     Mail,
     // Sparkles,
@@ -130,7 +131,7 @@ function ActionMenu({
     return createPortal(
         <div
             ref={menuRef}
-            className="w-52 bg-surface border border-border rounded-lg shadow-2xl shadow-black/30 overflow-hidden"
+            className="w-52 bg-surface border border-border shadow-2xl shadow-black/30 overflow-hidden"
             style={{
                 position: "fixed",
                 top: pos.top,
@@ -181,6 +182,7 @@ export default function MemberRow({
     onBan,
     onDelete,
     onSendEmail,
+    onVerify,
 }: {
     m: AdminMemberListItem;
     onSetPlan: (m: AdminMemberListItem) => void;
@@ -188,6 +190,7 @@ export default function MemberRow({
     onBan: (m: AdminMemberListItem) => void;
     onDelete: (m: AdminMemberListItem) => void;
     onSendEmail: (m: AdminMemberListItem) => void;
+    onVerify: (m: AdminMemberListItem) => void;
 }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -213,6 +216,11 @@ export default function MemberRow({
             label: "Send Email",
             icon: <Mail className="h-4" />,
             onClick: () => onSendEmail(m),
+        },
+        {
+            label: "Verify User",
+            icon: <Check className="h-4" />,
+            onClick: () => onVerify(m),
         },
         {
             label: isSuspended ? "Unsuspend Member" : "Suspend Member",
@@ -268,7 +276,7 @@ export default function MemberRow({
             {/* Account status */}
             <td className="px-5 py-3.5">
                 <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+                    className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
                         ACCOUNT_BADGE[m.account_status] ??
                         "bg-surface text-slate-500"
                     }`}
@@ -304,7 +312,7 @@ export default function MemberRow({
                 {m.subscription_status ? (
                     <div>
                         <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+                            className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
                                 SUB_BADGE[m.subscription_status]
                             }`}
                         >

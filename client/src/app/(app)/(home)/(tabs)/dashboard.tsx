@@ -7,8 +7,8 @@ import { useWorkout } from "@/src/hooks/useWorkout";
 
 export default function Dashboard() {
     const { profile } = useUserProfile();
-    const { workoutPlans,  } = useWorkout();
-    const router = useRouter();
+    const { workoutPlans } = useWorkout();
+    
 
     if (!profile) return null;
 
@@ -38,15 +38,18 @@ export default function Dashboard() {
         duration: "45 min",
     };
 
-    const recentAchievements = [
-        { id: 1, title: "7 Day Streak", icon: "🔥", unlocked: true },
-        { id: 2, title: "First Workout", icon: "💪", unlocked: true },
-        { id: 3, title: "Early Bird", icon: "🌅", unlocked: true },
-        { id: 4, title: "10 Workouts", icon: "⭐", unlocked: false },
-    ];
+    // const recentAchievements = [
+    //     { id: 1, title: "7 Day Streak", icon: "🔥", unlocked: true },
+    //     { id: 2, title: "First Workout", icon: "💪", unlocked: true },
+    //     { id: 3, title: "Early Bird", icon: "🌅", unlocked: true },
+    //     { id: 4, title: "10 Workouts", icon: "⭐", unlocked: false },
+    // ];
 
     return (
-        <ScrollView className="flex-1 bg-background">
+        <ScrollView
+            className="flex-1 bg-background"
+            contentContainerClassName="pb-14"
+        >
             {/* Header/Greeting Section */}
 
             <View className="p-4 pt-6">
@@ -242,7 +245,7 @@ export default function Dashboard() {
             </View>
 
             {/* Recent Achievements */}
-            <View className="px-4 mb-4">
+            {/* <View className="px-4 mb-4">
                 <View className="flex-row justify-between items-center mb-3">
                     <Text className="text-text-primary text-lg font-bold">
                         Achievements
@@ -270,10 +273,10 @@ export default function Dashboard() {
                         </View>
                     ))}
                 </View>
-            </View>
+            </View> */}
 
             {/* Quick Actions */}
-            <View className="px-4 mb-6">
+            {/* <View className="px-4 mb-6">
                 <Text className="text-text-primary text-lg font-bold mb-3">
                     Quick Actions
                 </Text>
@@ -317,7 +320,7 @@ export default function Dashboard() {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </View>
+            </View> */}
         </ScrollView>
     );
 }

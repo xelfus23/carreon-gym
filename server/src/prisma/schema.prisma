@@ -1,0 +1,342 @@
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+// }
+
+// //
+// // ENUMS
+// //
+
+// enum UserRole {
+//   member
+//   admin
+//   trainer
+// }
+
+// enum SubscriptionStatus {
+//   active
+//   expired
+//   pending
+//   cancelled
+// }
+
+// enum AttendanceStatus {
+//   checked_in
+//   checked_out
+// }
+
+// enum PaymentStatus {
+//   paid
+//   pending
+//   refunded
+//   cancelled
+// }
+
+// enum PaymentMethod {
+//   cash
+//   gcash
+//   maya
+//   bank_transfer
+//   card
+//   other
+// }
+
+// //
+// // USER MANAGEMENT
+// //
+
+// model User {
+//   id                   Int             @id @default(autoincrement())
+//   username             String?         @unique
+//   firstName            String
+//   lastName             String
+//   phoneNumber          String?         @unique
+//   email                String          @unique
+//   hashedPassword       String
+//   role                 UserRole        @default(member)
+//   verified             Boolean         @default(false)
+//   profileImageUrl      String?
+//   lastLogin            DateTime?
+//   lastCheckIn          DateTime?
+//   totalVisitsAllTime   Int             @default(0)
+//   totalVisitsThisMonth Int             @default(0)
+//   accountStatus        String          @default("active")
+//   createdAt            DateTime        @default(now())
+//   updatedAt            DateTime        @updatedAt
+//   profile              UserProfile?
+//   bodyMetrics          BodyMetric[]
+//   subscription         Subscription?
+//   sessions             UserSession[]
+//   attendance           GymAttendance[]
+//   chatSessions         ChatSession[]
+//   workoutPlans         WorkoutPlan[]
+//   workoutLogs          WorkoutLog[]
+//   payments             Payment[]
+//   recordedPayments     Payment[]       @relation("RecordedBy")
+//   chatMessages         ChatMessage[]
+// }
+
+// model UserProfile {
+//   userId        Int       @id
+//   heightCm      Int?
+//   gender        String?
+//   birthDate     DateTime?
+//   goal          String?
+//   activityLevel String?
+//   createdAt     DateTime  @default(now())
+//   updatedAt     DateTime  @updatedAt
+//   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
+
+// model BodyMetric {
+//   id             Int      @id @default(autoincrement())
+//   userId         Int
+//   weightKg       Float?
+//   bodyFatPercent Float?
+//   muscleMassKg   Float?
+//   recordedAt     DateTime @default(now())
+//   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//   @@index([userId, recordedAt])
+// }
+
+// //
+// // SUBSCRIPTIONS
+// //
+
+// model SubscriptionPlan {
+//   id            Int            @id @default(autoincrement())
+//   name          String         @unique
+//   description   String?
+//   price         Float
+//   durationDays  Int
+//   isActive      Boolean        @default(true)
+//   createdAt     DateTime       @default(now())
+//   updatedAt     DateTime       @updatedAt
+//   subscriptions Subscription[]
+//   payments      Payment[]
+// }
+
+// model Subscription {
+//   id         Int                @id @default(autoincrement())
+//   userId     Int                @unique
+//   planName   String
+//   status     SubscriptionStatus @default(pending)
+//   startDate  DateTime           @default(now())
+//   expiryDate DateTime
+//   autoRenew  Boolean            @default(false)
+//   planId     Int?
+//   plan       SubscriptionPlan?  @relation(fields: [planId], references: [id], onDelete: SetNull)
+//   createdAt  DateTime           @default(now())
+//   updatedAt  DateTime           @updatedAt
+//   user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   payments   Payment[]
+// }
+
+// //
+// // SESSIONS
+// //
+
+// model UserSession {
+//   id               Int      @id @default(autoincrement())
+//   userId           Int
+//   refreshTokenHash String
+//   deviceInfo       String?
+//   ipAddress        String?
+//   createdAt        DateTime @default(now())
+//   expiresAt        DateTime
+//   lastUsedAt       DateTime @default(now())
+//   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//   @@index([userId])
+//   @@index([expiresAt])
+// }
+
+// //
+// // ATTENDANCE
+// //
+
+// model GymAttendance {
+//   id              Int              @id @default(autoincrement())
+//   userId          Int
+//   checkInTime     DateTime         @default(now())
+//   checkOutTime    DateTime?
+//   durationMinutes Int?
+//   status          AttendanceStatus @default(checked_in)
+//   method          String           @default("qr")
+//   locationId      String?
+//   verifiedBy      Int?
+//   createdAt       DateTime         @default(now())
+//   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//   @@index([userId, checkInTime])
+// }
+
+// //
+// // CHAT SYSTEM (AI READY 👍)
+// //
+
+// model ChatSession {
+//   id        Int           @id @default(autoincrement())
+//   userId    Int?
+//   type      String
+//   createdAt DateTime      @default(now())
+//   user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   messages  ChatMessage[]
+// }
+
+// model ChatMessage {
+//   id         Int         @id @default(autoincrement())
+//   sessionId  Int
+//   userId     Int?
+//   role       String
+//   content    String?
+//   toolCalls  Json?
+//   toolCallId String?
+//   name       String?
+//   createdAt  DateTime    @default(now())
+//   session    ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+//   user       User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
+
+// //
+// // EQUIPMENT
+// //
+
+// model EquipmentCategory {
+//   id          Int         @id @default(autoincrement())
+//   name        String      @unique
+//   description String?
+//   createdAt   DateTime    @default(now())
+//   equipment   Equipment[]
+// }
+
+// model MuscleGroup {
+//   id             Int               @id @default(autoincrement())
+//   name           String            @unique
+//   description    String?
+//   createdAt      DateTime          @default(now())
+//   equipmentLinks EquipmentMuscle[]
+// }
+
+// model Equipment {
+//   id                  Int               @id @default(autoincrement())
+//   name                String
+//   categoryId          Int
+//   type                String?
+//   description         String?
+//   quantity            Int               @default(1)
+//   isAvailable         Boolean           @default(true)
+//   maintenanceNotes    String?
+//   lastMaintenanceDate DateTime?
+//   createdAt           DateTime          @default(now())
+//   updatedAt           DateTime          @updatedAt
+//   category            EquipmentCategory @relation(fields: [categoryId], references: [id])
+//   muscles             EquipmentMuscle[]
+//   workoutExercises    WorkoutExercise[]
+// }
+
+// model EquipmentMuscle {
+//   equipmentId   Int
+//   muscleGroupId Int
+//   equipment     Equipment   @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+//   muscleGroup   MuscleGroup @relation(fields: [muscleGroupId], references: [id], onDelete: Cascade)
+
+//   @@id([equipmentId, muscleGroupId])
+// }
+
+// //
+// // WORKOUT SYSTEM
+// //
+
+// model WorkoutPlan {
+//   id              Int      @id @default(autoincrement())
+//   userId          Int?
+//   title           String
+//   description     String?
+//   durationWeeks   Int?
+//   daysPerWeek     Int?
+//   difficultyLevel String?
+//   isActive        Boolean  @default(true)
+//   createdAt       DateTime @default(now())
+//   updatedAt       DateTime @updatedAt
+
+//   user User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   days WorkoutDay[]
+// }
+
+// model WorkoutDay {
+//   id           Int               @id @default(autoincrement())
+//   planId       Int
+//   dayOrder     Int
+//   title        String
+//   isRestDay    Boolean           @default(false)
+//   restDayNotes String?
+//   plan         WorkoutPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+//   exercises    WorkoutExercise[]
+// }
+
+// model WorkoutExercise {
+//   id              Int          @id @default(autoincrement())
+//   workoutDayId    Int
+//   exerciseOrder   Int
+//   exerciseName    String
+//   equipmentId     Int?
+//   sets            Int?
+//   reps            Int?
+//   durationSeconds Int?
+//   restSeconds     Int?
+//   weightGuidance  String?
+//   tempo           String?
+//   description     String?
+//   notes           String?
+//   isWarmup        Boolean      @default(false)
+//   isSuperset      Boolean      @default(false)
+//   supersetGroup   Int?
+//   workoutDay      WorkoutDay   @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
+//   equipment       Equipment?   @relation(fields: [equipmentId], references: [id])
+//   logs            WorkoutLog[]
+// }
+
+// model WorkoutLog {
+//   id                Int             @id @default(autoincrement())
+//   userId            Int
+//   workoutExerciseId Int
+//   completedSets     Int?
+//   completedReps     Int?
+//   weightUsedKg      Float?
+//   durationMinutes   Int?
+//   difficultyRating  Int?
+//   notes             String?
+//   loggedAt          DateTime        @default(now())
+//   user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   workoutExercise   WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+// }
+
+// //
+// // PAYMENTS
+// //
+
+// model Payment {
+//   id             Int               @id @default(autoincrement())
+//   userId         Int
+//   subscriptionId Int?
+//   planId         Int?
+//   amount         Float
+//   currency       String            @default("PHP")
+//   status         PaymentStatus     @default(paid)
+//   method         PaymentMethod     @default(cash)
+//   recordedBy     Int?
+//   referenceNo    String?
+//   notes          String?
+//   paidAt         DateTime          @default(now())
+//   createdAt      DateTime          @default(now())
+//   updatedAt      DateTime          @updatedAt
+//   user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   subscription   Subscription?     @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+//   plan           SubscriptionPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+//   recorder       User?             @relation("RecordedBy", fields: [recordedBy], references: [id])
+// }

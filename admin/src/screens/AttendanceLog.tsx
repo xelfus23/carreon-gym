@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { useAttendanceLog } from "../hooks/useAttendance";
-import { Search, Clock, Calendar } from "lucide-react";
+import { Search, Clock, Calendar, Logs, Plus } from "lucide-react";
 
 export default function AttendanceLog() {
-    const { logs, isLoading, formatDate, formatTime } = useAttendanceLog();
+    const { logs, isLoading, formatDate, formatTime, refresh } =
+        useAttendanceLog();
 
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
@@ -104,6 +105,45 @@ export default function AttendanceLog() {
                         </p>
                     </div>
                 ))}
+            </div>
+
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                    <Logs className="text-primary" /> Attendance Log
+                </h1>
+
+                <div className="flex items-center gap-2 ml-auto">
+                    {!isLoading && (
+                        <button
+                            onClick={refresh}
+                            className="flex items-center gap-1.5 px-3 py-1.5 border border-border
+                                           text-text-secondary text-xs font-semibold uppercase tracking-wider
+                                           hover:border-primary/40 hover:text-primary transition-all duration-150"
+                        >
+                            <svg
+                                width="11"
+                                height="11"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <polyline points="23 4 23 10 17 10" />
+                                <polyline points="1 20 1 14 7 14" />
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                            </svg>
+                            Refresh
+                        </button>
+                    )}
+                    <button
+                        // onClick={() => setIsAddModalOpen(true)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-background hover:opacity-90 transition-all text-sm font-medium"
+                    >
+                        <Plus size={16} /> Add Log
+                    </button>
+                </div>
             </div>
 
             {/* ── Main Table Card ── */}

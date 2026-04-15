@@ -8,7 +8,7 @@ import {
     EditModal,
     DeleteModal,
 } from "../components/equipment/EquipmentModals";
-import { Search } from "lucide-react";
+import { Dumbbell, Plus, Search } from "lucide-react";
 
 type SortKey = keyof EquipmentTypes | null;
 type SortDir = "asc" | "desc";
@@ -107,6 +107,43 @@ export default function EquipmentTab() {
 
     return (
         <>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                    <Dumbbell className="text-primary" /> Equipment Management
+                </h1>
+                <div className="flex items-center gap-2 ml-auto">
+                    {!isLoading && (
+                        <button
+                            onClick={refresh}
+                            className="flex items-center gap-1.5 px-3 py-1.5 border border-border
+                                           text-text-secondary text-xs font-semibold uppercase tracking-wider
+                                           hover:border-primary/40 hover:text-primary transition-all duration-150"
+                        >
+                            <svg
+                                width="11"
+                                height="11"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <polyline points="23 4 23 10 17 10" />
+                                <polyline points="1 20 1 14 7 14" />
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                            </svg>
+                            Refresh
+                        </button>
+                    )}
+                    <button
+                        onClick={() => setShowAdd(true)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-background hover:opacity-90 transition-all text-sm font-medium"
+                    >
+                        <Plus size={16} /> Add Equipment
+                    </button>
+                </div>
+            </div>
             <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     {!isLoading && !error && (
@@ -115,51 +152,6 @@ export default function EquipmentTab() {
                             {filtered.length !== 1 ? "s" : ""}
                         </p>
                     )}
-                    <div className="flex items-center gap-2 ml-auto">
-                        {!isLoading && (
-                            <button
-                                onClick={refresh}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border
-                                           text-text-secondary text-xs font-semibold uppercase tracking-wider
-                                           hover:border-primary/40 hover:text-primary transition-all duration-150"
-                            >
-                                <svg
-                                    width="11"
-                                    height="11"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <polyline points="23 4 23 10 17 10" />
-                                    <polyline points="1 20 1 14 7 14" />
-                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-                                </svg>
-                                Refresh
-                            </button>
-                        )}
-                        <button
-                            onClick={() => setShowAdd(true)}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary hover:bg-primary-dark
-                                       text-background text-xs font-bold tracking-wide transition-colors duration-150"
-                        >
-                            <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                                strokeLinecap="round"
-                            >
-                                <line x1="12" y1="5" x2="12" y2="19" />
-                                <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                            Add Equipment
-                        </button>
-                    </div>
                 </div>
 
                 <div className="bg-surface border border-border shadow-sm overflow-hidden min-w-0">
@@ -280,7 +272,7 @@ export default function EquipmentTab() {
                                         setPage((p) => Math.max(1, p - 1))
                                     }
                                     disabled={page === 1}
-                                    className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
+                                    className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
                                 >
                                     ← Prev
                                 </button>
@@ -328,7 +320,7 @@ export default function EquipmentTab() {
 
                 {/* ── Error banner ── */}
                 {error && (
-                    <div className="flex items-center gap-2.5 bg-danger/8 border border-danger/30 rounded-2xl px-4 py-3">
+                    <div className="flex items-center gap-2.5 bg-danger/8 border border-danger/30 px-4 py-3">
                         <svg
                             width="16"
                             height="16"

@@ -24,7 +24,7 @@ export const EquipmentService = {
 
     createEquipment: async (payload: EquipmentPayload) => {
         const response = await authService.fetchWithRefresh(
-            `${API_URL}/api/equipments/web`,
+            `${API_URL}/api/equipments/create-equipment`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -40,7 +40,7 @@ export const EquipmentService = {
         const response = await authService.fetchWithRefresh(
             `${API_URL}/api/equipments/web/${id}`,
             {
-                method: "PUT",
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             },

@@ -8,13 +8,10 @@ export const LMstudio = async (messages: ChatMessage[]) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            model: model.ministral8B,
+            model: model.qwen9b,
             stream: true,
             messages: messages,
             tools: tools,
-            reasoning: {
-                effort: "none",
-            },
         }),
     });
 

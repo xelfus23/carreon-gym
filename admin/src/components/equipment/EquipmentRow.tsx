@@ -17,7 +17,7 @@ export function MuscleTag({ muscle }: { muscle: string }) {
     const s = getMuscleStyle(muscle);
     return (
         <span
-            className={`text-[0.65rem] font-semibold tracking-wide ${s.text} ${s.bg} rounded px-1.5 py-0.5 whitespace-nowrap`}
+            className={`text-[0.65rem] font-semibold tracking-wide ${s.text} ${s.bg} px-1.5 py-0.5 whitespace-nowrap`}
         >
             {muscle.trim()}
         </span>
@@ -30,33 +30,33 @@ export function SkeletonRow() {
     return (
         <tr className="border-b border-border">
             <td className="px-5 py-4">
-                <div className="h-3 w-10 rounded bg-border animate-pulse" />
+                <div className="h-3 w-10 bg-border animate-pulse" />
             </td>
             <td className="px-5 py-4">
-                <div className="h-3.5 w-36 rounded bg-border animate-pulse" />
+                <div className="h-3.5 w-36 bg-border animate-pulse" />
             </td>
             <td className="px-5 py-4">
-                <div className="h-5 w-20 rounded bg-border animate-pulse" />
+                <div className="h-5 w-20 bg-border animate-pulse" />
             </td>
             <td className="px-5 py-4">
-                <div className="h-3 w-8 rounded bg-border animate-pulse" />
+                <div className="h-3 w-8 bg-border animate-pulse" />
             </td>
             <td className="px-5 py-4">
                 <div className="flex gap-1.5">
                     {[52, 44].map((w, i) => (
                         <div
                             key={i}
-                            className="h-5 rounded bg-border animate-pulse"
+                            className="h-5 bg-border animate-pulse"
                             style={{ width: w }}
                         />
                     ))}
                 </div>
             </td>
             <td className="px-5 py-4">
-                <div className="h-3 w-36 rounded bg-border animate-pulse" />
+                <div className="h-3 w-36 bg-border animate-pulse" />
             </td>
             <td className="px-5 py-4">
-                <div className="ml-auto h-8 w-20 rounded bg-border animate-pulse" />
+                <div className="ml-auto h-8 w-20 bg-border animate-pulse" />
             </td>
         </tr>
     );
@@ -112,7 +112,7 @@ export default function EquipmentRow({
                     <button
                         title="Edit"
                         onClick={() => onEdit(item)}
-                        className="px-2.5 py-1.5 rounded-lg border border-border text-text-secondary
+                        className="px-2.5 py-1.5 border border-border text-text-secondary
                                    hover:border-primary/30 hover:bg-primary/10 hover:text-primary
                                    transition-all duration-150 cursor-pointer text-xs font-semibold"
                     >
@@ -121,7 +121,7 @@ export default function EquipmentRow({
                     <button
                         title="Delete"
                         onClick={() => onDelete(item)}
-                        className="px-2.5 py-1.5 rounded-lg border border-border text-text-secondary
+                        className="px-2.5 py-1.5 border border-border text-text-secondary
                                    hover:border-danger/40 hover:bg-danger/10 hover:text-danger
                                    transition-all duration-150 cursor-pointer text-xs font-semibold"
                     >

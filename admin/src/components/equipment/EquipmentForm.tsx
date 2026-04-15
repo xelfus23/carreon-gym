@@ -26,7 +26,7 @@ export function EquipmentForm({
         }));
 
     const inputClass =
-        "w-full bg-background border border-border rounded-xl px-3 py-2 text-text-primary text-sm outline-none transition-colors duration-150 focus:border-primary/60 focus:ring-1 focus:ring-primary/30 placeholder:text-text-secondary/50";
+        "w-full bg-background border border-border px-3 py-2 text-text-primary text-sm outline-none transition-colors duration-150 focus:border-primary/60 focus:ring-1 focus:ring-primary/30 placeholder:text-text-secondary/50";
     const labelClass =
         "block text-xs font-bold tracking-widest uppercase text-text-secondary mb-1.5";
 
@@ -61,7 +61,7 @@ export function EquipmentForm({
                                 onClick={() =>
                                     setForm((f) => ({ ...f, category: cat }))
                                 }
-                                className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all duration-150 cursor-pointer
+                                className={`px-3 py-1 text-xs font-semibold border transition-all duration-150 cursor-pointer
                                     ${
                                         active
                                             ? "bg-primary/10 border-primary/50 text-primary"
@@ -87,7 +87,7 @@ export function EquipmentForm({
                                 key={m}
                                 type="button"
                                 onClick={() => toggleMuscle(m)}
-                                className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all duration-150 cursor-pointer
+                                className={`px-3 py-1 text-xs font-semibold border transition-all duration-150 cursor-pointer
                                     ${
                                         active
                                             ? `${s.text} ${s.bg} ${s.border}`
@@ -134,7 +134,7 @@ export function EquipmentForm({
 
             {/* Inline error */}
             {error && (
-                <div className="flex items-center gap-2 bg-danger/8 border border-danger/30 rounded-xl px-3.5 py-2.5">
+                <div className="flex items-center gap-2 bg-danger/8 border border-danger/30 px-3.5 py-2.5">
                     <svg
                         width="14"
                         height="14"

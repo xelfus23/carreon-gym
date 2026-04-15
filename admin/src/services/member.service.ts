@@ -7,9 +7,6 @@ export const memberService = {
     getMember: async () => {
         const result = await authService.fetchWithRefresh(
             `${API_URL}/api/members`,
-            {
-                method: "GET",
-            },
         );
 
         const data = await result.json();
@@ -23,8 +20,17 @@ export const memberService = {
     getAttendance: async () => {
         const result = await authService.fetchWithRefresh(
             `${API_URL}/api/attendance/log`,
+        );
+
+        const data = await result.json();
+
+        return data;
+    },
+    verifyMember: async (memberId: number) => {
+        const result = await authService.fetchWithRefresh(
+            `${API_URL}/api/members/verify/${memberId}`,
             {
-                method: "GET",
+                method: "PATCH",
             },
         );
 

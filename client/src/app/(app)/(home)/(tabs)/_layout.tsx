@@ -1,120 +1,135 @@
 import React from "react";
 import { Tabs } from "expo-router";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import {
     CameraIcon,
     LayoutGrid,
     LucideDumbbell,
     MessageSquare,
+    MessagesSquare,
     User2,
 } from "lucide-react-native";
 
 import { COLORS } from "@/src/consts/colors";
 import CustomHeader from "@/src/app/components/CustomHeader";
 
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+
+export function MyTabBar({
+    state,
+    descriptors,
+    navigation,
+}: BottomTabBarProps) {
+    return (
+        <View className="bg-background">
+            <View className="flex-row bg-surface bottom-16 self-center w-[92%] rounded-full border border-border px-2 py-2">
+                {state.routes.map((route, index) => {
+                    const { options } = descriptors[route.key];
+                    const isFocused = state.index === index;
+                    const isChat = route.name === "chat";
+
+                    const onPress = () => {
+                        const event = navigation.emit({
+                            type: "tabPress",
+                            target: route.key,
+                            canPreventDefault: true,
+                        });
+                        if (!isFocused && !event.defaultPrevented) {
+                            navigation.navigate(route.name, route.params);
+                        }
+                    };
+
+                    return (
+                        <TouchableOpacity
+                            key={route.name}
+                            onPress={onPress}
+                            activeOpacity={0.7}
+                            className="flex-1 items-center justify-center"
+                        >
+                            <View
+                                className={`items-center overflow-hidden justify-center ${
+                                    isChat
+                                        ? `${isFocused ? "bg-primary-dark" : "bg-primary"} rounded-full w-12 h-12 -top-1`
+                                        : ""
+                                }`}
+                            >
+                                {options.tabBarIcon &&
+                                    options.tabBarIcon({
+                                        focused: isFocused,
+                                        color: isChat
+                                            ? isFocused
+                                                ? COLORS.textPrimary
+                                                : COLORS.background
+                                            : isFocused
+                                              ? COLORS.textPrimary
+                                              : COLORS.textSecondary,
+                                        size: isChat ? 28 : 24,
+                                    })}
+                            </View>
+
+                            {isFocused && !isChat && (
+                                <View className="h-1 w-1 bg-text-primary rounded-full mt-1" />
+                            )}
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+        </View>
+    );
+}
+
 export default function ProtectedRouteLayout() {
     return (
         <Tabs
+            tabBar={(props) => <MyTabBar {...props} />}
             screenOptions={{
-                tabBarHideOnKeyboard: true,
                 header: (props) => <CustomHeader title={props.route.name} />,
-                headerBackground: () => <View className="bg-surface h-full" />,
-                tabBarBackground: () => (
-                    <View className="bg-surface h-full border-t border-border" />
-                ),
-                tabBarStyle: {
-                    borderTopWidth: 0,
-                    paddingTop: 2,
+                tabBarHideOnKeyboard: true,
+                sceneStyle: {
+                    backgroundColor: COLORS.background,
                 },
-                tabBarLabel: ({ children }) => (
-                    <Text className="text-gray-400 text-xs">
-                        {children.charAt(0).toUpperCase() + children.slice(1)}
-                    </Text>
-                ),
+                tabBarStyle: {
+                    backgroundColor: COLORS.background,
+                },
             }}
-            initialRouteName="chat"
         >
-            <Tabs.Screen
-                name="profile"
-                options={{
-                    tabBarIcon: ({ focused }) => (
-                        <View>
-                            <User2
-                                color={
-                                    focused
-                                        ? COLORS.textPrimary
-                                        : COLORS.textSecondary
-                                }
-                            />
-                        </View>
-                    ),
-                }}
-            />
-
-            <Tabs.Screen
-                name="chat"
-                options={{
-                    tabBarIcon: ({ focused }) => (
-                        <MessageSquare
-                            color={
-                                focused
-                                    ? COLORS.textPrimary
-                                    : COLORS.textSecondary
-                            }
-                        />
-                    ),
-                    tabBarHideOnKeyboard: true,
-                }}
-            />
-
             <Tabs.Screen
                 name="dashboard"
                 options={{
-                    tabBarIcon: ({ focused }) => (
-                        <LayoutGrid
-                            color={
-                                focused
-                                    ? COLORS.textPrimary
-                                    : COLORS.textSecondary
-                            }
-                        />
-                    ),
+                    title: "Home",
+                    tabBarIcon: (props) => <LayoutGrid {...props} />,
                 }}
             />
-
             <Tabs.Screen
                 name="plans"
                 options={{
-                    tabBarIcon: ({ focused }) => (
-                        <View
-                            style={{
-                                transform: [{ rotate: "45deg" }],
-                            }}
-                        >
-                            <LucideDumbbell
-                                color={
-                                    focused
-                                        ? COLORS.textPrimary
-                                        : COLORS.textSecondary
-                                }
-                            />
+                    title: "Workout",
+                    tabBarIcon: (props) => (
+                        <View style={{ transform: [{ rotate: "45deg" }] }}>
+                            <LucideDumbbell {...props} />
                         </View>
                     ),
                 }}
             />
-
+            <Tabs.Screen
+                name="chat"
+                options={{
+                    title: "AI Trainer",
+                    tabBarIcon: (props) => <MessagesSquare {...props} />,
+                }}
+            />
             <Tabs.Screen
                 name="camera"
                 options={{
-                    tabBarIcon: ({ focused }) => (
-                        <CameraIcon
-                            color={
-                                focused
-                                    ? COLORS.textPrimary
-                                    : COLORS.textSecondary
-                            }
-                        />
-                    ),
+                    title: "Scan",
+                    tabBarIcon: (props) => <CameraIcon {...props} />,
+                }}
+            />
+            <Tabs.Screen
+                name="profile"
+                options={{
+                    title: "Profile",
+                    tabBarIcon: (props) => <User2 {...props} />,
                 }}
             />
         </Tabs>

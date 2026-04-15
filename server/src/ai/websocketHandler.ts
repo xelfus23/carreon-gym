@@ -8,10 +8,12 @@ import { saveMessageDomain } from "../domain/chat/saveMessage.ts";
 import { saveSummaryDomain } from "../domain/chat/saveSummary.ts";
 import pool from "../config/pool.ts";
 
-export const WebsocketHandler = async (server: Server) => {
-    const wss = new WebSocketServer({ server });
+let wssInstance: WebSocketServer;
 
-    wss.on("connection", async (ws: WebSocket, req: any) => {
+export const WebsocketHandler = async (server: Server) => {
+    wssInstance = new WebSocketServer({ server });
+
+    wssInstance.on("connection", async (ws: WebSocket, req: any) => {
         const auth = await WSAuthentication(ws, req);
 
         if (!auth) {
@@ -89,5 +91,21 @@ export const WebsocketHandler = async (server: Server) => {
         ws.on("close", () => {
             console.log("🔌 WebSocket closed:", userId);
         });
+    });
+};
+
+export const broadcastNotification = (type: string, payload: any) => {
+    if (!wssInstance) return;
+
+    const message = JSON.stringify({
+        type: "SYSTEM_NOTIFICATION", // Distinguish this from AI chat
+        event: type,
+        data: payload,
+    });
+
+    wssInstance.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(message);
+        }
     });
 };

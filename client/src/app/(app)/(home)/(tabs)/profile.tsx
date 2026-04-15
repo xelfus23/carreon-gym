@@ -17,7 +17,10 @@ export default function Profile() {
     );
 
     return (
-        <ScrollView className="bg-background flex-1">
+        <ScrollView
+            className="bg-background flex-1"
+            contentContainerClassName="pb-14"
+        >
             <View className="p-4 pb-8">
                 <ProfileHeader />
                 <SubscriptionCard />

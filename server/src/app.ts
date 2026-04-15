@@ -14,6 +14,7 @@ import subscriptionRoutes from "./features/subscription/subscription.route.ts";
 import subscriptionAdminRoutes from "./features/subscription/subscription.admin.route.ts";
 import { globalErrorHandler } from "./services/globalErrorHandler.ts";
 import { env } from "./config/env.ts";
+import productRoutes from "./features/products/product.route.ts";
 
 dotenv.config({ path: ".env" });
 
@@ -25,7 +26,7 @@ app.use(cookieParser());
 app.use(
     cors({
         origin: [env.CORS_ORIGIN],
-        methods: ["GET", "POST"],
+        methods: ["GET", "POST", "PATCH", "DELETE"],
         allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true,
     }),
@@ -42,6 +43,8 @@ app.use("/api/stats", statsRoutes);
 app.use("/api/attendance", attendanceRoute);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/web/subscriptions", subscriptionAdminRoutes);
+app.use("/api/products", productRoutes);
+
 app.use(globalErrorHandler);
 /* ---------- HEALTH CHECK ---------- */
 

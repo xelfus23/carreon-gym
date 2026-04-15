@@ -315,6 +315,7 @@ export default function Plans() {
             <ScrollView
                 className="flex-1 bg-background"
                 showsVerticalScrollIndicator={false}
+                contentContainerClassName="pb-14"
             >
                 <View className="p-4">
                     {/* Header */}

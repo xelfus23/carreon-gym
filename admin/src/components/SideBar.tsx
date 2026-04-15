@@ -3,11 +3,14 @@ import { NavItem } from "../types";
 import {
     ChartColumnBig,
     Dumbbell,
+    HandCoins,
     Logs,
     PanelLeftClose,
     PanelLeftOpen,
     QrCode,
+    ShoppingBasket,
     Sparkles,
+    UserRoundKey,
     UsersRound,
 } from "lucide-react";
 
@@ -21,8 +24,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
 
     const menuItems = [
         {
-            id: NavItem.DASHBOARD,
-            label: "Dashboard",
+            id: NavItem.ANALYTICS,
+            label: "Analytics",
             icon: <ChartColumnBig className="h-5 stroke-2" />,
         },
         {
@@ -36,14 +39,29 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
             icon: <Logs className="h-5 stroke-2" />,
         },
         {
+            id: NavItem.TRANSACTIONS,
+            label: "Transactions",
+            icon: <HandCoins className="h-5 stroke-2" />,
+        },
+        {
+            id: NavItem.ADMIN,
+            label: "Admin",
+            icon: <UserRoundKey />,
+        },
+        {
             id: NavItem.MEMBERS,
-            label: "Members",
+            label: "Members List",
             icon: <UsersRound className="h-5 stroke-2" />,
         },
         {
             id: NavItem.GYM_EQUIPMENTS,
-            label: "Gym Equipments",
+            label: "Equipments",
             icon: <Dumbbell />,
+        },
+        {
+            id: NavItem.GYM_PRODUCTS,
+            label: "Products",
+            icon: <ShoppingBasket />,
         },
         {
             id: NavItem.AI_INSIGHTS,

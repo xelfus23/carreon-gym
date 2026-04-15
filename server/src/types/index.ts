@@ -27,3 +27,12 @@ export interface ChatMessage {
     }>;
     tool_call_id?: string;
 }
+
+export interface ProductProps {
+    product_name: string;
+    category: string;
+    price: number;
+    stocks: number;
+    is_active?: boolean;
+    last_restock?: string;
+}

@@ -9,9 +9,12 @@ import QRTab from "./screens/QRTab";
 import MemberManagement from "./screens/MemberManagement";
 import EquipmentTab from "./screens/EquipmentTab";
 import AttendanceLog from "./screens/AttendanceLog";
+import Product from "./screens/Product";
+import AdminManagement from "./screens/AdminManagement";
+import Transactions from "./screens/Transactions";
 
 const App: React.FC = () => {
-    const [currentTab, setCurrentTab] = useState<NavItem>(NavItem.DASHBOARD);
+    const [currentTab, setCurrentTab] = useState<NavItem>(NavItem.ANALYTICS);
     const { isAuthenticated, isInitializing, user, logout } = useAuthContext();
 
     if (isInitializing) {
@@ -33,14 +36,20 @@ const App: React.FC = () => {
 
     const renderContent = () => {
         switch (currentTab) {
-            case NavItem.DASHBOARD:
+            case NavItem.ANALYTICS:
                 return <DashboardHome />;
+            case NavItem.ADMIN:
+                return <AdminManagement />;
             case NavItem.MEMBERS:
                 return <MemberManagement />;
+            case NavItem.TRANSACTIONS:
+                return <Transactions />;
             case NavItem.ATTENDANCE_LOG:
                 return <AttendanceLog />;
             case NavItem.GYM_EQUIPMENTS:
                 return <EquipmentTab />;
+            case NavItem.GYM_PRODUCTS:
+                return <Product />;
             case NavItem.AI_INSIGHTS:
                 return <AssistantTab />;
             case NavItem.QR_CODE:
@@ -57,7 +66,7 @@ const App: React.FC = () => {
                             back soon!
                         </p>
                         <button
-                            onClick={() => setCurrentTab(NavItem.DASHBOARD)}
+                            onClick={() => setCurrentTab(NavItem.ANALYTICS)}
                             className="px-6 py-2 bg-primary-dark text-text-primary rounded-xl hover:bg-primary hover:text-background font-bold transition-colors"
                         >
                             Back to Dashboard
