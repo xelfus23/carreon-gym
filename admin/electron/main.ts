@@ -1,8 +1,14 @@
 import { app, BrowserWindow, screen } from "electron";
 import path from "path";
+import { loadEnv } from "vite";
 
-// const isDev = process.env.NODE_ENV === "development";
-const isDev = true;
+// 1. Manually load the env variables
+// process.cwd() points to your project root where the .env file lives
+const env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
+
+// 2. Use your variables via the 'env' object
+const isDev = process.env.NODE_ENV === "development";
+const ElectronURL = env.VITE_ELECTRON_URL || 'http://localhost:5173';
 
 app.on("ready", () => {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
@@ -14,16 +20,19 @@ app.on("ready", () => {
         minWidth: 375,
         minHeight: 812,
         fullscreen: true,
+        webPreferences: {
+            // Best practice: point to your preload script if you have one
+            preload: path.join(__dirname, 'preload.js'), 
+        }
     });
 
     if (isDev) {
-        mainWindow.loadURL("http://192.168.1.150:5173");
-        // mainWindow.webContents.openDevTools();
+        mainWindow.loadURL(ElectronURL);
     } else {
+        // Ensure this path matches your Vite build output
         mainWindow.loadFile(path.join(app.getAppPath(), "dist/index.html"));
     }
 
-    // Menu.setApplicationMenu(null);
     mainWindow.maximize();
 });
 
