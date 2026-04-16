@@ -43,6 +43,17 @@ export function useWorkout() {
     const [formWeight, setFormWeight] = useState("");
     const [formDifficulty, setFormDifficulty] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    const [allLogs, setAllLogs] = useState<WorkoutLog[]>([]);
+
+    const fetchHistory = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const history = await workoutService.getAllLogs();
+            setAllLogs(history);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
     const refreshWorkoutPlan = useCallback(async () => {
         setIsLoading(true);
@@ -104,6 +115,24 @@ export function useWorkout() {
         },
         [expandedPlan],
     );
+
+    const togglePlanStatus = async (planId: number, isActive: boolean) => {
+        try {
+            await workoutService.updatePlanStatus(planId, isActive);
+            refreshWorkoutPlan(); // Re-fetch to update the UI
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const deletePlan = async (planId: number) => {
+        try {
+            await workoutService.deletePlan(planId);
+            setWorkoutPlans((prev) => prev.filter((p) => p.id !== planId));
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     const toggleDay = useCallback(
         (dayId: number) => {
@@ -261,7 +290,11 @@ export function useWorkout() {
         openLogModal,
         closeModal,
         uncheckExercise,
+        togglePlanStatus,
+        deletePlan,
         saveLog,
         logKey,
+        fetchHistory,
+        allLogs,
     };
 }

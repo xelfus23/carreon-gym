@@ -16,6 +16,7 @@ export type dayProps = {
     title: string;
     exercises: exerciseProps[];
     day_order: number;
+    day_date: number;
 };
 
 export type WorkoutPlanProps = {

@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { useWorkout } from "@/src/hooks/useWorkout";
-import { useFocusEffect } from "@react-navigation/native";
+import { router } from "expo-router";
 
 import ExerciseDetailModal, {
     type ExerciseDetail,
@@ -35,6 +35,14 @@ type FlatExercise = Exercise & {
     dayId: number;
     dayTitle: string;
     planTitle: string;
+};
+
+const normalizeDate = (value: unknown) => {
+    if (value == null) return null;
+    if (typeof value === "string") return value.slice(0, 10);
+    const parsed = new Date(String(value));
+    if (Number.isNaN(parsed.getTime())) return null;
+    return parsed.toISOString().slice(0, 10);
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -248,7 +256,6 @@ export default function Plans() {
         setFormDifficulty,
         isSaving,
         isExerciseChecked,
-        openLogModal,
         closeModal,
         uncheckExercise,
         saveLog,
@@ -272,23 +279,23 @@ export default function Plans() {
 
     if (isLoading) return <CustomLoader text="Loading your workout plans..." />;
 
-    // ── Flatten all exercises from all active plans ──────────────────────────
+    const today = new Date().toISOString().slice(0, 10);
+    const activePlan = workoutPlans.find((plan) => plan.is_active);
+
+    // ── Flatten today's exercises from active plan only ──────────────────────
     const allExercises: FlatExercise[] = [];
 
-    for (const plan of workoutPlans) {
-        // if (!plan.is_active) continue; // Only show active plan exercises
-        for (const day of plan.days ?? []) {
-            if (day.is_rest_day) continue;
+    for (const day of activePlan?.days ?? []) {
+        if (day.is_rest_day) continue;
+        if (normalizeDate(day.day_date) !== today) continue;
 
-            console.log(day);
-            for (const ex of day.exercises ?? []) {
-                allExercises.push({
-                    ...(ex as Exercise),
-                    dayId: day.id,
-                    dayTitle: day.title,
-                    planTitle: plan.title,
-                });
-            }
+        for (const ex of day.exercises ?? []) {
+            allExercises.push({
+                ...(ex as Exercise),
+                dayId: day.id,
+                dayTitle: day.title,
+                planTitle: activePlan?.title ?? "Active Plan",
+            });
         }
     }
 
@@ -299,12 +306,55 @@ export default function Plans() {
         isExerciseChecked(ex.dayId, ex.id),
     );
 
-    // If no active plans
+    // If no plans
     if (workoutPlans.length === 0) return <PlansEmpty />;
 
-    // If no exercises at all, show empty state
+    if (!activePlan) {
+        return (
+            <View className="flex-1 bg-background p-4">
+                <View className="bg-surface border border-border rounded-2xl p-5 mt-2">
+                    <Text className="text-text-primary text-lg font-bold">
+                        No Active Plan
+                    </Text>
+                    <Text className="text-text-secondary mt-2">
+                        Activate a workout plan to see today&apos;s exercises.
+                    </Text>
+                    <TouchableOpacity
+                        onPress={() => router.push("/(app)/(home)/plan-list")}
+                        className="mt-4 bg-primary/10 rounded-xl px-4 py-3 self-start"
+                    >
+                        <Text className="text-primary font-semibold">
+                            Manage Plans
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    }
+
+    // If no exercises for today on active plan
     if (allExercises.length === 0) {
-        return <PlansEmpty />;
+        return (
+            <View className="flex-1 bg-background p-4">
+                <View className="bg-surface border border-border rounded-2xl p-5 mt-2">
+                    <Text className="text-text-primary text-lg font-bold">
+                        Rest Day / No Workout Today
+                    </Text>
+                    <Text className="text-text-secondary mt-2">
+                        Your active plan does not have exercises scheduled for
+                        today.
+                    </Text>
+                    <TouchableOpacity
+                        onPress={() => router.push("/(app)/(home)/plan-list")}
+                        className="mt-4 bg-primary/10 rounded-xl px-4 py-3 self-start"
+                    >
+                        <Text className="text-primary font-semibold">
+                            View All Plans
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
     }
 
     const allDone =
@@ -320,10 +370,23 @@ export default function Plans() {
                 <View className="p-4">
                     {/* Header */}
                     <View className="mb-5">
-                        <Text className="text-text-primary font-bold text-2xl">
-                            Today&apos;s Workout
-                        </Text>
+                        <View className="flex-row items-center justify-between">
+                            <Text className="text-text-primary font-bold text-2xl">
+                                Today&apos;s Workout
+                            </Text>
+                            <TouchableOpacity
+                                onPress={() =>
+                                    router.push("/(app)/(home)/plan-list")
+                                }
+                                className="px-3 py-2 bg-primary/10 rounded-xl"
+                            >
+                                <Text className="text-primary text-xs font-semibold">
+                                    All Plans
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                         <Text className="text-text-secondary text-sm mt-1">
+                            {activePlan.title} ·{" "}
                             {completedExercises.length}/{allExercises.length}{" "}
                             exercises done
                         </Text>

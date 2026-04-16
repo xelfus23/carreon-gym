@@ -23,7 +23,7 @@ const App: React.FC = () => {
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-primary-dark border-t-primary rounded-full animate-spin"></div>
                     <p className="text-text-primary text-xs font-bold uppercase tracking-widest">
-                        Careon Gym Initializing
+                        Carreon Gym Initializing
                     </p>
                 </div>
             </div>

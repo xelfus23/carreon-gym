@@ -7,10 +7,19 @@ export const createPendingPurchaseDomain = async (
     method: string,
 ) => {
     const res = await pool.query(
-        `INSERT INTO payments (user_id, product_id, quantity, amount, transaction_type, method, status)
-       SELECT $1, $2, $3, (price * $3), 'product', $4, 'pending'
-       FROM products WHERE id = $2
-       RETURNING *`,
+        `WITH inserted_payment AS (
+          INSERT INTO payments (user_id, product_id, quantity, amount, transaction_type, method, status)
+          SELECT $1, $2, $3, (price * $3), 'product', $4, 'pending'
+          FROM products WHERE id = $2
+          RETURNING *
+      )
+      SELECT 
+          p.*, 
+          u.first_name || ' ' || u.last_name as member_name,
+          prod.name as item_name
+      FROM inserted_payment p
+      JOIN users u ON p.user_id = u.id
+      JOIN products prod ON p.product_id = prod.id`,
         [userId, productId, qty, method],
     );
     return res.rows[0];

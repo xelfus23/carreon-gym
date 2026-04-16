@@ -7,6 +7,7 @@ import {
     LucideDumbbell,
     MessageSquare,
     MessagesSquare,
+    Store,
     User2,
 } from "lucide-react-native";
 

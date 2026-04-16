@@ -35,7 +35,6 @@ export default function AddProductModal({
         e.preventDefault();
         setLoading(true);
 
-        // Simulate API logic for Careon Gym Store
         try {
             console.log("Saving Product:", formData);
             await new Promise((res) => setTimeout(res, 1200));

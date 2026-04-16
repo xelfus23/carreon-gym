@@ -98,7 +98,7 @@ export const broadcastNotification = (type: string, payload: any) => {
     if (!wssInstance) return;
 
     const message = JSON.stringify({
-        type: "SYSTEM_NOTIFICATION", // Distinguish this from AI chat
+        type: "SYSTEM_NOTIFICATION",
         event: type,
         data: payload,
     });

@@ -1,7 +1,7 @@
 import { Drawer } from "expo-router/drawer";
 import CustomDrawerContent from "../components/CustomDrawer";
 import { COLORS } from "@/src/consts/colors";
-import { Home, Settings } from "lucide-react-native";
+import { Home, Settings, Store } from "lucide-react-native";
 
 export default function DrawerLayout() {
     return (
@@ -40,6 +40,21 @@ export default function DrawerLayout() {
                     drawerLabel: "Settings",
                     drawerIcon: ({ focused }) => (
                         <Settings
+                            color={
+                                focused
+                                    ? COLORS.textPrimary
+                                    : COLORS.textSecondary
+                            }
+                        />
+                    ),
+                }}
+            />
+            <Drawer.Screen
+                name="(store)"
+                options={{
+                    drawerLabel: "Store",
+                    drawerIcon: ({ focused }) => (
+                        <Store
                             color={
                                 focused
                                     ? COLORS.textPrimary

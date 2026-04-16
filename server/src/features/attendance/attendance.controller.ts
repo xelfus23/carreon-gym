@@ -5,6 +5,7 @@ import { checkOutDomain } from "../../domain/attendance/checkOut.ts";
 import { getActiveSessionDomain } from "../../domain/attendance/activeSession.ts";
 import { catchAsync } from "../../utils/catchAsync.ts";
 import { attendanceLogDomain } from "../../domain/attendance/attendanceLog.ts";
+import { broadcastNotification } from "../../ai/websocketHandler.ts";
 
 const CheckInSchema = z.object({
     qr_data: z.string().min(1, "QR data required"),
@@ -40,6 +41,11 @@ export const checkIn = catchAsync(async (req: Request, res: Response) => {
     }
 
     const data = await checkInDomain({ userId });
+
+    broadcastNotification("ATTENDANCE_UPDATE", {
+        memberId: userId,
+        status: "checked_in",
+    });
 
     return res.status(200).json({
         success: true,
@@ -78,6 +84,11 @@ export const checkOut = catchAsync(async (req: Request, res: Response) => {
     }
 
     const data = await checkOutDomain({ userId });
+
+    broadcastNotification("ATTENDANCE_UPDATE", {
+        memberId: userId,
+        status: "checked_out",
+    });
 
     return res.status(200).json({
         success: true,

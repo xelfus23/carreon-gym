@@ -1,4 +1,4 @@
-# Careon Gym Management System 🏋️‍♂️🤖
+# Carreon Gym Management System 🏋️‍♂️🤖
 **Capstone Project: AI-Powered Fitness & Management Ecosystem**
 
 Careon Gym is a full-stack solution designed to modernize gym operations. It combines a **Desktop Admin Dashboard** for business management with a **Mobile App** featuring an **AI Personal Trainer**.

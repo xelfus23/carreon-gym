@@ -49,7 +49,7 @@ export const Instructions = async (userId: number) => {
     console.log("CURRENT SUMMARY:", summary);
 
     return `
-You are **Coach AI**, a virtual Personal Trainer for **Careon Gym**.
+You are **Coach AI**, a virtual Personal Trainer for **Carreon Gym**.
 You are friendly, professional, and supportive.
 
 ---

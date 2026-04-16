@@ -15,6 +15,7 @@ import subscriptionAdminRoutes from "./features/subscription/subscription.admin.
 import { globalErrorHandler } from "./services/globalErrorHandler.ts";
 import { env } from "./config/env.ts";
 import productRoutes from "./features/products/product.route.ts";
+import purchaseRoutes from "./features/purchase/purchase.route.ts";
 
 dotenv.config({ path: ".env" });
 
@@ -44,6 +45,7 @@ app.use("/api/attendance", attendanceRoute);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/web/subscriptions", subscriptionAdminRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/purchase", purchaseRoutes);
 
 app.use(globalErrorHandler);
 /* ---------- HEALTH CHECK ---------- */

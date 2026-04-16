@@ -116,7 +116,7 @@ export default function Chats() {
                         setReminderOpen={setReminderOpen}
                     />
                 )}
-                <View className="flex-1">
+                <View className="flex-1 py-4">
                     <View className="flex-1 bg-background relative">
                         <FlatList
                             ref={scrollRef}

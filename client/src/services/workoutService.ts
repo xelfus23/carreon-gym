@@ -59,4 +59,28 @@ export const workoutService = {
             })
         ).data;
     },
+
+    updatePlanStatus: async (workoutPlanId: number, isActive: boolean) => {
+        return (
+            await request(`/workoutplan/plan/${workoutPlanId}`, {
+                method: "PATCH",
+                body: JSON.stringify({ is_active: isActive }),
+            })
+        ).data;
+    },
+
+    deletePlan: async (workoutPlanId: number) => {
+        return (
+            await request(`/workoutplan/plan/${workoutPlanId}`, {
+                method: "DELETE",
+            })
+        ).data;
+    },
+
+    getAllLogs: async (): Promise<WorkoutLog[]> => {
+        const res = await request(`/workoutplan/logs/all`, {
+            method: "GET",
+        });
+        return (res.data ?? []) as WorkoutLog[];
+    },
 };

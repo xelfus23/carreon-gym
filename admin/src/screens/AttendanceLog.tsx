@@ -115,7 +115,7 @@ export default function AttendanceLog() {
                 <div className="flex items-center gap-2 ml-auto">
                     {!isLoading && (
                         <button
-                            onClick={refresh}
+                            onClick={() => refresh(false)}
                             className="flex items-center gap-1.5 px-3 py-1.5 border border-border
                                            text-text-secondary text-xs font-semibold uppercase tracking-wider
                                            hover:border-primary/40 hover:text-primary transition-all duration-150"

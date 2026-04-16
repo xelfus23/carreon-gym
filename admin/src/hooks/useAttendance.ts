@@ -18,20 +18,17 @@ export const useAttendanceLog = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const getAttendanceLog = useCallback(async () => {
-        setIsLoading(true);
+    const getAttendanceLog = useCallback(async (isSilent = false) => {
+        if (!isSilent) setIsLoading(true); // Only show loading spinner on initial load
         setError(null);
         try {
             const result = await memberService.getAttendance();
-
-            console.log(result.data);
-            // Assuming result.data contains the array of logs
             setLogs(result.data || result);
         } catch (err) {
-            setError("Failed to load attendance logs");
             console.error(err);
+            setError("Failed to load attendance logs");
         } finally {
-            setIsLoading(false);
+            if (!isSilent) setIsLoading(false);
         }
     }, []);
 
@@ -54,6 +51,42 @@ export const useAttendanceLog = () => {
             hour12: true,
         });
     };
+
+    useEffect(() => {
+        const BASE_URL = import.meta.env.VITE_BASE_URL;
+        const ws = new WebSocket(`ws://${BASE_URL}`);
+
+        ws.onopen = () => console.log("✅ Attendance Socket Connected");
+
+        ws.onmessage = (event) => {
+            try {
+                const message = JSON.parse(event.data);
+                console.log("📩 Received WS Message:", message); // Debug this!
+
+                // Check if the event matches exactly what the controller sends
+                if (
+                    message.type === "SYSTEM_NOTIFICATION" &&
+                    message.event === "ATTENDANCE_UPDATE"
+                ) {
+                    console.log("🔄 Silent refresh triggered");
+                    getAttendanceLog(true); // Pass true for silent update
+                }
+            } catch (err) {
+                console.error("Attendance Socket Error:", err);
+            }
+        };
+
+        ws.onerror = (e) => console.error("❌ WebSocket Error:", e);
+
+        return () => {
+            if (
+                ws.readyState === WebSocket.OPEN ||
+                ws.readyState === WebSocket.CONNECTING
+            ) {
+                ws.close();
+            }
+        };
+    }, [getAttendanceLog]);
 
     return {
         logs,

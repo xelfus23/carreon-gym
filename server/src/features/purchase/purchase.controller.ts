@@ -1,4 +1,5 @@
 import { broadcastNotification } from "../../ai/websocketHandler.ts";
+import { getTransactionsDomain } from "../../domain/purchase/getTransactionsDomain.ts";
 import {
     createPendingPurchaseDomain,
     verifyProductPurchaseDomain,
@@ -9,7 +10,7 @@ import type { Request, Response } from "express";
 export const requestPurchase = catchAsync(
     async (req: Request, res: Response) => {
         const { productId, quantity, method } = req.body;
-        const userId = req.user?.id; // From JWT
+        const userId = req.user?.id;
 
         const data = await createPendingPurchaseDomain(
             userId!,
@@ -18,9 +19,10 @@ export const requestPurchase = catchAsync(
             method,
         );
 
-        // Notify Admin in Real-time via Socket.io
+        // Notify Admin using data from the database result
         broadcastNotification("NEW_PENDING_PAYMENT", {
-            member: req.user.name,
+            userId: userId,
+            member: data.member_name,
             amount: data.amount,
             item: data.item_name,
         });
@@ -37,20 +39,39 @@ export const requestPurchase = catchAsync(
 export const verifyPurchase = catchAsync(
     async (req: Request, res: Response) => {
         const { paymentId } = req.params;
-        const adminId = req.user.id;
+        const adminId = req.user?.id;
 
         const data = await verifyProductPurchaseDomain(
             Number(paymentId),
-            adminId,
+            adminId!,
         );
 
-        // Notify Member in Real-time
-        io.emit(`payment_verified_${data.user_id}`, data);
+        broadcastNotification("PAYMENT_VERIFIED", {
+            userId: data.user_id,
+            status: "paid",
+            item: data.item_name,
+        });
 
         res.status(200).json({
             success: true,
             message: "Payment verified and stock updated",
             data,
+        });
+    },
+);
+
+export const getAllTransactions = catchAsync(
+    async (req: Request, res: Response) => {
+        const { userId } = req.query;
+
+        const transactions = await getTransactionsDomain(
+            userId ? Number(userId) : undefined,
+        );
+
+        res.status(200).json({
+            success: true,
+            results: transactions.length,
+            data: transactions,
         });
     },
 );
