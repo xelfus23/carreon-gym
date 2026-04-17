@@ -10,13 +10,35 @@ type JWTPayload = {
     exp?: number;
 };
 
-export const WSAuthentication = async (ws: WebSocket, req: any) => {
+const getTokenFromCookies = (cookieHeader?: string) => {
+    if (!cookieHeader) return null;
+
+    const cookies = cookieHeader.split(";").map((c) => c.trim());
+
+    for (const cookie of cookies) {
+        const [key, value] = cookie.split("=");
+        if (key === "accessToken") return value;
+    }
+
+    return null;
+};
+
+export const WSAuthentication = async (
+    ws: WebSocket,
+    req: any,
+    type: "chat" | "admin",
+) => {
     try {
         const url = new URL(req.url, `http://${req.headers.host}`);
-        const token = url.searchParams.get("token");
-        const sessionId = url.searchParams.get("session_id");
 
-        if (!token || !sessionId) throw new Error("Missing auth params");
+        let token = url.searchParams.get("token");
+
+        // ✅ fallback to cookies (for admin)
+        if (!token) {
+            token = getTokenFromCookies(req.headers.cookie)!;
+        }
+
+        if (!token) throw new Error("Missing token");
 
         const payload = jwt.verify(
             token,
@@ -25,22 +47,24 @@ export const WSAuthentication = async (ws: WebSocket, req: any) => {
 
         const userId = payload.sub;
 
-        if (payload.role !== "admin") {
-            const subscription =
-                await subscriptionService.getSubscription(userId);
-
-            if (!subscription || subscription.status !== "active") {
-                ws.close(1008, "SUBSCRIPTION_REQUIRED");
+        // 🖥️ ADMIN FLOW
+        if (type === "admin") {
+            if (payload.role !== "admin") {
+                ws.close(1008, "FORBIDDEN");
                 return null;
             }
 
-            if (new Date(subscription.expiry_date) < new Date()) {
-                ws.close(1008, "SUBSCRIPTION_EXPIRED");
-                return null;
-            }
+            return { userId };
         }
 
-        return { sessionId: parseInt(sessionId), userId: userId };
+        // 📱 MEMBER FLOW
+        const sessionId = url.searchParams.get("session_id");
+        if (!sessionId) throw new Error("Missing session_id");
+
+        return {
+            userId,
+            sessionId: parseInt(sessionId),
+        };
     } catch (err) {
         console.error("WebSocket auth error:", err);
         ws.close(1008, "AUTHENTICATION_FAILED");

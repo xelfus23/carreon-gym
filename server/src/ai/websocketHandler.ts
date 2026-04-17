@@ -7,14 +7,51 @@ import { handleModelStreamWithTools } from "./utils/handleModelStreamWithTools.t
 import { saveMessageDomain } from "../domain/chat/saveMessage.ts";
 import { saveSummaryDomain } from "../domain/chat/saveSummary.ts";
 import pool from "../config/pool.ts";
+import { env } from "../config/env.ts";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 
-let wssInstance: WebSocketServer;
+let wssChat: WebSocketServer;
+let wssAdmin: WebSocketServer;
+
+const getTokenFromCookies = (cookieHeader?: string) => {
+    if (!cookieHeader) return null;
+
+    const cookies = cookieHeader.split(";").map((c) => c.trim());
+
+    for (const cookie of cookies) {
+        const [key, value] = cookie.split("=");
+        if (key === "accessToken") return value;
+    }
+
+    return null;
+};
 
 export const WebsocketHandler = async (server: Server) => {
-    wssInstance = new WebSocketServer({ server });
+    wssChat = new WebSocketServer({ noServer: true });
+    wssAdmin = new WebSocketServer({ noServer: true });
 
-    wssInstance.on("connection", async (ws: WebSocket, req: any) => {
-        const auth = await WSAuthentication(ws, req);
+    server.on("upgrade", (request, socket, head) => {
+        const { pathname } = new URL(
+            request.url || "",
+            `http://${request.headers.host}`,
+        );
+
+        if (pathname === "/ws/chat") {
+            wssChat.handleUpgrade(request, socket, head, (ws) => {
+                wssChat.emit("connection", ws, request);
+            });
+        } else if (pathname === "/ws/admin") {
+            wssAdmin.handleUpgrade(request, socket, head, (ws) => {
+                wssAdmin.emit("connection", ws, request);
+            });
+        } else {
+            // Reject any other upgrade requests
+            socket.destroy();
+        }
+    });
+
+    wssChat.on("connection", async (ws: WebSocket, req: any) => {
+        const auth = await WSAuthentication(ws, req, "chat");
 
         if (!auth) {
             ws.close(1008, "Unauthorized");
@@ -37,7 +74,7 @@ export const WebsocketHandler = async (server: Server) => {
 
                 const chatHistory = await getChatHistory(
                     userId,
-                    sessionId,
+                    sessionId!,
                     newMsg,
                 );
 
@@ -47,17 +84,17 @@ export const WebsocketHandler = async (server: Server) => {
                     await handleModelStreamWithTools(
                         messages,
                         userId,
-                        sessionId,
+                        sessionId!,
                         ws,
                     );
 
                 if (msgResult) {
-                    await saveMessageDomain(ws, sessionId, userId, {
+                    await saveMessageDomain(ws, sessionId!, userId, {
                         role: "user",
                         content: userMessage,
                     });
 
-                    await saveMessageDomain(ws, sessionId, userId, msgResult);
+                    await saveMessageDomain(ws, sessionId!, userId, msgResult);
 
                     const countResult = await pool.query(
                         `SELECT COUNT(*) FROM chat_messages WHERE session_id = $1`,
@@ -67,7 +104,7 @@ export const WebsocketHandler = async (server: Server) => {
                     const messageCount = parseInt(countResult.rows[0].count);
 
                     if (messageCount % 10 === 0) {
-                        await saveSummaryDomain(sessionId);
+                        await saveSummaryDomain(sessionId!);
                     } else {
                         console.log(
                             "Skip Summarization message count: ",
@@ -92,10 +129,40 @@ export const WebsocketHandler = async (server: Server) => {
             console.log("🔌 WebSocket closed:", userId);
         });
     });
+
+    wssAdmin.on("connection", async (ws, req) => {
+        console.log("Admin WSS connection");
+
+        try {
+            const token = getTokenFromCookies(req.headers.cookie);
+
+            if (!token) {
+                console.log("❌ No token in cookies");
+                ws.close(1008, "NO_TOKEN");
+                return;
+            }
+
+            const payload = jwt.verify(
+                token,
+                env.JWT_ACCESS_SECRET!,
+            ) as JwtPayload;
+
+            if (payload?.role !== "admin") {
+                ws.close(1008, "FORBIDDEN");
+                return;
+            }
+
+            console.log("🖥️ Admin connected:", payload.sub);
+        } catch (err) {
+            console.error("Admin WS auth error:", err);
+            ws.close(1008, "AUTH_FAILED");
+        }
+    });
 };
 
 export const broadcastNotification = (type: string, payload: any) => {
-    if (!wssInstance) return;
+    // Change this to wssAdmin if you want the Admin dashboard to receive it
+    if (!wssAdmin) return;
 
     const message = JSON.stringify({
         type: "SYSTEM_NOTIFICATION",
@@ -103,7 +170,22 @@ export const broadcastNotification = (type: string, payload: any) => {
         data: payload,
     });
 
-    wssInstance.clients.forEach((client) => {
+    wssAdmin.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(message);
+        }
+    });
+};
+
+const broadcastToMembers = (payload: any) => {
+    if (!wssChat) return;
+
+    const message = JSON.stringify({
+        type: "SYSTEM_NOTIFICATION",
+        data: payload,
+    });
+
+    wssChat.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(message);
         }

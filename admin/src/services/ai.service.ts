@@ -1,7 +1,7 @@
-let ws: WebSocket | null = null;
+// let ws: WebSocket | null = null;
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
-const WS_URL = `ws://${BASE_URL}`;
+// const WS_URL = `ws://${BASE_URL}`;
 const API_URL = `http://${BASE_URL}`;
 
 export const chatService = {
@@ -34,16 +34,19 @@ export const chatService = {
 
     createChat: async () => {
         try {
-            const response = await fetch(`${API_URL}/api/chats/sessions`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-            });
+            // const response = await fetch(`${API_URL}/api/chats/sessions`, {
+            //     method: "POST",
+            //     headers: { "Content-Type": "application/json" },
+            // });
 
-            if (!response.ok) {
-                throw new Error("Failed to create chat");
-            }
+            // if (!response.ok) {
+            //     throw new Error("Failed to create chat");
+            // }
 
-            return await response.json();
+            // return await response.json();
+            console.log("Chat sessions");
+
+            return { id: 2 };
         } catch (error) {
             console.error("createChat error:", error);
             throw error;
@@ -57,59 +60,15 @@ export const chatService = {
         onState: (state: string) => void,
     ): Promise<void> => {
         return new Promise((resolve, reject) => {
-            const token = localStorage.getItem("careon_user");
-            if (!token) {
-                reject(new Error("No auth token"));
-                return;
-            }
-
-            const socketUrl = `ws://${WS_URL}?token=${token}&session_id=${sessionId}`;
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.close();
-            }
-
-            ws = new WebSocket(socketUrl);
-
-            ws.onopen = () => {
-                ws?.send(
-                    JSON.stringify({
-                        message: text,
-                    }),
-                );
-            };
-
-            ws.onmessage = (e) => {
-                try {
-                    const data = JSON.parse(e.data as string);
-
-                    if (data.type === "token") {
-                        onToken(data.content);
-                    }
-
-                    if (data.type === "state") {
-                        onState(data.state);
-                    }
-
-                    if (data.type === "done") {
-                        resolve();
-                        onState("Done");
-                        ws?.close();
-                    }
-                } catch (err) {
-                    console.error("WS Parse error", err);
-                }
-            };
-
-            ws.onerror = (e) => {
-                console.error("WebSocket error:", e);
-                onState(`Error: ${e}`);
-                reject(new Error("WebSocket error"));
-            };
-
-            ws.onclose = () => {
-                console.log("WS closed");
-            };
+            console.log(
+                "Chat",
+                sessionId,
+                text,
+                onToken,
+                onState,
+                resolve,
+                reject,
+            );
         });
     },
 

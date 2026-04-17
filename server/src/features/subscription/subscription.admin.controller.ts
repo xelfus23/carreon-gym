@@ -151,6 +151,34 @@ export const cancelForMember = async (req: Request, res: Response) => {
     }
 };
 
+/** POST /api/admin/subscriptions/reset — clear a member's subscription rows */
+export const resetForMember = async (req: Request, res: Response) => {
+    try {
+        const { user_id } = req.body as { user_id?: number };
+
+        if (!Number.isInteger(user_id) || user_id == null) {
+            return res.status(400).json({
+                success: false,
+                message: "user_id (integer) is required.",
+            });
+        }
+
+        const result = await subscriptionService.resetSubscription(user_id);
+        return res.status(200).json({
+            success: true,
+            message: "Subscription reset completed.",
+            data: result,
+        });
+    } catch (err) {
+        console.error("Admin reset subscription error:", err);
+        const message =
+            err instanceof Error
+                ? err.message
+                : "Failed to reset subscription";
+        return res.status(500).json({ success: false, message });
+    }
+};
+
 export const getForMember = async (req: Request, res: Response) => {
     try {
         const userId = Number(req.params.userId);

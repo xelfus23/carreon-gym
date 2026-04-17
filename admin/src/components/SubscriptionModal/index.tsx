@@ -144,6 +144,31 @@ export default function SubscriptionModal({
         }
     };
 
+    const handleResetSub = async () => {
+        if (
+            !confirm(
+                `Reset all subscription records for ${member.first_name} ${member.last_name}? This clears stacked plans and removes current plan state.`,
+            )
+        )
+            return;
+
+        setError(null);
+        setLoading(true);
+        try {
+            await subscriptionService.resetSubscription(member.id);
+            onSuccess();
+            onClose();
+        } catch (e) {
+            setError(
+                e instanceof Error
+                    ? e.message
+                    : "Failed to reset subscription",
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm"
@@ -459,6 +484,14 @@ export default function SubscriptionModal({
                         className="w-full py-2.5 border border-danger/25 text-danger font-semibold rounded-lg hover:bg-danger/8 hover:border-danger/40 disabled:opacity-50 transition-all text-sm"
                     >
                         Cancel Subscription
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleResetSub}
+                        disabled={loading}
+                        className="w-full py-2.5 border border-amber-500/30 text-amber-500 font-semibold rounded-lg hover:bg-amber-500/10 hover:border-amber-500/50 disabled:opacity-50 transition-all text-sm"
+                    >
+                        Reset User Plan
                     </button>
                 </div>
             </div>

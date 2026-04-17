@@ -3,8 +3,16 @@ import { useAttendanceLog } from "../hooks/useAttendance";
 import { Search, Clock, Calendar, Logs, Plus } from "lucide-react";
 
 export default function AttendanceLog() {
-    const { logs, isLoading, formatDate, formatTime, refresh } =
-        useAttendanceLog();
+    const {
+        logs,
+        attempts,
+        isLoading,
+        formatDate,
+        formatTime,
+        refresh,
+        latestFailureAlert,
+        clearFailureAlert,
+    } = useAttendanceLog();
 
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
@@ -43,6 +51,11 @@ export default function AttendanceLog() {
                 log.method.toLowerCase().includes(search.toLowerCase()),
         );
     }, [logs, search]);
+
+    const failedAttempts = useMemo(
+        () => attempts.filter((attempt) => attempt.result === "failed"),
+        [attempts],
+    );
 
     const stats = useMemo(
         () => ({
@@ -145,6 +158,22 @@ export default function AttendanceLog() {
                     </button>
                 </div>
             </div>
+
+            {latestFailureAlert && (
+                <div className="px-4 py-3 border border-rose-300 bg-rose-50 text-rose-700 flex items-center justify-between">
+                    <p className="text-sm font-semibold">
+                        Failed {latestFailureAlert.action.replace("_", " ")} scan
+                        detected: {latestFailureAlert.last_name} (
+                        {latestFailureAlert.reason || "UNKNOWN_ERROR"})
+                    </p>
+                    <button
+                        onClick={clearFailureAlert}
+                        className="text-xs font-bold uppercase tracking-wide hover:opacity-80"
+                    >
+                        Dismiss
+                    </button>
+                </div>
+            )}
 
             {/* ── Main Table Card ── */}
             <div className="bg-surface border border-border shadow-sm overflow-hidden">
@@ -253,6 +282,65 @@ export default function AttendanceLog() {
                             Next →
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <div className="bg-surface border border-border shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-border bg-surface">
+                    <h2 className="text-lg font-bold text-rose-600">
+                        Failed Attendance Attempts
+                    </h2>
+                    <p className="text-xs text-text-secondary mt-1">
+                        Shows failed QR scans like no subscription, invalid QR,
+                        or duplicate check-in.
+                    </p>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="text-left text-sm w-full">
+                        <thead>
+                            <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
+                                <th className="px-5 py-3.5 text-xs">Time</th>
+                                <th className="px-5 py-3.5 text-xs">Member</th>
+                                <th className="px-5 py-3.5 text-xs">Action</th>
+                                <th className="px-5 py-3.5 text-xs">Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                            {failedAttempts.slice(0, 50).map((attempt) => (
+                                <tr
+                                    key={attempt.id}
+                                    className="hover:bg-border/30 transition-colors"
+                                >
+                                    <td className="px-5 py-4 whitespace-nowrap font-medium">
+                                        {formatDate(attempt.created_at)}{" "}
+                                        {formatTime(attempt.created_at)}
+                                    </td>
+                                    <td className="px-5 py-4 font-bold text-text-primary">
+                                        {attempt.first_name} {attempt.last_name}
+                                    </td>
+                                    <td className="px-5 py-4">
+                                        <span className="px-2 py-1 rounded-md bg-amber-100 text-amber-700 text-[10px] font-bold uppercase">
+                                            {attempt.action.replace("_", " ")}
+                                        </span>
+                                    </td>
+                                    <td className="px-5 py-4 text-rose-600 font-semibold">
+                                        {attempt.reason || "UNKNOWN_ERROR"}
+                                    </td>
+                                </tr>
+                            ))}
+                            {failedAttempts.length === 0 && (
+                                <tr>
+                                    <td
+                                        colSpan={4}
+                                        className="px-5 py-6 text-center text-text-secondary"
+                                    >
+                                        No failed attendance attempts found.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

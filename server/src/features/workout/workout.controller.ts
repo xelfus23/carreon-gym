@@ -19,7 +19,6 @@ export const getWorkoutPlan = catchAsync(
 
         const plans = await getWorkoutPlansDomain({ userId: userId });
 
-        console.log(plans);
         return res.status(200).json({
             success: true,
             data: plans,
@@ -197,7 +196,7 @@ export const toggleActivation = catchAsync(
 
         let updatedPlan;
 
-        if (is_active) {
+        if (!is_active) {
             updatedPlan = await activatePlan(userId!, id as string);
         } else {
             updatedPlan = await deactivatePlan(userId!, id as string);

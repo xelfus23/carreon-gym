@@ -66,6 +66,20 @@ export const subscriptionService = {
         return data;
     },
 
+    async resetSubscription(user_id: number) {
+        const res = await authService.fetchWithRefresh(
+            `${API_URL}/api/web/subscriptions/reset`,
+            {
+                method: "POST",
+                body: JSON.stringify({ user_id }),
+            },
+        );
+        const data = await res.json();
+        if (!data.success)
+            throw new Error(data.message ?? "Failed to reset subscription");
+        return data;
+    },
+
     async getSubscription(userId: number) {
         const res = await authService.fetchWithRefresh(
             `${API_URL}/api/web/subscriptions/${userId}`,

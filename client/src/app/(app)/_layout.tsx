@@ -35,6 +35,21 @@ export default function DrawerLayout() {
                 }}
             />
             <Drawer.Screen
+                name="(subscription-plan)"
+                options={{
+                    drawerLabel: "Subscription",
+                    drawerIcon: ({ focused }) => (
+                        <Store
+                            color={
+                                focused
+                                    ? COLORS.textPrimary
+                                    : COLORS.textSecondary
+                            }
+                        />
+                    ),
+                }}
+            />
+            <Drawer.Screen
                 name="(settings)"
                 options={{
                     drawerLabel: "Settings",

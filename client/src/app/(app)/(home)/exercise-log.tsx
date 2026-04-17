@@ -1,7 +1,7 @@
 import { useWorkout } from "@/src/hooks/useWorkout";
 import { ScrollView, Text, View } from "react-native";
 
-export function ExerciseLogsScreen() {
+export default function ExerciseLogsScreen() {
     const { allLogs } = useWorkout();
 
     return (

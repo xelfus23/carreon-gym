@@ -34,8 +34,13 @@ export const getUsersDomain = async () => {
 
       FROM users u
 
-      LEFT JOIN subscriptions s 
-          ON u.id = s.user_id
+      LEFT JOIN LATERAL (
+          SELECT user_id, plan_name, status, expiry_date
+          FROM subscriptions
+          WHERE user_id = u.id
+          ORDER BY updated_at DESC, created_at DESC
+          LIMIT 1
+      ) s ON true
 
       -- Latest body metric
       LEFT JOIN LATERAL (

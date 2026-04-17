@@ -42,7 +42,11 @@ export const useTransactions = (userId?: number) => {
 
     useEffect(() => {
         const BASE_URL = import.meta.env.VITE_BASE_URL;
-        const ws = new WebSocket(`ws://${BASE_URL}`);
+        const wsUrl = `ws://${BASE_URL}/ws/admin`;
+
+        const ws = new WebSocket(wsUrl);
+
+        console.log("Connecting to:", wsUrl);
 
         ws.onopen = () => {
             console.log("🚀 Transaction WebSocket Connected");
@@ -70,11 +74,17 @@ export const useTransactions = (userId?: number) => {
 
         // This is the critical cleanup part
         return () => {
-            // Only close if the connection is in an OPEN or CONNECTING state
+            // 1. Remove listeners so they don't trigger during unmount
+            ws.onopen = null;
+            ws.onmessage = null;
+            ws.onerror = null;
+
+            // 2. Only close if it's not already closed
             if (
-                ws.readyState === WebSocket.OPEN ||
-                ws.readyState === WebSocket.CONNECTING
+                ws.readyState === WebSocket.CONNECTING ||
+                ws.readyState === WebSocket.OPEN
             ) {
+                console.log("Cleaning up WS connection...");
                 ws.close();
             }
         };

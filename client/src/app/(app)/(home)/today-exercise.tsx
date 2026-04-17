@@ -115,7 +115,7 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
     );
 }
 
-export function TodayWorkoutScreen() {
+export default function TodayWorkoutScreen() {
     const { workoutPlans, isExerciseChecked, openLogModal } = useWorkout();
 
     // 1. Get ONLY the active plan

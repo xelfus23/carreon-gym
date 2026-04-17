@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { useUserProfile } from "@/src/context/profileProvider";
-import { PlayIcon } from "lucide-react-native";
+import { Check, PlayIcon } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import { useRouter } from "expo-router";
 import { useWorkout } from "@/src/hooks/useWorkout";
@@ -8,7 +8,6 @@ import { useWorkout } from "@/src/hooks/useWorkout";
 export default function Dashboard() {
     const { profile } = useUserProfile();
     const { workoutPlans } = useWorkout();
-    
 
     if (!profile) return null;
 
@@ -63,9 +62,11 @@ export default function Dashboard() {
 
                 {/* Subscription badge */}
                 {profile.subscription?.status === "active" && (
-                    <View className="bg-primary/20 border border-primary rounded-full px-3 py-1 mt-2 self-start">
-                        <Text className="text-primary text-xs font-bold">
-                            ✓{" "}
+                    <View className="flex flex-row gap-2 items-center py-1">
+                        <View className="rounded-full bg-primary/40 p-0.5">
+                            <Check color={COLORS.primary} size={12}/>
+                        </View>
+                        <Text className="text-primary font-bold">
                             {profile.subscription.planName || "Premium Member"}
                         </Text>
                     </View>

@@ -15,7 +15,6 @@ export default function HomeLayout() {
                     gestureEnabled: true,
                 }}
             />
-
             <Stack.Screen
                 name="exercise-log"
                 options={{

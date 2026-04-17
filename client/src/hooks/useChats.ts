@@ -70,14 +70,11 @@ export function useChat(params?: {
                 if (!mountedRef.current) return;
 
                 if (sessions?.length > 0) {
-                    console.log("📂 Resuming session:", sessions[0].id);
                     setSessionId(sessions[0].id);
                 } else {
-                    console.log("👋 No sessions — showing welcome screen");
                     setInitializing(false);
                 }
             } catch (err) {
-                console.error("Failed to fetch sessions:", err);
                 if (mountedRef.current) setInitializing(false);
             }
         };
