@@ -271,3 +271,42 @@ SELECT e.id, mg.id FROM equipment e
 JOIN muscle_group mg ON mg.name = 'Cardio'
 WHERE e.name IN ('Cardio Bike', 'Treadmill')
 ON CONFLICT DO NOTHING;
+
+-- ============================================================================
+-- SUBSCRIPTION PLANS (Daily / Weekly / Monthly)
+-- ============================================================================
+
+INSERT INTO subscription_plans (name, description, price, duration_days, is_active) VALUES
+('Daily', 'Gym access for one day', 150.00, 1, TRUE),
+('Weekly', 'Gym access for seven days', 800.00, 7, TRUE),
+('Monthly', 'Gym access for one month', 2500.00, 30, TRUE)
+ON CONFLICT (name) DO NOTHING;
+
+
+INSERT INTO product_categories (name, description)
+VALUES 
+  ('Supplements', 'Protein powders, creatine, and performance boosters'),
+  ('Drinks', 'Beverages, water, and energy drinks'),
+  ('Food', 'Ready-to-eat gym snacks'),
+  ('Equipment', 'Gym gear and accessories');
+
+INSERT INTO products (name, category_id, price, stocks)
+VALUES 
+    -- Supplements (Category 1)
+('Whey Protein (27g)', 1, 55.00, 50),
+('Creatine (5g)', 1, 45.00, 50),
+
+-- Drinks (Category 2)
+('Mineral Water', 2, 20.00, 100),
+('C2 Iced Tea', 2, 30.00, 40),
+('Sting Energy Drink', 2, 35.00, 40),
+('Cobra Energy Drink', 2, 35.00, 40),
+('Vitamilk', 2, 40.00, 30),
+('Pocari Sweat', 2, 50.00, 30),
+
+-- Food (Category 3)
+('Hard Boiled Egg', 3, 25.00, 20),
+('Saba Banana (Saging Saba)', 3, 20.00, 30),
+
+  -- Equipment (Category 4)
+('Barbell Foam Grip', 4, 80.00, 10);

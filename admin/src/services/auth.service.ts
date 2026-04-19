@@ -1,5 +1,4 @@
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-const API_URL = `http://${BASE_URL}`;
+const API_URL = import.meta.env.VITE_BASE_URL;
 
 let isRefreshing = false;
 type PendingResolver = {
@@ -17,7 +16,6 @@ function rejectPending(err: Error) {
     pendingRequests.forEach((p) => p.reject(err));
     pendingRequests = [];
 }
-
 
 export class SessionExpiredError extends Error {
     constructor() {

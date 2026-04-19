@@ -21,7 +21,6 @@ export default function SubscriptionModal({
 
     const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
     const [amountOverride, setAmountOverride] = useState<string>("");
-    const [customDays, setCustomDays] = useState<string>("1");
     const [method, setMethod] = useState<string>("cash");
     const [referenceNo, setReferenceNo] = useState<string>("");
     const [notes, setNotes] = useState<string>("");
@@ -38,7 +37,7 @@ export default function SubscriptionModal({
             .getPlans()
             .then((data) => {
                 setPlans(data);
-                const defaultPlan = data.find((p) => !p.is_custom);
+                const defaultPlan = data[0];
                 if (defaultPlan) {
                     setSelectedPlanId(defaultPlan.id);
                     setAmountOverride(String(defaultPlan.price));
@@ -55,10 +54,8 @@ export default function SubscriptionModal({
     if (!member) return null;
 
     const selectedPlan = plans.find((p) => p.id === selectedPlanId) ?? null;
-    const isCustomPlan = selectedPlan?.is_custom ?? false;
     const parsedAmount = parseFloat(amountOverride);
     const hasDiscount =
-        !isCustomPlan &&
         selectedPlan &&
         amountOverride !== "" &&
         !isNaN(parsedAmount) &&
@@ -67,12 +64,7 @@ export default function SubscriptionModal({
     const handlePlanChange = (planId: number) => {
         setSelectedPlanId(planId);
         const plan = plans.find((p) => p.id === planId);
-        if (plan && !plan.is_custom) {
-            setAmountOverride(String(plan.price));
-        } else {
-            setAmountOverride("");
-            setCustomDays("1");
-        }
+        if (plan) setAmountOverride(String(plan.price));
         setError(null);
     };
 
@@ -86,13 +78,6 @@ export default function SubscriptionModal({
             setError("Please enter a valid amount.");
             return;
         }
-        if (isCustomPlan) {
-            const d = parseInt(customDays, 10);
-            if (isNaN(d) || d <= 0) {
-                setError("Please enter a valid number of days.");
-                return;
-            }
-        }
 
         setLoading(true);
         try {
@@ -100,9 +85,7 @@ export default function SubscriptionModal({
                 user_id: member.id,
                 plan_id: selectedPlanId,
                 amount_override: parsedAmount,
-                duration_override: isCustomPlan
-                    ? parseInt(customDays, 10)
-                    : undefined,
+                duration_override: undefined,
                 method,
                 reference_no: referenceNo.trim() || undefined,
                 notes: notes.trim() || undefined,
@@ -285,9 +268,7 @@ export default function SubscriptionModal({
                                                             : "text-text-secondary"
                                                     }`}
                                                 >
-                                                    {plan.is_custom
-                                                        ? "Custom price & duration"
-                                                        : `₱${Number(plan.price).toLocaleString()} · ${plan.duration_days}d`}
+                                                    {`₱${Number(plan.price).toLocaleString()} · ${plan.duration_days}d`}
                                                 </p>
                                             </button>
                                         );
@@ -295,36 +276,13 @@ export default function SubscriptionModal({
                                 </div>
                             </section>
 
-                            {/* ── Custom duration ── */}
-                            {isCustomPlan && (
-                                <section>
-                                    <SectionLabel>Duration</SectionLabel>
-                                    <div className="relative mt-2">
-                                        <input
-                                            type="number"
-                                            min={1}
-                                            max={730}
-                                            value={customDays}
-                                            onChange={(e) =>
-                                                setCustomDays(e.target.value)
-                                            }
-                                            placeholder="e.g. 45"
-                                            className="w-full pl-4 pr-14 py-3 border border-border rounded-lg text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                                        />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-secondary pointer-events-none">
-                                            days
-                                        </span>
-                                    </div>
-                                </section>
-                            )}
-
                             {/* ── Amount ── */}
                             <section>
                                 <div className="flex items-center justify-between">
                                     <SectionLabel>
                                         Amount Collected
                                     </SectionLabel>
-                                    {!isCustomPlan && selectedPlan && (
+                                    {selectedPlan && (
                                         <button
                                             type="button"
                                             onClick={() =>

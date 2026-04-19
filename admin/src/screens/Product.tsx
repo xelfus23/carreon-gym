@@ -3,89 +3,6 @@ import { useMemo, useState } from "react";
 import AddProductModal from "../components/Modals/AddProductModal";
 import { useProducts, type ProductProps } from "../hooks/useProducts";
 
-// const DUMMY_DATA: ProductProps[] = [
-//     {
-//         id: 1,
-//         product_name: "Whey Protein (5lbs)",
-//         price: 2450,
-//         last_restock: "2024-03-10",
-//         available: true,
-//         stocks: 15,
-//         status: "available",
-//         category: "Supplements",
-//     },
-//     {
-//         id: 2,
-//         product_name: "Foam Grip Rolls",
-//         price: 350,
-//         last_restock: "2024-03-12",
-//         available: true,
-//         stocks: 0,
-//         status: "out_of_stock",
-//         category: "Accessories",
-//     },
-//     {
-//         id: 3,
-//         product_name: "Mineral Water (500ml)",
-//         price: 20,
-//         last_restock: "2024-04-01",
-//         available: true,
-//         stocks: 50,
-//         status: "available",
-//         category: "Beverages",
-//     },
-//     {
-//         id: 4,
-//         product_name: "C2 Green Tea",
-//         price: 25,
-//         last_restock: "2024-04-02",
-//         available: true,
-//         stocks: 24,
-//         status: "available",
-//         category: "Beverages",
-//     },
-//     {
-//         id: 5,
-//         product_name: "Sting Energy",
-//         price: 35,
-//         last_restock: "2024-04-03",
-//         available: true,
-//         stocks: 12,
-//         status: "available",
-//         category: "Beverages",
-//     },
-//     {
-//         id: 6,
-//         product_name: "Cobra Energy Drink",
-//         price: 30,
-//         last_restock: "2024-04-04",
-//         available: true,
-//         stocks: 18,
-//         status: "available",
-//         category: "Beverages",
-//     },
-//     {
-//         id: 7,
-//         product_name: "Vitamilk Chocolate",
-//         price: 45,
-//         last_restock: "2024-04-05",
-//         available: true,
-//         stocks: 10,
-//         status: "available",
-//         category: "Beverages",
-//     },
-//     {
-//         id: 8,
-//         product_name: "Pocari Sweat",
-//         price: 55,
-//         last_restock: "2024-04-06",
-//         available: false,
-//         stocks: 0,
-//         status: "unavailable",
-//         category: "Beverages",
-//     },
-// ];
-
 type SortKey = keyof ProductProps;
 type SortDir = "asc" | "desc";
 type FilterStatus = "all" | "available" | "unavailable" | "out_of_stock";
@@ -184,10 +101,10 @@ export default function Product() {
                             </button>
                         )}
                         <button
-                            // onClick={() => setIsAddModalOpen(true)}
+                            onClick={() => setIsAddModalOpen(true)}
                             className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-background hover:opacity-90 transition-all text-sm font-medium"
                         >
-                            <Plus size={16} /> Add Member
+                            <Plus size={16} /> Add Product
                         </button>
                     </div>
                 </div>

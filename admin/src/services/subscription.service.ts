@@ -1,7 +1,6 @@
 import { authService } from "./auth.service";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-const API_URL = `http://${BASE_URL}`;
+const API_URL = import.meta.env.VITE_BASE_URL;
 
 export interface SubscriptionPlan {
     id: number;
@@ -9,7 +8,6 @@ export interface SubscriptionPlan {
     description: string | null;
     price: number;
     duration_days: number;
-    is_custom: boolean;
 }
 
 export const subscriptionService = {

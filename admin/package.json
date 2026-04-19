@@ -10,7 +10,7 @@
         "lint": "eslint .",
         "preview": "vite preview",
         "transpile:electron": "tsc --project electron/tsconfig.json",
-        "electron:dev": "npm run transpile:electron && concurrently \"vite --host\" \"wait-on http://192.168.1.17:5173 && cross-env NODE_ENV=development electron .\"",
+        "electron:dev": "npm run transpile:electron && concurrently \"vite --host\" \"wait-on http://192.168.1.150:5173 && cross-env NODE_ENV=development electron .\"",
         "electron:build:win": "npm run transpile:electron && vite build && electron-builder --win --x64",
         "electron:build:mac": "npm run transpile:electron && vite build && electron-builder --mac --arm64",
         "electron:build:linux": "npm run transpile:electron && vite build && electron-builder --linux --x64"

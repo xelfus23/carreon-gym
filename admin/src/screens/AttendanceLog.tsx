@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
-import { useAttendanceLog } from "../hooks/useAttendance";
+import {
+    formatAttemptReason,
+    useAttendanceLog,
+} from "../hooks/useAttendance";
 import { Search, Clock, Calendar, Logs, Plus } from "lucide-react";
 
 export default function AttendanceLog() {
@@ -164,7 +167,7 @@ export default function AttendanceLog() {
                     <p className="text-sm font-semibold">
                         Failed {latestFailureAlert.action.replace("_", " ")} scan
                         detected: {latestFailureAlert.last_name} (
-                        {latestFailureAlert.reason || "UNKNOWN_ERROR"})
+                        {formatAttemptReason(latestFailureAlert.reason)})
                     </p>
                     <button
                         onClick={clearFailureAlert}
@@ -325,7 +328,7 @@ export default function AttendanceLog() {
                                         </span>
                                     </td>
                                     <td className="px-5 py-4 text-rose-600 font-semibold">
-                                        {attempt.reason || "UNKNOWN_ERROR"}
+                                        {formatAttemptReason(attempt.reason)}
                                     </td>
                                 </tr>
                             ))}

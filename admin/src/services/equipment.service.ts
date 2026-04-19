@@ -1,12 +1,11 @@
 import { authService } from "./auth.service";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-const API_URL = `http://${BASE_URL}`;
+const API_URL = import.meta.env.VITE_BASE_URL;
 
 type EquipmentPayload = {
     equipment_name: string;
     category: string;
-    target_muscles: string; // comma-separated e.g. "Chest,Arms"
+    target_muscles: string;
     description?: string;
     quantity?: number;
 };

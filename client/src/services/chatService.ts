@@ -63,11 +63,8 @@ export const chatService = {
                     activeSocket.close(1000, "New message sent");
                 }
 
-                const baseUrl = WS_URL?.startsWith("ws")
-                    ? WS_URL
-                    : `ws://${WS_URL}`;
                 activeSocket = new WebSocket(
-                    `${baseUrl}?token=${token}&session_id=${sessionId}`,
+                    `${WS_URL}?token=${token}&session_id=${sessionId}`,
                 );
 
                 const socket = activeSocket;

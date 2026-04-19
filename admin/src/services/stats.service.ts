@@ -1,7 +1,6 @@
 import { authService } from "./auth.service";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-const API_URL = `http://${BASE_URL}`;
+const API_URL = import.meta.env.VITE_BASE_URL;
 
 export const statsService = {
     getStats: async () => {

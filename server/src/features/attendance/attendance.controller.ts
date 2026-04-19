@@ -7,6 +7,7 @@ import { catchAsync } from "../../utils/catchAsync.ts";
 import { attendanceLogDomain } from "../../domain/attendance/attendanceLog.ts";
 import { broadcastNotification } from "../../ai/websocketHandler.ts";
 import pool from "../../config/pool.ts";
+import { AppError } from "../../utils/appError.ts";
 
 type AttendanceAction = "check_in" | "check_out";
 
@@ -14,11 +15,23 @@ const CheckInSchema = z.object({
     qr_data: z.string().min(1, "QR data required"),
 });
 
-const mapFailureReason = (err: any) => {
-    if (err?.code === "UNAUTHORIZED_ACCESS") return "NO_SUBSCRIPTION";
-    if (err?.code === "ALREADY_CHECKED_IN") return "ALREADY_CHECKED_IN";
-    if (err?.code === "NOT_CHECKED_IN") return "NOT_CHECKED_IN";
-    return "UNKNOWN_ERROR";
+/** Human-readable reason for logs, WebSocket, and admin UI (legacy codes included). */
+const mapAttendanceFailureReason = (err: unknown): string => {
+    const byCode: Record<string, string> = {
+        NO_SUBSCRIPTION: "No Subscription",
+        UNAUTHORIZED_ACCESS: "No Subscription",
+        ALREADY_CHECKED_IN: "Already Checked In",
+        UNVERIFIED_USER: "Unverified User",
+        USER_NOT_FOUND: "User Not Found",
+        NOT_CHECKED_IN: "Not Checked In",
+    };
+
+    if (err instanceof AppError) {
+        return byCode[err.errorCode] ?? (err.message.trim() || "Unknown error");
+    }
+
+    const msg = err instanceof Error ? err.message.trim() : "";
+    return msg || "Unknown error";
 };
 
 const logAttendanceAttempt = async (params: {
@@ -154,16 +167,8 @@ export const checkIn = catchAsync(async (req: Request, res: Response) => {
             success: true,
             data,
         });
-    } catch (err: any) {
-        let failureReason = "UNKNOWN_ERROR";
-
-        if (err.code === "UNAUTHORIZED_ACCESS") {
-            failureReason = "NO_SUBSCRIPTION";
-        }
-
-        if (err.code === "ALREADY_CHECKED_IN") {
-            failureReason = "ALREADY_CHECKED_IN";
-        }
+    } catch (err: unknown) {
+        const failureReason = mapAttendanceFailureReason(err);
 
         await logAttendanceAttempt({
             userId,
@@ -179,9 +184,17 @@ export const checkIn = catchAsync(async (req: Request, res: Response) => {
             reason: failureReason,
         });
 
-        return res.status(err.statusCode || 500).json({
+        const statusCode = err instanceof AppError ? err.statusCode : 500;
+        const message =
+            err instanceof AppError
+                ? err.message
+                : err instanceof Error
+                  ? err.message
+                  : "Check-in failed";
+
+        return res.status(statusCode).json({
             success: false,
-            message: err.message,
+            message,
         });
     }
 });
@@ -262,8 +275,8 @@ export const checkOut = catchAsync(async (req: Request, res: Response) => {
             message: "Check-out successful! Great workout! 🎉",
             data: data,
         });
-    } catch (err: any) {
-        const failureReason = mapFailureReason(err);
+    } catch (err: unknown) {
+        const failureReason = mapAttendanceFailureReason(err);
 
         await logAttendanceAttempt({
             userId,
@@ -280,9 +293,17 @@ export const checkOut = catchAsync(async (req: Request, res: Response) => {
             reason: failureReason,
         });
 
-        return res.status(err.statusCode || 500).json({
+        const statusCode = err instanceof AppError ? err.statusCode : 500;
+        const message =
+            err instanceof AppError
+                ? err.message
+                : err instanceof Error
+                  ? err.message
+                  : "Check-out failed";
+
+        return res.status(statusCode).json({
             success: false,
-            message: err.message || "Check-out failed",
+            message,
         });
     }
 });

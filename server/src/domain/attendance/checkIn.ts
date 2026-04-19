@@ -4,6 +4,19 @@ import { AppError } from "../../utils/appError.ts";
 export const checkInDomain = async (params: { userId: number }) => {
     const { userId } = params;
 
+    const user = await pool.query(
+        `SELECT verified FROM users WHERE id = $1`,
+        [userId],
+    );
+
+    if (user.rowCount === 0) {
+        throw new AppError("User not found", 404, "USER_NOT_FOUND");
+    }
+
+    if (!user.rows[0].verified) {
+        throw new AppError("Unverified User", 403, "UNVERIFIED_USER");
+    }
+
     // 1. Verify active subscription
     const sub = await pool.query(
         `SELECT 1 FROM subscriptions
@@ -14,11 +27,7 @@ export const checkInDomain = async (params: { userId: number }) => {
     );
 
     if (sub.rowCount === 0) {
-        throw new AppError(
-            "No active subscription",
-            401,
-            "UNAUTHORIZED_ACCESS",
-        );
+        throw new AppError("No Subscription", 403, "NO_SUBSCRIPTION");
     }
 
     // 2. Check active session
@@ -31,7 +40,7 @@ export const checkInDomain = async (params: { userId: number }) => {
     );
 
     if (activeSession.rowCount) {
-        throw new AppError("Already checked in", 409, "ALREADY_CHECKED_IN");
+        throw new AppError("Already Checked In", 409, "ALREADY_CHECKED_IN");
     }
 
     // 3. SINGLE INSERT ONLY (FIXED)

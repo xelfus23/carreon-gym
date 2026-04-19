@@ -1,8 +1,6 @@
 // let ws: WebSocket | null = null;
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-// const WS_URL = `ws://${BASE_URL}`;
-const API_URL = `http://${BASE_URL}`;
+const API_URL = import.meta.env.VITE_BASE_URL;
 
 export const chatService = {
     getHistory: async () => {

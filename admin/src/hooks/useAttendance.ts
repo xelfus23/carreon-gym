@@ -13,6 +13,24 @@ export type AttendanceLogProps = {
     duration: number | null;
 };
 
+/** Maps stored attempt reasons (codes or new human-readable strings) for display. */
+export function formatAttemptReason(reason: string | null | undefined): string {
+    if (reason == null || reason === "") return "—";
+    const labels: Record<string, string> = {
+        UNKNOWN_ERROR: "Unknown error",
+        NO_SUBSCRIPTION: "No Subscription",
+        UNAUTHORIZED_ACCESS: "No Subscription",
+        ALREADY_CHECKED_IN: "Already Checked In",
+        UNVERIFIED_USER: "Unverified User",
+        USER_NOT_FOUND: "User Not Found",
+        NOT_CHECKED_IN: "Not Checked In",
+        COOLDOWN_ACTIVE: "Please wait before scanning again",
+        INVALID_QR: "Invalid QR",
+        INVALID_QR_DATA: "Invalid QR data",
+    };
+    return labels[reason] ?? reason;
+}
+
 export type AttendanceAttemptLog = {
     id: number;
     user_id: number;
@@ -107,7 +125,13 @@ export const useAttendanceLog = () => {
                         last_name: `#${message.data.memberId ?? ""}`,
                         action: message.data.action ?? "check_in",
                         result: "failed",
-                        reason: message.data.reason ?? "UNKNOWN_ERROR",
+                        reason:
+                            message.data.reason != null &&
+                            String(message.data.reason).trim() !== ""
+                                ? formatAttemptReason(
+                                      String(message.data.reason),
+                                  )
+                                : "Unknown error",
                         metadata: null,
                         created_at: new Date().toISOString(),
                     });

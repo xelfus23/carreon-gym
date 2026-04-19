@@ -26,8 +26,8 @@ export const getPlans = async (_req: Request, res: Response) => {
  * {
  *   user_id:           number,   // member to subscribe
  *   plan_id:           number,   // from subscription_plans table
- *   amount_override?:  number,   // if discount or custom plan
- *   duration_override?: number,  // required if plan is_custom = true
+ *   amount_override?:  number,   // optional discount / adjusted price
+ *   duration_override?: number,  // optional extra days (defaults to plan duration_days)
  *   method?:           string,   // 'cash' | 'gcash' | 'maya' | 'bank_transfer' | 'card' | 'other'
  *   reference_no?:     string,   // GCash/bank ref
  *   notes?:            string,

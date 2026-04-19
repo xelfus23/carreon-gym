@@ -97,7 +97,9 @@ CREATE TABLE subscriptions (
     auto_renew BOOLEAN DEFAULT false,
 
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT uq_subscriptions_one_per_user UNIQUE (user_id)
 );
 
 CREATE INDEX idx_subscriptions_user_status 
@@ -132,6 +134,23 @@ CREATE TABLE products (
 
 CREATE INDEX idx_products_category ON products(category_id);
 CREATE INDEX idx_products_status ON products(status);
+
+CREATE OR REPLACE VIEW v_product_inventory AS
+SELECT
+    p.id,
+    p.name AS product_name,
+    p.price,
+    p.last_restock_at AS last_restock,
+    p.is_active AS available,
+    p.stocks,
+    p.status,
+    c.name AS category,
+    p.category_id,
+    p.is_active,
+    p.created_at,
+    p.updated_at
+FROM products p
+INNER JOIN product_categories c ON c.id = p.category_id;
 
 -- ============================================================================
 -- PAYMENTS
@@ -201,6 +220,7 @@ CREATE TABLE gym_attendance (
     check_out_time TIMESTAMPTZ,
     duration_minutes INT,
     status attendance_status DEFAULT 'checked_in',
+    log_status TEXT NOT NULL DEFAULT 'success' CHECK (log_status IN ('success', 'failed')),
     method TEXT DEFAULT 'qr' CHECK (method IN ('qr','manual','admin')),
     verified_by INT REFERENCES users(id),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -412,3 +432,5 @@ JOIN users u ON p.user_id = u.id
 LEFT JOIN subscription_plans sp ON p.plan_id = sp.id
 LEFT JOIN products prod ON p.product_id = prod.id;
 
+ALTER TABLE subscriptions
+ADD CONSTRAINT uq_subscriptions_one_per_user UNIQUE (user_id);

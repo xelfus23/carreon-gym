@@ -2,6 +2,7 @@ import { authStorage } from "./authStorage";
 import { tokenManager } from "./tokenManager";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 const REQUEST_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_REQUEST_TIMEOUT_MS) || 10000;
 type RequestOptions = RequestInit & {
     skipAuthRefresh?: boolean;

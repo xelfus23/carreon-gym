@@ -7,7 +7,7 @@ export const subscriptionService = {
     /** Fetch all active plans for the admin dropdown. */
     async getPlans() {
         const result = await pool.query(
-            `SELECT id, name, description, price, duration_days, is_custom
+            `SELECT id, name, description, price, duration_days
              FROM subscription_plans
              WHERE is_active = TRUE
              ORDER BY duration_days ASC`,
@@ -49,7 +49,7 @@ export const subscriptionService = {
 
             // 1. Fetch the plan
             const planResult = await client.query(
-                `SELECT id, name, price, duration_days, is_custom
+                `SELECT id, name, price, duration_days
                  FROM subscription_plans
                  WHERE id = $1 AND is_active = TRUE`,
                 [planId],
@@ -68,26 +68,6 @@ export const subscriptionService = {
                 options.amountOverride ?? Number(plan.price);
             const finalDurationDays: number =
                 options.durationOverride ?? plan.duration_days;
-
-            // Custom plan requires explicit overrides
-            if (plan.is_custom) {
-                if (
-                    options.durationOverride == null ||
-                    options.durationOverride <= 0
-                ) {
-                    throw new Error(
-                        "Custom plan requires a valid durationOverride (days).",
-                    );
-                }
-                if (
-                    options.amountOverride == null ||
-                    options.amountOverride < 0
-                ) {
-                    throw new Error(
-                        "Custom plan requires a valid amountOverride (amount).",
-                    );
-                }
-            }
 
             // const expiryDate = new Date();
             // expiryDate.setDate(expiryDate.getDate() + finalDurationDays);
@@ -213,7 +193,6 @@ export const subscriptionService = {
                 s.*,
                 sp.price AS plan_price,
                 sp.duration_days AS plan_duration_days,
-                sp.is_custom AS plan_is_custom,
                 CASE
                     WHEN s.status = 'cancelled' THEN 'cancelled'
                     WHEN s.status = 'pending' THEN 'pending'
