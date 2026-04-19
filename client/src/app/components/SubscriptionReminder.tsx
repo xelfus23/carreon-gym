@@ -1,6 +1,7 @@
 import { Modal, Text, View, TouchableOpacity, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Dispatch, SetStateAction, useEffect, useRef } from "react";
+import { useRouter } from "expo-router";
 
 export default function SubscriptionReminder({
     text,
@@ -11,6 +12,7 @@ export default function SubscriptionReminder({
 }) {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(30)).current;
+    const router = useRouter()
 
     useEffect(() => {
         Animated.parallel([
@@ -62,7 +64,7 @@ export default function SubscriptionReminder({
                         </Text>
 
                         {/* CTA Button */}
-                        <TouchableOpacity className="bg-primary w-full py-3 rounded-xl items-center mt-2 active:opacity-80">
+                        <TouchableOpacity onPress={() => router.push("/(app)/(home)/subscription-plan")} className="bg-primary w-full py-3 rounded-xl items-center mt-2 active:opacity-80">
                             <Text className="text-background font-semibold text-base">
                                 View Plans
                             </Text>

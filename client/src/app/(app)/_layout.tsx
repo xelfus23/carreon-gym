@@ -1,7 +1,8 @@
 import { Drawer } from "expo-router/drawer";
 import CustomDrawerContent from "../components/CustomDrawer";
 import { COLORS } from "@/src/consts/colors";
-import { Home, Settings, Store } from "lucide-react-native";
+import { Home, Settings, Star, Store, Subscript } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DrawerLayout() {
     return (
@@ -34,21 +35,7 @@ export default function DrawerLayout() {
                     ),
                 }}
             />
-            <Drawer.Screen
-                name="(subscription-plan)"
-                options={{
-                    drawerLabel: "Subscription",
-                    drawerIcon: ({ focused }) => (
-                        <Store
-                            color={
-                                focused
-                                    ? COLORS.textPrimary
-                                    : COLORS.textSecondary
-                            }
-                        />
-                    ),
-                }}
-            />
+
             <Drawer.Screen
                 name="(settings)"
                 options={{
