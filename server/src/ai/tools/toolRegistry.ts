@@ -14,11 +14,11 @@ export const tools = [
                         description: "Brief overview",
                     },
                     duration_weeks: {
-                        type: "number",
+                        type: "integer",
                         description: "Total weeks (Integer only)",
                     },
                     days_per_week: {
-                        type: "number",
+                        type: "integer",
                         description: "Frequency (Integer only)",
                     },
                     difficulty_level: {
@@ -40,11 +40,11 @@ export const tools = [
                 type: "object",
                 properties: {
                     plan_id: {
-                        type: "number",
+                        type: "integer",
                         description: "The ID returned from create_workout_plan",
                     },
                     day_order: {
-                        type: "number",
+                        type: "integer",
                         description: "Sequence (e.g., 1 for Monday)",
                     },
                     title: { type: "string", description: "e.g., 'Push Day'" },
@@ -70,35 +70,35 @@ export const tools = [
                 type: "object",
                 properties: {
                     day_id: {
-                        type: "number",
+                        type: "integer",
                         description: "The ID returned from add_workout_day",
                     },
                     exercise_order: {
-                        type: "number",
+                        type: "integer",
                         description: "Position in workout",
                     },
                     exercise_name: { type: "string" },
                     equipment_id: {
-                        type: "number",
+                        type: "integer",
                         description:
                             "The numeric ID from the inventory list provided in system prompt",
                     },
                     sets: {
-                        type: "number",
+                        type: "integer",
                         description: "Whole numbers only. No text.",
                     },
                     reps: {
-                        type: "number",
+                        type: "integer",
                         description:
                             "Number of reps. USE ONLY for strength exercises. Set to null if duration_seconds is used.",
                     },
                     duration_seconds: {
-                        type: "number",
+                        type: "integer",
                         description:
                             "Time in seconds. USE ONLY for cardio or isometric holds. Set to null if reps is used.",
                     },
                     rest_seconds: {
-                        type: "number",
+                        type: "integer",
                         description: "Rest in seconds (Integer).",
                     },
                     weight_guidance: {
@@ -111,7 +111,7 @@ export const tools = [
                     notes: { type: "string" },
                     is_warmup: { type: "boolean" },
                     is_superset: { type: "boolean" },
-                    superset_group: { type: "number" },
+                    superset_group: { type: "integer" },
                 },
                 required: [
                     "day_id",
@@ -138,7 +138,7 @@ export const tools = [
                 "Removes an entire plan and its associated days/exercises.",
             parameters: {
                 type: "object",
-                properties: { plan_id: { type: "number" } },
+                properties: { plan_id: { type: "integer" } },
                 required: ["plan_id"],
             },
         },

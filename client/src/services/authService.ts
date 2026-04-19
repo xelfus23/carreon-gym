@@ -16,6 +16,8 @@ export const authService = {
         const { data } = await request("/auth/mobile", {
             method: "POST",
             body: JSON.stringify({ email, password }),
+            skipAuthRefresh: true,
+            skipAuthHeader: true,
         });
 
         tokenManager.set(data?.accessToken ?? null, data?.refreshToken ?? null);
@@ -46,6 +48,8 @@ export const authService = {
                 password,
                 phoneNumber: contactNumber,
             }),
+            skipAuthRefresh: true,
+            skipAuthHeader: true,
         });
 
         const { user, accessToken, refreshToken } = res.data;

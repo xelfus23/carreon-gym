@@ -58,8 +58,8 @@ export default function EquipmentTab() {
             list = list.filter(
                 (eq) =>
                     eq.equipment_name.toLowerCase().includes(q) ||
-                    eq.category.toLowerCase().includes(q) ||
-                    eq.target_muscles.toLowerCase().includes(q) ||
+                    (eq.category ?? "").toLowerCase().includes(q) ||
+                    (eq.target_muscles ?? "").toLowerCase().includes(q) ||
                     eq.description?.toLowerCase().includes(q),
             );
         }

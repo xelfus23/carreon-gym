@@ -163,3 +163,111 @@ VALUES
  'Cardio',
  'Machine used for walking, jogging, or running indoors',
  8);
+
+-- ============================================================================
+-- MAP EQUIPMENT TO TARGET MUSCLE GROUPS
+-- ============================================================================
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Arms'
+WHERE e.name = 'Dumbbells'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Shoulders'
+WHERE e.name = 'Dumbbells'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Chest'
+WHERE e.name = 'Barbells'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Back'
+WHERE e.name = 'Barbells'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Arms'
+WHERE e.name = 'Curve Barbells'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Arms'
+WHERE e.name = 'Arm Bars'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Core'
+WHERE e.name = 'Yoga Ball'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Arms'
+WHERE e.name = 'Resistance Bands'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Chest'
+WHERE e.name = 'Bench Press'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Chest'
+WHERE e.name = 'Pec Deck'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Chest'
+WHERE e.name = 'Incline Press'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Back'
+WHERE e.name = 'Cable Row'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Back'
+WHERE e.name = 'Lat Machine'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Back'
+WHERE e.name = 'Lat Pulldown'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Legs'
+WHERE e.name IN (
+    'Leg Press',
+    'Smith Machine',
+    'Calf Raise Machine',
+    'Leg Extension Machine',
+    'Leg Curl Machine',
+    'Hack Squat Machine',
+    'Barbell Squat Rack'
+)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
+SELECT e.id, mg.id FROM equipment e
+JOIN muscle_group mg ON mg.name = 'Cardio'
+WHERE e.name IN ('Cardio Bike', 'Treadmill')
+ON CONFLICT DO NOTHING;

@@ -12,11 +12,20 @@ interface TextInputProps {
     onChangeText?: (text: string) => void;
 }
 
-const KeyboardTypes: Record<string, string> = {
-    username: "default",
+const KeyboardTypes: Record<string, KeyboardTypeOptions> = {
+    default: "default",
     email: "email-address",
-    password: "default",
+    phone: "phone-pad",
 };
+
+function resolveKeyboardType(placeholder: string): KeyboardTypeOptions {
+    const lowerPlaceholder = placeholder.toLowerCase();
+
+    if (lowerPlaceholder.includes("email")) return KeyboardTypes.email;
+    if (lowerPlaceholder.includes("phone")) return KeyboardTypes.phone;
+
+    return KeyboardTypes.default;
+}
 
 export default function CustomTextInput({
     placeholder,
@@ -34,13 +43,13 @@ export default function CustomTextInput({
                 placeholderTextColor={
                     error ? COLORS.danger : COLORS.textSecondary
                 }
-                className={`${className} ${error ? "border-danger" : "border-border"} border bg-surface font-inter rounded-xl px-4 py-4 text-x text-text-secondary flex-1`}
+                className={`${className} ${error ? "border-danger" : "border-border"} border bg-surface font-inter rounded-xl px-4 py-4 text-base text-text-secondary flex-1`}
                 secureTextEntry={secureTextEntry}
                 value={value}
                 autoCorrect={false}
                 spellCheck={false}
                 autoCapitalize="none"
-                keyboardType={KeyboardTypes[placeholder] as KeyboardTypeOptions}
+                keyboardType={resolveKeyboardType(placeholder)}
                 onChangeText={onChangeText}
             />
             {placeholder === "Password" && (

@@ -74,17 +74,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     setUser(data.user ?? storedUser); // store the user data into User state.
                     setIsAuthenticated(true); // set authenticated true
                 } catch (e) {
-                    if (
-                        e instanceof Error &&
-                        e.message === "Session expired. Please log in again."
-                    ) {
-                        await logout();
-                    } else {
-                        if (storedUser) {
-                            setUser(storedUser);
-                            setIsAuthenticated(true);
-                        }
-                    }
+                    // Any failed session validation means we should not trust cached auth.
+                    // This prevents navigating into protected routes when backend is offline.
+                    await logout();
                 }
             } catch (e) {
                 console.error("Session restore failed:", e);

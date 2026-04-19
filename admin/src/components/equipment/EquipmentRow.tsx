@@ -73,7 +73,10 @@ export default function EquipmentRow({
     onEdit: (item: EquipmentTypes) => void;
     onDelete: (item: EquipmentTypes) => void;
 }) {
-    const muscles = item.target_muscles.split(",").filter(Boolean);
+    const muscles = (item.target_muscles ?? "")
+        .split(",")
+        .map((muscle) => muscle.trim())
+        .filter(Boolean);
 
     return (
         <tr className="border-b border-border hover:bg-surface/70 transition-colors">

@@ -2,6 +2,11 @@ import { authStorage } from "./authStorage";
 import { tokenManager } from "./tokenManager";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const REQUEST_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_REQUEST_TIMEOUT_MS) || 10000;
+type RequestOptions = RequestInit & {
+    skipAuthRefresh?: boolean;
+    skipAuthHeader?: boolean;
+};
 
 // Core Variables
 let isRefreshing = false; // refreshing state
@@ -26,7 +31,7 @@ async function refreshAccessToken() {
 
     if (!refreshToken) throw new Error("Session expired. Please log in again."); // If refresh token is not available.
 
-    const res = await fetch(`${API_URL}/api/auth/mobile/refresh`, {
+    const res = await fetchWithTimeout(`${API_URL}/api/auth/mobile/refresh`, {
         // fetch refresh and return a refresh token
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,21 +65,50 @@ async function parseAndThrowIfError(res: Response) {
     return json; // if response is ok then return the data
 }
 
-export async function request(path: string, options: RequestInit = {}) {
+async function fetchWithTimeout(
+    input: RequestInfo | URL,
+    init: RequestInit = {},
+    timeoutMs = REQUEST_TIMEOUT_MS,
+) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        return await fetch(input, {
+            ...init,
+            signal: controller.signal,
+        });
+    } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+            throw new Error("Request timed out. Please check your connection.");
+        }
+
+        throw error;
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+export async function request(path: string, options: RequestOptions = {}) {
     // A request function
+    const { skipAuthRefresh = false, skipAuthHeader = false, ...fetchOptions } =
+        options;
+
     const makeRequest = (token: string | null) =>
-        fetch(`${API_URL}/api${path}`, {
-            ...options,
+        fetchWithTimeout(`${API_URL}/api${path}`, {
+            ...fetchOptions,
             headers: {
                 "Content-Type": "application/json",
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                ...options.headers,
+                ...(!skipAuthHeader && token
+                    ? { Authorization: `Bearer ${token}` }
+                    : {}),
+                ...fetchOptions.headers,
             },
         });
 
     let res = await makeRequest(tokenManager.getAccessToken()); // call the makeRequest function and pass the AccessToken
 
-    if (res.status !== 401) {
+    if (res.status !== 401 || skipAuthRefresh) {
         return parseAndThrowIfError(res); // if the status is not an error validate.
     }
 

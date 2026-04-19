@@ -77,7 +77,7 @@ const App: React.FC = () => {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden bg-background">
             <Sidebar currentTab={currentTab} setTab={setCurrentTab} />
 
             <main className="flex-1 bg-background relative">

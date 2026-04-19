@@ -15,11 +15,11 @@ import ScreenWrapper from "../../../components/ScreenWrapper";
 import { useChat } from "@/src/hooks/useChats";
 import renderMessageItem from "../../../components/Chat/RenderMessage";
 import { ChatMessage } from "@/src/types/chats";
-import WelcomeScreen from "../../../components/ChatWelcome";
 import { useFocusEffect } from "expo-router";
 import SubscriptionReminder from "@/src/app/components/SubscriptionReminder";
 import { useUserProfile } from "@/src/context/profileProvider";
 import CustomLoader from "@/src/app/components/Plans/PlansLoading";
+import WelcomeScreen from "@/src/app/components/ChatWelcome";
 
 export default function Chats() {
     const { profile } = useUserProfile();

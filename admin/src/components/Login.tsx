@@ -14,7 +14,7 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center">
+        <div className="min-h-screen w-full flex items-center justify-center bg-background">
             <div className="block lg:flex items-center lg:rounded-4xl lg:bg-surface px-12 py-24 lg:border lg:border-border">
                 <div className="flex flex-col items-center">
                     <div className="flex justify-center items-center">

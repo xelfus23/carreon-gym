@@ -1,5 +1,3 @@
-CREATE DATABASE careon_gym_db;
-
 -- ============================================================================
 -- ENUMS
 -- ============================================================================
@@ -109,6 +107,33 @@ CREATE INDEX idx_subscriptions_expiry
 ON subscriptions(expiry_date) WHERE status = 'active';
 
 -- ============================================================================
+-- PRODUCT INVENTORY
+-- ============================================================================
+
+CREATE TABLE product_categories (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    category_id INT NOT NULL REFERENCES product_categories(id) ON DELETE CASCADE,
+    price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
+    stocks INT DEFAULT 0 CHECK (stocks >= 0),
+    status product_status DEFAULT 'available',
+    is_active BOOLEAN DEFAULT TRUE,
+    last_restock_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_products_category ON products(category_id);
+CREATE INDEX idx_products_status ON products(status);
+
+-- ============================================================================
 -- PAYMENTS
 -- ============================================================================
 
@@ -146,33 +171,6 @@ CREATE TABLE payments (
 CREATE INDEX idx_payments_user ON payments(user_id);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_payments_paid_at ON payments(paid_at DESC);
-
--- ============================================================================
--- PRODUCT INVENTORY
--- ============================================================================
-
-CREATE TABLE product_categories (
-    id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    description TEXT,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE products (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    category_id INT NOT NULL REFERENCES product_categories(id) ON DELETE CASCADE,
-    price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
-    stocks INT DEFAULT 0 CHECK (stocks >= 0),
-    status product_status DEFAULT 'available',
-    is_active BOOLEAN DEFAULT TRUE,
-    last_restock_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_products_category ON products(category_id);
-CREATE INDEX idx_products_status ON products(status);
 
 -- ============================================================================
 -- USER SESSIONS
@@ -294,19 +292,37 @@ CREATE TABLE workout_plans (
 CREATE TABLE workout_days (
     id SERIAL PRIMARY KEY,
     plan_id INT REFERENCES workout_plans(id) ON DELETE CASCADE,
-    day_order INT,
-    title TEXT,
-    is_rest_day BOOLEAN DEFAULT FALSE
+    day_order INT NOT NULL,
+    title TEXT NOT NULL,
+    is_rest_day BOOLEAN DEFAULT FALSE,
+    rest_day_notes TEXT,
+    day_date DATE,
+    UNIQUE (plan_id, day_order)
 );
 
 CREATE TABLE workout_exercises (
     id SERIAL PRIMARY KEY,
     workout_day_id INT REFERENCES workout_days(id) ON DELETE CASCADE,
-    exercise_name TEXT,
+    exercise_order INT NOT NULL,
+    exercise_name TEXT NOT NULL,
     equipment_id INT REFERENCES equipment(id),
     sets INT,
     reps INT,
-    duration_seconds INT
+    duration_seconds INT,
+    rest_seconds INT DEFAULT 0,
+    weight_guidance TEXT,
+    tempo TEXT DEFAULT '2-0-2-0',
+    description TEXT,
+    notes TEXT,
+    is_warmup BOOLEAN DEFAULT FALSE,
+    is_superset BOOLEAN DEFAULT FALSE,
+    superset_group INT,
+    UNIQUE (workout_day_id, exercise_order),
+    CONSTRAINT chk_reps_or_duration
+        CHECK (
+            (reps IS NOT NULL AND duration_seconds IS NULL) OR
+            (reps IS NULL AND duration_seconds IS NOT NULL)
+        )
 );
 
 CREATE TABLE workout_logs (
@@ -331,6 +347,16 @@ CREATE TABLE notifications (
     message TEXT,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE attendance_attempts (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    action TEXT NOT NULL,
+    result TEXT NOT NULL,
+    reason TEXT,
+    metadata JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================================================
@@ -385,38 +411,4 @@ FROM payments p
 JOIN users u ON p.user_id = u.id
 LEFT JOIN subscription_plans sp ON p.plan_id = sp.id
 LEFT JOIN products prod ON p.product_id = prod.id;
-
--- =====================================================================
--- ATTENDANCE ATTEMPTS (QR SCAN LOGS)
--- =====================================================================
-
-
-
-ALTER TABLE gym_attendance
-ADD COLUMN log_status TEXT
-CHECK (log_status IN ('success', 'failed'));
-
-
-ALTER TABLE gym_attendance
-ADD COLUMN failure_reason TEXT;
-
-
---------- RECENT UPDATE ------------
-CREATE TABLE attendance_attempts (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
-
-    action TEXT NOT NULL, 
-    -- 'check_in' | 'check_out'
-
-    result TEXT NOT NULL,
-    -- 'success' | 'failed'
-
-    reason TEXT,
-    -- NO_SUBSCRIPTION | ALREADY_CHECKED_IN | INVALID_QR | etc
-
-    metadata JSONB,
-
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
 

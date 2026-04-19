@@ -8,7 +8,11 @@ export const getEquipmentDomain = async () => {
               e.quantity,
               e.description,
               ec.name AS category, 
-              STRING_AGG(mg.name, ', ') AS target_muscles
+              COALESCE(
+                  STRING_AGG(DISTINCT mg.name, ', ' ORDER BY mg.name)
+                      FILTER (WHERE mg.name IS NOT NULL),
+                  'Unassigned'
+              ) AS target_muscles
           FROM 
               equipment e
           JOIN 
@@ -22,7 +26,8 @@ export const getEquipmentDomain = async () => {
               e.name, 
               e.quantity,
               e.description,
-              ec.name;
+              ec.name
+          ORDER BY e.id;
         `;
 
     const result = await pool.query(query);

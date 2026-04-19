@@ -106,7 +106,7 @@ export default function AttendanceLog() {
                 ].map(({ label, value, color }) => (
                     <div
                         key={label}
-                        className={`px-4 py-3 ${color} rounded-sm shadow-sm`}
+                        className={`px-4 py-3 ${color} shadow-sm`}
                     >
                         <p className="text-xs font-semibold uppercase tracking-wider opacity-70">
                             {label}

@@ -5,7 +5,7 @@ export type EquipmentTypes = {
     id: number;
     equipment_name: string;
     category: string;
-    target_muscles: string;
+    target_muscles: string | null;
     description?: string;
     quantity?: number;
 };
@@ -28,6 +28,7 @@ export const useEquipments = () => {
         setError(null);
         try {
             const data = await EquipmentService.getEquipment();
+            console.log(data.data);
             setEquipments(data.data);
         } catch (err) {
             const errorMessage =
