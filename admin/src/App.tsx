@@ -12,6 +12,7 @@ import AttendanceLog from "./screens/AttendanceLog";
 import Product from "./screens/Product";
 import AdminManagement from "./screens/AdminManagement";
 import Transactions from "./screens/Transactions";
+import GymSettings from "./screens/GymSettings";
 
 const App: React.FC = () => {
     const [currentTab, setCurrentTab] = useState<NavItem>(NavItem.ANALYTICS);
@@ -54,6 +55,8 @@ const App: React.FC = () => {
                 return <AssistantTab />;
             case NavItem.QR_CODE:
                 return <QRTab />;
+            case NavItem.GYM_SETTINGS:
+                return <GymSettings />;
             default:
                 return (
                     <div className="flex flex-col items-center justify-center h-full text-text-secondary space-y-4">

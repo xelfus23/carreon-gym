@@ -1,8 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-    formatAttemptReason,
-    useAttendanceLog,
-} from "../hooks/useAttendance";
+import { formatAttemptReason, useAttendanceLog } from "../hooks/useAttendance";
 import { Search, Clock, Calendar, Logs, Plus } from "lucide-react";
 
 export default function AttendanceLog() {
@@ -88,7 +85,7 @@ export default function AttendanceLog() {
     return (
         <div className="space-y-6">
             {/* ── Stats bar ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 {[
                     {
                         label: "Total Visits",
@@ -106,11 +103,13 @@ export default function AttendanceLog() {
                         value: formatDuration(stats.avgDuration),
                         color: "bg-indigo-500 text-indigo-50",
                     },
+                    {
+                        label: "Error Log",
+                        value: failedAttempts.length,
+                        color: "bg-red-400 text-white",
+                    },
                 ].map(({ label, value, color }) => (
-                    <div
-                        key={label}
-                        className={`px-4 py-3 ${color} shadow-sm`}
-                    >
+                    <div key={label} className={`px-4 py-3 ${color} shadow-sm`}>
                         <p className="text-xs font-semibold uppercase tracking-wider opacity-70">
                             {label}
                         </p>
@@ -165,8 +164,8 @@ export default function AttendanceLog() {
             {latestFailureAlert && (
                 <div className="px-4 py-3 border border-rose-300 bg-rose-50 text-rose-700 flex items-center justify-between">
                     <p className="text-sm font-semibold">
-                        Failed {latestFailureAlert.action.replace("_", " ")} scan
-                        detected: {latestFailureAlert.last_name} (
+                        Failed {latestFailureAlert.action.replace("_", " ")}{" "}
+                        scan detected: {latestFailureAlert.last_name} (
                         {formatAttemptReason(latestFailureAlert.reason)})
                     </p>
                     <button
@@ -291,7 +290,7 @@ export default function AttendanceLog() {
             <div className="bg-surface border border-border shadow-sm overflow-hidden">
                 <div className="p-4 border-b border-border bg-surface">
                     <h2 className="text-lg font-bold text-rose-600">
-                        Failed Attendance Attempts
+                        Error Log
                     </h2>
                     <p className="text-xs text-text-secondary mt-1">
                         Shows failed QR scans like no subscription, invalid QR,

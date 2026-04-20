@@ -8,6 +8,7 @@ import {
     PanelLeftClose,
     PanelLeftOpen,
     QrCode,
+    Settings,
     ShoppingBasket,
     Sparkles,
     UserRoundKey,
@@ -68,6 +69,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
             label: "AI Insights",
             icon: <Sparkles className="h-5 stroke-2" />,
         },
+        {
+            id: NavItem.GYM_SETTINGS,
+            label: "Gym Settings",
+            icon: <Settings />,
+        },
     ];
 
     return (
@@ -79,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
             >
                 {sideBarOn && (
                     <img
-                        src="/careon/brand-logo.png"
+                        // src="/careon/brand-logo.png"
                         className="object-contain self-start h-10 transition-all"
                     />
                 )}
@@ -101,9 +107,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
                     <button
                         key={item.id}
                         onClick={() => setTab(item.id)}
-                        className={`w-full h-10 flex items-center ${sideBarOn ? "justify-normal aspect-auto" : "aspect-square justify-center"} gap-3 px-4 py-3 transition-all duration-200 ${
+                        className={`w-full h-10 flex items-center ${sideBarOn ? "justify-normal aspect-auto" : "aspect-square justify-center"} gap-3 px-2 py-3 transition-all duration-200 ${
                             currentTab === item.id
-                                ? "bg-primary-dark text-text-primary shadow-lg shadow-primary/20"
+                                ? "bg-primary-dark text-background shadow-lg shadow-primary/20"
                                 : "hover:bg-primary-dark/20 hover:text-text-primary"
                         }`}
                     >

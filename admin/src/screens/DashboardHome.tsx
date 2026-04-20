@@ -165,8 +165,10 @@ const DashboardHome: React.FC = () => {
                             minHeight: 0,
                         }}
                     >
-                        {statsLoading || chartData.length === 0 ? (
+                        {statsLoading ? (
                             <ChartSkeleton />
+                        ) : chartData.length === 0 ? (
+                            <NoDataState message="No attendance data yet" />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={chartData}>
@@ -295,8 +297,10 @@ const DashboardHome: React.FC = () => {
                         }}
                     >
                         {" "}
-                        {statsLoading || chartData.length === 0 ? (
+                        {statsLoading ? (
                             <ChartSkeleton />
+                        ) : chartData.length === 0 ? (
+                            <NoDataState message="No revenue data yet" />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={chartData}>
@@ -394,12 +398,10 @@ const DashboardHome: React.FC = () => {
                             minHeight: 0,
                         }}
                     >
-                        {statsLoading || peakHourData.length === 0 ? (
+                        {statsLoading ? (
                             <ChartSkeleton />
                         ) : peakHourData.length === 0 ? (
-                            <div className="h-full flex items-center justify-center text-text-secondary text-sm">
-                                No check-in data yet
-                            </div>
+                            <NoDataState message="No check-in data yet" />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={peakHourData} barSize={14}>
@@ -508,6 +510,12 @@ const tooltipStyle: React.CSSProperties = {
 const ChartSkeleton: React.FC = () => (
     <div className="h-full flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin" />
+    </div>
+);
+
+const NoDataState: React.FC<{ message: string }> = ({ message }) => (
+    <div className="h-full flex items-center justify-center text-text-secondary text-sm">
+        {message}
     </div>
 );
 

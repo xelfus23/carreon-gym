@@ -144,16 +144,7 @@ export default function EquipmentTab() {
                     </button>
                 </div>
             </div>
-            <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                    {!isLoading && !error && (
-                        <p className="text-xs text-text-secondary">
-                            {filtered.length} result
-                            {filtered.length !== 1 ? "s" : ""}
-                        </p>
-                    )}
-                </div>
-
+            <div className="flex flex-col gap-4 mt-6">
                 <div className="bg-surface border border-border shadow-sm overflow-hidden min-w-0">
                     <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
                         <div className="relative flex-1 min-w-48">
@@ -187,6 +178,14 @@ export default function EquipmentTab() {
                                 </option>
                             ))}
                         </select>
+                        <div className="flex items-center justify-between">
+                            {!isLoading && !error && (
+                                <p className="text-xs text-text-secondary">
+                                    {filtered.length} result
+                                    {filtered.length !== 1 ? "s" : ""}
+                                </p>
+                            )}
+                        </div>
                     </div>
 
                     <div className="overflow-x-auto overflow-y-scroll h-175">

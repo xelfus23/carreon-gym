@@ -8,6 +8,7 @@ export enum NavItem {
     GYM_EQUIPMENTS = "GYM_EQUIPMENTS",
     GYM_PRODUCTS = "GYM_PRODUCTS",
     AI_INSIGHTS = "AI_INSIGHTS",
+    GYM_SETTINGS = "GYM_SETTINGS",
 }
 
 export type SubscriptionStatus = "active" | "expired" | "pending" | "cancelled";

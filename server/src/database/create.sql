@@ -434,3 +434,34 @@ LEFT JOIN products prod ON p.product_id = prod.id;
 
 ALTER TABLE subscriptions
 ADD CONSTRAINT uq_subscriptions_one_per_user UNIQUE (user_id);
+
+-- ============================================================================
+-- GYM CONFIGURATION & DATA
+-- ============================================================================
+
+CREATE TABLE gym_details (
+    id SERIAL PRIMARY KEY,
+    gym_name TEXT NOT NULL DEFAULT 'Careon Gym',
+    address TEXT,
+    contact_number TEXT,
+    email TEXT,
+    
+    -- Payment Details for Clients
+    gcash_name TEXT,
+    gcash_number TEXT,
+    maya_name TEXT,
+    maya_number TEXT,
+    bank_details JSONB, -- For storing multiple bank accounts if needed
+    
+    -- Operating Hours
+    opening_time TIME,
+    closing_time TIME,
+    
+    -- Socials & Branding
+    facebook_url TEXT,
+    instagram_url TEXT,
+    logo_url TEXT,
+    
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+

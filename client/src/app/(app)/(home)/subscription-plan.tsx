@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/consts/colors";
-import { SubscriptionCard } from "../../components/SubscriptionModal/SubscriptionCard";
+import { SubscriptionCard } from "../../components/Subscription/SubscriptionCard";
 import { useRouter } from "expo-router";
 
 export type SubscriptionTypes = {

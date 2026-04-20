@@ -48,6 +48,7 @@ export const WSAuthentication = async (
 
         // 🖥️ ADMIN FLOW
         if (type === "admin") {
+          
             if (payload.role !== "admin") {
                 ws.close(1008, "FORBIDDEN");
                 return null;

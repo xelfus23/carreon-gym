@@ -310,3 +310,5 @@ VALUES
 
   -- Equipment (Category 4)
 ('Barbell Foam Grip', 4, 80.00, 10);
+
+INSERT INTO gym_details (gym_name, gcash_number) VALUES ('Careon Gym', '09163318032');

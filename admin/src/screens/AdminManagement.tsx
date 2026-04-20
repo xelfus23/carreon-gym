@@ -8,8 +8,6 @@ import AdminRow from "../components/members/AdminRow";
 
 type SortKey = keyof AdminMemberListItem | null;
 type SortDir = "asc" | "desc";
-type FilterStatus = "all" | "active" | "suspended" | "deleted";
-type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
 export default function AdminManagement() {
     const { admins, refetch, isLoading, verifyMember } = useMember();
@@ -18,8 +16,6 @@ export default function AdminManagement() {
 
     // Table controls
     const [search, setSearch] = useState("");
-    const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
-    const [filterSub, setFilterSub] = useState<FilterSub>("all");
     const [sortKey, setSortKey] = useState<SortKey>("created_at");
     const [sortDir, setSortDir] = useState<SortDir>("desc");
     const [page, setPage] = useState(1);
@@ -110,11 +106,6 @@ export default function AdminManagement() {
             );
         }
 
-        if (filterStatus !== "all")
-            list = list.filter((m) => m.account_status === filterStatus);
-        if (filterSub !== "all")
-            list = list.filter((m) => m.subscription_status === filterSub);
-
         if (sortKey) {
             list.sort((a, b) => {
                 const av = a[sortKey] ?? "";
@@ -127,7 +118,7 @@ export default function AdminManagement() {
         }
 
         return list;
-    }, [admins, search, filterStatus, filterSub, sortKey, sortDir]);
+    }, [admins, search, sortKey, sortDir]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -205,35 +196,6 @@ export default function AdminManagement() {
                                 className="w-full pl-9 pr-4 py-2 bg-surface border border-border text-sm focus:ring-2 focus:ring-primary outline-none transition-all text-text-primary"
                             />
                         </div>
-
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => {
-                                setFilterStatus(e.target.value as FilterStatus);
-                                setPage(1);
-                            }}
-                            className="px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
-                        >
-                            <option value="all">All Accounts</option>
-                            <option value="active">Active</option>
-                            <option value="suspended">Suspended</option>
-                            <option value="deleted">Deleted</option>
-                        </select>
-
-                        <select
-                            value={filterSub}
-                            onChange={(e) => {
-                                setFilterSub(e.target.value as FilterSub);
-                                setPage(1);
-                            }}
-                            className="px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
-                        >
-                            <option value="all">All Plans</option>
-                            <option value="active">Active Plan</option>
-                            <option value="expired">Expired</option>
-                            <option value="pending">Pending</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
 
                         <span className="ml-auto text-xs text-text-secondary font-medium whitespace-nowrap">
                             {filtered.length} result

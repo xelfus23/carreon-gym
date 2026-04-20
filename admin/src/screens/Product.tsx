@@ -111,12 +111,11 @@ export default function Product() {
 
                 <div className="bg-surface border border-border shadow-sm overflow-hidden flex flex-col">
                     {/* Toolbar */}
-                    <div className="p-4 border-b border-border bg-surface/50 flex flex-wrap gap-3 items-center">
+                    <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
                         <div className="relative flex-1 min-w-[240px]">
-                            <Search
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
-                                size={16}
-                            />
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">
+                                <Search size={14} />
+                            </span>
                             <input
                                 value={search}
                                 onChange={(e) => {
@@ -125,7 +124,7 @@ export default function Product() {
                                 }}
                                 type="text"
                                 placeholder="Search products..."
-                                className="w-full pl-10 pr-4 py-2 bg-background border border-border text-sm focus:ring-2 focus:ring-primary outline-none"
+                                className="w-full pl-9 pr-4 py-2  border border-border text-sm focus:ring-2 focus:ring-primary outline-none"
                             />
                         </div>
 
@@ -144,9 +143,9 @@ export default function Product() {
                         </select>
 
                         <span className="text-xs text-text-secondary font-medium ml-auto">
-                            {processedData.length} total results
+                            {processedData.length} results
                         </span>
-                    </div>
+                    </div> 
 
                     {/* Table Area */}
                     <div className="overflow-x-auto overflow-y-auto h-162">

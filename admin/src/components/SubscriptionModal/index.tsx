@@ -8,8 +8,6 @@ import SectionLabel from "./SectionLabel";
 import type { SubscriptionModalProps } from "../../types";
 import { PAYMENT_METHODS } from "../../constants";
 
-
-
 export default function SubscriptionModal({
     member,
     onClose,
@@ -143,9 +141,7 @@ export default function SubscriptionModal({
             onClose();
         } catch (e) {
             setError(
-                e instanceof Error
-                    ? e.message
-                    : "Failed to reset subscription",
+                e instanceof Error ? e.message : "Failed to reset subscription",
             );
         } finally {
             setLoading(false);
@@ -158,7 +154,7 @@ export default function SubscriptionModal({
             onClick={onClose}
         >
             <div
-                className="bg-surface w-full sm:max-w-lg sm:rounded-lg rounded-t-lg border border-border shadow-2xl flex flex-col max-h-[92vh]"
+                className="bg-surface w-full sm:max-w-2xl sm:rounded-lg rounded-t-lg border border-border shadow-2xl flex flex-col max-h-[92vh]"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* ── Header ─────────────────────────────────────────────── */}
@@ -215,7 +211,7 @@ export default function SubscriptionModal({
                             {/* ── Plan grid ── */}
                             <section>
                                 <SectionLabel>Select Plan</SectionLabel>
-                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                <div className="grid grid-cols-3 gap-2 mt-2">
                                     {plans.map((plan) => {
                                         const active =
                                             selectedPlanId === plan.id;
@@ -417,21 +413,7 @@ export default function SubscriptionModal({
                                 Saving…
                             </>
                         ) : (
-                            <>
-                                <svg
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 14 14"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <path d="M7 1v12M1 7h12" />
-                                </svg>
-                                Save & Record Payment
-                            </>
+                            "Save & Record Payment"
                         )}
                     </button>
 
