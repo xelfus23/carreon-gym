@@ -25,6 +25,16 @@ export default function HomeLayout() {
                 }}
             />
             <Stack.Screen
+                name="payment-instructions"
+                options={{
+                    headerShown: false,
+                    presentation: "fullScreenModal",
+                    animation: "slide_from_right",
+                    animationDuration: 0.1,
+                    gestureEnabled: true,
+                }}
+            />
+            <Stack.Screen
                 name="exercise-log"
                 options={{
                     headerShown: false,

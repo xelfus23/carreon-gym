@@ -100,7 +100,12 @@ export default function Subscription() {
             </ScrollView>
 
             <View className="left-0 right-0 px-4 pb-8 pt-4 bg-background border-t border-surface">
-                <TouchableOpacity className="bg-primary rounded-2xl py-4 items-center">
+                <TouchableOpacity
+                    onPress={() =>
+                        router.push("/(app)/(home)/payment-instructions")
+                    }
+                    className="bg-primary rounded-2xl py-4 items-center"
+                >
                     <Text className="text-background font-bold text-base">
                         Get {selectedPlan}
                     </Text>

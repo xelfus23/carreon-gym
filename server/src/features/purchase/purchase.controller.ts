@@ -19,7 +19,6 @@ export const requestPurchase = catchAsync(
             method,
         );
 
-        // Notify Admin using data from the database result
         broadcastNotification("NEW_PENDING_PAYMENT", {
             userId: userId,
             member: data.member_name,
@@ -35,7 +34,6 @@ export const requestPurchase = catchAsync(
     },
 );
 
-// Admin Dashboard: PATCH /api/products/verify-purchase/:paymentId
 export const verifyPurchase = catchAsync(
     async (req: Request, res: Response) => {
         const { paymentId } = req.params;
