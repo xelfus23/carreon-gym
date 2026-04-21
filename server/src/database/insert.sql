@@ -277,9 +277,9 @@ ON CONFLICT DO NOTHING;
 -- ============================================================================
 
 INSERT INTO subscription_plans (name, description, price, duration_days, is_active) VALUES
-('Daily', 'Gym access for one day', 150.00, 1, TRUE),
-('Weekly', 'Gym access for seven days', 800.00, 7, TRUE),
-('Monthly', 'Gym access for one month', 2500.00, 30, TRUE)
+('Daily', 'Gym access for one day', 50.00, 1, TRUE),
+('Weekly', 'Gym access for seven days', 350.00, 7, TRUE),
+('Monthly', 'Gym access for one month', 1400.00, 30, TRUE)
 ON CONFLICT (name) DO NOTHING;
 
 
@@ -311,4 +311,4 @@ VALUES
   -- Equipment (Category 4)
 ('Barbell Foam Grip', 4, 80.00, 10);
 
-INSERT INTO gym_details (gym_name, gcash_number) VALUES ('Careon Gym', '09163318032');
+INSERT INTO gym_details (gym_name, gcash_number) VALUES ('Careon Gym', '09123456789');

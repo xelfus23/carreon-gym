@@ -3,190 +3,188 @@ import { chatService } from "../services/ai.service";
 import { Send } from "lucide-react";
 
 const AssistantTab: React.FC = () => {
-    const [messages, setMessages] = useState<
-        { role: "user" | "assistant"; text: string }[]
-    >([
-        {
-            role: "assistant",
-            text: "Hello! I'm your Careon Gym AI Assistant. How can I help you optimize your gym business today?",
-        },
-    ]);
-    const [input, setInput] = useState("");
-    const [isTyping, setIsTyping] = useState(false);
-    const [currentState, setCurrentState] = useState("");
-    const [sessionId, setSessionId] = useState<number | null>(null);
-    const scrollRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<
+    { role: "user" | "assistant"; text: string }[]
+  >([
+    {
+      role: "assistant",
+      text: "Hello! I'm your Careon Gym AI Assistant. How can I help you optimize your gym business today?",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [currentState, setCurrentState] = useState("");
+  const [sessionId, setSessionId] = useState<number | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        // Create a session when component mounts if one doesn't exist
-        const initSession = async () => {
-            try {
-                const session = await chatService.createChat();
-                setSessionId(session.id);
-            } catch (err) {
-                console.error("Failed to init chat session", err);
-            }
-        };
-        initSession();
-    }, []);
-
-    useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [messages, isTyping, currentState]);
-
-    const handleSend = async () => {
-        if (!input.trim() || isTyping || !sessionId) return;
-
-        const userMessage = input;
-        setInput("");
-        setMessages((prev) => [...prev, { role: "user", text: userMessage }]);
-        setIsTyping(true);
-
-        // Add placeholder for AI response
-        setMessages((prev) => [...prev, { role: "assistant", text: "" }]);
-
-        try {
-            await chatService.sendMessage(
-                sessionId,
-                userMessage,
-                (token) => {
-                    setMessages((prev) => {
-                        const updated = [...prev];
-                        const last = updated[updated.length - 1];
-                        if (last && last.role === "assistant") {
-                            last.text += token;
-                        }
-                        return updated;
-                    });
-                },
-                (state) => {
-                    setCurrentState(state);
-                },
-            );
-        } catch (e) {
-            console.error(e);
-            setMessages((prev) => {
-                const updated = [...prev];
-                const last = updated[updated.length - 1];
-                if (last && last.role === "assistant" && last.text === "") {
-                    last.text =
-                        "Service error. Please check your backend connection at 192.168.1.150:6000.";
-                }
-                return updated;
-            });
-        } finally {
-            setIsTyping(false);
-            setCurrentState("");
-        }
+  useEffect(() => {
+    // Create a session when component mounts if one doesn't exist
+    const initSession = async () => {
+      try {
+        const session = await chatService.createChat();
+        setSessionId(session.id);
+      } catch (err) {
+        console.error("Failed to init chat session", err);
+      }
     };
+    initSession();
+  }, []);
 
-    return (
-        <div className=" h-[calc(100vh-160px)] flex flex-col bg-background rounded-3xl border border-border shadow-xl overflow-hidden animate-in zoom-in-95 duration-500">
-            <div className="bg-surface text-text-primary p-6 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary-dark rounded-full flex items-center justify-center text-xl">
-                        🤖
-                    </div>
-                    <div>
-                        <h3 className="font-bold">Careon Gym AI Assistant</h3>
-                        <p className="text-xs text-text-secondary">
-                            Gym Strategy & Support Engine
-                        </p>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => {
-                            setMessages([
-                                {
-                                    role: "assistant",
-                                    text: "Chat cleared. How else can I help?",
-                                },
-                            ]);
-                            chatService
-                                .createChat()
-                                .then((s) => setSessionId(s.id));
-                        }}
-                        className="text-xs bg-border hover:bg-primary/20 px-3 py-1.5 rounded-lg border border-border transition-colors"
-                    >
-                        New Chat
-                    </button>
-                </div>
-            </div>
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isTyping, currentState]);
 
-            <div
-                ref={scrollRef}
-                className="flex-1 p-6 overflow-y-auto space-y-6 bg-background"
-            >
-                {messages.map((msg, i) => (
-                    <div
-                        key={i}
-                        className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                    >
-                        <div
-                            className={`max-w-[80%] p-4 rounded-2xl shadow-sm leading-relaxed ${msg.role === "user"
-                                    ? "bg-surface text-text-secondary rounded-tr-none"
-                                    : "text-text-primary"
-                                }`}
-                        >
-                            <p className="text-sm whitespace-pre-line">
-                                {msg.text ||
-                                    (msg.role === "assistant" &&
-                                        isTyping &&
-                                        i === messages.length - 1
-                                        ? "..."
-                                        : "")}
-                            </p>
-                        </div>
-                    </div>
-                ))}
-                {(isTyping || currentState) && (
-                    <div className="flex justify-start">
-                        <div className="bg-background px-4 py-2 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-3">
-                            <div className="flex gap-1">
-                                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></div>
-                                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce delay-100"></div>
-                                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce delay-200"></div>
-                            </div>
-                            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">
-                                {currentState || "Thinking"}
-                            </span>
-                        </div>
-                    </div>
-                )}
-            </div>
+  const handleSend = async () => {
+    if (!input.trim() || isTyping || !sessionId) return;
 
-            <div className="p-6 bg-background">
-                <div className="flex gap-4">
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                        placeholder={
-                            sessionId
-                                ? "Ask about marketing strategy, member retention..."
-                                : "Connecting to AI..."
-                        }
-                        disabled={!sessionId || isTyping}
-                        className="flex-1 bg-surface border-none px-6 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-primary outline-none transition-all disabled:opacity-50"
-                    />
-                    <button
-                        onClick={handleSend}
-                        disabled={isTyping || !sessionId || !input.trim()}
-                        className="bg-surface text-text-primary p-4 rounded-2xl hover:bg-primary/20 transition-all disabled:opacity-50"
-                    >
-                        <Send className="stroke-text-primary" />
-                    </button>
-                </div>
-                <p className="text-center text-[10px] text-text-secondary mt-4 uppercase tracking-widest font-bold">
-                    Streaming via Careon Gym Backend
-                </p>
-            </div>
+    const userMessage = input;
+    setInput("");
+    setMessages((prev) => [...prev, { role: "user", text: userMessage }]);
+    setIsTyping(true);
+
+    // Add placeholder for AI response
+    setMessages((prev) => [...prev, { role: "assistant", text: "" }]);
+
+    try {
+      await chatService.sendMessage(
+        sessionId,
+        userMessage,
+        (token) => {
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last && last.role === "assistant") {
+              last.text += token;
+            }
+            return updated;
+          });
+        },
+        (state) => {
+          setCurrentState(state);
+        },
+      );
+    } catch (e) {
+      console.error(e);
+      setMessages((prev) => {
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        if (last && last.role === "assistant" && last.text === "") {
+          last.text = `Service error. Please check your backend connection at ${import.meta.env.VITE_SERVER_URL}.`;
+        }
+        return updated;
+      });
+    } finally {
+      setIsTyping(false);
+      setCurrentState("");
+    }
+  };
+
+  return (
+    <div className=" h-[calc(100vh-160px)] flex flex-col bg-background rounded-3xl border border-border shadow-xl overflow-hidden animate-in zoom-in-95 duration-500">
+      <div className="bg-surface text-text-primary p-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-primary-dark rounded-full flex items-center justify-center text-xl">
+            🤖
+          </div>
+          <div>
+            <h3 className="font-bold">Careon Gym AI Assistant</h3>
+            <p className="text-xs text-text-secondary">
+              Gym Strategy & Support Engine
+            </p>
+          </div>
         </div>
-    );
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              setMessages([
+                {
+                  role: "assistant",
+                  text: "Chat cleared. How else can I help?",
+                },
+              ]);
+              chatService.createChat().then((s) => setSessionId(s.id));
+            }}
+            className="text-xs bg-border hover:bg-primary/20 px-3 py-1.5 rounded-lg border border-border transition-colors"
+          >
+            New Chat
+          </button>
+        </div>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="flex-1 p-6 overflow-y-auto space-y-6 bg-background"
+      >
+        {messages.map((msg, i) => (
+          <div
+            key={i}
+            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+          >
+            <div
+              className={`max-w-[80%] p-4 rounded-2xl shadow-sm leading-relaxed ${
+                msg.role === "user"
+                  ? "bg-surface text-text-secondary rounded-tr-none"
+                  : "text-text-primary"
+              }`}
+            >
+              <p className="text-sm whitespace-pre-line">
+                {msg.text ||
+                  (msg.role === "assistant" &&
+                  isTyping &&
+                  i === messages.length - 1
+                    ? "..."
+                    : "")}
+              </p>
+            </div>
+          </div>
+        ))}
+        {(isTyping || currentState) && (
+          <div className="flex justify-start">
+            <div className="bg-background px-4 py-2 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-3">
+              <div className="flex gap-1">
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></div>
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce delay-100"></div>
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce delay-200"></div>
+              </div>
+              <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">
+                {currentState || "Thinking"}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-6 bg-background">
+        <div className="flex gap-4">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            placeholder={
+              sessionId
+                ? "Ask about marketing strategy, member retention..."
+                : "Connecting to AI..."
+            }
+            disabled={!sessionId || isTyping}
+            className="flex-1 bg-surface border-none px-6 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-primary outline-none transition-all disabled:opacity-50"
+          />
+          <button
+            onClick={handleSend}
+            disabled={isTyping || !sessionId || !input.trim()}
+            className="bg-surface text-text-primary p-4 rounded-2xl hover:bg-primary/20 transition-all disabled:opacity-50"
+          >
+            <Send className="stroke-text-primary" />
+          </button>
+        </div>
+        <p className="text-center text-[10px] text-text-secondary mt-4 uppercase tracking-widest font-bold">
+          Streaming via Careon Gym Backend
+        </p>
+      </div>
+    </div>
+  );
 };
 
 export default AssistantTab;

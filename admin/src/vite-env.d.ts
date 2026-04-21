@@ -4,6 +4,5 @@
 // Vite's `vite/client` types add the `env` field; we also tighten the specific
 // variable used across services in this project.
 interface ImportMetaEnv {
-    readonly VITE_BASE_URL: string;
+  readonly VITE_SERVER_URL: string;
 }
-

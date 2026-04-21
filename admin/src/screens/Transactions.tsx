@@ -169,6 +169,7 @@ export default function TransactionsLog() {
                                 <th className="px-5 py-3.5 text-xs">Type</th>
                                 <th className="px-5 py-3.5 text-xs">Amount</th>
                                 <th className="px-5 py-3.5 text-xs">Status</th>
+                                <th className="px-5 py-3.5 text-xs">Receipt</th>
                                 <th className="px-5 py-3.5 text-xs text-right">
                                     Action
                                 </th>
@@ -224,6 +225,22 @@ export default function TransactionsLog() {
                                                 </span>
                                             )}
                                         </div>
+                                    </td>
+                                    <td className="px-5 py-4">
+                                        {tx.receipt_image_url ? (
+                                            <a
+                                                href={tx.receipt_image_url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-primary text-xs font-semibold hover:underline"
+                                            >
+                                                View Proof
+                                            </a>
+                                        ) : (
+                                            <span className="text-xs text-text-secondary">
+                                                No upload
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="px-5 py-4 text-right">
                                         {tx.status === "pending" && (

@@ -54,17 +54,7 @@ export const mobileMeController = catchAsync(
 );
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
-  const { firstName, lastName, password, email, phoneNumber, username } =
-    req.body;
-
-  console.log("Creating user with params:", {
-    firstName,
-    lastName,
-    password,
-    email,
-    phoneNumber,
-    username,
-  });
+  const { firstName, lastName, password, email, phoneNumber } = req.body;
 
   const user = await createUserDomain({
     firstName,
@@ -72,7 +62,6 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
     password,
     email,
     phoneNumber,
-    username,
   });
 
   const { accessToken, refreshToken } = generateTokens({

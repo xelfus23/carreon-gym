@@ -15,3 +15,15 @@ export const upload = multer({
         },
     }),
 });
+
+export const uploadPaymentReceipt = multer({
+    storage: multerS3({
+        s3,
+        bucket: env.AWS_S3_BUCKET!,
+        contentType: multerS3.AUTO_CONTENT_TYPE,
+        key: (req, file, cb) => {
+            const fileName = `payments/${Date.now()}-${file.originalname}`;
+            cb(null, fileName);
+        },
+    }),
+});

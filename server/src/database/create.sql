@@ -16,7 +16,6 @@ CREATE TYPE trans_type AS ENUM ('plan', 'product');
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    username TEXT UNIQUE,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     phone_number TEXT UNIQUE,
@@ -174,6 +173,7 @@ CREATE TABLE payments (
 
     recorded_by INT REFERENCES users(id) ON DELETE SET NULL,
     reference_no TEXT,
+    receipt_image_url TEXT,
     notes TEXT,
 
     paid_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -426,7 +426,8 @@ SELECT
     p.method,
     p.status,
     p.paid_at,
-    p.reference_no
+    p.reference_no,
+    p.receipt_image_url
 FROM payments p
 JOIN users u ON p.user_id = u.id
 LEFT JOIN subscription_plans sp ON p.plan_id = sp.id

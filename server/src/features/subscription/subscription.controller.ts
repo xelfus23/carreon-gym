@@ -28,3 +28,19 @@ export const getMySubscription = async (req: Request, res: Response) => {
     }
 };
 
+export const getSubscriptionPlans = async (_req: Request, res: Response) => {
+    try {
+        const plans = await subscriptionService.getPlans();
+        return res.status(200).json({
+            success: true,
+            data: plans,
+        });
+    } catch (err) {
+        console.error("Get Subscription Plans Error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch subscription plans",
+        });
+    }
+};
+

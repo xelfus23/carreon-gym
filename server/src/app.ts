@@ -26,12 +26,12 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(
-    cors({
-        origin: [env.CORS_ORIGIN],
-        methods: ["GET", "POST", "PATCH", "DELETE"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-        credentials: true,
-    }),
+  cors({
+    origin: [env.CORS_ORIGIN],
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  }),
 );
 
 /* ---------- ROUTES ---------- */
@@ -53,7 +53,7 @@ app.use(globalErrorHandler);
 /* ---------- HEALTH CHECK ---------- */
 
 app.get("/health", (_, res) => {
-    res.status(200).json({ status: "ok" });
+  res.status(200).json({ status: "ok" });
 });
 
 export default app;
