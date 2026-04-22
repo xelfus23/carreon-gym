@@ -15,6 +15,11 @@ const CheckInSchema = z.object({
     qr_data: z.string().min(1, "QR data required"),
 });
 
+const ManualAttendanceSchema = z.object({
+    userId: z.number().int().positive(),
+    action: z.enum(["check_in", "check_out"]),
+});
+
 /** Human-readable reason for logs, WebSocket, and admin UI (legacy codes included). */
 const mapAttendanceFailureReason = (err: unknown): string => {
     const byCode: Record<string, string> = {
@@ -318,6 +323,103 @@ export const getAttendanceLog = catchAsync(
         });
     },
 );
+
+export const manualAttendance = catchAsync(async (req: Request, res: Response) => {
+    const validation = ManualAttendanceSchema.safeParse(req.body);
+
+    if (!validation.success) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid manual attendance payload",
+            errors: validation.error.flatten(),
+        });
+    }
+
+    const { userId, action } = validation.data;
+    const adminId = (req as any).user?.id ?? null;
+    const metadata = {
+        source: "admin_manual",
+        adminId,
+    };
+
+    try {
+        if (action === "check_in") {
+            const data = await checkInDomain({ userId });
+
+            await pool.query(
+                `UPDATE gym_attendance
+                 SET method = 'admin'
+                 WHERE id = $1`,
+                [data.id],
+            );
+
+            await logAttendanceAttempt({
+                userId,
+                action: "check_in",
+                result: "success",
+                metadata,
+            });
+
+            broadcastNotification("ATTENDANCE_UPDATE", {
+                type: "success",
+                memberId: userId,
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Manual check-in logged successfully.",
+            });
+        }
+
+        const data = await checkOutDomain({ userId });
+        await logAttendanceAttempt({
+            userId,
+            action: "check_out",
+            result: "success",
+            metadata,
+        });
+
+        broadcastNotification("ATTENDANCE_UPDATE", {
+            memberId: userId,
+            status: "checked_out",
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Manual check-out logged successfully.",
+            data,
+        });
+    } catch (err: unknown) {
+        const failureReason = mapAttendanceFailureReason(err);
+        await logAttendanceAttempt({
+            userId,
+            action,
+            result: "failed",
+            reason: failureReason,
+            metadata,
+        });
+
+        broadcastNotification("ATTENDANCE_ATTEMPT", {
+            type: "failed",
+            action,
+            memberId: userId,
+            reason: failureReason,
+        });
+
+        const statusCode = err instanceof AppError ? err.statusCode : 500;
+        const message =
+            err instanceof AppError
+                ? err.message
+                : err instanceof Error
+                  ? err.message
+                  : "Manual attendance logging failed";
+
+        return res.status(statusCode).json({
+            success: false,
+            message,
+        });
+    }
+});
 
 export const getSessionStatus = catchAsync(
     async (req: Request, res: Response) => {

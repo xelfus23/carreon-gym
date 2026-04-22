@@ -35,4 +35,40 @@ export const memberService = {
 
     return data;
   },
+  createMember: async (payload: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    password: string;
+  }) => {
+    const result = await authService.fetchWithRefresh(`${API_URL}/api/users/register`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    const data = await result.json();
+    if (!data.success) {
+      throw new Error(data.message || "Failed to create member");
+    }
+    return data;
+  },
+  manualAttendance: async (payload: {
+    userId: number;
+    action: "check_in" | "check_out";
+  }) => {
+    const result = await authService.fetchWithRefresh(
+      `${API_URL}/api/attendance/manual`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
+
+    const data = await result.json();
+    if (!data.success) {
+      throw new Error(data.message || "Failed to log attendance");
+    }
+    return data;
+  },
 };

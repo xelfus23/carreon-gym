@@ -4,6 +4,7 @@ import {
     checkOut,
     getAttendanceLog,
     getSessionStatus,
+    manualAttendance,
 } from "./attendance.controller.ts";
 import {
     mobileAuthMiddleware,
@@ -16,5 +17,6 @@ attendanceRoute.post("/checkin", mobileAuthMiddleware, checkIn);
 attendanceRoute.post("/checkout", mobileAuthMiddleware, checkOut);
 attendanceRoute.get("/sessionStatus", mobileAuthMiddleware, getSessionStatus);
 attendanceRoute.get("/log", webAuthMiddleware, getAttendanceLog);
+attendanceRoute.post("/manual", webAuthMiddleware, manualAttendance);
 
 export default attendanceRoute;
