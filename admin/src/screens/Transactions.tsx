@@ -274,9 +274,14 @@ export default function TransactionsLog() {
               {paginated.map((tx) => (
                 <tr key={tx.transaction_id} className="hover:bg-border/10 transition-colors group">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2 text-text-secondary group-hover:text-text-primary transition-colors">
-                      <Calendar size={14} />
-                      <span className="text-xs">{formatDate(tx.paid_at)}</span>
+                    <div className="flex items-center gap-2">
+                      <Calendar
+                        size={14}
+                        className="text-text-secondary"
+                      />
+                      <span className="font-medium">
+                        {formatDate(tx.paid_at)}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">

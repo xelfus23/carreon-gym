@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 export default function AttendanceLog() {
+
   const {
     logs,
     attempts,
@@ -25,6 +26,7 @@ export default function AttendanceLog() {
     latestFailureAlert,
     clearFailureAlert,
   } = useAttendanceLog();
+
   const { members } = useMember();
 
   const [search, setSearch] = useState("");
@@ -173,7 +175,7 @@ export default function AttendanceLog() {
           </select>
         </div>
 
-        <div>
+        <div className="space-x-4">
           <label className="text-xs text-text-secondary font-semibold uppercase tracking-wide">
             Action
           </label>
@@ -328,7 +330,7 @@ export default function AttendanceLog() {
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-4 whitespace-nowrap font-mono text-xs">
+                  <td className="px-5 py-4 whitespace-nowrap text-xs">
                     {/* Applied the new formatter here */}
                     {formatDuration(log.duration!)}
                   </td>

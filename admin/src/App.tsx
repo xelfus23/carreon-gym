@@ -90,10 +90,10 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-6">
-            <button className="relative p-2 text-text-primary hover:text-text-secondary hover:bg-border rounded-full transition-all">
+            {/* <button className="relative p-2 text-text-primary hover:text-text-secondary hover:bg-border rounded-full transition-all">
               <span className="text-xl">🔔</span>
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 border-2 border-border rounded-full"></span>
-            </button>
+            </button> */}
             <div className="flex items-center gap-3 pl-6 border-l border-border group">
               <div className="text-right">
                 <p className="text-sm font-bold text-text-primary">
