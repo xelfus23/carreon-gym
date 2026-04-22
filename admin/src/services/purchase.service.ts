@@ -34,6 +34,30 @@ export const purchaseService = {
     return await result.json();
   },
 
+  // Admin: Deny a pending purchase (Status: Cancelled)
+  denyPurchase: async (paymentId: number) => {
+    const result = await authService.fetchWithRefresh(
+      `${API_URL}/api/purchase/deny/${paymentId}`,
+      {
+        method: "PATCH",
+      },
+    );
+
+    return await result.json();
+  },
+
+  // Admin: Delete a transaction
+  deleteTransaction: async (paymentId: number) => {
+    const result = await authService.fetchWithRefresh(
+      `${API_URL}/api/purchase/${paymentId}`,
+      {
+        method: "DELETE",
+      },
+    );
+
+    return await result.json();
+  },
+
   // Admin/Member: Get transaction history (optional userId filter)
   getAllTransactions: async (userId?: number) => {
     const url = userId
@@ -41,7 +65,6 @@ export const purchaseService = {
       : `${API_URL}/api/purchase`;
 
     const result = await authService.fetchWithRefresh(url);
-
     return await result.json();
   },
 };

@@ -26,6 +26,7 @@ export const useTransactions = (userId?: number) => {
     try {
       const result = await purchaseService.getAllTransactions(userId);
 
+      console.log(result)
       // Following your pattern: assuming result.data is the array
       setTransactions(result.data || result);
     } catch (err) {
@@ -43,7 +44,15 @@ export const useTransactions = (userId?: number) => {
 
   useEffect(() => {
     const BASE_URL = import.meta.env.VITE_SERVER_URL;
-    const wsUrl = `ws://${BASE_URL}/ws/admin`;
+    const wsUrl = (() => {
+      try {
+        const parsed = new URL(BASE_URL);
+        const protocol = parsed.protocol === "https:" ? "wss:" : "ws:";
+        return `${protocol}//${parsed.host}/ws/admin`;
+      } catch {
+        return `ws://${BASE_URL.replace(/^https?:\/\//, "")}/ws/admin`;
+      }
+    })();
 
     const ws = new WebSocket(wsUrl);
 
@@ -59,7 +68,9 @@ export const useTransactions = (userId?: number) => {
         if (message.type === "SYSTEM_NOTIFICATION") {
           if (
             message.event === "NEW_PENDING_PAYMENT" ||
-            message.event === "PAYMENT_VERIFIED"
+            message.event === "PAYMENT_VERIFIED" ||
+            message.event === "PAYMENT_DENIED" ||
+            message.event === "TRANSACTION_DELETED"
           ) {
             getTransactions();
           }

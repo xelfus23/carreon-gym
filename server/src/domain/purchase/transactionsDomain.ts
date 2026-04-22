@@ -1,4 +1,5 @@
 import pool from "../../config/pool.ts";
+import { AppError } from "../../utils/appError.ts";
 
 export const createPendingPurchaseDomain = async (
   userId: number,
@@ -9,6 +10,19 @@ export const createPendingPurchaseDomain = async (
   method: string,
   receiptImageUrl?: string,
 ) => {
+  const pendingRes = await pool.query(
+    `SELECT id FROM payments WHERE user_id = $1 AND status = 'pending' LIMIT 1`,
+    [userId],
+  );
+
+  if (pendingRes.rowCount && pendingRes.rowCount > 0) {
+    throw new AppError(
+      "You already have a pending payment request. Please wait for approval or cancellation.",
+      409,
+      "PENDING_PAYMENT_EXISTS",
+    );
+  }
+
   let res;
 
   if (productId) {
@@ -89,6 +103,43 @@ export const createPendingPurchaseDomain = async (
 
   if (!res?.rows?.length) {
     throw new Error("Failed to create pending payment. Invalid plan/product.");
+  }
+
+  return res.rows[0];
+};
+
+export const denyPendingPurchaseDomain = async (
+  paymentId: number,
+  adminId: number,
+) => {
+  const res = await pool.query(
+    `UPDATE payments
+     SET status = 'cancelled',
+         recorded_by = $2,
+         paid_at = COALESCE(paid_at, CURRENT_TIMESTAMP)
+     WHERE id = $1
+       AND status = 'pending'
+     RETURNING *`,
+    [paymentId, adminId],
+  );
+
+  if (!res.rowCount) {
+    throw new AppError("Pending transaction not found", 404, "PAYMENT_NOT_FOUND");
+  }
+
+  return res.rows[0];
+};
+
+export const deleteTransactionDomain = async (paymentId: number) => {
+  const res = await pool.query(
+    `DELETE FROM payments
+     WHERE id = $1
+     RETURNING id`,
+    [paymentId],
+  );
+
+  if (!res.rowCount) {
+    throw new AppError("Transaction not found", 404, "PAYMENT_NOT_FOUND");
   }
 
   return res.rows[0];

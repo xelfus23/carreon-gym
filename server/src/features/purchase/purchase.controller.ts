@@ -2,6 +2,8 @@ import { broadcastNotification } from "../../ai/websocketHandler.ts";
 import { getTransactionsDomain } from "../../domain/purchase/getTransactionsDomain.ts";
 import {
   createPendingPurchaseDomain,
+  deleteTransactionDomain,
+  denyPendingPurchaseDomain,
   verifyPendingPurchaseDomain,
 } from "../../domain/purchase/transactionsDomain.ts";
 import { catchAsync } from "../../utils/catchAsync.ts";
@@ -63,6 +65,49 @@ export const verifyPurchase = catchAsync(
     res.status(200).json({
       success: true,
       message: "Payment verified and stock updated",
+      data,
+    });
+  },
+);
+
+export const denyPurchase = catchAsync(async (req: Request, res: Response) => {
+  const { paymentId } = req.params;
+  const adminId = req.user?.id;
+
+  if (!adminId) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized",
+    });
+  }
+
+  const data = await denyPendingPurchaseDomain(Number(paymentId), adminId);
+
+  broadcastNotification("PAYMENT_DENIED", {
+    userId: data.user_id,
+    status: "cancelled",
+    transactionId: data.id,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Payment request denied",
+    data,
+  });
+});
+
+export const deleteTransaction = catchAsync(
+  async (req: Request, res: Response) => {
+    const { paymentId } = req.params;
+    const data = await deleteTransactionDomain(Number(paymentId));
+
+    broadcastNotification("TRANSACTION_DELETED", {
+      transactionId: data.id,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Transaction deleted",
       data,
     });
   },

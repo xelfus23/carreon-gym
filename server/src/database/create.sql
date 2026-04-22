@@ -75,6 +75,7 @@ CREATE TABLE subscription_plans (
     name TEXT UNIQUE NOT NULL,
     description TEXT,
     price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
+    icon TEXT,
     duration_days INT NOT NULL CHECK (duration_days > 0),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

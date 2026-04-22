@@ -5,6 +5,8 @@ import {
 } from "../../middleware/authenticate.ts";
 import { uploadPaymentReceipt } from "../../services/multerUpload.ts";
 import {
+  deleteTransaction,
+  denyPurchase,
   getAllTransactions,
   requestPurchase,
   verifyPurchase,
@@ -27,5 +29,7 @@ purchaseRoutes.get("/my-history", mobileAuthMiddleware, getAllTransactions);
 // Admins can view all transactions and verify pending payments
 purchaseRoutes.get("", webAuthMiddleware, getAllTransactions);
 purchaseRoutes.patch("/verify/:paymentId", webAuthMiddleware, verifyPurchase);
+purchaseRoutes.patch("/deny/:paymentId", webAuthMiddleware, denyPurchase);
+purchaseRoutes.delete("/:paymentId", webAuthMiddleware, deleteTransaction);
 
 export default purchaseRoutes;

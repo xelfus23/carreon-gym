@@ -147,9 +147,9 @@ export default function Product() {
           </div>
 
           {/* Table Area */}
-          <div className="overflow-x-auto overflow-y-auto h-162">
+          <div className="overflow-x-auto h-[500px]">
             <table className="w-full text-sm text-left border-collapse">
-              <thead className="bg-muted/50 text-text-secondary sticky top-0 z-10 uppercase text-[11px] font-bold tracking-wider">
+              <thead className="bg-muted/50 bg-surface text-text-secondary sticky top-0 z-10 uppercase text-[11px] font-bold tracking-wider">
                 <tr>
                   <th
                     className="px-6 py-4 cursor-pointer hover:text-primary"
@@ -212,13 +212,12 @@ export default function Product() {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                          product.status === "available"
+                        className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${product.status === "available"
                             ? "bg-green-100 text-green-700"
                             : product.status === "out_of_stock"
                               ? "bg-orange-100 text-orange-700"
                               : "bg-red-100 text-red-700"
-                        }`}
+                          }`}
                       >
                         {product.status.replace("_", " ")}
                       </span>
@@ -253,11 +252,10 @@ export default function Product() {
                     <button
                       key={p}
                       onClick={() => setPage(p)}
-                      className={`px-3 py-1.5 text-xs font-semibold border transition-colors ${
-                        p === page
+                      className={`px-3 rounded-lg py-1.5 text-xs font-semibold border transition-colors ${p === page
                           ? "bg-primary text-background border-primary"
                           : "border-border bg-surface hover:bg-border text-text-primary"
-                      }`}
+                        }`}
                     >
                       {p}
                     </button>

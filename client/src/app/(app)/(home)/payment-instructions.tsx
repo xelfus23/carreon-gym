@@ -45,7 +45,8 @@ export default function PaymentInstructions() {
   );
 
   const pickReceipt = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       Alert.alert(
         "Permission Needed",
@@ -78,7 +79,9 @@ export default function PaymentInstructions() {
         transactionType,
         planId: Number(params.planId),
         planName: params.planName,
-        productId: params.productId ? Number(params.productId) : undefined,
+        productId: params.productId
+          ? Number(params.productId)
+          : undefined,
         quantity,
         method: "gcash",
         receiptUri,
@@ -110,7 +113,9 @@ export default function PaymentInstructions() {
   if (step === 1) {
     return (
       <SafeAreaView className="bg-background flex-1">
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
+        <ScrollView
+          contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+        >
           <Text className="text-text-primary font-bold text-xl mb-2">
             PAYMENT INSTRUCTIONS
           </Text>
@@ -145,7 +150,8 @@ export default function PaymentInstructions() {
           </View>
 
           <Text className="text-text-secondary mt-6">
-            2. Take a screenshot of your receipt and continue to upload.
+            2. Take a screenshot of your receipt and continue to
+            upload.
           </Text>
 
           <View className="bg-surface p-4 rounded-lg border border-border mt-4">
@@ -155,7 +161,9 @@ export default function PaymentInstructions() {
             <Text className="text-text-secondary mt-1">
               Amount: PHP {itemSummary.amount.toFixed(2)}
             </Text>
-            <Text className="text-text-secondary">Quantity: {quantity}</Text>
+            <Text className="text-text-secondary">
+              Quantity: {quantity}
+            </Text>
           </View>
         </ScrollView>
 
@@ -170,7 +178,9 @@ export default function PaymentInstructions() {
             onPress={() => setStep(2)}
             className="bg-primary py-4 rounded-lg items-center"
           >
-            <Text className="text-background font-bold">Continue</Text>
+            <Text className="text-background font-bold">
+              Continue
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -179,13 +189,15 @@ export default function PaymentInstructions() {
 
   return (
     <SafeAreaView className="bg-background flex-1">
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
+      <ScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+      >
         <Text className="text-text-primary font-bold text-xl mb-2">
           UPLOAD RECEIPT
         </Text>
         <Text className="text-text-secondary mb-4">
-          Upload your screenshot so admin can verify and mark this payment as
-          paid.
+          Upload your screenshot so admin can verify and mark this
+          payment as paid.
         </Text>
 
         <View className="bg-surface p-4 rounded-lg border border-border mb-4">
@@ -212,7 +224,11 @@ export default function PaymentInstructions() {
           {receiptUri ? (
             <Image
               source={{ uri: receiptUri }}
-              style={{ width: "100%", height: 420, borderRadius: 10 }}
+              style={{
+                width: "100%",
+                height: 420,
+                borderRadius: 10,
+              }}
               resizeMode="contain"
             />
           ) : (
@@ -228,7 +244,9 @@ export default function PaymentInstructions() {
           onPress={() => setStep(1)}
           className="py-3 rounded-lg border bg-surface border-border items-center"
         >
-          <Text className="text-text-primary">Back to Instructions</Text>
+          <Text className="text-text-primary">
+            Back to Instructions
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={handleSubmit}
@@ -236,7 +254,9 @@ export default function PaymentInstructions() {
           className="bg-primary py-4 rounded-lg items-center"
         >
           <Text className="text-background font-bold">
-            {isSubmitting ? "Submitting..." : "Submit Payment Proof"}
+            {isSubmitting
+              ? "Submitting..."
+              : "Submit Payment Proof"}
           </Text>
         </TouchableOpacity>
       </View>

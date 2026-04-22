@@ -1,16 +1,16 @@
 import { Router } from "express";
 import {
-    createUser,
-    mobileMeController,
-    updateProfile,
-    updateStats,
-    uploadPicture,
-    webMeController,
+  createUser,
+  mobileMeController,
+  updateProfile,
+  updateStats,
+  uploadPicture,
+  webMeController,
 } from "./user.controller.ts";
-import { upload } from "../../services/multerUpload.ts";
+import { uploadProfilePicture } from "../../services/multerUpload.ts";
 import {
-    mobileAuthMiddleware,
-    webAuthMiddleware,
+  mobileAuthMiddleware,
+  webAuthMiddleware,
 } from "../../middleware/authenticate.ts";
 
 const userRoutes = Router();
@@ -23,6 +23,6 @@ userRoutes.post("/register", createUser);
 userRoutes.patch("/profiles", mobileAuthMiddleware, updateProfile);
 userRoutes.patch("/stats", mobileAuthMiddleware, updateStats);
 
-userRoutes.post("/upload", upload.single("image"), uploadPicture);
+userRoutes.post("/upload", uploadProfilePicture.single("image"), uploadPicture);
 
 export default userRoutes;
