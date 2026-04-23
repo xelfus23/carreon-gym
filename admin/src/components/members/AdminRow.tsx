@@ -1,302 +1,168 @@
 import {
-    useState,
-    useRef,
-    useEffect,
-    useCallback,
-    type ReactElement,
+  useState,
+  useRef,
+  useCallback,
 } from "react";
-import { createPortal } from "react-dom";
-import type { AdminMemberListItem } from "../../types";
+import type { ActionItem, AdminMemberListItem } from "../../types";
 import {
-    Ban,
-    Check,
-    ClockPlus,
-    Mail,
-    // Sparkles,
-    Trash,
-    UserKey,
-    UserLock,
+  Ban,
+  Check,
+  ClockPlus,
+  Mail,
+  // Sparkles,
+  Trash,
+  UserKey,
+  UserLock,
 } from "lucide-react";
+import { ActionMenu } from "../ActionMenu";
 
 function formatRelativeDate(iso: string | null): string {
-    if (!iso) return "—";
-    const diff = Date.now() - new Date(iso).getTime();
-    const days = Math.floor(diff / 86_400_000);
-    if (days === 0) return "Today";
-    if (days === 1) return "Yesterday";
-    if (days < 7) return `${days}d ago`;
-    if (days < 30) return `${Math.floor(days / 7)}w ago`;
-    return `${Math.floor(days / 30)}mo ago`;
+  if (!iso) return "—";
+  const diff = Date.now() - new Date(iso).getTime();
+  const days = Math.floor(diff / 86_400_000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return `${Math.floor(days / 30)}mo ago`;
 }
 
 const ACCOUNT_BADGE: Record<string, string> = {
-    active: "bg-emerald-500 text-emerald-50",
-    suspended: "bg-amber-500 text-amber-50",
-    deleted: "bg-rose-500 text-rose-50",
+  active: "bg-emerald-500 text-emerald-50",
+  suspended: "bg-amber-500 text-amber-50",
+  deleted: "bg-rose-500 text-rose-50",
 };
 
-interface ActionItem {
-    label: string;
-    icon: ReactElement;
-    onClick: () => void;
-    variant?: "default" | "warning" | "danger";
-    dividerBefore?: boolean;
-    disabled?: boolean;
-}
-
-// ── Portal menu — rendered on document.body, positioned via getBoundingClientRect ──
-function ActionMenu({
-    items,
-    anchorRef,
-    onClose,
-}: {
-    items: ActionItem[];
-    anchorRef: React.RefObject<HTMLButtonElement | null>;
-    onClose: () => void;
-}) {
-    const menuRef = useRef<HTMLDivElement>(null);
-    const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
-
-    // Calculate position from anchor button
-    useEffect(() => {
-        const anchor = anchorRef.current;
-        if (!anchor) return;
-
-        const place = () => {
-            const rect = anchor.getBoundingClientRect();
-            const menuHeight = menuRef.current?.offsetHeight ?? 200;
-            const menuWidth = menuRef.current?.offsetWidth ?? 208;
-            const spaceBelow = window.innerHeight - rect.bottom;
-            const spaceRight = window.innerWidth - rect.right;
-
-            const top =
-                spaceBelow > menuHeight
-                    ? rect.bottom + 6 // open downward
-                    : rect.top - menuHeight - 6; // flip upward
-
-            const left =
-                spaceRight > menuWidth
-                    ? rect.right - menuWidth // align to right edge of button
-                    : rect.left - menuWidth + rect.width; // fallback left-align
-
-            setPos({ top, left });
-        };
-
-        // Run twice: first pass sets rough position, second pass corrects after render
-        place();
-        const raf = requestAnimationFrame(place);
-        return () => cancelAnimationFrame(raf);
-    }, [anchorRef]);
-
-    // Close on outside click
-    useEffect(() => {
-        const onMouse = (e: MouseEvent) => {
-            if (
-                menuRef.current?.contains(e.target as Node) ||
-                anchorRef.current?.contains(e.target as Node)
-            )
-                return;
-            onClose();
-        };
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key === "Escape") onClose();
-        };
-        const onScroll = () => onClose(); // close on any scroll
-
-        document.addEventListener("mousedown", onMouse);
-        document.addEventListener("keydown", onKey);
-        window.addEventListener("scroll", onScroll, true);
-        return () => {
-            document.removeEventListener("mousedown", onMouse);
-            document.removeEventListener("keydown", onKey);
-            window.removeEventListener("scroll", onScroll, true);
-        };
-    }, [onClose, anchorRef]);
-
-    const variantCls: Record<string, string> = {
-        default: "text-text-primary hover:bg-border/60",
-        warning: "text-amber-500 hover:bg-amber-500/10",
-        danger: "text-rose-500 hover:bg-rose-500/10",
-    };
-
-    if (!pos) return null;
-
-    return createPortal(
-        <div
-            ref={menuRef}
-            className="w-52 bg-surface border border-border shadow-2xl shadow-black/30 overflow-hidden"
-            style={{
-                position: "fixed",
-                top: pos.top,
-                left: pos.left,
-                zIndex: 9999,
-                animation: "menuIn 130ms cubic-bezier(0.16,1,0.3,1)",
-            }}
-        >
-            <style>{`
-              @keyframes menuIn {
-                  from { opacity: 0; transform: scale(0.95) translateY(-4px); }
-                  to   { opacity: 1; transform: scale(1)    translateY(0); }
-              }
-          `}</style>
-
-            {items.map((item, i) => (
-                <div key={i}>
-                    {item.dividerBefore && (
-                        <div className="my-1 border-t border-border" />
-                    )}
-                    <button
-                        disabled={item.disabled}
-                        onClick={() => {
-                            item.onClick();
-                            onClose();
-                        }}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors text-left
-                          disabled:opacity-40 disabled:cursor-not-allowed
-                          ${variantCls[item.variant ?? "default"]}`}
-                    >
-                        <span className="aspect-square items-center h-full flex">
-                            {item.icon}
-                        </span>
-                        {item.label}
-                    </button>
-                </div>
-            ))}
-        </div>,
-        document.body,
-    );
-}
 
 // ── AdminRow ─────────────────────────────────────────────────────────────────
 export default function AdminRow({
-    m,
-    onSetPlan,
-    onSuspend,
-    onBan,
-    onDelete,
-    onSendEmail,
-    onVerify,
+  m,
+  onSetPlan,
+  onSuspend,
+  onBan,
+  onDelete,
+  onSendEmail,
+  onVerify,
 }: {
-    m: AdminMemberListItem;
-    onSetPlan: (m: AdminMemberListItem) => void;
-    onSuspend: (m: AdminMemberListItem) => void;
-    onBan: (m: AdminMemberListItem) => void;
-    onDelete: (m: AdminMemberListItem) => void;
-    onSendEmail: (m: AdminMemberListItem) => void;
-    onVerify: (m: AdminMemberListItem) => void;
+  m: AdminMemberListItem;
+  onSetPlan: (m: AdminMemberListItem) => void;
+  onSuspend: (m: AdminMemberListItem) => void;
+  onBan: (m: AdminMemberListItem) => void;
+  onDelete: (m: AdminMemberListItem) => void;
+  onSendEmail: (m: AdminMemberListItem) => void;
+  onVerify: (m: AdminMemberListItem) => void;
 }) {
-    const [menuOpen, setMenuOpen] = useState(false);
-    const triggerRef = useRef<HTMLButtonElement>(null);
-    const close = useCallback(() => setMenuOpen(false), []);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => setMenuOpen(false), []);
 
-    // const attendanceColor =
-    //     m.attendance_rate > 80
-    //         ? "bg-emerald-500"
-    //         : m.attendance_rate > 50
-    //           ? "bg-amber-500"
-    //           : "bg-rose-500";
+  // const attendanceColor =
+  //     m.attendance_rate > 80
+  //         ? "bg-emerald-500"
+  //         : m.attendance_rate > 50
+  //           ? "bg-amber-500"
+  //           : "bg-rose-500";
 
-    const isSuspended = m.account_status === "suspended";
-    const isDeleted = m.account_status === "deleted";
+  const isSuspended = m.account_status === "suspended";
+  const isDeleted = m.account_status === "deleted";
 
-    const actions: ActionItem[] = [
+  const actions: ActionItem[] = [
+    {
+      label: "Set Plan",
+      icon: <ClockPlus className="h-4" />,
+      onClick: () => onSetPlan(m),
+    },
+    {
+      label: "Send Email",
+      icon: <Mail className="h-4" />,
+      onClick: () => onSendEmail(m),
+    },
+    {
+      label: m.verified ? "Unverify Admin" : "Verify Admin",
+      icon: <Check className="h-4" />,
+      onClick: () => onVerify(m),
+    },
+    {
+      label: isSuspended ? "Unsuspend Admin" : "Suspend Admin",
+      icon: isSuspended ? (
+        <UserLock className="h-4" />
+      ) : (
+        <UserKey className="h-4" />
+      ),
+      onClick: () => onSuspend(m),
+      variant: isSuspended ? "default" : "warning",
+      dividerBefore: true,
+    },
+    {
+      label: "Ban / Blacklist",
+      icon: <Ban className="h-4" />,
+      onClick: () => onBan(m),
+      variant: "danger",
+    },
+    ...(!isDeleted
+      ? [
         {
-            label: "Set Plan",
-            icon: <ClockPlus className="h-4" />,
-            onClick: () => onSetPlan(m),
+          label: "Delete Admin",
+          icon: <Trash className="h-4" />,
+          onClick: () => onDelete(m),
+          variant: "danger" as const,
+          dividerBefore: true,
         },
-        {
-            label: "Send Email",
-            icon: <Mail className="h-4" />,
-            onClick: () => onSendEmail(m),
-        },
-        {
-            label: m.verified ? "Unverify Admin" : "Verify Admin",
-            icon: <Check className="h-4" />,
-            onClick: () => onVerify(m),
-        },
-        {
-            label: isSuspended ? "Unsuspend Admin" : "Suspend Admin",
-            icon: isSuspended ? (
-                <UserLock className="h-4" />
-            ) : (
-                <UserKey className="h-4" />
-            ),
-            onClick: () => onSuspend(m),
-            variant: isSuspended ? "default" : "warning",
-            dividerBefore: true,
-        },
-        {
-            label: "Ban / Blacklist",
-            icon: <Ban className="h-4" />,
-            onClick: () => onBan(m),
-            variant: "danger",
-        },
-        ...(!isDeleted
-            ? [
-                  {
-                      label: "Delete Admin",
-                      icon: <Trash className="h-4" />,
-                      onClick: () => onDelete(m),
-                      variant: "danger" as const,
-                      dividerBefore: true,
-                  },
-              ]
-            : []),
-    ];
+      ]
+      : []),
+  ];
 
-    return (
-        <tr className={`transition-colors group hover:bg-border/40`}>
-            <td className="px-5 py-3.5  text-xs text-text-secondary font-semibold">
-                {m.id.toString()}
-            </td>
-            {/* Admin */}
-            <td className="px-5 py-3.5">
-                <div
-                    className={`font-semibold text-text-primary leading-tight`}
-                >
-                    {m.first_name} {m.last_name}
-                </div>
-                <div className="text-[11px] text-text-secondary mt-0.5">
-                    {m.email}
-                </div>
-                {m.phone_number && (
-                    <div className="text-[11px] text-text-secondary">
-                        {m.phone_number}
-                    </div>
-                )}
-            </td>
-            {/* Account status */}
-            <td className="px-5 py-3.5">
-                <span
-                    className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                        ACCOUNT_BADGE[m.account_status] ??
-                        "bg-surface text-slate-500"
-                    }`}
-                >
-                    {m.account_status}
-                </span>
-                {m.verified ? (
-                    <span className="ml-1.5 text-[10px] text-primary font-semibold">
-                        ✓ Verified
-                    </span>
-                ) : (
-                    <span className="ml-1.5 text-[10px] text-text-secondary">
-                        Unverified
-                    </span>
-                )}
-            </td>
-            {/* Last check-in */}
-            <td className="px-5 py-3.5 text-sm text-text-primary">
-                {formatRelativeDate(m.last_check_in)}
-                {m.last_login && (
-                    <div className="text-[11px] text-text-secondary mt-0.5">
-                        Login: {formatRelativeDate(m.last_login)}
-                    </div>
-                )}
-            </td>
-            {/* Visits */}
-            {/* <td className="px-5 py-3.5 text-center">
+  return (
+    <tr className={`transition-colors group hover:bg-border/40`}>
+      <td className="px-5 py-3.5  text-xs text-text-secondary font-semibold">
+        {m.id.toString()}
+      </td>
+      {/* Admin */}
+      <td className="px-5 py-3.5">
+        <div
+          className={`font-semibold text-text-primary leading-tight`}
+        >
+          {m.first_name} {m.last_name}
+        </div>
+        <div className="text-[11px] text-text-secondary mt-0.5">
+          {m.email}
+        </div>
+        {m.phone_number && (
+          <div className="text-[11px] text-text-secondary">
+            {m.phone_number}
+          </div>
+        )}
+      </td>
+      {/* Account status */}
+      <td className="px-5 py-3.5">
+        <span
+          className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${ACCOUNT_BADGE[m.account_status] ??
+            "bg-surface text-slate-500"
+            }`}
+        >
+          {m.account_status}
+        </span>
+        {m.verified ? (
+          <span className="ml-1.5 text-[10px] text-primary font-semibold">
+            ✓ Verified
+          </span>
+        ) : (
+          <span className="ml-1.5 text-[10px] text-text-secondary">
+            Unverified
+          </span>
+        )}
+      </td>
+      {/* Last check-in */}
+      <td className="px-5 py-3.5 text-sm text-text-primary">
+        {formatRelativeDate(m.last_check_in)}
+        {m.last_login && (
+          <div className="text-[11px] text-text-secondary mt-0.5">
+            Login: {formatRelativeDate(m.last_login)}
+          </div>
+        )}
+      </td>
+      {/* Visits */}
+      {/* <td className="px-5 py-3.5 text-center">
                 <span className="text-base font-black text-text-primary">
                     {m.total_visits_this_month ?? 0}
                 </span>
@@ -306,8 +172,8 @@ export default function AdminRow({
                     </div>
                 )}
             </td> */}
-            {/* Attendance */}
-            {/* <td className="px-5 py-3.5">
+      {/* Attendance */}
+      {/* <td className="px-5 py-3.5">
                 <div className="flex items-center gap-2">
                     <div className="flex-1 bg-border h-1.5 rounded-full overflow-hidden min-w-[60px]">
                         <div
@@ -322,44 +188,43 @@ export default function AdminRow({
                     </span>
                 </div>
             </td> */}
-            {/* ── Actions ── */}
-            <td className="px-5 py-3.5">
-                <div className="flex items-center justify-end">
-                    <button
-                        ref={triggerRef}
-                        onClick={() => setMenuOpen((o) => !o)}
-                        aria-label="Admin actions"
-                        aria-haspopup="true"
-                        aria-expanded={menuOpen}
-                        className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
+      {/* ── Actions ── */}
+      <td className="px-5 py-3.5">
+        <div className="flex items-center justify-end">
+          <button
+            ref={triggerRef}
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Admin actions"
+            aria-haspopup="true"
+            aria-expanded={menuOpen}
+            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                           opacity-0 group-hover:opacity-100 focus:opacity-100
-                          ${
-                              menuOpen
-                                  ? "opacity-100 bg-border text-text-primary"
-                                  : "text-text-secondary hover:bg-border hover:text-text-primary"
-                          }`}
-                    >
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="currentColor"
-                        >
-                            <circle cx="8" cy="3" r="1.4" />
-                            <circle cx="8" cy="8" r="1.4" />
-                            <circle cx="8" cy="13" r="1.4" />
-                        </svg>
-                    </button>
+                          ${menuOpen
+                ? "opacity-100 bg-border text-text-primary"
+                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              }`}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="currentColor"
+            >
+              <circle cx="8" cy="3" r="1.4" />
+              <circle cx="8" cy="8" r="1.4" />
+              <circle cx="8" cy="13" r="1.4" />
+            </svg>
+          </button>
 
-                    {menuOpen && (
-                        <ActionMenu
-                            items={actions}
-                            anchorRef={triggerRef}
-                            onClose={close}
-                        />
-                    )}
-                </div>
-            </td>
-        </tr>
-    );
+          {menuOpen && (
+            <ActionMenu
+              items={actions}
+              anchorRef={triggerRef}
+              onClose={close}
+            />
+          )}
+        </div>
+      </td>
+    </tr>
+  );
 }

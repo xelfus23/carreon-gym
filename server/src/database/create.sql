@@ -9,6 +9,7 @@ CREATE TYPE payment_status AS ENUM ('paid', 'pending', 'refunded', 'cancelled');
 CREATE TYPE payment_method AS ENUM ('cash', 'gcash', 'maya', 'bank_transfer', 'card', 'other');
 CREATE TYPE product_status AS ENUM ('available', 'out_of_stock', 'unavailable');
 CREATE TYPE trans_type AS ENUM ('plan', 'product');
+CREATE TYPE plan_category AS ENUM ('membership', 'class', 'personal_training', 'add_on');  
 
 -- ============================================================================
 -- USERS
@@ -77,6 +78,7 @@ CREATE TABLE subscription_plans (
     price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
     icon TEXT,
     duration_days INT NOT NULL CHECK (duration_days > 0),
+    category plan_category DEFAULT 'membership' TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP

@@ -1,6 +1,6 @@
 // let ws: WebSocket | null = null;
 
-const API_URL = import.meta.env.VITE_SERVER_URL;
+import { API_URL } from "../constants";
 
 export const chatService = {
   getHistory: async () => {

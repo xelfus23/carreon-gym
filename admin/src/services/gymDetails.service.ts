@@ -1,6 +1,5 @@
-import type { gymDetailsType } from "../hooks/useGymDetails";
-
-const API_URL = import.meta.env.VITE_SERVER_URL;
+import { API_URL } from "../constants";
+import type { gymDetailsProps } from "../types";
 
 export const gymDetailService = {
   getGymDetails: async () => {
@@ -9,9 +8,9 @@ export const gymDetailService = {
     return await response.json();
   },
 
-  updateGymDetails: async (payload: Partial<gymDetailsType>) => {
+  updateGymDetails: async (payload: Partial<gymDetailsProps>) => {
     const response = await fetch(`${API_URL}/api/gym-details`, {
-      method: "PATCH", // or PUT
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },

@@ -1,7 +1,6 @@
-import type { ProductProps } from "../hooks/useProducts";
+import { API_URL } from "../constants";
+import type { ProductProps } from "../types";
 import { authService } from "./auth.service";
-
-const API_URL = import.meta.env.VITE_SERVER_URL;
 
 export const productService = {
   getProduct: async () => {
@@ -26,6 +25,7 @@ export const productService = {
 
     return data;
   },
+
   updateProduct: async (id: string, updates: Partial<ProductProps>) => {
     const result = await authService.fetchWithRefresh(
       `${API_URL}/api/products/${id}`,

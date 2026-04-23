@@ -1,22 +1,20 @@
 import {
   useState,
   useRef,
-  useEffect,
   useCallback,
   type ReactElement,
 } from "react";
-import { createPortal } from "react-dom";
 import type { AdminMemberListItem, SubscriptionStatus } from "../../types";
 import {
   Ban,
   Check,
   ClockPlus,
   Mail,
-  // Sparkles,
   Trash,
   UserKey,
   UserLock,
 } from "lucide-react";
+import { ActionMenu } from "../ActionMenu";
 
 function formatRelativeDate(iso: string | null): string {
   if (!iso) return "—";
@@ -51,128 +49,6 @@ interface ActionItem {
   disabled?: boolean;
 }
 
-// ── Portal menu — rendered on document.body, positioned via getBoundingClientRect ──
-function ActionMenu({
-  items,
-  anchorRef,
-  onClose,
-}: {
-  items: ActionItem[];
-  anchorRef: React.RefObject<HTMLButtonElement | null>;
-  onClose: () => void;
-}) {
-  const menuRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
-
-  // Calculate position from anchor button
-  useEffect(() => {
-    const anchor = anchorRef.current;
-    if (!anchor) return;
-
-    const place = () => {
-      const rect = anchor.getBoundingClientRect();
-      const menuHeight = menuRef.current?.offsetHeight ?? 200;
-      const menuWidth = menuRef.current?.offsetWidth ?? 208;
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const spaceRight = window.innerWidth - rect.right;
-
-      const top =
-        spaceBelow > menuHeight
-          ? rect.bottom + 6 // open downward
-          : rect.top - menuHeight - 6; // flip upward
-
-      const left =
-        spaceRight > menuWidth
-          ? rect.right - menuWidth // align to right edge of button
-          : rect.left - menuWidth + rect.width; // fallback left-align
-
-      setPos({ top, left });
-    };
-
-    // Run twice: first pass sets rough position, second pass corrects after render
-    place();
-    const raf = requestAnimationFrame(place);
-    return () => cancelAnimationFrame(raf);
-  }, [anchorRef]);
-
-  // Close on outside click
-  useEffect(() => {
-    const onMouse = (e: MouseEvent) => {
-      if (
-        menuRef.current?.contains(e.target as Node) ||
-        anchorRef.current?.contains(e.target as Node)
-      )
-        return;
-      onClose();
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    const onScroll = () => onClose(); // close on any scroll
-
-    document.addEventListener("mousedown", onMouse);
-    document.addEventListener("keydown", onKey);
-    window.addEventListener("scroll", onScroll, true);
-    return () => {
-      document.removeEventListener("mousedown", onMouse);
-      document.removeEventListener("keydown", onKey);
-      window.removeEventListener("scroll", onScroll, true);
-    };
-  }, [onClose, anchorRef]);
-
-  const variantCls: Record<string, string> = {
-    default: "text-text-primary hover:bg-border/60",
-    warning: "text-amber-500 hover:bg-amber-500/10",
-    danger: "text-rose-500 hover:bg-rose-500/10",
-  };
-
-  if (!pos) return null;
-
-  return createPortal(
-    <div
-      ref={menuRef}
-      className="w-52 bg-surface border border-border shadow-2xl shadow-black/30 overflow-hidden"
-      style={{
-        position: "fixed",
-        top: pos.top,
-        left: pos.left,
-        zIndex: 9999,
-        animation: "menuIn 130ms cubic-bezier(0.16,1,0.3,1)",
-      }}
-    >
-      <style>{`
-                @keyframes menuIn {
-                    from { opacity: 0; transform: scale(0.95) translateY(-4px); }
-                    to   { opacity: 1; transform: scale(1)    translateY(0); }
-                }
-            `}</style>
-
-      {items.map((item, i) => (
-        <div key={i}>
-          {item.dividerBefore && (
-            <div className="my-1 border-t border-border" />
-          )}
-          <button
-            disabled={item.disabled}
-            onClick={() => {
-              item.onClick();
-              onClose();
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors text-left
-                            disabled:opacity-40 disabled:cursor-not-allowed
-                            ${variantCls[item.variant ?? "default"]}`}
-          >
-            <span className="aspect-square items-center h-full flex">
-              {item.icon}
-            </span>
-            {item.label}
-          </button>
-        </div>
-      ))}
-    </div>,
-    document.body,
-  );
-}
 
 // ── MemberRow ─────────────────────────────────────────────────────────────────
 export default function MemberRow({
@@ -241,14 +117,14 @@ export default function MemberRow({
     },
     ...(!isDeleted
       ? [
-          {
-            label: "Delete Member",
-            icon: <Trash className="h-4" />,
-            onClick: () => onDelete(m),
-            variant: "danger" as const,
-            dividerBefore: true,
-          },
-        ]
+        {
+          label: "Delete Member",
+          icon: <Trash className="h-4" />,
+          onClick: () => onDelete(m),
+          variant: "danger" as const,
+          dividerBefore: true,
+        },
+      ]
       : []),
   ];
 
@@ -272,9 +148,8 @@ export default function MemberRow({
       {/* Account status */}
       <td className="px-5 py-3.5">
         <span
-          className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-            ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-text-secondary"
-          }`}
+          className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-text-secondary"
+            }`}
         >
           {m.account_status}
         </span>
@@ -305,9 +180,8 @@ export default function MemberRow({
         {m.subscription_status ? (
           <div>
             <span
-              className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                SUB_BADGE[m.subscription_status]
-              }`}
+              className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${SUB_BADGE[m.subscription_status]
+                }`}
             >
               {m.subscription_status}
             </span>
@@ -375,11 +249,10 @@ export default function MemberRow({
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                             opacity-0 group-hover:opacity-100 focus:opacity-100
-                            ${
-                              menuOpen
-                                ? "opacity-100 bg-border text-text-primary"
-                                : "text-text-secondary hover:bg-border hover:text-text-primary"
-                            }`}
+                            ${menuOpen
+                ? "opacity-100 bg-border text-text-primary"
+                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />

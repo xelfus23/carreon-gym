@@ -7,7 +7,7 @@ export const subscriptionService = {
     /** Fetch all active plans for the admin dropdown. */
     async getPlans() {
         const result = await pool.query(
-            `SELECT id, name, description, price, duration_days
+            `SELECT id, name, description, price, duration_days, category 
              FROM subscription_plans
              WHERE is_active = TRUE
              ORDER BY duration_days ASC`,

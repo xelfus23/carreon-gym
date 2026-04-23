@@ -1,17 +1,22 @@
+import { API_URL } from "../constants";
+import type { SubscriptionPlanProps } from "../types";
 import { authService } from "./auth.service";
 
-const API_URL = import.meta.env.VITE_SERVER_URL;
-
-export interface SubscriptionPlan {
-  id: number;
-  name: string;
-  description: string | null;
-  price: number;
-  duration_days: number;
-}
-
 export const subscriptionService = {
-  async getPlans(): Promise<SubscriptionPlan[]> {
+
+  updatePlan: async (id: number, planData: Partial<SubscriptionPlanProps>) => {
+    const res = await authService.fetchWithRefresh(`/api/subscription-plans/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(planData)
+    });
+
+    const data = await res.json();
+
+
+    return data.data;
+  },
+  
+  async getPlans(): Promise<SubscriptionPlanProps[]> {
     const res = await authService.fetchWithRefresh(
       `${API_URL}/api/web/subscriptions/plans`,
       { method: "GET" },

@@ -1,3 +1,5 @@
+export const API_URL = import.meta.env.VITE_SERVER_URL;
+
 export const COLORS = {
     // Brand
     primary: "#7CFF00", // Neon green (main brand color)
@@ -19,6 +21,7 @@ export const COLORS = {
     disabled: "#3A3A3A",
     success: "#7CFF00",
 };
+
 
 export const PAYMENT_METHODS = [
     { value: "cash", label: "Cash", icon: "💵" },

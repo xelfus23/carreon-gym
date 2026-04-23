@@ -13,6 +13,7 @@ import Product from "./screens/Product";
 import AdminManagement from "./screens/AdminManagement";
 import Transactions from "./screens/Transactions";
 import GymSettings from "./screens/GymSettings";
+import GymSubscriptions from "./screens/GymSubscriptions";
 
 const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<NavItem>(NavItem.ANALYTICS);
@@ -53,6 +54,8 @@ const App: React.FC = () => {
         return <Product />;
       case NavItem.AI_INSIGHTS:
         return <AssistantTab />;
+      case NavItem.SUBSCRIPTIONS:
+        return <GymSubscriptions />
       case NavItem.QR_CODE:
         return <QRTab />;
       case NavItem.GYM_SETTINGS:

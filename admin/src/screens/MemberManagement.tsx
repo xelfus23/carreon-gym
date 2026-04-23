@@ -5,7 +5,9 @@ import MemberRow from "../components/members/MemberRow";
 import ConfirmDialog from "../components/members/ConfirmDialog";
 import SubscriptionModal from "../components/SubscriptionModal";
 import { memberService } from "../services/member.service";
-import { Calendar, CircleAlert, CircleCheck, Plus, Search, Star, Users } from "lucide-react";
+import { Calendar, CircleAlert, CircleCheck, Loader, Plus, Star, Users } from "lucide-react";
+import CustomTable from "../components/CustomTable";
+import SearchInput from "../components/CustomSearchInput";
 
 type SortKey = keyof AdminMemberListItem | null;
 type SortDir = "asc" | "desc";
@@ -200,14 +202,21 @@ export default function MemberManagement() {
     [members],
   );
 
-  const SortIcon = ({ col }: { col: SortKey }) =>
-    sortKey === col ? (
-      <span className="ml-1 text-text-secondary">
-        {sortDir === "asc" ? "↑" : "↓"}
-      </span>
-    ) : (
-      <span className="ml-1 opacity-30 group-hover:opacity-60">↕</span>
-    );
+  // const SortIcon = ({ col }: { col: SortKey }) =>
+  //   sortKey === col ? (
+  //     <span className="ml-1 text-text-secondary">
+  //       {sortDir === "asc" ? "↑" : "↓"}
+  //     </span>
+  //   ) : (
+  //     <span className="ml-1 opacity-30 group-hover:opacity-60">↕</span>
+  //   );
+
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -227,20 +236,7 @@ export default function MemberManagement() {
                                            text-text-secondary text-xs font-semibold uppercase tracking-wider
                                            hover:border-primary/40 hover:text-primary transition-all duration-150"
             >
-              <svg
-                width="11"
-                height="11"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="23 4 23 10 17 10" />
-                <polyline points="1 20 1 14 7 14" />
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-              </svg>
+              <Loader />
               Refresh
             </button>
           )}
@@ -381,21 +377,11 @@ export default function MemberManagement() {
         < div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0" >
           {/* Toolbar */}
           <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center" >
-            <div className="relative flex-1 min-w-48">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">
-                <Search size={14} />
-              </span>
-              <input
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                type="text"
-                placeholder="Search name, email, phone…"
-                className="w-full pl-9 pr-4 py-2 bg-surface border border-border text-sm focus:ring-2 focus:ring-primary outline-none transition-all text-text-primary"
-              />
-            </div>
+            <SearchInput
+              placeholder="Search name, email, phone..."
+              value={search}
+              onChange={handleSearchChange}
+            />
 
             <select
               value={filterStatus}
@@ -432,143 +418,36 @@ export default function MemberManagement() {
             </span>
           </div>
 
-          <div className="overflow-x-auto h-[500px]">
-            <table className="text-left text-sm w-full">
-              <thead className="sticky top-0">
-                <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
-                  {(
-                    [
-                      {
-                        label: "ID",
-                        key: "id",
-                      },
-                      {
-                        label: "Member",
-                        key: "first_name",
-                      },
+          <CustomTable
+            renderRow={(m) => <MemberRow
+              key={m.id}
+              m={m}
+              onSetPlan={setSubscriptionMember}
+              onSuspend={handleSuspend}
+              onBan={handleBan}
+              onDelete={handleDelete}
+              onSendEmail={handleSendEmail}
+              onVerify={handleVerify}
+            />}
+            data={paginated}
+            totalItems={totalPages}
+            setPage={setPage}
+            page={page}
+            pageSize={PAGE_SIZE}
+            onSort={handleSort}
+            columns={[
+              { label: "ID", key: "id", sortable: true },
+              { label: "Member", key: "first_name", sortable: true },
+              { label: "Status", key: "account_status", sortable: true },
+              { label: "Plan", key: "plan_name", sortable: true },
+              { label: "Subscription", key: "subscription_status", sortable: true },
+              { label: "Last Check-in", key: "last_check_in", sortable: true },
+              { label: "Visits / mo", key: "total_visits_this_month", sortable: true },
+              { label: "Attendance", key: "attendance_rate", sortable: true },
+              { label: "", key: null },
+            ]}
+          />
 
-                      {
-                        label: "Status",
-                        key: "account_status",
-                      },
-                      { label: "Plan", key: "plan_name" },
-                      {
-                        label: "Subscription",
-                        key: "subscription_status",
-                      },
-                      {
-                        label: "Last Check-in",
-                        key: "last_check_in",
-                      },
-                      {
-                        label: "Visits / mo",
-                        key: "total_visits_this_month",
-                      },
-                      {
-                        label: "Attendance",
-                        key: "attendance_rate",
-                      },
-                      { label: "", key: null },
-                    ] as { label: string; key: SortKey }[]
-                  ).map(({ label, key }) => (
-                    <th
-                      key={label || "actions"}
-                      onClick={() =>
-                        key && handleSort(key)
-                      }
-                      className={`px-5 text-xs py-3.5 group ${key
-                        ? "cursor-pointer select-none hover:text-text-secondary"
-                        : ""
-                        }`}
-                    >
-                      {label}
-                      {key && <SortIcon col={key} />}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {paginated.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={8}
-                      className="px-5 py-16 text-center text-text-secondary text-sm"
-                    >
-                      No members match your filters.
-                    </td>
-                  </tr>
-                ) : (
-                  paginated.map((m) => (
-                    <MemberRow
-                      key={m.id}
-                      m={m}
-                      onSetPlan={setSubscriptionMember}
-                      onSuspend={handleSuspend}
-                      onBan={handleBan}
-                      onDelete={handleDelete}
-                      onSendEmail={handleSendEmail}
-                      onVerify={handleVerify}
-                    />
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {
-            <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
-              <span className="text-xs text-text-secondary">
-                Page {page} of {totalPages}
-              </span>
-              <div className="flex gap-1">
-                <button
-                  onClick={() =>
-                    setPage((p) => Math.max(1, p - 1))
-                  }
-                  disabled={page === 1}
-                  className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
-                >
-                  ← Prev
-                </button>
-                {Array.from(
-                  { length: Math.min(5, totalPages) },
-                  (_, i) => {
-                    const p =
-                      Math.max(
-                        1,
-                        Math.min(
-                          page - 2,
-                          totalPages - 4,
-                        ),
-                      ) + i;
-                    return (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p)}
-                        className={`px-3 rounded-lg py-1.5 text-xs font-semibold border transition-colors ${p === page
-                          ? "bg-primary text-background border-primary"
-                          : "border-border bg-surface hover:bg-border text-text-primary"
-                          }`}
-                      >
-                        {p}
-                      </button>
-                    );
-                  },
-                )}
-                <button
-                  onClick={() =>
-                    setPage((p) =>
-                      Math.min(totalPages, p + 1),
-                    )
-                  }
-                  disabled={page === totalPages}
-                  className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
-          }
         </div>
       </div >
 

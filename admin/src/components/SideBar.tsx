@@ -11,6 +11,7 @@ import {
   Settings,
   ShoppingBasket,
   Sparkles,
+  Ticket,
   UserRoundKey,
   UsersRound,
 } from "lucide-react";
@@ -64,6 +65,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       label: "Products",
       icon: <ShoppingBasket />,
     },
+    {
+      id: NavItem.SUBSCRIPTIONS,
+      label: "Gym Subscriptions",
+      icon: <Ticket />
+    },
+
     {
       id: NavItem.AI_INSIGHTS,
       label: "AI Insights",

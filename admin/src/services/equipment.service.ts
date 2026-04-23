@@ -1,14 +1,7 @@
+import { API_URL } from "../constants";
+import type { EquipmentProps } from "../types";
 import { authService } from "./auth.service";
 
-const API_URL = import.meta.env.VITE_SERVER_URL;
-
-type EquipmentPayload = {
-  equipment_name: string;
-  category: string;
-  target_muscles: string;
-  description?: string;
-  quantity?: number;
-};
 
 export const EquipmentService = {
   getEquipment: async () => {
@@ -21,7 +14,7 @@ export const EquipmentService = {
     return data;
   },
 
-  createEquipment: async (payload: EquipmentPayload) => {
+  createEquipment: async (payload: EquipmentProps) => {
     const response = await authService.fetchWithRefresh(
       `${API_URL}/api/equipments/create-equipment`,
       {
@@ -35,7 +28,7 @@ export const EquipmentService = {
     return data;
   },
 
-  updateEquipment: async (id: number, payload: Partial<EquipmentPayload>) => {
+  updateEquipment: async (id: number, payload: Partial<EquipmentProps>) => {
     const response = await authService.fetchWithRefresh(
       `${API_URL}/api/equipments/web/${id}`,
       {

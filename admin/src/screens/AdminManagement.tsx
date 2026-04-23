@@ -221,23 +221,11 @@ export default function AdminManagement() {
                         label: "Status",
                         key: "account_status",
                       },
-                      // { label: "Plan", key: "plan_name" },
-                      // {
-                      //     label: "Subscription",
-                      //     key: "subscription_status",
-                      // },
+
                       {
                         label: "Last Check-in",
                         key: "last_check_in",
                       },
-                      // {
-                      //     label: "Visits / mo",
-                      //     key: "total_visits_this_month",
-                      // },
-                      // {
-                      //     label: "Attendance",
-                      //     key: "attendance_rate",
-                      // },
                       { label: "", key: null },
                     ] as { label: string; key: SortKey }[]
                   ).map(({ label, key }) => (

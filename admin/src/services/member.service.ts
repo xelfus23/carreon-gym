@@ -1,6 +1,5 @@
+import { API_URL } from "../constants";
 import { authService } from "./auth.service";
-
-const API_URL = import.meta.env.VITE_SERVER_URL;
 
 export const memberService = {
   getMember: async () => {
@@ -23,6 +22,7 @@ export const memberService = {
 
     return data;
   },
+
   verifyMember: async (memberId: number) => {
     const result = await authService.fetchWithRefresh(
       `${API_URL}/api/members/verify/${memberId}`,
@@ -35,6 +35,7 @@ export const memberService = {
 
     return data;
   },
+
   createMember: async (payload: {
     firstName: string;
     lastName: string;
@@ -53,6 +54,7 @@ export const memberService = {
     }
     return data;
   },
+
   manualAttendance: async (payload: {
     userId: number;
     action: "check_in" | "check_out";

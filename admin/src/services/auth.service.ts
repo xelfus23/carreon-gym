@@ -1,6 +1,7 @@
-const API_URL = import.meta.env.VITE_SERVER_URL;
+import { API_URL } from "../constants";
 
 let isRefreshing = false;
+
 type PendingResolver = {
   resolve: () => void;
   reject: (err: Error) => void;

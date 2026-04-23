@@ -1,16 +1,10 @@
+import { API_URL } from "../constants";
+import type { PurchaseRequestProps } from "../types";
 import { authService } from "./auth.service";
-
-const API_URL = import.meta.env.VITE_SERVER_URL;
-
-export interface PurchaseRequest {
-  productId: number;
-  quantity: number;
-  method: string;
-}
 
 export const purchaseService = {
   // Member: Request a new product purchase (Status: Pending)
-  requestPurchase: async (purchaseData: PurchaseRequest) => {
+  requestPurchase: async (purchaseData: PurchaseRequestProps) => {
     const result = await authService.fetchWithRefresh(
       `${API_URL}/api/purchase/request`,
       {
