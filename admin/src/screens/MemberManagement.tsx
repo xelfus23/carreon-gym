@@ -5,9 +5,24 @@ import MemberRow from "../components/members/MemberRow";
 import ConfirmDialog from "../components/members/ConfirmDialog";
 import SubscriptionModal from "../components/SubscriptionModal";
 import { memberService } from "../services/member.service";
-import { Calendar, CircleAlert, CircleCheck, Loader, Plus, Star, Users } from "lucide-react";
+import {
+  Calendar,
+  CircleAlert,
+  CircleArrowUp,
+  CircleCheck,
+  Loader,
+  Loader2,
+  Plus,
+  RefreshCcw,
+  RefreshCw,
+  Star,
+  Users,
+} from "lucide-react";
 import CustomTable from "../components/CustomTable";
 import SearchInput from "../components/CustomSearchInput";
+import CustomHeader from "../components/CustomHeader";
+import StatsCard from "../components/CustomStatsCard";
+import { COLORS } from "../constants";
 
 type SortKey = keyof AdminMemberListItem | null;
 type SortDir = "asc" | "desc";
@@ -15,7 +30,7 @@ type FilterStatus = "all" | "active" | "suspended" | "deleted";
 type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
 export default function MemberManagement() {
-  const { members, refetch, isLoading, verifyMember } = useMember();
+  const { members, refresh, isLoading, verifyMember } = useMember();
   const [subscriptionMember, setSubscriptionMember] =
     useState<AdminMemberListItem | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
@@ -63,7 +78,7 @@ export default function MemberManagement() {
         setConfirmDialog(null);
         // TODO: call memberService.suspend(m.id, !isSuspended)
         console.log("suspend/unsuspend", m.id);
-        refetch();
+        refresh();
       },
     });
   };
@@ -78,7 +93,7 @@ export default function MemberManagement() {
         setConfirmDialog(null);
         // TODO: call memberService.ban(m.id)
         console.log("ban", m.id);
-        refetch();
+        refresh();
       },
     });
   };
@@ -93,7 +108,7 @@ export default function MemberManagement() {
         setConfirmDialog(null);
         // TODO: call memberService.delete(m.id)
         console.log("delete", m.id);
-        refetch();
+        refresh();
       },
     });
   };
@@ -124,7 +139,7 @@ export default function MemberManagement() {
         password: "",
       });
       setIsAddMemberOpen(false);
-      refetch();
+      refresh();
     } catch (err) {
       if (err instanceof Error) {
         setAddMemberError(err.message);
@@ -145,9 +160,7 @@ export default function MemberManagement() {
       const q = search.toLowerCase();
       list = list.filter(
         (m) =>
-          `${m.first_name} ${m.last_name}`
-            .toLowerCase()
-            .includes(q) ||
+          `${m.first_name} ${m.last_name}`.toLowerCase().includes(q) ||
           m.email.toLowerCase().includes(q) ||
           m.phone_number?.includes(q),
       );
@@ -187,16 +200,13 @@ export default function MemberManagement() {
     () => ({
       total: members.length,
       active: members.filter((m) => m.account_status === "active").length,
-      suspended: members.filter((m) => m.account_status === "suspended")
+      suspended: members.filter((m) => m.account_status === "suspended").length,
+      activeSubs: members.filter((m) => m.subscription_status === "active")
         .length,
-      activeSubs: members.filter(
-        (m) => m.subscription_status === "active",
-      ).length,
       avgAttendance: members.length
         ? Math.round(
-          members.reduce((s, m) => s + m.attendance_rate, 0) /
-          members.length,
-        )
+            members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
+          )
         : 0,
     }),
     [members],
@@ -211,47 +221,75 @@ export default function MemberManagement() {
   //     <span className="ml-1 opacity-30 group-hover:opacity-60">↕</span>
   //   );
 
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     setPage(1);
   };
 
+  const handleOnClick = () => {
+    setAddMemberError(null);
+    setAddMemberSuccess(null);
+    setIsAddMemberOpen((v) => !v);
+  };
+
+  if (isLoading)
+    return (
+      <div className="flex h-full flex-col items-center justify-center space-y-4">
+        <Loader2
+          size={26}
+          className="animate-spin text-primary stroke-primary"
+        />
+        <p className="text-text-secondary animate-pulse">
+          Loading member records...
+        </p>
+      </div>
+    );
+
+  const cards = [
+    {
+      label: "Total Members",
+      value: stats.total,
+      color: "border-slate-500/30 bg-slate-500/5  text-slate-500",
+      icon: <Users size={16} />,
+    },
+    {
+      label: "Active Accounts",
+      value: stats.active,
+      color: "border-emerald-500/30 bg-emerald-500/5 text-emerald-500",
+      icon: <CircleCheck size={16} />,
+    },
+    {
+      label: "Suspended",
+      value: stats.suspended,
+      color: "border-amber-500/30 bg-amber-500/5 text-amber-500",
+      icon: <CircleAlert size={16} />,
+    },
+    {
+      label: "Active Subs",
+      value: stats.activeSubs,
+      color: "border-indigo-500/30 bg-indigo-500/5 text-indigo-500",
+      icon: <Star size={16} />,
+    },
+    {
+      label: "Avg Attendance",
+      value: `${stats.avgAttendance}%`,
+      color: "border-violet-500/30 bg-violet-500/5 text-violet-500",
+      icon: <Calendar size={16} />,
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* ── Stats bar ── */}
-
-
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Users className="text-primary" /> User Management
-        </h1>
-
-        <div className="flex items-center gap-2 ml-auto">
-          {!isLoading && (
-            <button
-              onClick={refetch}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-border
-                                           text-text-secondary text-xs font-semibold uppercase tracking-wider
-                                           hover:border-primary/40 hover:text-primary transition-all duration-150"
-            >
-              <Loader />
-              Refresh
-            </button>
-          )}
-          <button
-            onClick={() => {
-              setAddMemberError(null);
-              setAddMemberSuccess(null);
-              setIsAddMemberOpen((v) => !v);
-            }}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-background hover:opacity-90 transition-all text-sm font-medium"
-          >
-            <Plus size={16} /> Add Member
-          </button>
-        </div>
-      </div>
+    <div className="space-y-4">
+      <CustomHeader
+        isLoading={isLoading}
+        refresh={refresh}
+        onClick={handleOnClick}
+        buttonLabel="Add Member"
+        title="Member Management"
+        description="Manage carreon gym members"
+        icon={<Users color={COLORS.primary} />}
+        hasAction={true}
+      />
 
       {isAddMemberOpen && (
         <form
@@ -309,7 +347,9 @@ export default function MemberManagement() {
 
           <div className="md:col-span-5 flex items-center justify-between gap-3">
             <div className="text-xs">
-              {addMemberError && <span className="text-rose-500">{addMemberError}</span>}
+              {addMemberError && (
+                <span className="text-rose-500">{addMemberError}</span>
+              )}
               {!addMemberError && addMemberSuccess && (
                 <span className="text-emerald-500">{addMemberSuccess}</span>
               )}
@@ -326,57 +366,17 @@ export default function MemberManagement() {
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        {[
-          {
-            label: "Total Members",
-            value: stats.total,
-            color: "border-slate-500/30 bg-slate-500/5  text-slate-500",
-            icon: <Users size={16} />
-          },
-          {
-            label: "Active Accounts",
-            value: stats.active,
-            color: "border-emerald-500/30 bg-emerald-500/5 text-emerald-500",
-            icon: <CircleCheck size={16} />
-          },
-          {
-            label: "Suspended",
-            value: stats.suspended,
-            color: "border-amber-500/30 bg-amber-500/5 text-amber-500",
-            icon: <CircleAlert size={16} />
-          },
-          {
-            label: "Active Subs",
-            value: stats.activeSubs,
-            color: "border-indigo-500/30 bg-indigo-500/5 text-indigo-500",
-            icon: <Star size={16} />
-          },
-          {
-            label: "Avg Attendance",
-            value: `${stats.avgAttendance}%`,
-            color: "border-violet-500/30 bg-violet-500/5 text-violet-500",
-            icon: <Calendar size={16} />
-          },
-        ].map(({ label, value, color, icon }) => (
-          <div
-            key={label}
-            className={`p-5 border ${color} shadow-sm flex flex-col justify-between`}
-          >
-            <div className="flex items-center justify-between opacity-80">
-              <span className="text-xs font-bold uppercase tracking-widest">{label}</span>
-              {icon}
-            </div>
-            <p className="text-3xl font-black mt-2 tabular-nums">{value}</p>
-          </div>
+        {cards.map(({ label, value, color, icon }) => (
+          <StatsCard label={label} value={value} color={color} icon={icon} />
         ))}
       </div>
 
       {/* ── Main layout ── */}
-      < div className="flex flex-col lg:flex-row gap-6" >
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* ── Table card ── */}
-        < div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0" >
+        <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0">
           {/* Toolbar */}
-          <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center" >
+          <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
             <SearchInput
               placeholder="Search name, email, phone..."
               value={search}
@@ -419,16 +419,18 @@ export default function MemberManagement() {
           </div>
 
           <CustomTable
-            renderRow={(m) => <MemberRow
-              key={m.id}
-              m={m}
-              onSetPlan={setSubscriptionMember}
-              onSuspend={handleSuspend}
-              onBan={handleBan}
-              onDelete={handleDelete}
-              onSendEmail={handleSendEmail}
-              onVerify={handleVerify}
-            />}
+            renderRow={(m) => (
+              <MemberRow
+                key={m.id}
+                m={m}
+                onSetPlan={setSubscriptionMember}
+                onSuspend={handleSuspend}
+                onBan={handleBan}
+                onDelete={handleDelete}
+                onSendEmail={handleSendEmail}
+                onVerify={handleVerify}
+              />
+            )}
             data={paginated}
             totalItems={totalPages}
             setPage={setPage}
@@ -440,36 +442,39 @@ export default function MemberManagement() {
               { label: "Member", key: "first_name", sortable: true },
               { label: "Status", key: "account_status", sortable: true },
               { label: "Plan", key: "plan_name", sortable: true },
-              { label: "Subscription", key: "subscription_status", sortable: true },
+              {
+                label: "Subscription",
+                key: "subscription_status",
+                sortable: true,
+              },
               { label: "Last Check-in", key: "last_check_in", sortable: true },
-              { label: "Visits / mo", key: "total_visits_this_month", sortable: true },
+              {
+                label: "Visits / mo",
+                key: "total_visits_this_month",
+                sortable: true,
+              },
               { label: "Attendance", key: "attendance_rate", sortable: true },
               { label: "", key: null },
             ]}
           />
-
         </div>
-      </div >
+      </div>
 
       {/* ── Modals ── */}
-      {
-        subscriptionMember && (
-          <SubscriptionModal
-            member={subscriptionMember}
-            onClose={() => setSubscriptionMember(null)}
-            onSuccess={refetch}
-          />
-        )
-      }
+      {subscriptionMember && (
+        <SubscriptionModal
+          member={subscriptionMember}
+          onClose={() => setSubscriptionMember(null)}
+          onSuccess={refresh}
+        />
+      )}
 
-      {
-        confirmDialog && (
-          <ConfirmDialog
-            {...confirmDialog}
-            onCancel={() => setConfirmDialog(null)}
-          />
-        )
-      }
-    </div >
+      {confirmDialog && (
+        <ConfirmDialog
+          {...confirmDialog}
+          onCancel={() => setConfirmDialog(null)}
+        />
+      )}
+    </div>
   );
 }

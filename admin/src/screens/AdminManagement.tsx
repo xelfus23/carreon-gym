@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
 import type { AdminMemberListItem } from "../types";
-import { Search, Users } from "lucide-react";
+import { Loader2, Search, Users } from "lucide-react";
 import SubscriptionModal from "../components/SubscriptionModal";
 import ConfirmDialog from "../components/members/ConfirmDialog";
 import AdminRow from "../components/members/AdminRow";
@@ -10,7 +10,7 @@ type SortKey = keyof AdminMemberListItem | null;
 type SortDir = "asc" | "desc";
 
 export default function AdminManagement() {
-  const { admins, refetch, isLoading, verifyMember } = useMember();
+  const { admins, refresh, isLoading, verifyMember } = useMember();
   const [subscriptionMember, setSubscriptionMember] =
     useState<AdminMemberListItem | null>(null);
 
@@ -45,7 +45,7 @@ export default function AdminManagement() {
         setConfirmDialog(null);
         // TODO: call memberService.suspend(m.id, !isSuspended)
         console.log("suspend/unsuspend", m.id);
-        refetch();
+        refresh();
       },
     });
   };
@@ -60,7 +60,7 @@ export default function AdminManagement() {
         setConfirmDialog(null);
         // TODO: call memberService.ban(m.id)
         console.log("ban", m.id);
-        refetch();
+        refresh();
       },
     });
   };
@@ -75,7 +75,7 @@ export default function AdminManagement() {
         setConfirmDialog(null);
         // TODO: call memberService.delete(m.id)
         console.log("delete", m.id);
-        refetch();
+        refresh();
       },
     });
   };
@@ -98,9 +98,7 @@ export default function AdminManagement() {
       const q = search.toLowerCase();
       list = list.filter(
         (m) =>
-          `${m.first_name} ${m.last_name}`
-            .toLowerCase()
-            .includes(q) ||
+          `${m.first_name} ${m.last_name}`.toLowerCase().includes(q) ||
           m.email.toLowerCase().includes(q) ||
           m.phone_number?.includes(q),
       );
@@ -140,6 +138,19 @@ export default function AdminManagement() {
       <span className="ml-1 opacity-30 group-hover:opacity-60">↕</span>
     );
 
+  if (isLoading)
+    return (
+      <div className="flex h-full flex-col items-center justify-center space-y-4">
+        <Loader2
+          size={26}
+          className="animate-spin text-primary stroke-primary"
+        />
+        <p className="text-text-secondary animate-pulse">
+          Loading admin records...
+        </p>
+      </div>
+    );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -150,7 +161,7 @@ export default function AdminManagement() {
         <div className="flex items-center gap-2 ml-auto">
           {!isLoading && (
             <button
-              onClick={refetch}
+              onClick={refresh}
               className="flex items-center gap-1.5 px-3 py-1.5 border border-border
                                        text-text-secondary text-xs font-semibold uppercase tracking-wider
                                        hover:border-primary/40 hover:text-primary transition-all duration-150"
@@ -231,13 +242,12 @@ export default function AdminManagement() {
                   ).map(({ label, key }) => (
                     <th
                       key={label || "actions"}
-                      onClick={() =>
-                        key && handleSort(key)
-                      }
-                      className={`px-5 text-xs py-3.5 group ${key
-                        ? "cursor-pointer select-none hover:text-text-secondary"
-                        : ""
-                        }`}
+                      onClick={() => key && handleSort(key)}
+                      className={`px-5 text-xs py-3.5 group ${
+                        key
+                          ? "cursor-pointer select-none hover:text-text-secondary"
+                          : ""
+                      }`}
                     >
                       {label}
                       {key && <SortIcon col={key} />}
@@ -280,45 +290,30 @@ export default function AdminManagement() {
               </span>
               <div className="flex gap-1">
                 <button
-                  onClick={() =>
-                    setPage((p) => Math.max(1, p - 1))
-                  }
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                   className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
                 >
                   ← Prev
                 </button>
-                {Array.from(
-                  { length: Math.min(5, totalPages) },
-                  (_, i) => {
-                    const p =
-                      Math.max(
-                        1,
-                        Math.min(
-                          page - 2,
-                          totalPages - 4,
-                        ),
-                      ) + i;
-                    return (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p)}
-                        className={`px-3 rounded-lg py-1.5 text-xs font-semibold border transition-colors ${p === page
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`px-3 rounded-lg py-1.5 text-xs font-semibold border transition-colors ${
+                        p === page
                           ? "bg-primary text-background border-primary"
                           : "border-border bg-surface hover:bg-border text-text-primary"
-                          }`}
-                      >
-                        {p}
-                      </button>
-                    );
-                  },
-                )}
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
                 <button
-                  onClick={() =>
-                    setPage((p) =>
-                      Math.min(totalPages, p + 1),
-                    )
-                  }
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                   className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
                 >
@@ -335,7 +330,7 @@ export default function AdminManagement() {
         <SubscriptionModal
           member={subscriptionMember}
           onClose={() => setSubscriptionMember(null)}
-          onSuccess={refetch}
+          onSuccess={refresh}
         />
       )}
 

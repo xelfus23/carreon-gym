@@ -8,7 +8,7 @@ import {
   EditModal,
   DeleteModal,
 } from "../components/equipment/EquipmentModals";
-import { Dumbbell, Plus, Search } from "lucide-react";
+import { Dumbbell, Loader2, Plus, Search } from "lucide-react";
 
 type SortKey = keyof EquipmentTypes | null;
 type SortDir = "asc" | "desc";
@@ -28,9 +28,7 @@ export default function EquipmentTab() {
 
   const [showAdd, setShowAdd] = useState(false);
   const [editTarget, setEditTarget] = useState<EquipmentTypes | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<EquipmentTypes | null>(
-    null,
-  );
+  const [deleteTarget, setDeleteTarget] = useState<EquipmentTypes | null>(null);
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey>("equipment_name");
@@ -103,6 +101,19 @@ export default function EquipmentTab() {
       </span>
     ) : (
       <span className="ml-1 opacity-30 group-hover:opacity-60">↕</span>
+    );
+
+  if (isLoading)
+    return (
+      <div className="flex h-full flex-col items-center justify-center space-y-4">
+        <Loader2
+          size={26}
+          className="animate-spin text-primary stroke-primary"
+        />
+        <p className="text-text-secondary animate-pulse">
+          Loading equipment records...
+        </p>
+      </div>
     );
 
   return (
@@ -218,10 +229,11 @@ export default function EquipmentTab() {
                     <th
                       key={label || "actions"}
                       onClick={() => handleSort(key)}
-                      className={`px-5 py-3.5 text-xs group ${key
-                        ? "cursor-pointer select-none hover:text-text-secondary"
-                        : ""
-                        }`}
+                      className={`px-5 py-3.5 text-xs group ${
+                        key
+                          ? "cursor-pointer select-none hover:text-text-secondary"
+                          : ""
+                      }`}
                     >
                       {label}
                       {key && <SortIcon col={key} />}
@@ -266,45 +278,30 @@ export default function EquipmentTab() {
               </span>
               <div className="flex gap-1">
                 <button
-                  onClick={() =>
-                    setPage((p) => Math.max(1, p - 1))
-                  }
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                   className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
                 >
                   ← Prev
                 </button>
-                {Array.from(
-                  { length: Math.min(5, totalPages) },
-                  (_, i) => {
-                    const p =
-                      Math.max(
-                        1,
-                        Math.min(
-                          page - 2,
-                          totalPages - 4,
-                        ),
-                      ) + i;
-                    return (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p)}
-                        className={`px-3 rounded-lg py-1.5 text-xs font-semibold border transition-colors ${p === page
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`px-3 rounded-lg py-1.5 text-xs font-semibold border transition-colors ${
+                        p === page
                           ? "bg-primary text-background border-primary"
                           : "border-border bg-surface hover:bg-border text-text-primary"
-                          }`}
-                      >
-                        {p}
-                      </button>
-                    );
-                  },
-                )}
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
                 <button
-                  onClick={() =>
-                    setPage((p) =>
-                      Math.min(totalPages, p + 1),
-                    )
-                  }
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                   className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
                 >
@@ -333,9 +330,7 @@ export default function EquipmentTab() {
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
-            <p className="text-sm text-danger font-medium">
-              {error}
-            </p>
+            <p className="text-sm text-danger font-medium">{error}</p>
           </div>
         )}
       </div>

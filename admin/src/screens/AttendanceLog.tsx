@@ -12,10 +12,10 @@ import {
   Activity,
   Timer,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 
 export default function AttendanceLog() {
-
   const {
     logs,
     attempts,
@@ -32,7 +32,9 @@ export default function AttendanceLog() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selectedMemberId, setSelectedMemberId] = useState<number | "">("");
-  const [manualAction, setManualAction] = useState<"check_in" | "check_out">("check_in");
+  const [manualAction, setManualAction] = useState<"check_in" | "check_out">(
+    "check_in",
+  );
   const [manualStatus, setManualStatus] = useState<string | null>(null);
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
   const PAGE_SIZE = 50;
@@ -83,8 +85,7 @@ export default function AttendanceLog() {
     const parts = [];
     if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
     if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-    if (minutes > 0)
-      parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
+    if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
     if (secs > 0 || parts.length === 0)
       parts.push(`${secs} second${secs !== 1 ? "s" : ""}`);
 
@@ -112,7 +113,7 @@ export default function AttendanceLog() {
       activeNow: logs.filter((l) => l.status === "checked_in").length,
       avgDuration: logs.length
         ? logs.reduce((acc, curr) => acc + (curr.duration || 0), 0) /
-        logs.length
+          logs.length
         : 0,
     }),
     [logs],
@@ -126,8 +127,14 @@ export default function AttendanceLog() {
 
   if (isLoading)
     return (
-      <div className="p-8 text-center text-text-secondary">
-        Loading logs...
+      <div className="flex h-full flex-col items-center justify-center space-y-4">
+        <Loader2
+          size={26}
+          className="animate-spin text-primary stroke-primary"
+        />
+        <p className="text-text-secondary animate-pulse">
+          Loading attendance log records...
+        </p>
       </div>
     );
 
@@ -135,14 +142,15 @@ export default function AttendanceLog() {
     <div className="space-y-6">
       {/* ── Stats bar ── */}
 
-
       {/* ── Header Section ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black flex items-center gap-3 tracking-tight">
             <Logs className="text-primary" size={28} /> Attendance Log
           </h1>
-          <p className="text-text-secondary text-sm mt-1">Manage and view Carreon Gym Attendance Log</p>
+          <p className="text-text-secondary text-sm mt-1">
+            Manage and view Carreon Gym Attendance Log
+          </p>
         </div>
 
         <button
@@ -181,7 +189,9 @@ export default function AttendanceLog() {
           </label>
           <select
             value={manualAction}
-            onChange={(e) => setManualAction(e.target.value as "check_in" | "check_out")}
+            onChange={(e) =>
+              setManualAction(e.target.value as "check_in" | "check_out")
+            }
             className="mt-1 px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
           >
             <option value="check_in">Check In</option>
@@ -197,8 +207,9 @@ export default function AttendanceLog() {
           {isSubmittingManual ? "Saving..." : "Log Attendance"}
         </button>
       </div>
-      {manualStatus && <p className="text-sm text-text-secondary">{manualStatus}</p>}
-
+      {manualStatus && (
+        <p className="text-sm text-text-secondary">{manualStatus}</p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
         {[
@@ -206,26 +217,26 @@ export default function AttendanceLog() {
             label: "Total Visits",
             value: stats.total,
             color: "border-slate-500/20 bg-slate-500/5 text-slate-500",
-            icon: <Users size={16} />
+            icon: <Users size={16} />,
           },
           {
             label: "Currently In",
             value: stats.activeNow,
             color: "border-emerald-500/20 bg-emerald-500/5 text-emerald-500",
-            icon: <Activity size={16} />
+            icon: <Activity size={16} />,
           },
           {
             label: "Avg Session",
             // Using the formatter for the stats bar too
             value: formatDuration(stats.avgDuration),
             color: "border-indigo-500/20 bg-indigo-500/5 text-indigo-500",
-            icon: <Timer size={16} />
+            icon: <Timer size={16} />,
           },
           {
             label: "Error Log",
             value: failedAttempts.length,
             color: "border-red-400/20 bg-red-400/5 text-red-400",
-            icon: <AlertTriangle size={16} />
+            icon: <AlertTriangle size={16} />,
           },
         ].map(({ label, value, color, icon }) => (
           <div
@@ -233,7 +244,9 @@ export default function AttendanceLog() {
             className={`p-5 border ${color} shadow-sm flex flex-col justify-between`}
           >
             <div className="flex items-center justify-between opacity-80">
-              <span className="text-xs font-bold uppercase tracking-widest">{label}</span>
+              <span className="text-xs font-bold uppercase tracking-widest">
+                {label}
+              </span>
               {icon}
             </div>
             <p className="text-3xl font-black mt-2 tabular-nums">{value}</p>
@@ -241,12 +254,11 @@ export default function AttendanceLog() {
         ))}
       </div>
 
-
       {latestFailureAlert && (
         <div className="px-4 py-3 border border-rose-300 bg-rose-50 text-rose-700 flex items-center justify-between">
           <p className="text-sm font-semibold">
-            Failed {latestFailureAlert.action.replace("_", " ")}{" "}
-            scan detected: {latestFailureAlert.last_name} (
+            Failed {latestFailureAlert.action.replace("_", " ")} scan detected:{" "}
+            {latestFailureAlert.last_name} (
             {formatAttemptReason(latestFailureAlert.reason)})
           </p>
           <button
@@ -286,15 +298,9 @@ export default function AttendanceLog() {
               <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
                 <th className="px-5 py-3.5 text-xs">Date</th>
                 <th className="px-5 py-3.5 text-xs">Member</th>
-                <th className="px-5 py-3.5 text-xs">
-                  Check In
-                </th>
-                <th className="px-5 py-3.5 text-xs">
-                  Check Out
-                </th>
-                <th className="px-5 py-3.5 text-xs">
-                  Duration
-                </th>
+                <th className="px-5 py-3.5 text-xs">Check In</th>
+                <th className="px-5 py-3.5 text-xs">Check Out</th>
+                <th className="px-5 py-3.5 text-xs">Duration</th>
                 <th className="px-5 py-3.5 text-xs">Method</th>
               </tr>
             </thead>
@@ -306,10 +312,7 @@ export default function AttendanceLog() {
                 >
                   <td className="px-5 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <Calendar
-                        size={14}
-                        className="text-text-secondary"
-                      />
+                      <Calendar size={14} className="text-text-secondary" />
                       <span className="font-medium">
                         {formatDate(log.check_in_time)}
                       </span>
@@ -370,12 +373,10 @@ export default function AttendanceLog() {
 
       <div className="bg-surface border border-border shadow-sm overflow-hidden">
         <div className="p-4 border-b border-border bg-surface">
-          <h2 className="text-lg font-bold text-rose-600">
-            Error Log
-          </h2>
+          <h2 className="text-lg font-bold text-rose-600">Error Log</h2>
           <p className="text-xs text-text-secondary mt-1">
-            Shows failed QR scans like no subscription, invalid QR,
-            or duplicate check-in.
+            Shows failed QR scans like no subscription, invalid QR, or duplicate
+            check-in.
           </p>
         </div>
 
