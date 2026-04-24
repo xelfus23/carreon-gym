@@ -102,30 +102,10 @@ export const useTransactions = (userId?: number) => {
     };
   }, [getTransactions]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-    }).format(amount);
-  };
-
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "Pending";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   return {
     transactions,
     isLoading,
     error,
     refresh: getTransactions,
-    formatCurrency,
-    formatDate,
   };
 };

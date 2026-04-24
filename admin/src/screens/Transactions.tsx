@@ -1,26 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTransactions } from "../hooks/useTransactions";
+import { useTransactions, type TransactionProps } from "../hooks/useTransactions";
 import { purchaseService } from "../services/purchase.service";
 import ConfirmDialog from "../components/members/ConfirmDialog";
 import {
-  Search,
-  Calendar,
   Receipt,
   CheckCircle,
   Clock,
   X,
-  RotateCcw,
-  ExternalLink,
-  CheckCircle2,
-  Ban,
-  Trash2,
 } from "lucide-react";
 import StatsCard from "../components/CustomStatsCard";
-import SearchInput from "../components/CustomSearchInput";
 import CustomHeader from "../components/CustomHeader";
+import CustomTable from "../components/CustomTable";
+import TransactionRow from "../components/TransactionRow";
+import { formatCurrency } from "../utils/formatCurrency";
+import ToolBar from "../components/ToolBar";
 
 export default function TransactionsLog() {
-  const { transactions, isLoading, formatDate, formatCurrency, refresh } =
+  const { transactions, isLoading, refresh } =
     useTransactions();
 
   const [search, setSearch] = useState("");
@@ -105,6 +101,7 @@ export default function TransactionsLog() {
     }
   };
 
+
   const handleDelete = async (paymentId: number) => {
     try {
       const result = await purchaseService.deleteTransaction(paymentId);
@@ -138,6 +135,7 @@ export default function TransactionsLog() {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, []);
+
 
   if (isLoading)
     return (
@@ -227,215 +225,64 @@ export default function TransactionsLog() {
         ref={menuWrapRef}
         className="bg-surface border border-border shadow-sm overflow-hidden flex flex-col"
       >
-        <div className="p-4 border-b border-border bg-surface/50 flex flex-wrap gap-4 items-center justify-between">
-          <SearchInput
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Search transactions"
-          />
 
-          <div className="px-3 py-1 bg-border/50">
-            <span className="text-xs font-bold text-text-secondary">
-              {filteredTransactions.length} RESULTS
-            </span>
-          </div>
-        </div>
+        <ToolBar
+          filtered={filteredTransactions}
+          search={search}
+          handleSearchChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          placeholder="Search transactions"
+        />
 
-        <div className="overflow-x-auto h-[500px]">
-          <table className="w-full border-collapse">
-            <thead className=" sticky top-0">
-              <tr className="bg-surface text-text-secondary font-bold text-[11px] uppercase tracking-wider border-b border-border">
-                <th className="px-6 py-4 text-left">Date</th>
-                <th className="px-6 py-4 text-left">Member</th>
-                <th className="px-6 py-4 text-left">Item / Plan</th>
-                <th className="px-6 py-4 text-left">Type</th>
-                <th className="px-6 py-4 text-left">Amount</th>
-                <th className="px-6 py-4 text-left">Status</th>
-                <th className="px-6 py-4 text-left">Proof</th>
-                <th className="px-6 py-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {paginated.map((tx) => (
-                <tr
-                  key={tx.transaction_id}
-                  className="hover:bg-border/10 transition-colors group"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <Calendar size={14} className="text-text-secondary" />
-                      <span className="font-medium">
-                        {formatDate(tx.paid_at)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="font-bold text-sm">{tx.member_name}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
-                      {tx.item_name}
-                    </p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter ${
-                        tx.transaction_type === "plan"
-                          ? "bg-blue-500/10 text-blue-500"
-                          : "bg-purple-500/10 text-purple-500"
-                      }`}
-                    >
-                      {tx.transaction_type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-mono font-bold text-sm">
-                    {formatCurrency(tx.amount)}
-                  </td>
-                  <td className="px-6 py-4">
-                    {tx.status === "paid" ? (
-                      <span className="inline-flex items-center gap-1.5 text-emerald-500 text-[11px] font-black">
-                        <CheckCircle size={14} /> PAID
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 text-amber-500 text-[11px] font-black">
-                        <Clock size={14} className="animate-pulse" /> PENDING
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    {tx.receipt_image_url ? (
-                      <button
-                        onClick={() => setSelectedReceipt(tx.receipt_image_url)}
-                        className="flex items-center gap-1 text-primary text-xs font-bold hover:opacity-70"
-                      >
-                        <ExternalLink size={12} /> View
-                      </button>
-                    ) : (
-                      <span className="text-[10px] text-text-secondary uppercase">
-                        No Image
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="relative inline-flex">
-                      <button
-                        onClick={() =>
-                          setOpenMenuId((prev) =>
-                            prev === tx.transaction_id
-                              ? null
-                              : tx.transaction_id,
-                          )
-                        }
-                        className="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-border text-text-secondary hover:text-text-primary hover:bg-border/50 transition-colors"
-                        aria-label="Transaction actions"
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 16 16"
-                          fill="currentColor"
-                        >
-                          <circle cx="8" cy="3" r="1.4" />
-                          <circle cx="8" cy="8" r="1.4" />
-                          <circle cx="8" cy="13" r="1.4" />
-                        </svg>
-                      </button>
 
-                      {openMenuId === tx.transaction_id && (
-                        <div className="absolute right-0 top-10 z-20 w-48 bg-surface border border-border shadow-xl overflow-hidden">
-                          {tx.status === "pending" && (
-                            <>
-                              <button
-                                onClick={() => handleVerify(tx.transaction_id)}
-                                className="w-full px-3 py-2 text-xs font-semibold text-left flex items-center gap-2 hover:bg-border/40 text-emerald-500"
-                              >
-                                <CheckCircle2 size={14} /> Verify payment
-                              </button>
-                              <button
-                                onClick={() =>
-                                  setConfirmDialog({
-                                    title: "Deny Payment Request",
-                                    message: `Deny payment request for ${tx.member_name}?`,
-                                    confirmLabel: "Deny Payment",
-                                    variant: "warning",
-                                    onConfirm: () =>
-                                      handleDeny(tx.transaction_id),
-                                  })
-                                }
-                                className="w-full px-3 py-2 text-xs font-semibold text-left flex items-center gap-2 hover:bg-border/40 text-amber-500"
-                              >
-                                <Ban size={14} /> Deny payment
-                              </button>
-                            </>
-                          )}
-                          <button
-                            onClick={() =>
-                              setConfirmDialog({
-                                title: "Delete Transaction",
-                                message: `Delete this transaction for ${tx.member_name}? This cannot be undone.`,
-                                confirmLabel: "Delete",
-                                variant: "danger",
-                                onConfirm: () =>
-                                  handleDelete(tx.transaction_id),
-                              })
-                            }
-                            className="w-full px-3 py-2 text-xs font-semibold text-left flex items-center gap-2 hover:bg-rose-500/10 text-rose-500 border-t border-border"
-                          >
-                            <Trash2 size={14} /> Delete transaction
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <CustomTable<TransactionProps>
+          columns={[
+            { label: "Transaction ID", key: "transaction_id" },
+            { label: "Reference No.", key: "reference_no" },
+            { label: "Member", key: "member_name" },
+            { label: "Item", key: "item_name" },
+            { label: "Type", key: "transaction_type" },
+            { label: "Amount", key: "amount" },
+            { label: "Status", key: "status" },
+            { label: "Proof", key: "receipt_image_url" },
+            { label: "", key: null }
+          ]}
+          data={paginated}
+          totalItems={totalPages}
+          setPage={setPage}
+          page={page}
+          pageSize={PAGE_SIZE}
+          renderRow={(tr) =>
 
-        {/* ── Modern Pagination Footer ── */}
-        {
-          <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
-            <span className="text-xs text-text-secondary">
-              Page {page} of {totalPages}
-            </span>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
-              >
-                ← Prev
-              </button>
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
-                return (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`px-3 rounded-lg aspect-square text-xs font-semibold border transition-colors ${
-                      p === page
-                        ? "bg-primary text-background border-primary"
-                        : "border-border bg-surface hover:bg-border text-text-primary"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                );
+            <TransactionRow
+              setOpenMenuId={setOpenMenuId}
+              setSelectedReceipt={setSelectedReceipt}
+              openMenuId={openMenuId}
+              tx={tr}
+              OnVerify={() => handleVerify(tr.transaction_id)}
+              OnDelete={() =>
+                setConfirmDialog({
+                  title: "Delete Transaction",
+                  message: `Delete this transaction for ${tr.member_name}? This cannot be undone.`,
+                  confirmLabel: "Delete",
+                  variant: "danger",
+                  onConfirm: () =>
+                    handleDelete(tr.transaction_id),
+                })}
+              OnDeny={() => setConfirmDialog({
+                title: "Deny Payment Request",
+                message: `Deny payment request for ${tr.member_name}?`,
+                confirmLabel: "Deny Payment",
+                variant: "warning",
+                onConfirm: () =>
+                  handleDeny(tr.transaction_id),
               })}
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
-              >
-                Next →
-              </button>
-            </div>
-          </div>
-        }
+            />
+          }
+        />
+
       </div>
       {confirmDialog && (
         <ConfirmDialog

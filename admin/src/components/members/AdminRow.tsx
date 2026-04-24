@@ -3,13 +3,11 @@ import {
   useRef,
   useCallback,
 } from "react";
-import type { ActionItem, AdminMemberListItem } from "../../types";
+import type { ActionItemProps, AdminMemberListItem } from "../../types";
 import {
   Ban,
   Check,
-  ClockPlus,
   Mail,
-  // Sparkles,
   Trash,
   UserKey,
   UserLock,
@@ -37,7 +35,6 @@ const ACCOUNT_BADGE: Record<string, string> = {
 // ── AdminRow ─────────────────────────────────────────────────────────────────
 export default function AdminRow({
   m,
-  onSetPlan,
   onSuspend,
   onBan,
   onDelete,
@@ -45,7 +42,6 @@ export default function AdminRow({
   onVerify,
 }: {
   m: AdminMemberListItem;
-  onSetPlan: (m: AdminMemberListItem) => void;
   onSuspend: (m: AdminMemberListItem) => void;
   onBan: (m: AdminMemberListItem) => void;
   onDelete: (m: AdminMemberListItem) => void;
@@ -56,22 +52,10 @@ export default function AdminRow({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
 
-  // const attendanceColor =
-  //     m.attendance_rate > 80
-  //         ? "bg-emerald-500"
-  //         : m.attendance_rate > 50
-  //           ? "bg-amber-500"
-  //           : "bg-rose-500";
-
   const isSuspended = m.account_status === "suspended";
   const isDeleted = m.account_status === "deleted";
 
-  const actions: ActionItem[] = [
-    {
-      label: "Set Plan",
-      icon: <ClockPlus className="h-4" />,
-      onClick: () => onSetPlan(m),
-    },
+  const actions: ActionItemProps[] = [
     {
       label: "Send Email",
       icon: <Mail className="h-4" />,
@@ -152,7 +136,6 @@ export default function AdminRow({
           </span>
         )}
       </td>
-      {/* Last check-in */}
       <td className="px-5 py-3.5 text-sm text-text-primary">
         {formatRelativeDate(m.last_check_in)}
         {m.last_login && (
@@ -161,34 +144,6 @@ export default function AdminRow({
           </div>
         )}
       </td>
-      {/* Visits */}
-      {/* <td className="px-5 py-3.5 text-center">
-                <span className="text-base font-black text-text-primary">
-                    {m.total_visits_this_month ?? 0}
-                </span>
-                {m.total_visits_all_time != null && (
-                    <div className="text-[11px] text-text-secondary">
-                        {m.total_visits_all_time} total
-                    </div>
-                )}
-            </td> */}
-      {/* Attendance */}
-      {/* <td className="px-5 py-3.5">
-                <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-border h-1.5 rounded-full overflow-hidden min-w-[60px]">
-                        <div
-                            className={`h-full rounded-full transition-all duration-500 ${attendanceColor}`}
-                            style={{
-                                width: `${Math.min(100, m.attendance_rate)}%`,
-                            }}
-                        />
-                    </div>
-                    <span className="text-xs font-semibold text-text-primary w-8 text-right tabular-nums">
-                        {m.attendance_rate}%
-                    </span>
-                </div>
-            </td> */}
-      {/* ── Actions ── */}
       <td className="px-5 py-3.5">
         <div className="flex items-center justify-end">
           <button

@@ -2,20 +2,23 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useGymSubs } from "../hooks/useGymSubs";
 import ConfirmDialog from "../components/members/ConfirmDialog";
 import {
-  Search,
-  Calendar,
   Dumbbell,
-  Plus,
-  RotateCcw,
   Zap,
   Users,
   Layers,
-  CheckCircle,
-  EllipsisVertical,
   Loader2,
 } from "lucide-react";
 import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
+import CustomTable from "../components/CustomTable";
+import SubscriptionsRow from "../components/SubscriptionsRow";
+import type { SubscriptionPlanProps } from "../types";
+import ToolBar, { type SelectProps } from "../components/ToolBar";
+
+
+type SortKey = keyof SubscriptionPlanProps | null;
+type SortDir = "asc" | "desc";
+
 
 export default function GymSubscriptionsAdmin() {
   const {
@@ -25,12 +28,15 @@ export default function GymSubscriptionsAdmin() {
     personalTrainer,
     isLoading,
     refresh,
-    formatCurrency,
   } = useGymSubs();
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [filterSub, setFilterSub] = useState("all");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
   const [confirmDialog, setConfirmDialog] = useState<{
     title: string;
     message: string;
@@ -51,19 +57,57 @@ export default function GymSubscriptionsAdmin() {
     ];
   }, [membership, classes, personalTrainer, addOns]);
 
-  const filteredPlans = useMemo(() => {
-    return allPlans.filter(
-      (p) =>
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.category.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [allPlans, search]);
 
-  const paginated = filteredPlans.slice(
+  const filtered = useMemo(() => {
+    let list = [...allPlans];
+
+    if (filterSub !== "all") {
+      list = list.filter((p) => p.category.toLowerCase() === filterSub.toLowerCase());
+    }
+
+    if (search.trim() !== "") {
+      const term = search.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(term) ||
+          p.category.toLowerCase().includes(term) ||
+          p.description?.toLowerCase().includes(term)
+      );
+    }
+
+    if (sortKey) {
+      list.sort((a, b) => {
+        const av = a[sortKey] ?? "";
+        const bv = b[sortKey] ?? "";
+        const cmp = String(av).localeCompare(String(bv), undefined, {
+          numeric: true,
+        });
+        return sortDir === "asc" ? cmp : -cmp;
+      });
+    }
+
+    return list;
+  }, [allPlans, search, filterSub, sortKey, sortDir]);
+
+  const paginated = filtered.slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE,
   );
-  const totalPages = Math.ceil(filteredPlans.length / PAGE_SIZE) || 1;
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+
+
+  const handleSort = (key: SortKey) => {
+    if (!key) return;
+
+    if (sortKey === key) {
+      setSortDir((dir) => (dir === "asc" ? "desc" : "asc"));
+      return;
+    }
+
+    setSortKey(key);
+    setSortDir("asc");
+  };
 
   useEffect(() => {
     const onMouseDown = (event: MouseEvent) => {
@@ -111,12 +155,31 @@ export default function GymSubscriptionsAdmin() {
       color: "border-amber-500/20 bg-amber-500/5 text-amber-500",
     },
     {
-      label: "PT Sessions",
+      label: "Personal Training Sessions",
       value: personalTrainer?.length || 0,
       icon: <Users size={16} />,
       color: "border-purple-500/20 bg-purple-500/5 text-purple-500",
     },
   ];
+
+
+  const select: SelectProps[] = [
+    {
+      value: filterSub,
+      onChange: (e) => {
+        setFilterSub(e.target.value);
+        setPage(1);
+      },
+      options: [
+        { label: "All Subscriptions", value: "all" },
+        { label: "Membership", value: "membership" },
+        { label: "Class", value: "class" },
+        { label: "Personal Trainer", value: "personal_training" },
+        { label: "Addon", value: "add_on" },
+      ]
+    },
+
+  ]
 
   return (
     <div className="space-y-4">
@@ -145,126 +208,50 @@ export default function GymSubscriptionsAdmin() {
         ))}
       </div>
 
-      {/* ── Table Container ── */}
       <div
         ref={menuWrapRef}
         className="bg-surface border border-border shadow-sm overflow-hidden flex flex-col"
       >
-        <div className="p-4 border-b border-border bg-surface/50 flex flex-wrap gap-4 items-center justify-between">
-          <div className="relative max-w-sm w-full">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
-              size={16}
-            />
-            <input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search plan name or category..."
-              className="w-full pl-10 pr-4 py-2.5 bg-background border border-border text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-            />
-          </div>
-          <div className="px-3 py-1 bg-border/50">
-            <span className="text-xs font-bold text-text-secondary uppercase">
-              {filteredPlans.length} Results
-            </span>
-          </div>
-        </div>
+        <ToolBar
+          search={search}
+          handleSearchChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          select={select}
+          filtered={filtered}
+          placeholder="Search plan name or category..."
+        />
 
-        <div className="overflow-x-auto h-[500px]">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-surface text-text-secondary font-bold text-[11px] uppercase tracking-wider border-b border-border">
-                <th className="px-6 py-4 text-left">Plan Name</th>
-                <th className="px-6 py-4 text-left">Category</th>
-                <th className="px-6 py-4 text-left">Duration</th>
-                <th className="px-6 py-4 text-left">Price</th>
-                <th className="px-6 py-4 text-left">Status</th>
-                <th className="px-6 py-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {paginated.map((plan) => (
-                <tr
-                  key={plan.id}
-                  className="hover:bg-border/10 transition-colors group"
-                >
-                  <td className="px-6 py-4">
-                    <p className="font-bold text-sm tracking-tight text-text-primary">
-                      {plan.name}
-                    </p>
-                    <p className="text-xs text-text-secondary line-clamp-1">
-                      {plan.description}
-                    </p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2 py-1 text-[10px] font-black tracking-tighter ${
-                        plan.category === "membership"
-                          ? "bg-blue-500/10 text-blue-500"
-                          : "bg-purple-500/10 text-purple-500"
-                      }`}
-                    >
-                      {plan.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Calendar size={14} className="text-text-secondary" />
-                      {plan.duration_days}{" "}
-                      {plan.duration_days > 1 ? "Days" : "Day"}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-xs text-text-secondary">
-                    {formatCurrency(plan.price)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1.5 text-emerald-500 text-[11px] font-black">
-                      <CheckCircle size={14} /> Active
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="relative inline-flex">
-                      <button
-                        onClick={() =>
-                          setOpenMenuId(openMenuId === plan.id ? null : plan.id)
-                        }
-                        className="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-border text-text-secondary hover:text-text-primary hover:bg-border/50 transition-colors"
-                      >
-                        <EllipsisVertical size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <CustomTable<SubscriptionPlanProps>
+          renderRow={
+            (sub) =>
+              <SubscriptionsRow
+                plan={sub}
+                onClick={() =>
+                  setOpenMenuId(openMenuId === sub.id ? null : sub.id)
+                }
+              />
+          }
+          onSort={handleSort}
+          data={paginated}
+          totalItems={totalPages}
+          setPage={setPage}
+          page={page}
+          pageSize={PAGE_SIZE}
+          columns={[
+            { label: "Plan ID", key: "id" },
+            { label: "Name", key: "name" },
+            { label: "Description", key: "description" },
+            { label: "Category", key: "category" },
+            { label: "Duration", key: "duration_days" },
+            { label: "Price", key: "price" },
+            { label: "Status", key: "is_active" },
+            { label: "", key: null }
+          ]}
+        />
 
-        {/* ── Modern Pagination Footer (Identical) ── */}
-        <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
-          <span className="text-xs text-text-secondary">
-            Page {page} of {totalPages}
-          </span>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
-            >
-              ← Prev
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
-            >
-              Next →
-            </button>
-          </div>
-        </div>
+
       </div>
 
       {confirmDialog && (

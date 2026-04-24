@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useGymDetails } from "../hooks/useGymDetails";
 import { gymDetailService } from "../services/gymDetails.service";
-import { Settings } from "lucide-react";
+import { Loader2, Settings } from "lucide-react";
 import type { gymDetailsProps } from "../types";
 
 export default function GymSettings() {
@@ -51,8 +51,23 @@ export default function GymSettings() {
     "maya_number",
   ];
 
+
+  if (isLoading)
+    return (
+      <div className="flex h-full flex-col items-center justify-center space-y-4">
+        <Loader2
+          size={26}
+          className="animate-spin text-primary stroke-primary"
+        />
+        <p className="text-text-secondary animate-pulse">
+          Loading equipment records...
+        </p>
+      </div>
+    );
+
+
   return (
-    <div className="p-6 w-full space-y-4">
+    <div className="space-y-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Settings className="text-primary" /> {gymDetails?.gym_name}{" "}
@@ -109,8 +124,8 @@ export default function GymSettings() {
           onClick={handleSave}
           disabled={isSaving}
           className={`mt-6 w-full py-2 rounded text-background font-semibold transition-colors ${isSaving
-              ? "bg-gray-400"
-              : "bg-primary hover:bg-primary-dark"
+            ? "bg-gray-400"
+            : "bg-primary hover:bg-primary-dark"
             }`}
         >
           {isSaving ? "Saving..." : "Save Changes"}

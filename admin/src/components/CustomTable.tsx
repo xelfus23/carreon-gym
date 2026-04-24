@@ -24,37 +24,39 @@ export default function CustomTable<T>(props: TableProps<T>) {
   const totalPages = Math.ceil(totalItems / pageSize);
 
   return (
-    <div className="overflow-x-auto">
-      <table className="text-left text-sm w-full">
-        {/* Table Head */}
-        <thead>
-          <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
-            {columns.map((col) => (
-              <th
-                key={col.label}
-                onClick={() => col.sortable && col.key && onSort?.(col.key)}
-                className="px-5 text-xs py-3.5 group cursor-pointer select-none hover:text-text-secondary"
-              >
-                {col.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        {/* Table Body */}
-        <tbody className="divide-y divide-border">
-          {data.length === 0 ? (
-            <tr>
-              <td colSpan={columns.length} className="px-5 py-16 text-center text-text-secondary text-sm">
-                No data available.
-              </td>
+    <div className="">
+      <div className="overflow-x-auto h-[500px]">
+        <table className="text-left text-sm w-full">
+          {/* Table Head */}
+          <thead className="sticky top-0">
+            <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
+              {columns.map((col) => (
+                <th
+                  key={col.label}
+                  onClick={() => col.sortable && col.key && onSort?.(col.key)}
+                  className="px-5 text-xs py-3.5 group cursor-pointer select-none hover:text-text-secondary"
+                >
+                  {col.label}
+                </th>
+              ))}
             </tr>
-          ) : (
-            data.map((item) => (
-              renderRow(item)
-            ))
-          )}
-        </tbody>
-      </table>
+          </thead>
+          {/* Table Body */}
+          <tbody className="divide-y divide-border">
+            {data.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="px-5 py-16 text-center text-text-secondary text-sm">
+                  No data available.
+                </td>
+              </tr>
+            ) : (
+              data.map((item) => (
+                renderRow(item)
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       <PaginationComponent page={page} totalPages={totalPages} setPage={setPage} />
     </div>
   );

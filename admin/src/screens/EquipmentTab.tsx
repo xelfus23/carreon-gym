@@ -1,21 +1,21 @@
 import { useMemo, useState } from "react";
 import { useEquipments, type EquipmentTypes } from "../hooks/useEquipments";
-import EquipmentRow, {
-  SkeletonRow,
-} from "../components/equipment/EquipmentRow";
+import EquipmentRow from "../components/equipment/EquipmentRow";
 import {
   AddModal,
   EditModal,
   DeleteModal,
 } from "../components/equipment/EquipmentModals";
-import { Dumbbell, Loader2, Plus, Search } from "lucide-react";
+import { Dumbbell, Loader2 } from "lucide-react";
+import CustomTable from "../components/CustomTable";
+import CustomHeader from "../components/CustomHeader";
+import ToolBar, { type SelectProps } from "../components/ToolBar";
 
 type SortKey = keyof EquipmentTypes | null;
 type SortDir = "asc" | "desc";
 
-// ─── Equipment Tab ─────────────────────────────────────────────────────────────
-
 export default function EquipmentTab() {
+
   const {
     equipments,
     isLoading,
@@ -34,19 +34,8 @@ export default function EquipmentTab() {
   const [sortKey, setSortKey] = useState<SortKey>("equipment_name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 50;
 
-  const categories = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          equipments
-            .map((eq) => eq.category?.trim())
-            .filter((value): value is string => Boolean(value)),
-        ),
-      ),
-    [equipments],
-  );
+  const PAGE_SIZE = 50;
 
   const filtered = useMemo(() => {
     let list = [...equipments];
@@ -94,14 +83,6 @@ export default function EquipmentTab() {
     setSortDir("asc");
   };
 
-  const SortIcon = ({ col }: { col: SortKey }) =>
-    sortKey === col ? (
-      <span className="ml-1 text-text-secondary">
-        {sortDir === "asc" ? "↑" : "↓"}
-      </span>
-    ) : (
-      <span className="ml-1 opacity-30 group-hover:opacity-60">↕</span>
-    );
 
   if (isLoading)
     return (
@@ -116,201 +97,75 @@ export default function EquipmentTab() {
       </div>
     );
 
+
+
+  const select: SelectProps[] = [
+    {
+      value: filterCategory,
+      onChange: (e) => {
+        setFilterCategory(e.target.value);
+        setPage(1);
+      },
+      options: [
+        { label: "All Equipments", value: "all" },
+        { label: "Free Weights", value: "free_weight" },
+        { label: "Accessories", value: "accessory" },
+        { label: "Cardio", value: "cardio" },
+        { label: "Machines", value: "machine" }
+      ]
+    },
+
+  ]
+
   return (
     <>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Dumbbell className="text-primary" /> Equipment Management
-        </h1>
-        <div className="flex items-center gap-2 ml-auto">
-          {!isLoading && (
-            <button
-              onClick={refresh}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-border
-                                           text-text-secondary text-xs font-semibold uppercase tracking-wider
-                                           hover:border-primary/40 hover:text-primary transition-all duration-150"
-            >
-              <svg
-                width="11"
-                height="11"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="23 4 23 10 17 10" />
-                <polyline points="1 20 1 14 7 14" />
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-              </svg>
-              Refresh
-            </button>
-          )}
-          <button
-            onClick={() => setShowAdd(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-background hover:opacity-90 transition-all text-sm font-medium"
-          >
-            <Plus size={16} /> Add Equipment
-          </button>
-        </div>
-      </div>
-      <div className="flex flex-col gap-4 mt-6">
-        <div className="bg-surface border border-border shadow-sm overflow-hidden min-w-0">
-          <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
-            <div className="relative flex-1 min-w-48">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">
-                <Search size={14} />
-              </span>
-              <input
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                type="text"
-                placeholder="Search equipment, category, muscle..."
-                className="w-full pl-9 pr-4 py-2 bg-surface border border-border text-sm focus:ring-2 focus:ring-primary outline-none transition-all text-text-primary"
+
+      <div className="space-y-4">
+
+        <CustomHeader isLoading={isLoading} refresh={refresh} buttonLabel="Add Equipment" hasAction={true} title="Equipment Management" icon={<Dumbbell className="text-primary" />} description="Manage carreon gym equipments" />
+
+
+        <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0">
+
+          <ToolBar
+            search={search}
+            handleSearchChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            select={select}
+            filtered={filtered}
+            placeholder="Search equipment name, category..."
+          />
+
+          <CustomTable
+            renderRow={(eq) => (
+              <EquipmentRow
+                key={eq.id}
+                item={eq}
+                onEdit={setEditTarget}
+                onDelete={setDeleteTarget}
               />
-            </div>
+            )}
+            data={paginated}
+            totalItems={totalPages}
+            setPage={setPage}
+            page={page}
+            pageSize={PAGE_SIZE}
+            onSort={handleSort}
+            columns={[
+              { label: "ID", key: "id" },
+              { label: "Equipment", key: "equipment_name", sortable: true },
+              { label: "Category", key: "category", sortable: true },
+              { label: "Qty", key: "quantity", sortable: true },
+              { label: "Target Muscles", key: "target_muscles", sortable: true },
+              { label: "Description", key: "description", sortable: true },
+              { label: "", key: null },
+            ]}
+          />
 
-            <select
-              value={filterCategory}
-              onChange={(e) => {
-                setFilterCategory(e.target.value);
-                setPage(1);
-              }}
-              className="px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
-            >
-              <option value="all">All Categories</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-            <div className="flex items-center justify-between">
-              {!isLoading && !error && (
-                <p className="text-xs text-text-secondary">
-                  {filtered.length} result
-                  {filtered.length !== 1 ? "s" : ""}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="overflow-x-auto h-[500px]">
-            <table className="text-left text-sm w-full">
-              <thead className="sticky top-0">
-                <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
-                  {(
-                    [
-                      { label: "ID", key: "id" },
-                      {
-                        label: "Equipment",
-                        key: "equipment_name",
-                      },
-                      {
-                        label: "Category",
-                        key: "category",
-                      },
-                      { label: "Qty", key: "quantity" },
-                      {
-                        label: "Target Muscles",
-                        key: "target_muscles",
-                      },
-                      {
-                        label: "Description",
-                        key: "description",
-                      },
-                      { label: "", key: null },
-                    ] as { label: string; key: SortKey }[]
-                  ).map(({ label, key }) => (
-                    <th
-                      key={label || "actions"}
-                      onClick={() => handleSort(key)}
-                      className={`px-5 py-3.5 text-xs group ${
-                        key
-                          ? "cursor-pointer select-none hover:text-text-secondary"
-                          : ""
-                      }`}
-                    >
-                      {label}
-                      {key && <SortIcon col={key} />}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {isLoading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <SkeletonRow key={i} />
-                  ))
-                ) : paginated.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-5 py-16 text-center text-text-secondary text-sm"
-                    >
-                      {equipments.length === 0
-                        ? "No equipment found yet."
-                        : "No equipment match your filters."}
-                    </td>
-                  </tr>
-                ) : (
-                  paginated.map((eq) => (
-                    <EquipmentRow
-                      key={eq.id}
-                      item={eq}
-                      onEdit={setEditTarget}
-                      onDelete={setDeleteTarget}
-                    />
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {!isLoading && (
-            <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
-              <span className="text-xs text-text-secondary">
-                Page {page} of {totalPages}
-              </span>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
-                >
-                  ← Prev
-                </button>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
-                  return (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`px-3 rounded-lg py-1.5 text-xs font-semibold border transition-colors ${
-                        p === page
-                          ? "bg-primary text-background border-primary"
-                          : "border-border bg-surface hover:bg-border text-text-primary"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
-          )}
         </div>
+
 
         {/* ── Error banner ── */}
         {error && (

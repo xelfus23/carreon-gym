@@ -73,7 +73,7 @@ export const useProducts = () => {
     products,
     isLoading,
     error,
-    refreshProducts: getProducts,
+    refresh: getProducts,
     createProduct,
     updateProduct,
     deleteProduct,

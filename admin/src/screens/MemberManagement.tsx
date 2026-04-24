@@ -8,26 +8,22 @@ import { memberService } from "../services/member.service";
 import {
   Calendar,
   CircleAlert,
-  CircleArrowUp,
   CircleCheck,
-  Loader,
   Loader2,
-  Plus,
-  RefreshCcw,
-  RefreshCw,
   Star,
   Users,
 } from "lucide-react";
 import CustomTable from "../components/CustomTable";
-import SearchInput from "../components/CustomSearchInput";
 import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
 import { COLORS } from "../constants";
+import type { SelectProps } from "../components/ToolBar";
+import ToolBar from "../components/ToolBar";
 
-type SortKey = keyof AdminMemberListItem | null;
-type SortDir = "asc" | "desc";
-type FilterStatus = "all" | "active" | "suspended" | "deleted";
-type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
+export type SortKey = keyof AdminMemberListItem | null;
+export type SortDir = "asc" | "desc";
+export type FilterStatus = "all" | "active" | "suspended" | "deleted";
+export type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
 export default function MemberManagement() {
   const { members, refresh, isLoading, verifyMember } = useMember();
@@ -205,21 +201,13 @@ export default function MemberManagement() {
         .length,
       avgAttendance: members.length
         ? Math.round(
-            members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
-          )
+          members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
+        )
         : 0,
     }),
     [members],
   );
 
-  // const SortIcon = ({ col }: { col: SortKey }) =>
-  //   sortKey === col ? (
-  //     <span className="ml-1 text-text-secondary">
-  //       {sortDir === "asc" ? "↑" : "↓"}
-  //     </span>
-  //   ) : (
-  //     <span className="ml-1 opacity-30 group-hover:opacity-60">↕</span>
-  //   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -277,6 +265,37 @@ export default function MemberManagement() {
       icon: <Calendar size={16} />,
     },
   ];
+
+
+  const select: SelectProps[] = [
+    {
+      value: filterStatus,
+      onChange: (e) => {
+        setFilterStatus(e.target.value as FilterStatus);
+        setPage(1);
+      },
+      options: [
+        { label: "All Accounts", value: "all" },
+        { label: "Active", value: "active" },
+        { label: "Suspended", value: "suspended" },
+        { label: "Deleted", value: "deleted" }
+      ]
+    },
+    {
+      value: filterSub,
+      onChange: (e) => {
+        setFilterSub(e.target.value as FilterSub);
+        setPage(1);
+      },
+      options: [
+        { label: "All Plans", value: "all" },
+        { label: "Active Plan", value: "active" },
+        { label: "Expired", value: "expired" },
+        { label: "Pending", value: "pending" },
+        { label: "Cancelled", value: "cancelled" }
+      ]
+    }
+  ]
 
   return (
     <div className="space-y-4">
@@ -371,96 +390,50 @@ export default function MemberManagement() {
         ))}
       </div>
 
-      {/* ── Main layout ── */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* ── Table card ── */}
-        <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0">
-          {/* Toolbar */}
-          <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
-            <SearchInput
-              placeholder="Search name, email, phone..."
-              value={search}
-              onChange={handleSearchChange}
+      <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0">
+        <ToolBar placeholder="Search name, email, phone..." filtered={filtered} search={search} handleSearchChange={handleSearchChange} select={select} />
+
+        <CustomTable
+          renderRow={(m) => (
+            <MemberRow
+              key={m.id}
+              m={m}
+              onSetPlan={setSubscriptionMember}
+              onSuspend={handleSuspend}
+              onBan={handleBan}
+              onDelete={handleDelete}
+              onSendEmail={handleSendEmail}
+              onVerify={handleVerify}
             />
-
-            <select
-              value={filterStatus}
-              onChange={(e) => {
-                setFilterStatus(e.target.value as FilterStatus);
-                setPage(1);
-              }}
-              className="px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
-            >
-              <option value="all">All Accounts</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="deleted">Deleted</option>
-            </select>
-
-            <select
-              value={filterSub}
-              onChange={(e) => {
-                setFilterSub(e.target.value as FilterSub);
-                setPage(1);
-              }}
-              className="px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
-            >
-              <option value="all">All Plans</option>
-              <option value="active">Active Plan</option>
-              <option value="expired">Expired</option>
-              <option value="pending">Pending</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-
-            <span className="ml-auto text-xs text-text-secondary font-medium whitespace-nowrap">
-              {filtered.length} result
-              {filtered.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-
-          <CustomTable
-            renderRow={(m) => (
-              <MemberRow
-                key={m.id}
-                m={m}
-                onSetPlan={setSubscriptionMember}
-                onSuspend={handleSuspend}
-                onBan={handleBan}
-                onDelete={handleDelete}
-                onSendEmail={handleSendEmail}
-                onVerify={handleVerify}
-              />
-            )}
-            data={paginated}
-            totalItems={totalPages}
-            setPage={setPage}
-            page={page}
-            pageSize={PAGE_SIZE}
-            onSort={handleSort}
-            columns={[
-              { label: "ID", key: "id", sortable: true },
-              { label: "Member", key: "first_name", sortable: true },
-              { label: "Status", key: "account_status", sortable: true },
-              { label: "Plan", key: "plan_name", sortable: true },
-              {
-                label: "Subscription",
-                key: "subscription_status",
-                sortable: true,
-              },
-              { label: "Last Check-in", key: "last_check_in", sortable: true },
-              {
-                label: "Visits / mo",
-                key: "total_visits_this_month",
-                sortable: true,
-              },
-              { label: "Attendance", key: "attendance_rate", sortable: true },
-              { label: "", key: null },
-            ]}
-          />
-        </div>
+          )}
+          data={paginated}
+          totalItems={totalPages}
+          setPage={setPage}
+          page={page}
+          pageSize={PAGE_SIZE}
+          onSort={handleSort}
+          columns={[
+            { label: "ID", key: "id", sortable: true },
+            { label: "Member", key: "first_name", sortable: true },
+            { label: "Status", key: "account_status", sortable: true },
+            { label: "Plan", key: "plan_name", sortable: true },
+            {
+              label: "Subscription",
+              key: "subscription_status",
+              sortable: true,
+            },
+            { label: "Last Check-in", key: "last_check_in", sortable: true },
+            {
+              label: "Visits / mo",
+              key: "total_visits_this_month",
+              sortable: true,
+            },
+            { label: "Attendance", key: "attendance_rate", sortable: true },
+            { label: "", key: null },
+          ]}
+        />
       </div>
 
-      {/* ── Modals ── */}
       {subscriptionMember && (
         <SubscriptionModal
           member={subscriptionMember}

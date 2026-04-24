@@ -138,5 +138,6 @@ export interface SubscriptionPlanProps {
   description: string | null;
   price: number;
   duration_days: number;
-  category: "personal_training" | "class" | "membership" | "add_on"
+  category: "personal_training" | "class" | "membership" | "add_on";
+  is_active: boolean,
 }

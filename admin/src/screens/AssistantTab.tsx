@@ -82,7 +82,7 @@ const AssistantTab: React.FC = () => {
   };
 
   return (
-    <div className=" h-[calc(100vh-160px)] flex flex-col bg-background rounded-3xl border border-border shadow-xl overflow-hidden animate-in zoom-in-95 duration-500">
+    <div className=" h-[calc(100vh-160px)] flex flex-col bg-background border border-border shadow-xl overflow-hidden animate-in zoom-in-95 duration-500">
       <div className="bg-surface text-text-primary p-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary-dark rounded-full flex items-center justify-center text-xl">
@@ -106,7 +106,7 @@ const AssistantTab: React.FC = () => {
               ]);
               chatService.createChat().then((s) => setSessionId(s.id));
             }}
-            className="text-xs bg-border hover:bg-primary/20 px-3 py-1.5 rounded-lg border border-border transition-colors"
+            className="text-xs bg-border hover:bg-primary/20 px-3 py-1.5 border border-border transition-colors"
           >
             New Chat
           </button>
@@ -123,7 +123,7 @@ const AssistantTab: React.FC = () => {
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] p-4 rounded-2xl shadow-sm leading-relaxed ${
+              className={`max-w-[80%] p-4 shadow-sm leading-relaxed ${
                 msg.role === "user"
                   ? "bg-surface text-text-secondary rounded-tr-none"
                   : "text-text-primary"
@@ -142,7 +142,7 @@ const AssistantTab: React.FC = () => {
         ))}
         {(isTyping || currentState) && (
           <div className="flex justify-start">
-            <div className="bg-background px-4 py-2 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-3">
+            <div className="bg-background px-4 py-2 rounded-tl-none shadow-sm flex items-center gap-3">
               <div className="flex gap-1">
                 <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></div>
                 <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce delay-100"></div>
@@ -169,12 +169,12 @@ const AssistantTab: React.FC = () => {
                 : "Connecting to AI..."
             }
             disabled={!sessionId || isTyping}
-            className="flex-1 bg-surface border-none px-6 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-primary outline-none transition-all disabled:opacity-50"
+            className="flex-1 bg-surface border-none px-6 py-4 text-sm rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all disabled:opacity-50"
           />
           <button
             onClick={handleSend}
             disabled={isTyping || !sessionId || !input.trim()}
-            className="bg-surface text-text-primary p-4 rounded-2xl hover:bg-primary/20 transition-all disabled:opacity-50"
+            className="bg-surface text-text-primary p-4 rounded-full hover:bg-primary/20 transition-all disabled:opacity-50"
           >
             <Send className="stroke-text-primary" />
           </button>

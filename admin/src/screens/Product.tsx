@@ -1,14 +1,19 @@
-import { Search, Plus, Package, Calendar } from "lucide-react";
+import { Package } from "lucide-react";
 import { useMemo, useState } from "react";
 import AddProductModal from "../components/Modals/AddProductModal";
-import { useProducts, type ProductProps } from "../hooks/useProducts";
+import { useProducts } from "../hooks/useProducts";
+import ProductRow from "../components/products/ProductRow";
+import CustomTable from "../components/CustomTable";
+import type { ProductProps } from "../types";
+import ToolBar, { type SelectProps } from "../components/ToolBar";
+import CustomHeader from "../components/CustomHeader";
 
 type SortKey = keyof ProductProps;
 type SortDir = "asc" | "desc";
 type FilterStatus = "all" | "available" | "unavailable" | "out_of_stock";
 
 export default function Product() {
-  const { products, isLoading, refreshProducts } = useProducts();
+  const { products, isLoading, refresh } = useProducts();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [sortKey, setSortKey] = useState<SortKey>("product_name");
@@ -18,7 +23,6 @@ export default function Product() {
 
   const PAGE_SIZE = 50;
 
-  // 1. Filter and Sort logic
   const processedData = useMemo(() => {
     let list = [...(products || [])];
 
@@ -50,8 +54,8 @@ export default function Product() {
     return list;
   }, [search, filterStatus, sortKey, sortDir, products]);
 
-  // 2. Pagination logic
   const totalPages = Math.ceil(processedData.length / PAGE_SIZE);
+
   const paginatedData = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
     return processedData.slice(start, start + PAGE_SIZE);
@@ -66,219 +70,80 @@ export default function Product() {
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
+
+  const select: SelectProps[] = [
+    {
+      value: filterStatus,
+      onChange: (e) => {
+        setFilterStatus(e.target.value as FilterStatus);
+        setPage(1);
+      },
+      options: [
+        { label: "All Status", value: "all" },
+        { label: "Available", value: "available" },
+        { label: "Unavailable", value: "unavailable" },
+        { label: "Out of Stock", value: "out_of_stock" }
+      ]
+    },
+  ]
+
   return (
     <>
-      <div className="space-y-6 bg-background text-text-primary">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Package className="text-primary" /> Inventory Management
-          </h1>
+      <div className="space-y-4">
 
-          <div className="flex items-center gap-2 ml-auto">
-            {!isLoading && (
-              <button
-                onClick={refreshProducts}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-border
-                                           text-text-secondary text-xs font-semibold uppercase tracking-wider
-                                           hover:border-primary/40 hover:text-primary transition-all duration-150"
-              >
-                <svg
-                  width="11"
-                  height="11"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="23 4 23 10 17 10" />
-                  <polyline points="1 20 1 14 7 14" />
-                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-                </svg>
-                Refresh
-              </button>
-            )}
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-background hover:opacity-90 transition-all text-sm font-medium"
-            >
-              <Plus size={16} /> Add Product
-            </button>
-          </div>
-        </div>
+        <CustomHeader
+          isLoading={isLoading}
+          refresh={refresh}
+          onClick={() => setIsAddModalOpen(true)}
+          buttonLabel="Add Product"
+          title="Inventory Management"
+          description="Manage carreon gym product inventory"
+          icon={<Package className='text-primary' />}
+          hasAction={true}
+        />
 
         <div className="bg-surface border border-border shadow-sm overflow-hidden flex flex-col">
-          {/* Toolbar */}
-          <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
-            <div className="relative flex-1 min-w-[240px]">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">
-                <Search size={14} />
-              </span>
-              <input
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                type="text"
-                placeholder="Search products..."
-                className="w-full pl-9 pr-4 py-2  border border-border text-sm focus:ring-2 focus:ring-primary outline-none"
+
+          <ToolBar placeholder="Search product" filtered={paginatedData} search={search} select={select} handleSearchChange={handleSearchChange} />
+
+          <CustomTable
+            renderRow={(m: ProductProps) => (
+              <ProductRow
+                key={m.id}
+                product={m}
               />
-            </div>
-
-            <select
-              value={filterStatus}
-              onChange={(e) => {
-                setFilterStatus(e.target.value as FilterStatus);
-                setPage(1);
-              }}
-              className="px-3 py-2 bg-background border border-border text-sm outline-none cursor-pointer"
-            >
-              <option value="all">All Status</option>
-              <option value="available">Available</option>
-              <option value="unavailable">Unavailable</option>
-              <option value="out_of_stock">Out of Stock</option>
-            </select>
-
-            <span className="text-xs text-text-secondary font-medium ml-auto">
-              {processedData.length} results
-            </span>
-          </div>
-
-          {/* Table Area */}
-          <div className="overflow-x-auto h-[500px]">
-            <table className="w-full text-sm text-left border-collapse">
-              <thead className="bg-muted/50 bg-surface text-text-secondary sticky top-0 z-10 uppercase text-[11px] font-bold tracking-wider">
-                <tr>
-                  <th
-                    className="px-6 py-4 cursor-pointer hover:text-primary"
-                    onClick={() => handleSort("id")}
-                  >
-                    Product Id
-                  </th>
-                  <th
-                    className="px-6 py-4 cursor-pointer hover:text-primary"
-                    onClick={() => handleSort("product_name")}
-                  >
-                    Product
-                  </th>
-                  <th
-                    className="px-6 py-4 cursor-pointer hover:text-primary"
-                    onClick={() => handleSort("category")}
-                  >
-                    Category
-                  </th>
-                  <th
-                    className="px-6 py-4 cursor-pointer hover:text-primary"
-                    onClick={() => handleSort("price")}
-                  >
-                    Price
-                  </th>
-                  <th
-                    className="px-6 py-4 cursor-pointer hover:text-primary"
-                    onClick={() => handleSort("stocks")}
-                  >
-                    Stock
-                  </th>
-                  <th
-                    className="px-6 py-4 cursor-pointer hover:text-primary"
-                    onClick={() => handleSort("last_restock")}
-                  >
-                    Last Restock
-                  </th>
-                  <th className="px-6 py-4">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {paginatedData.map((product, idx) => (
-                  <tr key={idx} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4 font-medium">{product.id}</td>
-                    <td className="px-6 py-4 font-medium">
-                      {product.product_name}
-                    </td>
-                    <td className="px-6 py-4 text-text-secondary">
-                      {product.category}
-                    </td>
-                    <td className="px-6 py-4 font-mono">
-                      ₱{product.price.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4">{product.stocks}</td>
-                    <td className="px-6 py-4 text-xs text-text-secondary">
-                      <div className="flex items-center gap-1">
-                        <Calendar size={12} />
-                        {new Date(product.last_restock).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${product.status === "available"
-                            ? "bg-green-100 text-green-700"
-                            : product.status === "out_of_stock"
-                              ? "bg-orange-100 text-orange-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                      >
-                        {product.status.replace("_", " ")}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {processedData.length === 0 && (
-              <div className="p-10 text-center text-text-secondary italic">
-                No products found.
-              </div>
             )}
-          </div>
-
-          {/* Pagination Footer */}
-          {totalPages > 0 && (
-            <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
-              <span className="text-xs text-text-secondary">
-                Page {page} of {totalPages}
-              </span>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border disabled:opacity-40 transition-colors"
-                >
-                  ← Prev
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`px-3 rounded-lg py-1.5 text-xs font-semibold border transition-colors ${p === page
-                          ? "bg-primary text-background border-primary"
-                          : "border-border bg-surface hover:bg-border text-text-primary"
-                        }`}
-                    >
-                      {p}
-                    </button>
-                  ),
-                )}
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border disabled:opacity-40 transition-colors"
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
-          )}
+            data={paginatedData}
+            totalItems={totalPages}
+            setPage={setPage}
+            page={page}
+            pageSize={PAGE_SIZE}
+            onSort={handleSort}
+            columns={[
+              { label: "Product ID", key: "id", sortable: true },
+              { label: "Product", key: "product_name", sortable: true },
+              { label: "Category", key: "category", sortable: true },
+              { label: "Price", key: "price", sortable: true },
+              { label: "Stocks", key: "stocks", sortable: true },
+              { label: "Last Restock", key: "last_restock", sortable: true },
+              { label: "", key: null },
+            ]}
+          />
         </div>
-      </div>
+
+      </div >
+
       {isAddModalOpen && (
         <AddProductModal
           onClose={() => setIsAddModalOpen(false)}
-          onSuccess={() => console.log("Hello Wlrld")}
+          onSuccess={() => console.log("Hello World")}
         />
-      )}
+      )
+      }
     </>
   );
 }

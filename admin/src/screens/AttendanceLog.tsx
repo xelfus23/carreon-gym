@@ -3,17 +3,18 @@ import { formatAttemptReason, useAttendanceLog } from "../hooks/useAttendance";
 import { useMember } from "../hooks/useMember";
 import { memberService } from "../services/member.service";
 import {
-  Search,
   Clock,
   Calendar,
   Logs,
-  RotateCcw,
   Users,
   Activity,
   Timer,
   AlertTriangle,
   Loader2,
 } from "lucide-react";
+import CustomHeader from "../components/CustomHeader";
+import StatsCard from "../components/CustomStatsCard";
+import ToolBar from "../components/ToolBar";
 
 export default function AttendanceLog() {
   const {
@@ -113,7 +114,7 @@ export default function AttendanceLog() {
       activeNow: logs.filter((l) => l.status === "checked_in").length,
       avgDuration: logs.length
         ? logs.reduce((acc, curr) => acc + (curr.duration || 0), 0) /
-          logs.length
+        logs.length
         : 0,
     }),
     [logs],
@@ -124,6 +125,35 @@ export default function AttendanceLog() {
     page * PAGE_SIZE,
   );
   const totalPages = Math.ceil(filteredLogs.length / PAGE_SIZE) || 1;
+
+
+  const cards = [
+    {
+      label: "Total Visits",
+      value: stats.total,
+      color: "border-slate-500/20 bg-slate-500/5 text-slate-500",
+      icon: <Users size={16} />,
+    },
+    {
+      label: "Currently In",
+      value: stats.activeNow,
+      color: "border-emerald-500/20 bg-emerald-500/5 text-emerald-500",
+      icon: <Activity size={16} />,
+    },
+    {
+      label: "Avg Session",
+      // Using the formatter for the stats bar too
+      value: formatDuration(stats.avgDuration),
+      color: "border-indigo-500/20 bg-indigo-500/5 text-indigo-500",
+      icon: <Timer size={16} />,
+    },
+    {
+      label: "Error Log",
+      value: failedAttempts.length,
+      color: "border-red-400/20 bg-red-400/5 text-red-400",
+      icon: <AlertTriangle size={16} />,
+    },
+  ]
 
   if (isLoading)
     return (
@@ -139,28 +169,17 @@ export default function AttendanceLog() {
     );
 
   return (
-    <div className="space-y-6">
-      {/* ── Stats bar ── */}
+    <div className="space-y-4">
 
-      {/* ── Header Section ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black flex items-center gap-3 tracking-tight">
-            <Logs className="text-primary" size={28} /> Attendance Log
-          </h1>
-          <p className="text-text-secondary text-sm mt-1">
-            Manage and view Carreon Gym Attendance Log
-          </p>
-        </div>
-
-        <button
-          onClick={() => refresh(false)}
-          className="flex items-center justify-center gap-2 px-4 py-2 border border-border bg-surface text-text-primary text-sm font-bold hover:border-primary/50 hover:bg-primary/5 transition-all active:scale-95 shadow-sm"
-        >
-          <RotateCcw size={16} />
-          Refresh Data
-        </button>
-      </div>
+      <CustomHeader
+        hasAction={true}
+        isLoading={isLoading}
+        refresh={refresh}
+        icon={<Logs className="text-primary" />}
+        title="Attendance Log"
+        buttonLabel="Refresh"
+        description="Manage and view carreon gym attendance log"
+      />
 
       <div className="border border-border bg-surface p-4 flex flex-col md:flex-row md:items-end gap-3">
         <div className="flex-1">
@@ -212,45 +231,8 @@ export default function AttendanceLog() {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-        {[
-          {
-            label: "Total Visits",
-            value: stats.total,
-            color: "border-slate-500/20 bg-slate-500/5 text-slate-500",
-            icon: <Users size={16} />,
-          },
-          {
-            label: "Currently In",
-            value: stats.activeNow,
-            color: "border-emerald-500/20 bg-emerald-500/5 text-emerald-500",
-            icon: <Activity size={16} />,
-          },
-          {
-            label: "Avg Session",
-            // Using the formatter for the stats bar too
-            value: formatDuration(stats.avgDuration),
-            color: "border-indigo-500/20 bg-indigo-500/5 text-indigo-500",
-            icon: <Timer size={16} />,
-          },
-          {
-            label: "Error Log",
-            value: failedAttempts.length,
-            color: "border-red-400/20 bg-red-400/5 text-red-400",
-            icon: <AlertTriangle size={16} />,
-          },
-        ].map(({ label, value, color, icon }) => (
-          <div
-            key={label}
-            className={`p-5 border ${color} shadow-sm flex flex-col justify-between`}
-          >
-            <div className="flex items-center justify-between opacity-80">
-              <span className="text-xs font-bold uppercase tracking-widest">
-                {label}
-              </span>
-              {icon}
-            </div>
-            <p className="text-3xl font-black mt-2 tabular-nums">{value}</p>
-          </div>
+        {cards.map((props) => (
+          <StatsCard key={props.label} {...props} />
         ))}
       </div>
 
@@ -272,25 +254,16 @@ export default function AttendanceLog() {
 
       {/* ── Main Table Card ── */}
       <div className="bg-surface border border-border shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
-          <div className="relative flex-1 min-w-48">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary">
-              <Search size={14} />
-            </span>
-            <input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search member name..."
-              className="w-full pl-9 pr-4 py-2 bg-surface border border-border text-sm focus:ring-2 focus:ring-primary outline-none text-text-primary"
-            />
-          </div>
-          <span className="text-xs text-text-secondary font-medium">
-            {filteredLogs.length} Records Found
-          </span>
-        </div>
+
+        <ToolBar
+          placeholder="Search member name..."
+          search={search}
+          filtered={filteredLogs}
+          handleSearchChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1)
+          }}
+        />
 
         <div className="overflow-x-auto h-[500px]">
           <table className="text-left text-sm w-full">
