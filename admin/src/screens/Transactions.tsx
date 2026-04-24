@@ -241,6 +241,7 @@ export default function TransactionsLog() {
           columns={[
             { label: "Transaction ID", key: "transaction_id" },
             { label: "Reference No.", key: "reference_no" },
+            { label: "Date", key: "paid_at"},
             { label: "Member", key: "member_name" },
             { label: "Item", key: "item_name" },
             { label: "Type", key: "transaction_type" },

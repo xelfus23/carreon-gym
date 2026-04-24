@@ -29,21 +29,24 @@ export default function TransactionRow({
       key={tx.transaction_id}
       className="hover:bg-border/10 transition-colors group"
     >
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center gap-2">
-          <Calendar size={14} className="text-text-secondary" />
-          <span className="font-medium">
-            {formatDate(tx.paid_at)}
-          </span>
-        </div>
+      <td className="px-6 py-4">
+        <p className="font-bold text-sm ">{tx.transaction_id}</p>
       </td>
+
       <td className="px-6 py-4">
         <p className="font-bold text-sm">{tx.reference_no}</p>
       </td>
-      <td className="px-6 py-4">
+
+      <td className="px-6 py-4 whitespace-nowrap">
+          <span className="text-xs">
+            {formatDate(tx.paid_at)}
+          </span>
+      </td>
+   
+      <td className="px-6 py-4 whitespace-nowrap">
         <p className="font-bold text-sm">{tx.member_name}</p>
       </td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 whitespace-nowrap">
         <p className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
           {tx.item_name}
         </p>
@@ -72,7 +75,7 @@ export default function TransactionRow({
           </span>
         )}
       </td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 whitespace-nowrap">
         {tx.receipt_image_url ? (
           <button
             onClick={() => setSelectedReceipt(tx.receipt_image_url!)}

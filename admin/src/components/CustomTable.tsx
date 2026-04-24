@@ -24,28 +24,26 @@ export default function CustomTable<T>(props: TableProps<T>) {
   const totalPages = Math.ceil(totalItems / pageSize);
 
   return (
-    <div className="">
-      <div className="overflow-x-auto h-[500px]">
+    <div className="max-w-[1200px]">
+      <div className="overflow-x-auto w-full h-[500px]">
         <table className="text-left text-sm w-full">
-          {/* Table Head */}
           <thead className="sticky top-0">
             <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
               {columns.map((col) => (
                 <th
                   key={col.label}
                   onClick={() => col.sortable && col.key && onSort?.(col.key)}
-                  className="px-5 text-xs py-3.5 group cursor-pointer select-none hover:text-text-secondary"
+                  className="px-5 text-xs py-3.5 group cursor-pointer select-none hover:text-text-secondary w-fit whitespace-nowrap"
                 >
                   {col.label}
                 </th>
               ))}
             </tr>
           </thead>
-          {/* Table Body */}
           <tbody className="divide-y divide-border">
             {data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-5 py-16 text-center text-text-secondary text-sm">
+                <td colSpan={columns.length} className="px-5 py-16 text-center text-text-secondary text-sm whitespace-nowrap">
                   No data available.
                 </td>
               </tr>

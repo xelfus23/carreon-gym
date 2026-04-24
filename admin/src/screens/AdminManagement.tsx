@@ -158,10 +158,9 @@ export default function AdminManagement() {
       />
 
       {/* ── Main layout ── */}
-      <div className="flex flex-col lg:flex-row gap-6">
         {/* ── Table card ── */}
         <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0">
-          {/* Toolbar */}
+        {/* Toolbar */}
           <ToolBar
             search={search}
             handleSearchChange={(e) => {
@@ -210,7 +209,6 @@ export default function AdminManagement() {
                 onVerify={handleVerify}
               />}
           />
-        </div>
       </div>
 
       {/* ── Modals ── */}
