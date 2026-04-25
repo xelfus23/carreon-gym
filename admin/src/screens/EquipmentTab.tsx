@@ -98,7 +98,6 @@ export default function EquipmentTab() {
     );
 
 
-
   const select: SelectProps[] = [
     {
       value: filterCategory,
