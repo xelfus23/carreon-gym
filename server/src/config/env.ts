@@ -27,7 +27,7 @@ export const env = {
     //CORS
     CORS_ORIGIN: requireEnv("CORS_ORIGIN"),
     // Auth
-    JWT_ACCESS_SECRET: requireEnv("JWT_SECRET"),
+    JWT_ACCESS_SECRET: requireEnv("JWT_ACCESS_SECRET"),
     JWT_REFRESH_SECRET: requireEnv("JWT_REFRESH_SECRET"),
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? "7d",
     GYM_QR_SECRET: requireEnv("GYM_QR_SECRET"),
