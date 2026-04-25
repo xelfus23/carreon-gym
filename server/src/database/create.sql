@@ -131,6 +131,8 @@ CREATE TABLE products (
 CREATE INDEX idx_products_category ON products(category_id);
 CREATE INDEX idx_products_status ON products(status);
 
+
+
 -- ============================================================================
 -- PAYMENTS
 -- ============================================================================
@@ -373,8 +375,7 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 -- VIEWS
 -- ============================================================================
 
-
-CREATE OR REPLACE VIEW v_product_inventory AS
+CREATE VIEW v_product_inventory AS
 SELECT
     p.id,
     p.name AS product_name,
