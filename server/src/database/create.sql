@@ -9,7 +9,7 @@ CREATE TYPE payment_status AS ENUM ('paid', 'pending', 'refunded', 'cancelled');
 CREATE TYPE payment_method AS ENUM ('cash', 'gcash', 'maya', 'bank_transfer', 'card', 'other');
 CREATE TYPE product_status AS ENUM ('available', 'out_of_stock', 'unavailable');
 CREATE TYPE trans_type AS ENUM ('plan', 'product');
-CREATE TYPE plan_category AS ENUM ('membership', 'class', 'personal_training', 'add_on');  
+CREATE TYPE plan_category AS ENUM ('membership', 'class', 'personal_training', 'add_on');
 
 -- ============================================================================
 -- USERS
@@ -25,15 +25,12 @@ CREATE TABLE users (
     role user_role DEFAULT 'member',
     verified BOOLEAN DEFAULT false,
     profile_image_url TEXT,
-
     last_login TIMESTAMPTZ,
     last_check_in TIMESTAMPTZ,
     total_visits_all_time INT DEFAULT 0 NOT NULL,
     total_visits_this_month INT DEFAULT 0 NOT NULL,
-
     account_status TEXT DEFAULT 'active'
         CHECK (account_status IN ('active', 'suspended', 'deleted')),
-
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -78,7 +75,7 @@ CREATE TABLE subscription_plans (
     price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
     icon TEXT,
     duration_days INT NOT NULL CHECK (duration_days > 0),
-    category plan_category DEFAULT 'membership' TEXT,
+    category plan_category NOT NULL DEFAULT 'membership',
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -88,21 +85,17 @@ CREATE TABLE subscriptions (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     plan_id INT REFERENCES subscription_plans(id) ON DELETE SET NULL,
-
     plan_name TEXT NOT NULL,
     status subscription_status DEFAULT 'pending',
-
     start_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     expiry_date TIMESTAMPTZ NOT NULL,
     ended_at TIMESTAMPTZ,
-
     auto_renew BOOLEAN DEFAULT false,
-
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT uq_subscriptions_one_per_user UNIQUE (user_id)
 );
+
 
 CREATE INDEX idx_subscriptions_user_status 
 ON subscriptions(user_id, status);
@@ -137,23 +130,6 @@ CREATE TABLE products (
 CREATE INDEX idx_products_category ON products(category_id);
 CREATE INDEX idx_products_status ON products(status);
 
-CREATE OR REPLACE VIEW v_product_inventory AS
-SELECT
-    p.id,
-    p.name AS product_name,
-    p.price,
-    p.last_restock_at AS last_restock,
-    p.is_active AS available,
-    p.stocks,
-    p.status,
-    c.name AS category,
-    p.category_id,
-    p.is_active,
-    p.created_at,
-    p.updated_at
-FROM products p
-INNER JOIN product_categories c ON c.id = p.category_id;
-
 -- ============================================================================
 -- PAYMENTS
 -- ============================================================================
@@ -164,25 +140,19 @@ CREATE TABLE payments (
     subscription_id INT REFERENCES subscriptions(id) ON DELETE SET NULL,
     plan_id INT REFERENCES subscription_plans(id) ON DELETE SET NULL,
     product_id INT REFERENCES products(id) ON DELETE SET NULL,
-
     transaction_type trans_type DEFAULT 'plan',
-
     amount NUMERIC(10,2) NOT NULL CHECK (amount >= 0),
     quantity INT DEFAULT 1,
     currency TEXT DEFAULT 'PHP',
-
     status payment_status DEFAULT 'paid',
     method payment_method DEFAULT 'cash',
-
     recorded_by INT REFERENCES users(id) ON DELETE SET NULL,
     reference_no TEXT,
     receipt_image_url TEXT,
     notes TEXT,
-
     paid_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT valid_transaction CHECK (
         (transaction_type = 'plan' AND plan_id IS NOT NULL AND product_id IS NULL)
         OR
@@ -231,6 +201,17 @@ CREATE TABLE gym_attendance (
 
 CREATE INDEX idx_attendance_user_checkin 
 ON gym_attendance(user_id, check_in_time DESC);
+
+
+CREATE TABLE attendance_attempts (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    action TEXT NOT NULL,
+    result TEXT NOT NULL,
+    reason TEXT,
+    metadata JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
 -- ============================================================================
 -- CHAT SYSTEM (AI READY)
@@ -360,29 +341,6 @@ CREATE TABLE workout_logs (
 );
 
 -- ============================================================================
--- NOTIFICATIONS
--- ============================================================================
-
-CREATE TABLE notifications (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    title TEXT,
-    message TEXT,
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE attendance_attempts (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    action TEXT NOT NULL,
-    result TEXT NOT NULL,
-    reason TEXT,
-    metadata JSONB,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- ============================================================================
 -- TRIGGERS
 -- ============================================================================
 
@@ -414,6 +372,24 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 -- VIEWS
 -- ============================================================================
 
+
+CREATE OR REPLACE VIEW v_product_inventory AS
+SELECT
+    p.id,
+    p.name AS product_name,
+    p.price,
+    p.last_restock_at AS last_restock,
+    p.is_active AS available,
+    p.stocks,
+    p.status,
+    c.name AS category,
+    p.category_id,
+    p.is_active,
+    p.created_at,
+    p.updated_at
+FROM products p
+INNER JOIN product_categories c ON c.id = p.category_id;
+
 CREATE VIEW v_all_transactions AS
 SELECT 
     p.id AS transaction_id,
@@ -436,9 +412,6 @@ JOIN users u ON p.user_id = u.id
 LEFT JOIN subscription_plans sp ON p.plan_id = sp.id
 LEFT JOIN products prod ON p.product_id = prod.id;
 
-ALTER TABLE subscriptions
-ADD CONSTRAINT uq_subscriptions_one_per_user UNIQUE (user_id);
-
 -- ============================================================================
 -- GYM CONFIGURATION & DATA
 -- ============================================================================
@@ -449,23 +422,16 @@ CREATE TABLE gym_details (
     address TEXT,
     contact_number TEXT,
     email TEXT,
-    
-    -- Payment Details for Clients
     gcash_name TEXT,
     gcash_number TEXT,
     maya_name TEXT,
     maya_number TEXT,
-    bank_details JSONB, -- For storing multiple bank accounts if needed
-    
-    -- Operating Hours
+    bank_details JSONB,
     opening_time TIME,
     closing_time TIME,
-    
-    -- Socials & Branding
     facebook_url TEXT,
     instagram_url TEXT,
     logo_url TEXT,
-    
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 

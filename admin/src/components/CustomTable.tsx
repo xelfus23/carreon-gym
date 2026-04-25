@@ -24,7 +24,7 @@ export default function CustomTable<T>(props: TableProps<T>) {
   const totalPages = Math.ceil(totalItems / pageSize);
 
   return (
-    <div className="max-w-[1200px]">
+    <div className="w-full">
       <div className="overflow-x-auto w-full h-[500px]">
         <table className="text-left text-sm w-full">
           <thead className="sticky top-0">

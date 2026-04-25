@@ -38,32 +38,30 @@ export const createUserDomain = async (params: {
   }
 
   // Hash password
-  const hashedPW = await bcrypt.hash(password, 10);
+  // const hashedPW = await bcrypt.hash(password, 10);
 
   // Create user
   const result = await pool.query(
     `INSERT INTO users (
             first_name, 
             last_name, 
-            username,
             hashed_password, 
             email, 
             phone_number,
             verified,
             account_status
         )
-        VALUES ($1, $2, $3, $4, $5, $6, false, 'active')
+        VALUES ($1, $2, $3, $4, $5, false, 'active')
         RETURNING 
             id, 
             first_name, 
             last_name, 
-            username,
             email, 
             phone_number, 
             role,
             verified,
             created_at`,
-    [firstName, lastName, username || null, hashedPW, email, phoneNumber],
+    [firstName, lastName, password, email, phoneNumber],
   );
 
   if (result.rowCount === 0) {
@@ -77,7 +75,6 @@ export const createUserDomain = async (params: {
     role: user.role,
     firstName: user.first_name,
     lastName: user.last_name,
-    username: user.username,
     email: user.email,
     phoneNumber: user.phone_number,
     verified: user.verified,

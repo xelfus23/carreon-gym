@@ -5,7 +5,6 @@ export const userQuery = async (userId: number) => {
     return await pool.query(
         `SELECT 
             u.id,
-            u.username,
             u.first_name,
             u.last_name,
             u.phone_number,

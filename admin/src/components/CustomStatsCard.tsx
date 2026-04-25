@@ -14,7 +14,7 @@ export default function StatsCard(props: StatsCardProps) {
         <span className="text-xs font-bold uppercase tracking-widest">{label}</span>
         {icon}
       </div>
-      <p className="text-3xl font-black mt-2 tabular-nums">{value}</p>
+      <p className="text-3xl font-black mt-2">{value}</p>
     </div>
   );
 }

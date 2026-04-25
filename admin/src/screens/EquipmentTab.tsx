@@ -108,10 +108,10 @@ export default function EquipmentTab() {
       },
       options: [
         { label: "All Equipments", value: "all" },
-        { label: "Free Weights", value: "free_weight" },
-        { label: "Accessories", value: "accessory" },
-        { label: "Cardio", value: "cardio" },
-        { label: "Machines", value: "machine" }
+        { label: "Free Weights", value: "Free Weight" },
+        { label: "Accessories", value: "Accessory" },
+        { label: "Cardio", value: "Cardio" },
+        { label: "Machines", value: "Machine" }
       ]
     },
 
@@ -154,7 +154,7 @@ export default function EquipmentTab() {
             pageSize={PAGE_SIZE}
             onSort={handleSort}
             columns={[
-              { label: "ID", key: "id" },
+              { label: "ID", key: "id", sortable: true },
               { label: "Equipment", key: "equipment_name", sortable: true },
               { label: "Category", key: "category", sortable: true },
               { label: "Qty", key: "quantity", sortable: true },
@@ -163,7 +163,6 @@ export default function EquipmentTab() {
               { label: "", key: null },
             ]}
           />
-
         </div>
 
 

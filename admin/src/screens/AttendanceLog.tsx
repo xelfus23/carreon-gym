@@ -72,25 +72,18 @@ export default function AttendanceLog() {
 
   // --- Helper Function to Format Duration ---
   const formatDuration = (totalMinutes: number) => {
-    if (!totalMinutes || totalMinutes <= 0) return "--";
-
-    let seconds = Math.floor(totalMinutes * 60);
-
-    const days = Math.floor(seconds / (24 * 3600));
-    seconds %= 24 * 3600;
-    const hours = Math.floor(seconds / 3600);
-    seconds %= 3600;
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-
-    const parts = [];
-    if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
-    if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-    if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
-    if (secs > 0 || parts.length === 0)
-      parts.push(`${secs} second${secs !== 1 ? "s" : ""}`);
-
-    return parts.join(", ");
+    if (!totalMinutes || totalMinutes <= 0) return "00 : 00 : 00";
+  
+    // Convert minutes to total seconds
+    const totalSeconds = Math.floor(totalMinutes * 60);
+  
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+  
+    const pad = (num: number) => num.toString().padStart(2, "0");
+  
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
   };
 
   const filteredLogs = useMemo(() => {
@@ -227,7 +220,7 @@ export default function AttendanceLog() {
         </button>
       </div>
       {manualStatus && (
-        <p className="text-sm text-text-secondary">{manualStatus}</p>
+        <p className="text-sm text-red-500">{manualStatus}</p>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
