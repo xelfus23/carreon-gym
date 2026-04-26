@@ -21,11 +21,11 @@ export default function AttendanceRow({ log }: AttendanceRowProps) {
         {log.first_name} {log.last_name}
       </td>
 
-      <td className={`${tdBase} text-emerald-500 font-medium`}>
+      <td className={`${tdBase} text-emerald-500 text-xs`}>
         {formatTime(log.check_in_time)}
       </td>
 
-      <td className={`${tdBase} text-rose-500 font-medium `}>
+      <td className={`${tdBase} text-rose-500 text-xs `}>
         {log.check_out_time ? (
           formatTime(log.check_out_time)
         ) : (

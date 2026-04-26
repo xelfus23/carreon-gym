@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useEquipments, type EquipmentTypes } from "../hooks/useEquipments";
-import EquipmentRow from "../components/equipment/EquipmentRow";
 import {
   AddModal,
   EditModal,
@@ -10,12 +9,12 @@ import { Dumbbell, Loader2 } from "lucide-react";
 import CustomTable from "../components/CustomTable";
 import CustomHeader from "../components/CustomHeader";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
+import EquipmentRow from "../components/TableRows/EquipmentRow";
 
 type SortKey = keyof EquipmentTypes | null;
 type SortDir = "asc" | "desc";
 
 export default function EquipmentTab() {
-
   const {
     equipments,
     isLoading,
@@ -83,7 +82,6 @@ export default function EquipmentTab() {
     setSortDir("asc");
   };
 
-
   if (isLoading)
     return (
       <div className="flex h-full flex-col items-center justify-center space-y-4">
@@ -97,7 +95,6 @@ export default function EquipmentTab() {
       </div>
     );
 
-
   const select: SelectProps[] = [
     {
       value: filterCategory,
@@ -110,22 +107,25 @@ export default function EquipmentTab() {
         { label: "Free Weights", value: "Free Weight" },
         { label: "Accessories", value: "Accessory" },
         { label: "Cardio", value: "Cardio" },
-        { label: "Machines", value: "Machine" }
-      ]
+        { label: "Machines", value: "Machine" },
+      ],
     },
-
-  ]
+  ];
 
   return (
     <>
-
       <div className="space-y-4">
-
-        <CustomHeader isLoading={isLoading} refresh={refresh} buttonLabel="Add Equipment" hasAction={true} title="Equipment Management" icon={<Dumbbell className="text-primary" />} description="Manage carreon gym equipments" />
-
+        <CustomHeader
+          isLoading={isLoading}
+          refresh={refresh}
+          buttonLabel="Add Equipment"
+          hasAction={true}
+          title="Equipment Management"
+          icon={<Dumbbell className="text-primary" />}
+          description="Manage carreon gym equipments"
+        />
 
         <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0">
-
           <ToolBar
             search={search}
             handleSearchChange={(e) => {
@@ -157,13 +157,16 @@ export default function EquipmentTab() {
               { label: "Equipment", key: "equipment_name", sortable: true },
               { label: "Category", key: "category", sortable: true },
               { label: "Qty", key: "quantity", sortable: true },
-              { label: "Target Muscles", key: "target_muscles", sortable: true },
+              {
+                label: "Target Muscles",
+                key: "target_muscles",
+                sortable: true,
+              },
               { label: "Description", key: "description", sortable: true },
               { label: "", key: null },
             ]}
           />
         </div>
-
 
         {/* ── Error banner ── */}
         {error && (
