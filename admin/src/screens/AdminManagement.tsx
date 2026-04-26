@@ -3,8 +3,8 @@ import { useMember } from "../hooks/useMember";
 import type { AdminMemberListItem } from "../types";
 import { Loader2, UserRoundKey } from "lucide-react";
 import SubscriptionModal from "../components/SubscriptionModal";
-import ConfirmDialog from "../components/members/ConfirmDialog";
-import AdminRow from "../components/members/AdminRow";
+import ConfirmDialog from "../components/ConfirmDialog";
+import AdminRow from "../components/TableRows/AdminRow";
 import CustomHeader from "../components/CustomHeader";
 import ToolBar from "../components/ToolBar";
 import CustomTable from "../components/CustomTable";
@@ -147,7 +147,6 @@ export default function AdminManagement() {
 
   return (
     <div className="space-y-6">
-
       <CustomHeader
         title="Admin Management"
         description="Manage carreon gym admins"
@@ -158,57 +157,57 @@ export default function AdminManagement() {
       />
 
       {/* ── Main layout ── */}
-        {/* ── Table card ── */}
-        <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0">
+      {/* ── Table card ── */}
+      <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0">
         {/* Toolbar */}
-          <ToolBar
-            search={search}
-            handleSearchChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            filtered={filtered}
-            placeholder="Search name, email, phone..."
-          />
+        <ToolBar
+          search={search}
+          handleSearchChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          filtered={filtered}
+          placeholder="Search name, email, phone..."
+        />
 
+        <CustomTable<AdminMemberListItem>
+          columns={[
+            {
+              label: "ID",
+              key: "id",
+            },
+            {
+              label: "Name",
+              key: "first_name",
+            },
+            {
+              label: "Status",
+              key: "account_status",
+            },
 
-          <CustomTable<AdminMemberListItem>
-            columns={[
-              {
-                label: "ID",
-                key: "id",
-              },
-              {
-                label: "Name",
-                key: "first_name",
-              },
-              {
-                label: "Status",
-                key: "account_status",
-              },
-
-              {
-                label: "Last Check-in",
-                key: "last_check_in",
-              },
-              { label: "", key: null },
-            ]}
-            onSort={handleSort}
-            data={paginated}
-            totalItems={totalPages}
-            setPage={setPage}
-            page={page}
-            pageSize={PAGE_SIZE}
-            renderRow={(admin) =>
-              <AdminRow
-                m={admin}
-                onBan={handleBan}
-                onDelete={handleDelete}
-                onSendEmail={handleSendEmail}
-                onSuspend={handleSuspend}
-                onVerify={handleVerify}
-              />}
-          />
+            {
+              label: "Last Check-in",
+              key: "last_check_in",
+            },
+            { label: "", key: null },
+          ]}
+          onSort={handleSort}
+          data={paginated}
+          totalItems={totalPages}
+          setPage={setPage}
+          page={page}
+          pageSize={PAGE_SIZE}
+          renderRow={(admin) => (
+            <AdminRow
+              m={admin}
+              onBan={handleBan}
+              onDelete={handleDelete}
+              onSendEmail={handleSendEmail}
+              onSuspend={handleSuspend}
+              onVerify={handleVerify}
+            />
+          )}
+        />
       </div>
 
       {/* ── Modals ── */}

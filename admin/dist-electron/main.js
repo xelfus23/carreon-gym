@@ -4,6 +4,12 @@ import { loadEnv } from "vite";
 const env = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "");
 const isDev = process.env.NODE_ENV === "development";
 const ElectronURL = env.VITE_ELECTRON_URL || "http://localhost:5173";
+function getIconPath() {
+    if (isDev) {
+        return path.join(process.cwd(), "build", "icon.png");
+    }
+    return path.join(process.resourcesPath, "icon.png");
+}
 app.on("ready", () => {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
     const mainWindow = new BrowserWindow({
@@ -13,6 +19,7 @@ app.on("ready", () => {
         minWidth: 375,
         minHeight: 812,
         fullscreen: true,
+        icon: getIconPath(),
         // webPreferences: {
         //     // Best practice: point to your preload script if you have one
         //     preload: path.join(__dirname, 'preload.js'),

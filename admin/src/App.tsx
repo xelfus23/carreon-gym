@@ -55,7 +55,7 @@ const App: React.FC = () => {
       case NavItem.AI_INSIGHTS:
         return <AssistantTab />;
       case NavItem.SUBSCRIPTIONS:
-        return <GymSubscriptions />
+        return <GymSubscriptions />;
       case NavItem.QR_CODE:
         return <QRTab />;
       case NavItem.GYM_SETTINGS:
@@ -93,10 +93,6 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-6">
-            {/* <button className="relative p-2 text-text-primary hover:text-text-secondary hover:bg-border rounded-full transition-all">
-              <span className="text-xl">🔔</span>
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 border-2 border-border rounded-full"></span>
-            </button> */}
             <div className="flex items-center gap-3 pl-6 border-l border-border group">
               <div className="text-right">
                 <p className="text-sm font-bold text-text-primary">
@@ -118,7 +114,7 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="p-10 mx-auto h-[calc(100vh-80px)] overflow-y-auto">
+        <div className="p-10 mx-auto h-[calc(100vh-80px)] w-full overflow-y-auto">
           {renderContent()}
         </div>
       </main>

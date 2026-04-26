@@ -1,16 +1,28 @@
 {
-    "appId": "com.pata.careon-gym",
-    "files": ["dist-electron", "dist-react"],
-    "icon": "./src/assets/icon.png",
-    "mac": {
-        "target": "dmg"
-    },
-    "linux": {
-        "target": "AppImage",
-        "category": "Utility"
-    },
-    "win": {
-        "target": ["portable", "msi"],
-        "signAndEditExecutable": false
+  "appId": "com.pata.careon-gym",
+  "files": ["dist-electron", "dist-react"],
+
+  "mac": {
+    "target": "dmg",
+    "icon": "build/icon.icns"
+  },
+
+  "linux": {
+    "target": "AppImage",
+    "category": "Utility",
+    "icon": "build/icons"
+  },
+
+  "win": {
+    "target": ["portable", "msi"],
+    "icon": "build/icon.ico",
+    "signAndEditExecutable": false
+  },
+
+  "extraResources": [
+    {
+      "from": "build",
+      "to": "."
     }
+  ]
 }

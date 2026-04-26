@@ -76,22 +76,6 @@ export const useAttendanceLog = () => {
     getAttendanceLog();
   }, [getAttendanceLog]);
 
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-
-  const formatTime = (dateStr: string | null) => {
-    if (!dateStr) return "--:--";
-    return new Date(dateStr).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
-
   useEffect(() => {
     const BASE_URL = import.meta.env.VITE_SERVER_URL;
     const wsUrl = `ws://${BASE_URL}/ws/admin`;
@@ -167,7 +151,5 @@ export const useAttendanceLog = () => {
     latestFailureAlert,
     clearFailureAlert: () => setLatestFailureAlert(null),
     refresh: getAttendanceLog,
-    formatDate,
-    formatTime,
   };
 };

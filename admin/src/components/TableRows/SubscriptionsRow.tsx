@@ -1,21 +1,24 @@
-import type { SubscriptionPlanProps } from '../types'
-import { Calendar, CheckCircle, EllipsisVertical } from 'lucide-react'
-import { useGymSubs } from '../hooks/useGymSubs';
-import { formatSlug } from '../utils/formatSlug';
+import { CheckCircle, EllipsisVertical } from "lucide-react";
+import type { SubscriptionPlanProps } from "../../types";
+import { formatSlug } from "../../utils/formatSlug";
+import { formatCurrency } from "../../utils/formatCurrency";
 
-const CATEGORY_COLORS = { personal_training: "text-violet-500 bg-violet-500/10 ", membership: "text-emerald-500 bg-emerald-500/10", class: "text-amber-500 bg-amber-500/10", add_on: "text-blue-500 bg-blue-500/10" }
+const CATEGORY_COLORS = {
+  personal_training: "text-violet-500 bg-violet-500/10 ",
+  membership: "text-emerald-500 bg-emerald-500/10",
+  class: "text-amber-500 bg-amber-500/10",
+  add_on: "text-blue-500 bg-blue-500/10",
+};
 
-export default function SubscriptionsRow({ plan, onClick }: { plan: SubscriptionPlanProps, onClick: () => void }) {
-
-  const {
-    formatCurrency,
-  } = useGymSubs();
-
+export default function SubscriptionsRow({
+  plan,
+  onClick,
+}: {
+  plan: SubscriptionPlanProps;
+  onClick: () => void;
+}) {
   return (
-    <tr
-      key={plan.id}
-      className="hover:bg-border/10 transition-colors group"
-    >
+    <tr key={plan.id} className="hover:bg-border/10 transition-colors group">
       <td className="px-6 py-4">
         <p className="font-bold text-sm tracking-tight text-text-primary">
           {plan.id}
@@ -31,19 +34,15 @@ export default function SubscriptionsRow({ plan, onClick }: { plan: Subscription
           {plan.description}
         </p>
       </td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 whitespace-nowrap">
         <span
-          className={`px-2 py-1 text-xs font-bold tracking-tighter ${CATEGORY_COLORS[plan.category]}`}
+          className={`px-2 py-1 text-xs font-bold tracking-tighter  ${CATEGORY_COLORS[plan.category]}`}
         >
           {formatSlug(plan.category)}
         </span>
       </td>
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Calendar size={14} className="text-text-secondary" />
-          {plan.duration_days}{" "}
-          {plan.duration_days > 1 ? "Days" : "Day"}
-        </div>
+      <td className="px-6 py-4 whitespace-nowrap">
+        {plan.duration_days} {plan.duration_days > 1 ? "Days" : "Day"}
       </td>
       <td className="px-6 py-4 text-xs text-text-secondary">
         {formatCurrency(plan.price)}
@@ -64,5 +63,5 @@ export default function SubscriptionsRow({ plan, onClick }: { plan: Subscription
         </div>
       </td>
     </tr>
-  )
+  );
 }

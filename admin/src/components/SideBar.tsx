@@ -28,64 +28,64 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
     {
       id: NavItem.ANALYTICS,
       label: "Analytics",
-      icon: <ChartColumnBig className="h-5 stroke-2" />,
+      icon: <ChartColumnBig className="h-4 stroke-2" />,
     },
     {
       id: NavItem.QR_CODE,
       label: "QR Codes",
-      icon: <QrCode className="h-5 stroke-2" />,
+      icon: <QrCode className="h-4 stroke-2" />,
     },
     {
       id: NavItem.ATTENDANCE_LOG,
       label: "Attendance Log",
-      icon: <Logs className="h-5 stroke-2" />,
+      icon: <Logs className="h-4 stroke-2" />,
     },
     {
       id: NavItem.TRANSACTIONS,
       label: "Transactions",
-      icon: <HandCoins className="h-5 stroke-2" />,
+      icon: <HandCoins className="h-4 stroke-2" />,
     },
     {
       id: NavItem.ADMIN,
       label: "Admin",
-      icon: <UserRoundKey />,
+      icon: <UserRoundKey className="h-4 stroke-2" />,
     },
     {
       id: NavItem.MEMBERS,
       label: "Members List",
-      icon: <UsersRound className="h-5 stroke-2" />,
+      icon: <UsersRound className="h-4 stroke-2" />,
     },
     {
       id: NavItem.GYM_EQUIPMENTS,
       label: "Equipments",
-      icon: <Dumbbell />,
+      icon: <Dumbbell className="h-4 stroke-2" />,
     },
     {
       id: NavItem.GYM_PRODUCTS,
       label: "Products",
-      icon: <ShoppingBasket />,
+      icon: <ShoppingBasket className="h-4 stroke-2" />,
     },
     {
       id: NavItem.SUBSCRIPTIONS,
       label: "Gym Subscriptions",
-      icon: <Ticket />
+      icon: <Ticket className="h-4 stroke-2" />,
     },
 
     {
       id: NavItem.AI_INSIGHTS,
       label: "AI Insights",
-      icon: <Sparkles className="h-5 stroke-2" />,
+      icon: <Sparkles className="h-4 stroke-2" />,
     },
     {
       id: NavItem.GYM_SETTINGS,
       label: "Gym Settings",
-      icon: <Settings />,
+      icon: <Settings className="h-4 stroke-2" />,
     },
   ];
 
   return (
     <aside
-      className={`${sideBarOn ? "w-64" : "w-20"} transition-all bg-surface h-screen flex flex-col text-text-secondary`}
+      className={`${sideBarOn ? "w-64" : "w-20"} min-w-20 max-w-64 transition-all bg-surface h-screen flex flex-col text-text-secondary`}
     >
       <div
         className={`p-4 flex ${sideBarOn ? "justify-between" : "justify-center"}`}
@@ -114,13 +114,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
           <button
             key={item.id}
             onClick={() => setTab(item.id)}
-            className={`w-full h-10 flex items-center ${sideBarOn ? "justify-normal aspect-auto rounded-none" : "rounded-lg aspect-square justify-center"} gap-3 px-2 py-3 transition-all duration-200 ${currentTab === item.id
-              ? "bg-primary-dark text-background shadow-lg shadow-primary/20"
-              : "hover:bg-primary-dark/20 hover:text-text-primary"
-              }`}
+            className={`w-full h-10 flex items-center ${sideBarOn ? "justify-normal aspect-auto rounded-none" : "rounded-lg aspect-square justify-center"} gap-3 px-2 py-3 transition-all duration-200 ${
+              currentTab === item.id
+                ? "bg-primary-dark text-background shadow-lg shadow-primary/20"
+                : "hover:bg-primary-dark/20 hover:text-text-primary"
+            }`}
           >
             {item.icon}
-            {sideBarOn && <span className={``}>{item.label}</span>}
+            {sideBarOn && <span className={`text-sm`}>{item.label}</span>}
           </button>
         ))}
       </nav>

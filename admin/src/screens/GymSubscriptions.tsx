@@ -1,34 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useGymSubs } from "../hooks/useGymSubs";
-import ConfirmDialog from "../components/members/ConfirmDialog";
-import {
-  Dumbbell,
-  Zap,
-  Users,
-  Layers,
-  Loader2,
-} from "lucide-react";
+import ConfirmDialog from "../components/ConfirmDialog";
+import { Dumbbell, Zap, Users, Layers, Loader2 } from "lucide-react";
 import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
 import CustomTable from "../components/CustomTable";
-import SubscriptionsRow from "../components/SubscriptionsRow";
 import type { SubscriptionPlanProps } from "../types";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
-
+import SubscriptionsRow from "../components/TableRows/SubscriptionsRow";
 
 type SortKey = keyof SubscriptionPlanProps | null;
 type SortDir = "asc" | "desc";
 
-
 export default function GymSubscriptionsAdmin() {
-  const {
-    membership,
-    classes,
-    addOns,
-    personalTrainer,
-    isLoading,
-    refresh,
-  } = useGymSubs();
+  const { membership, classes, addOns, personalTrainer, isLoading, refresh } =
+    useGymSubs();
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -57,12 +43,13 @@ export default function GymSubscriptionsAdmin() {
     ];
   }, [membership, classes, personalTrainer, addOns]);
 
-
   const filtered = useMemo(() => {
     let list = [...allPlans];
 
     if (filterSub !== "all") {
-      list = list.filter((p) => p.category.toLowerCase() === filterSub.toLowerCase());
+      list = list.filter(
+        (p) => p.category.toLowerCase() === filterSub.toLowerCase(),
+      );
     }
 
     if (search.trim() !== "") {
@@ -71,7 +58,7 @@ export default function GymSubscriptionsAdmin() {
         (p) =>
           p.name.toLowerCase().includes(term) ||
           p.category.toLowerCase().includes(term) ||
-          p.description?.toLowerCase().includes(term)
+          p.description?.toLowerCase().includes(term),
       );
     }
 
@@ -89,13 +76,9 @@ export default function GymSubscriptionsAdmin() {
     return list;
   }, [allPlans, search, filterSub, sortKey, sortDir]);
 
-  const paginated = filtered.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  );
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
-
 
   const handleSort = (key: SortKey) => {
     if (!key) return;
@@ -162,7 +145,6 @@ export default function GymSubscriptionsAdmin() {
     },
   ];
 
-
   const select: SelectProps[] = [
     {
       value: filterSub,
@@ -176,10 +158,9 @@ export default function GymSubscriptionsAdmin() {
         { label: "Class", value: "class" },
         { label: "Personal Trainer", value: "personal_training" },
         { label: "Addon", value: "add_on" },
-      ]
+      ],
     },
-
-  ]
+  ];
 
   return (
     <div className="space-y-4">
@@ -224,15 +205,14 @@ export default function GymSubscriptionsAdmin() {
         />
 
         <CustomTable<SubscriptionPlanProps>
-          renderRow={
-            (sub) =>
-              <SubscriptionsRow
-                plan={sub}
-                onClick={() =>
-                  setOpenMenuId(openMenuId === sub.id ? null : sub.id)
-                }
-              />
-          }
+          renderRow={(sub) => (
+            <SubscriptionsRow
+              plan={sub}
+              onClick={() =>
+                setOpenMenuId(openMenuId === sub.id ? null : sub.id)
+              }
+            />
+          )}
           onSort={handleSort}
           data={paginated}
           totalItems={totalPages}
@@ -247,11 +227,9 @@ export default function GymSubscriptionsAdmin() {
             { label: "Duration", key: "duration_days" },
             { label: "Price", key: "price" },
             { label: "Status", key: "is_active" },
-            { label: "", key: null }
+            { label: "", key: null },
           ]}
         />
-
-
       </div>
 
       {confirmDialog && (

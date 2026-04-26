@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
-import { formatAttemptReason, useAttendanceLog } from "../hooks/useAttendance";
+import {
+  formatAttemptReason,
+  useAttendanceLog,
+  type AttendanceLogProps,
+} from "../hooks/useAttendance";
 import { useMember } from "../hooks/useMember";
 import { memberService } from "../services/member.service";
 import {
-  Clock,
-  Calendar,
   Logs,
   Users,
   Activity,
@@ -15,14 +17,17 @@ import {
 import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
 import ToolBar from "../components/ToolBar";
+import CustomTable from "../components/CustomTable";
+import { formatDuration } from "../utils/formatDuration";
+import { formatTime } from "../utils/formatTime";
+import { formatDate } from "../utils/formatDate";
+import AttendanceRow from "../components/TableRows/AttendanceRow";
 
 export default function AttendanceLog() {
   const {
     logs,
     attempts,
     isLoading,
-    formatDate,
-    formatTime,
     refresh,
     latestFailureAlert,
     clearFailureAlert,
@@ -71,20 +76,6 @@ export default function AttendanceLog() {
   };
 
   // --- Helper Function to Format Duration ---
-  const formatDuration = (totalMinutes: number) => {
-    if (!totalMinutes || totalMinutes <= 0) return "00 : 00 : 00";
-  
-    // Convert minutes to total seconds
-    const totalSeconds = Math.floor(totalMinutes * 60);
-  
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-  
-    const pad = (num: number) => num.toString().padStart(2, "0");
-  
-    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-  };
 
   const filteredLogs = useMemo(() => {
     return logs.filter(
@@ -107,7 +98,7 @@ export default function AttendanceLog() {
       activeNow: logs.filter((l) => l.status === "checked_in").length,
       avgDuration: logs.length
         ? logs.reduce((acc, curr) => acc + (curr.duration || 0), 0) /
-        logs.length
+          logs.length
         : 0,
     }),
     [logs],
@@ -118,7 +109,6 @@ export default function AttendanceLog() {
     page * PAGE_SIZE,
   );
   const totalPages = Math.ceil(filteredLogs.length / PAGE_SIZE) || 1;
-
 
   const cards = [
     {
@@ -146,7 +136,7 @@ export default function AttendanceLog() {
       color: "border-red-400/20 bg-red-400/5 text-red-400",
       icon: <AlertTriangle size={16} />,
     },
-  ]
+  ];
 
   if (isLoading)
     return (
@@ -163,7 +153,6 @@ export default function AttendanceLog() {
 
   return (
     <div className="space-y-4">
-
       <CustomHeader
         hasAction={true}
         isLoading={isLoading}
@@ -219,9 +208,7 @@ export default function AttendanceLog() {
           {isSubmittingManual ? "Saving..." : "Log Attendance"}
         </button>
       </div>
-      {manualStatus && (
-        <p className="text-sm text-red-500">{manualStatus}</p>
-      )}
+      {manualStatus && <p className="text-sm text-red-500">{manualStatus}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
         {cards.map((props) => (
@@ -245,96 +232,33 @@ export default function AttendanceLog() {
         </div>
       )}
 
-      {/* ── Main Table Card ── */}
       <div className="bg-surface border border-border shadow-sm overflow-hidden">
-
         <ToolBar
           placeholder="Search member name..."
           search={search}
           filtered={filteredLogs}
           handleSearchChange={(e) => {
             setSearch(e.target.value);
-            setPage(1)
+            setPage(1);
           }}
         />
 
-        <div className="overflow-x-auto h-[500px]">
-          <table className="text-left text-sm w-full">
-            <thead className="sticky top-0 z-10">
-              <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
-                <th className="px-5 py-3.5 text-xs">Date</th>
-                <th className="px-5 py-3.5 text-xs">Member</th>
-                <th className="px-5 py-3.5 text-xs">Check In</th>
-                <th className="px-5 py-3.5 text-xs">Check Out</th>
-                <th className="px-5 py-3.5 text-xs">Duration</th>
-                <th className="px-5 py-3.5 text-xs">Method</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {paginated.map((log) => (
-                <tr
-                  key={log.id}
-                  className="hover:bg-border/30 transition-colors"
-                >
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <Calendar size={14} className="text-text-secondary" />
-                      <span className="font-medium">
-                        {formatDate(log.check_in_time)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 font-bold text-text-primary">
-                    {log.first_name} {log.last_name}
-                  </td>
-                  <td className="px-5 py-4 text-emerald-500 font-medium">
-                    {formatTime(log.check_in_time)}
-                  </td>
-                  <td className="px-5 py-4 text-rose-500 font-medium">
-                    {log.check_out_time ? (
-                      formatTime(log.check_out_time)
-                    ) : (
-                      <span className="flex items-center gap-1 opacity-50 italic">
-                        <Clock size={12} /> Active
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 whitespace-nowrap text-xs">
-                    {/* Applied the new formatter here */}
-                    {formatDuration(log.duration!)}
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className="px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-bold uppercase">
-                      {log.method}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
-          <span className="text-xs text-text-secondary">
-            Page {page} of {totalPages}
-          </span>
-          <div className="flex gap-1">
-            <button
-              disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border bg-surface hover:bg-border disabled:opacity-40"
-            >
-              ← Prev
-            </button>
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border bg-surface hover:bg-border disabled:opacity-40"
-            >
-              Next →
-            </button>
-          </div>
-        </div>
+        <CustomTable<AttendanceLogProps>
+          columns={[
+            { label: "Date", key: "check_in_time" },
+            { label: "Member", key: "first_name" },
+            { label: "Check In", key: "check_in_time" },
+            { label: "Check Out", key: "check_out_time" },
+            { label: "Duration", key: "duration" },
+            { label: "Method", key: "method" },
+          ]}
+          data={paginated}
+          totalItems={totalPages}
+          setPage={setPage}
+          page={page}
+          pageSize={PAGE_SIZE}
+          renderRow={(log) => <AttendanceRow log={log} />}
+        />
       </div>
 
       <div className="bg-surface border border-border shadow-sm overflow-hidden">

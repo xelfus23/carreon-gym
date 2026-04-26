@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import type { ActionItem } from "../types";
+import type { ActionItemProps } from "../types";
 
 export function ActionMenu({
   items,
   anchorRef,
   onClose,
 }: {
-  items: ActionItem[];
+  items: ActionItemProps[];
   anchorRef: React.RefObject<HTMLButtonElement | null>;
   onClose: () => void;
 }) {
@@ -25,7 +25,8 @@ export function ActionMenu({
 
       // Smart positioning: flip upward if there's no space below
       const spaceBelow = window.innerHeight - rect.bottom;
-      const top = spaceBelow > menuHeight ? rect.bottom + 6 : rect.top - menuHeight - 6;
+      const top =
+        spaceBelow > menuHeight ? rect.bottom + 6 : rect.top - menuHeight - 6;
       const left = rect.right - menuWidth;
 
       setPos({ top, left });
@@ -38,10 +39,16 @@ export function ActionMenu({
 
   useEffect(() => {
     const onMouse = (e: MouseEvent) => {
-      if (menuRef.current?.contains(e.target as Node) || anchorRef.current?.contains(e.target as Node)) return;
+      if (
+        menuRef.current?.contains(e.target as Node) ||
+        anchorRef.current?.contains(e.target as Node)
+      )
+        return;
       onClose();
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
 
     document.addEventListener("mousedown", onMouse);
     document.addEventListener("keydown", onKey);
@@ -81,19 +88,26 @@ export function ActionMenu({
       `}</style>
       {items.map((item, i) => (
         <div key={i}>
-          {item.dividerBefore && <div className="my-1 border-t border-border" />}
+          {item.dividerBefore && (
+            <div className="my-1 border-t border-border" />
+          )}
           <button
             disabled={item.disabled}
-            onClick={() => { item.onClick(); onClose(); }}
+            onClick={() => {
+              item.onClick();
+              onClose();
+            }}
             className={`w-full flex items-center gap-3 px-4 py-3 text-xs transition-colors font-bold text-left uppercase tracking-tight
               disabled:opacity-40 disabled:cursor-not-allowed ${variantCls[item.variant ?? "default"]}`}
           >
-            <span className="flex items-center justify-center w-4">{item.icon}</span>
+            <span className="flex items-center justify-center w-4">
+              {item.icon}
+            </span>
             {item.label}
           </button>
         </div>
       ))}
     </div>,
-    document.body
+    document.body,
   );
 }

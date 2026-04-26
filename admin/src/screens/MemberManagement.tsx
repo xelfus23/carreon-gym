@@ -1,8 +1,8 @@
 import { type FormEvent, useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
 import type { AdminMemberListItem } from "../types";
-import MemberRow from "../components/members/MemberRow";
-import ConfirmDialog from "../components/members/ConfirmDialog";
+import MemberRow from "../components/TableRows/MemberRow";
+import ConfirmDialog from "../components/ConfirmDialog";
 import SubscriptionModal from "../components/SubscriptionModal";
 import { memberService } from "../services/member.service";
 import {
@@ -201,13 +201,12 @@ export default function MemberManagement() {
         .length,
       avgAttendance: members.length
         ? Math.round(
-          members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
-        )
+            members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
+          )
         : 0,
     }),
     [members],
   );
-
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -266,7 +265,6 @@ export default function MemberManagement() {
     },
   ];
 
-
   const select: SelectProps[] = [
     {
       value: filterStatus,
@@ -278,8 +276,8 @@ export default function MemberManagement() {
         { label: "All Accounts", value: "all" },
         { label: "Active", value: "active" },
         { label: "Suspended", value: "suspended" },
-        { label: "Deleted", value: "deleted" }
-      ]
+        { label: "Deleted", value: "deleted" },
+      ],
     },
     {
       value: filterSub,
@@ -292,10 +290,10 @@ export default function MemberManagement() {
         { label: "Active Plan", value: "active" },
         { label: "Expired", value: "expired" },
         { label: "Pending", value: "pending" },
-        { label: "Cancelled", value: "cancelled" }
-      ]
-    }
-  ]
+        { label: "Cancelled", value: "cancelled" },
+      ],
+    },
+  ];
 
   return (
     <div className="space-y-4">
@@ -390,8 +388,14 @@ export default function MemberManagement() {
         ))}
       </div>
 
-      <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0">
-        <ToolBar placeholder="Search name, email, phone..." filtered={filtered} search={search} handleSearchChange={handleSearchChange} select={select} />
+      <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0 w-full">
+        <ToolBar
+          placeholder="Search name, email, phone..."
+          filtered={filtered}
+          search={search}
+          handleSearchChange={handleSearchChange}
+          select={select}
+        />
 
         <CustomTable
           renderRow={(m) => (

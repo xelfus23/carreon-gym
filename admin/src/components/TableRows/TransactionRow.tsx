@@ -1,8 +1,15 @@
-import { Ban, Calendar, CheckCircle, CheckCircle2, Clock, ExternalLink, Trash2 } from 'lucide-react'
-import { type TransactionProps } from '../hooks/useTransactions'
-import { formatDate } from '../utils/formatDate'
-import { formatCurrency } from '../utils/formatCurrency'
-import type { Dispatch, SetStateAction } from 'react'
+import {
+  Ban,
+  CheckCircle,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  Trash2,
+} from "lucide-react";
+import { type TransactionProps } from "../../hooks/useTransactions";
+import { formatDate } from "../../utils/formatDate";
+import { formatCurrency } from "../../utils/formatCurrency";
+import type { Dispatch, SetStateAction } from "react";
 
 interface TransactionRowProps {
   tx: TransactionProps;
@@ -21,28 +28,21 @@ export default function TransactionRow({
   openMenuId,
   OnVerify,
   OnDeny,
-  OnDelete
+  OnDelete,
 }: TransactionRowProps) {
-
   return (
     <tr
       key={tx.transaction_id}
       className="hover:bg-border/10 transition-colors group"
     >
-      <td className="px-6 py-4">
-        <p className="font-bold text-sm ">{tx.transaction_id}</p>
-      </td>
-
-      <td className="px-6 py-4">
-        <p className="font-bold text-sm">{tx.reference_no}</p>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <p className="text-text-secondary text-[10px]">{tx.reference_no}</p>
       </td>
 
       <td className="px-6 py-4 whitespace-nowrap">
-          <span className="text-xs">
-            {formatDate(tx.paid_at)}
-          </span>
+        <span className="text-xs">{formatDate(tx.paid_at)}</span>
       </td>
-   
+
       <td className="px-6 py-4 whitespace-nowrap">
         <p className="font-bold text-sm">{tx.member_name}</p>
       </td>
@@ -51,16 +51,17 @@ export default function TransactionRow({
           {tx.item_name}
         </p>
       </td>
-      <td className="px-6 py-4">
+      {/* <td className="px-6 py-4">
         <span
-          className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter ${tx.transaction_type === "plan"
-            ? "bg-blue-500/10 text-blue-500"
-            : "bg-purple-500/10 text-purple-500"
-            }`}
+          className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter ${
+            tx.transaction_type === "plan"
+              ? "bg-blue-500/10 text-blue-500"
+              : "bg-purple-500/10 text-purple-500"
+          }`}
         >
           {tx.transaction_type}
         </span>
-      </td>
+      </td> */}
       <td className="px-6 py-4 font-mono font-bold text-sm">
         {formatCurrency(tx.amount)}
       </td>
@@ -94,20 +95,13 @@ export default function TransactionRow({
           <button
             onClick={() =>
               setOpenMenuId((prev) =>
-                prev === tx.transaction_id
-                  ? null
-                  : tx.transaction_id!,
+                prev === tx.transaction_id ? null : tx.transaction_id!,
               )
             }
             className="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-border text-text-secondary hover:text-text-primary hover:bg-border/50 transition-colors"
             aria-label="Transaction actions"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="currentColor"
-            >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />
               <circle cx="8" cy="8" r="1.4" />
               <circle cx="8" cy="13" r="1.4" />
@@ -143,5 +137,5 @@ export default function TransactionRow({
         </div>
       </td>
     </tr>
-  )
+  );
 }

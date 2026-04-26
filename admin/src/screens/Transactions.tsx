@@ -1,23 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTransactions, type TransactionProps } from "../hooks/useTransactions";
-import { purchaseService } from "../services/purchase.service";
-import ConfirmDialog from "../components/members/ConfirmDialog";
 import {
-  Receipt,
-  CheckCircle,
-  Clock,
-  X,
-} from "lucide-react";
+  useTransactions,
+  type TransactionProps,
+} from "../hooks/useTransactions";
+import { purchaseService } from "../services/purchase.service";
+import ConfirmDialog from "../components/ConfirmDialog";
+import { Receipt, CheckCircle, Clock, X } from "lucide-react";
 import StatsCard from "../components/CustomStatsCard";
 import CustomHeader from "../components/CustomHeader";
-import CustomTable from "../components/CustomTable";
-import TransactionRow from "../components/TransactionRow";
+import CustomTable, { type ColumnDefinition } from "../components/CustomTable";
+import TransactionRow from "../components/TableRows/TransactionRow";
 import { formatCurrency } from "../utils/formatCurrency";
 import ToolBar from "../components/ToolBar";
 
 export default function TransactionsLog() {
-  const { transactions, isLoading, refresh } =
-    useTransactions();
+  const { transactions, isLoading, refresh } = useTransactions();
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -46,26 +43,38 @@ export default function TransactionsLog() {
   }, []);
 
   const stats = useMemo(() => {
-    const paidOnly = transactions.filter((t) => t.status === "paid");
-    const totalRevenue = paidOnly.reduce(
-      (acc, curr) => acc + Number(curr.amount),
-      0,
-    );
+    let totalRevenue = 0;
+    let paidCount = 0;
+    let pendingCount = 0;
+
+    for (const t of transactions) {
+      if (t.status === "paid") {
+        totalRevenue += Number(t.amount);
+        paidCount++;
+      } else if (t.status === "pending") {
+        pendingCount++;
+      }
+    }
 
     return {
       totalRevenue,
-      pendingCount: transactions.filter((t) => t.status === "pending").length,
-      avgOrder: paidOnly.length ? totalRevenue / paidOnly.length : 0,
+      pendingCount,
+      avgOrder: paidCount ? totalRevenue / paidCount : 0,
     };
   }, [transactions]);
 
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(
-      (tx) =>
-        tx.member_name.toLowerCase().includes(search.toLowerCase()) ||
-        tx.item_name.toLowerCase().includes(search.toLowerCase()) ||
-        tx.transaction_type.toLowerCase().includes(search.toLowerCase()),
-    );
+    const q = search.toLowerCase();
+
+    if (!q) return transactions;
+
+    return transactions.filter((tx) => {
+      return (
+        tx.member_name.toLowerCase().includes(q) ||
+        tx.item_name.toLowerCase().includes(q) ||
+        tx.transaction_type.toLowerCase().includes(q)
+      );
+    });
   }, [transactions, search]);
 
   const paginated = filteredTransactions.slice(
@@ -101,7 +110,6 @@ export default function TransactionsLog() {
     }
   };
 
-
   const handleDelete = async (paymentId: number) => {
     try {
       const result = await purchaseService.deleteTransaction(paymentId);
@@ -136,6 +144,19 @@ export default function TransactionsLog() {
     };
   }, []);
 
+  const columns: ColumnDefinition<TransactionProps>[] = useMemo(
+    () => [
+      { label: "Ref. No.", key: "reference_no" },
+      { label: "Date", key: "paid_at" },
+      { label: "Member", key: "member_name" },
+      { label: "Item", key: "item_name" },
+      { label: "Amount", key: "amount" },
+      { label: "Status", key: "status" },
+      { label: "Proof", key: "receipt_image_url" },
+      { label: "", key: null },
+    ],
+    [],
+  );
 
   if (isLoading)
     return (
@@ -223,9 +244,8 @@ export default function TransactionsLog() {
       {/* ── Table Container ── */}
       <div
         ref={menuWrapRef}
-        className="bg-surface border border-border shadow-sm overflow-hidden flex flex-col"
+        className="bg-surface border border-border shadow-sm flex flex-col"
       >
-
         <ToolBar
           filtered={filteredTransactions}
           search={search}
@@ -236,27 +256,14 @@ export default function TransactionsLog() {
           placeholder="Search transactions"
         />
 
-
         <CustomTable<TransactionProps>
-          columns={[
-            { label: "Transaction ID", key: "transaction_id" },
-            { label: "Reference No.", key: "reference_no" },
-            { label: "Date", key: "paid_at"},
-            { label: "Member", key: "member_name" },
-            { label: "Item", key: "item_name" },
-            { label: "Type", key: "transaction_type" },
-            { label: "Amount", key: "amount" },
-            { label: "Status", key: "status" },
-            { label: "Proof", key: "receipt_image_url" },
-            { label: "", key: null }
-          ]}
+          columns={columns}
           data={paginated}
           totalItems={totalPages}
           setPage={setPage}
           page={page}
           pageSize={PAGE_SIZE}
-          renderRow={(tr) =>
-
+          renderRow={(tr) => (
             <TransactionRow
               setOpenMenuId={setOpenMenuId}
               setSelectedReceipt={setSelectedReceipt}
@@ -269,21 +276,21 @@ export default function TransactionsLog() {
                   message: `Delete this transaction for ${tr.member_name}? This cannot be undone.`,
                   confirmLabel: "Delete",
                   variant: "danger",
-                  onConfirm: () =>
-                    handleDelete(tr.transaction_id),
-                })}
-              OnDeny={() => setConfirmDialog({
-                title: "Deny Payment Request",
-                message: `Deny payment request for ${tr.member_name}?`,
-                confirmLabel: "Deny Payment",
-                variant: "warning",
-                onConfirm: () =>
-                  handleDeny(tr.transaction_id),
-              })}
+                  onConfirm: () => handleDelete(tr.transaction_id),
+                })
+              }
+              OnDeny={() =>
+                setConfirmDialog({
+                  title: "Deny Payment Request",
+                  message: `Deny payment request for ${tr.member_name}?`,
+                  confirmLabel: "Deny Payment",
+                  variant: "warning",
+                  onConfirm: () => handleDeny(tr.transaction_id),
+                })
+              }
             />
-          }
+          )}
         />
-
       </div>
       {confirmDialog && (
         <ConfirmDialog
