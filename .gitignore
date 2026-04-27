@@ -8,8 +8,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# .env
-# .env.*
+.env
+.env.*
 # !.env.example
 
 .DS_Store
@@ -25,6 +25,8 @@ client/.expo-shared/
 client/dist/
 client/web-build/
 client/expo-env.d.ts
+client/.env
+client/.env.*
 
 # Metro
 client/.metro-health-check*
@@ -57,8 +59,8 @@ client/app-example/
 # =========================
 server/node_modules/
 server/dist/
-# server/.env
-# server/.env.*
+server/.env
+server/.env.*
 
 # =========================
 # ADMIN (Web)
@@ -67,6 +69,8 @@ admin/node_modules/
 admin/dist
 admin/dist-ssr
 admin/*.local
+admin/.env
+admin/.env.*
 
 # Logs
 admin/logs
