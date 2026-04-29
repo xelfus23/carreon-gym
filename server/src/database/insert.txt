@@ -311,18 +311,18 @@ INSERT INTO products (name, category_id, price, stocks) VALUES
 INSERT INTO gym_details (gym_name, contact_number, email, gcash_name, gcash_number) VALUES ('Careon Gym', '09123456789', 'carreon.gym@email.com', 'Carreon Gym', '09123234345');
 
 -- 1. Insert 10 Users
-INSERT INTO users (id, first_name, last_name, phone_number, email, hashed_password, role, verified) VALUES
-(1, 'Admin', 'Admin', '515-515', 'carreon@email.com', 'admin123', 'admin', true),
-(2, 'Alex', 'Rivers', '555-0101', 'alex.rivers@example.com', 'password123', 'member', true),
-(3, 'Casey', 'Morgan', '555-0102', 'casey.m@example.com', 'mypassword', 'member', true),
-(4, 'Jordan', 'Lee', '555-0103', 'jlee_fitness@example.com', '123456', 'member', true),
-(5, 'Taylor', 'Swift', '555-0104', 'taylor.s@example.com', 'swiftie2026', 'member', false),
-(6, 'Riley', 'Reid', '555-0105', 'riley.r@example.com', 'gymrat99', 'member', true),
-(7, 'Quinn', 'Fabray', '555-0106', 'q.fabray@example.com', 'cheer2026', 'member', true),
-(8, 'Skyler', 'White', '555-0107', 'skyler.w@example.com', 'bluebird', 'member', true),
-(9, 'Charlie', 'Day', '555-0108', 'wildcard@example.com', 'ratprowess', 'member', false),
-(10, 'Morgan', 'Freeman', '555-0109', 'voice.god@example.com', 'narration1', 'member', true),
-(11, 'Jules', 'Winnfield', '555-0110', 'badmother@example.com', 'ezekiel2517', 'member', true);
+INSERT INTO users (first_name, last_name, phone_number, email, hashed_password, role, verified) VALUES
+('Admin', 'Admin', '515-515', 'carreon@email.com', 'admin123', 'admin', true),
+('Alex', 'Rivers', '555-0101', 'alex.rivers@example.com', 'password123', 'member', true),
+('Casey', 'Morgan', '555-0102', 'casey.m@example.com', 'mypassword', 'member', true),
+('Jordan', 'Lee', '555-0103', 'jlee_fitness@example.com', '123456', 'member', true),
+('Taylor', 'Swift', '555-0104', 'taylor.s@example.com', 'swiftie2026', 'member', false),
+('Riley', 'Reid', '555-0105', 'riley.r@example.com', 'gymrat99', 'member', true),
+('Quinn', 'Fabray', '555-0106', 'q.fabray@example.com', 'cheer2026', 'member', true),
+('Skyler', 'White', '555-0107', 'skyler.w@example.com', 'bluebird', 'member', true),
+('Charlie', 'Day', '555-0108', 'wildcard@example.com', 'ratprowess', 'member', false),
+('Morgan', 'Freeman', '555-0109', 'voice.god@example.com', 'narration1', 'member', true),
+('Jules', 'Winnfield', '555-0110', 'badmother@example.com', 'ezekiel2517', 'member', true);
 
 -- 2. Insert Profiles (Linking via Email lookup to ensure IDs match)
 INSERT INTO user_profiles (user_id, height_cm, gender, birth_date, goal, activity_level)
@@ -342,70 +342,48 @@ FROM users WHERE email LIKE '%@example.com';
 -- ATTENDANCE DATA
 -- ============================================================================
 
--- USER 2
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
 (2, NOW() - INTERVAL '142 days 4 hours', NOW() - INTERVAL '142 days 4 hours' + INTERVAL '75 minutes', 75, 'checked_out', 'success', 'qr', NOW() - INTERVAL '142 days 4 hours');
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
 (2, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '142 days 4 hours');
-
--- USER 3
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
 (3, NOW() - INTERVAL '88 days 12 hours', NOW() - INTERVAL '88 days 12 hours' + INTERVAL '60 minutes', 60, 'checked_out', 'success', 'manual', NOW() - INTERVAL '88 days 12 hours');
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
 (3, 'check_in', 'success', NULL, '{"source": "manual"}', NOW() - INTERVAL '88 days 12 hours');
-
--- USER 4
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
 (4, NOW() - INTERVAL '10 days 2 hours', NOW() - INTERVAL '10 days 2 hours' + INTERVAL '120 minutes', 120, 'checked_out', 'success', 'qr', NOW() - INTERVAL '10 days 2 hours');
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
 (4, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '10 days 2 hours');
-
--- USER 5
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
 (5, NOW() - INTERVAL '165 days 5 hours', NOW() - INTERVAL '165 days 5 hours' + INTERVAL '45 minutes', 45, 'checked_out', 'success', 'admin', NOW() - INTERVAL '165 days 5 hours');
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
 (5, 'check_in', 'success', NULL, '{"source": "admin"}', NOW() - INTERVAL '165 days 5 hours');
-
--- USER 6
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
 (6, NOW() - INTERVAL '45 days 8 hours', NOW() - INTERVAL '45 days 8 hours' + INTERVAL '90 minutes', 90, 'checked_out', 'success', 'qr', NOW() - INTERVAL '45 days 8 hours');
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
 (6, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '45 days 8 hours');
-
--- USER 7
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
 (7, NOW() - INTERVAL '120 days 1 hour', NOW() - INTERVAL '120 days 1 hour' + INTERVAL '55 minutes', 55, 'checked_out', 'success', 'manual', NOW() - INTERVAL '120 days 1 hour');
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
 (7, 'check_in', 'success', NULL, '{"source": "manual"}', NOW() - INTERVAL '120 days 1 hour');
-
--- USER 8
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
 (8, NOW() - INTERVAL '32 days 10 hours', NOW() - INTERVAL '32 days 10 hours' + INTERVAL '80 minutes', 80, 'checked_out', 'success', 'qr', NOW() - INTERVAL '32 days 10 hours');
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
 (8, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '32 days 10 hours');
-
--- USER 9
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
 (9, NOW() - INTERVAL '15 days 3 hours', NOW() - INTERVAL '15 days 3 hours' + INTERVAL '110 minutes', 110, 'checked_out', 'success', 'admin', NOW() - INTERVAL '15 days 3 hours');
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
 (9, 'check_in', 'success', NULL, '{"source": "admin"}', NOW() - INTERVAL '15 days 3 hours');
-
--- USER 10
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
 (10, NOW() - INTERVAL '75 days 15 hours', NOW() - INTERVAL '75 days 15 hours' + INTERVAL '65 minutes', 65, 'checked_out', 'success', 'qr', NOW() - INTERVAL '75 days 15 hours');
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
 (10, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '75 days 15 hours');
-
--- USER 11
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
 (11, NOW() - INTERVAL '150 days 6 hours', NOW() - INTERVAL '150 days 6 hours' + INTERVAL '50 minutes', 50, 'checked_out', 'success', 'manual', NOW() - INTERVAL '150 days 6 hours');
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
 (11, 'check_in', 'success', NULL, '{"source": "manual"}', NOW() - INTERVAL '150 days 6 hours');
-
--- USER 12
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
 (12, NOW() - INTERVAL '2 days 20 hours', NOW() - INTERVAL '2 days 20 hours' + INTERVAL '100 minutes', 100, 'checked_out', 'success', 'qr', NOW() - INTERVAL '2 days 20 hours');
-
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
 (12, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '2 days 20 hours');
 

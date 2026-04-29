@@ -6,7 +6,7 @@ import { env } from "../config/env.ts";
 export const uploadProfilePicture = multer({
   storage: multerS3({
     s3,
-    bucket: env.AWS_S3_BUCKET!,
+    bucket: env.AWS_S3_BUCKET_NAME!,
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: (req, file, cb) => {
       const fileName = `public/profiles/${Date.now()}-${file.originalname}`;
@@ -18,7 +18,7 @@ export const uploadProfilePicture = multer({
 export const uploadAssetImages = multer({
   storage: multerS3({
     s3,
-    bucket: env.AWS_S3_BUCKET!,
+    bucket: env.AWS_S3_BUCKET_NAME!,
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: (req, file, cb) => {
       const fileName = `public/assets/${Date.now()}-${file.originalname}`;
@@ -30,7 +30,7 @@ export const uploadAssetImages = multer({
 export const uploadPaymentReceipt = multer({
   storage: multerS3({
     s3,
-    bucket: env.AWS_S3_BUCKET!,
+    bucket: env.AWS_S3_BUCKET_NAME!,
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: (req, file, cb) => {
       const fileName = `private/payments/${Date.now()}-${file.originalname}`;
