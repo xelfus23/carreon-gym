@@ -50,6 +50,8 @@ export default function Chats() {
     }, [refreshMessages]),
   );
 
+  if (!profile) return
+
   if (initializing) {
     return <CustomLoader text="Loading your chat history..." />;
   }
@@ -163,11 +165,10 @@ export default function Chats() {
               <TouchableOpacity
                 onPress={handleSend}
                 disabled={loading}
-                className={`p-3 ${
-                  loading || !text.trim()
-                    ? "bg-surface opacity-50"
-                    : "bg-primary-dark"
-                } rounded-full items-center justify-center`}
+                className={`p-3 ${loading || !text.trim()
+                  ? "bg-surface opacity-50"
+                  : "bg-primary-dark"
+                  } rounded-full items-center justify-center`}
               >
                 <Send color="white" size={24} />
               </TouchableOpacity>

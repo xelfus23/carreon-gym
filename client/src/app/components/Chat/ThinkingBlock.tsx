@@ -17,7 +17,7 @@ export default function ThinkingBlock({ status, thought }: ThinkingProps) {
                     source={require("../../../assets/ui/star-icon.png")}
                     resizeMode="contain"
                     className={`w-3.5 h-3.5 ${isDone ? "" : "animate-spin"}`}
-                    style={{ tintColor: COLORS.primary }} // Optional: force a neutral gray color
+                    style={{ tintColor: COLORS.primary }}
                 />
                 <Text
                     className={`text-text-secondary text-[10px] font-bold uppercase tracking-wider ${isDone ? "" : "animate-pulse"}`}
