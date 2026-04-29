@@ -72,12 +72,12 @@ export default function MemberRow({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
 
-  const attendanceColor =
-    m.attendance_rate > 80
-      ? "bg-emerald-500"
-      : m.attendance_rate > 50
-        ? "bg-amber-500"
-        : "bg-rose-500";
+  // const attendanceColor =
+  //   m.attendance_rate > 80
+  //     ? "bg-emerald-500"
+  //     : m.attendance_rate > 50
+  //       ? "bg-amber-500"
+  //       : "bg-rose-500";
 
   const isSuspended = m.account_status === "suspended";
   const isDeleted = m.account_status === "deleted";
@@ -130,11 +130,11 @@ export default function MemberRow({
 
   return (
     <tr className={`transition-colors group hover:bg-border/40`}>
-      <td className="px-5 py-3.5  text-xs text-text-secondary font-semibold">
+      <td className="p-4 text-xs text-text-secondary">
         {m.id.toString()}
       </td>
       {/* Member */}
-      <td className="px-5 py-3.5">
+      <td className="p-4">
         <div className={`font-semibold text-text-primary leading-tight`}>
           {m.first_name} {m.last_name}
         </div>
@@ -146,7 +146,7 @@ export default function MemberRow({
         )}
       </td>
       {/* Account status */}
-      <td className="px-5 py-3.5">
+      <td className="p-4">
         <span
           className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-text-secondary"
             }`}
@@ -162,7 +162,7 @@ export default function MemberRow({
         )}
       </td>
       {/* Plan */}
-      <td className="px-5 py-3.5 text-sm">
+      <td className="p-4 text-sm">
         <span className="font-medium text-text-primary">
           {m.plan_name ?? "—"}
         </span>
@@ -176,7 +176,7 @@ export default function MemberRow({
         )}
       </td>
       {/* Subscription */}
-      <td className="px-5 py-3.5">
+      <td className="p-4">
         {m.subscription_status ? (
           <div>
             <span
@@ -203,7 +203,7 @@ export default function MemberRow({
         )}
       </td>
       {/* Last check-in */}
-      <td className="px-5 py-3.5 text-sm text-text-primary">
+      <td className="p-4 text-sm text-text-primary">
         {formatRelativeDate(m.last_check_in)}
         {m.last_login && (
           <div className="text-[11px] text-text-secondary mt-0.5">
@@ -212,7 +212,7 @@ export default function MemberRow({
         )}
       </td>
       {/* Visits */}
-      <td className="px-5 py-3.5 text-center">
+      <td className="p-4">
         <span className="text-base font-black text-text-primary">
           {m.total_visits_this_month ?? 0}
         </span>
@@ -223,7 +223,7 @@ export default function MemberRow({
         )}
       </td>
       {/* Attendance */}
-      <td className="px-5 py-3.5">
+      {/* <td className="p-4">
         <div className="flex items-center gap-2">
           <div className="flex-1 bg-border h-1.5 rounded-full overflow-hidden min-w-[60px]">
             <div
@@ -237,9 +237,9 @@ export default function MemberRow({
             {m.attendance_rate}%
           </span>
         </div>
-      </td>
+      </td> */}
       {/* ── Actions ── */}
-      <td className="px-5 py-3.5">
+      <td className="p-4">
         <div className="flex items-center justify-end">
           <button
             ref={triggerRef}

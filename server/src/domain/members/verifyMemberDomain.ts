@@ -19,13 +19,13 @@ export const verifyMemberDomain = async (userId: number) => {
             UPDATE users 
             SET verified = false, updated_at = CURRENT_TIMESTAMP 
             WHERE id = $1 
-            RETURNING id, username, email, verified
+            RETURNING id, email, verified
             `
             : `
             UPDATE users 
             SET verified = true, updated_at = CURRENT_TIMESTAMP 
             WHERE id = $1 
-            RETURNING id, username, email, verified`,
+            RETURNING id, email, verified`,
         [userId],
     );
 

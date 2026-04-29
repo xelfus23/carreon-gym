@@ -2,7 +2,7 @@ import { Package } from "lucide-react";
 import { useMemo, useState } from "react";
 import AddProductModal from "../components/Modals/AddProductModal";
 import { useProducts } from "../hooks/useProducts";
-import ProductRow from "../components/products/ProductRow";
+import ProductRow from "../components/TableRows/ProductRow";
 import CustomTable from "../components/CustomTable";
 import type { ProductProps } from "../types";
 import ToolBar, { type SelectProps } from "../components/ToolBar";

@@ -98,11 +98,11 @@ export default function AdminRow({
 
   return (
     <tr className={`transition-colors group hover:bg-border/40`}>
-      <td className="px-5 py-3.5  text-xs text-text-secondary font-semibold">
+      <td className="p-4 text-xs text-text-secondary">
         {m.id.toString()}
       </td>
       {/* Admin */}
-      <td className="px-5 py-3.5">
+      <td className="p-4">
         <div
           className={`font-semibold text-text-primary leading-tight`}
         >
@@ -118,7 +118,7 @@ export default function AdminRow({
         )}
       </td>
       {/* Account status */}
-      <td className="px-5 py-3.5">
+      <td className="p-4">
         <span
           className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${ACCOUNT_BADGE[m.account_status] ??
             "bg-surface text-slate-500"
@@ -136,7 +136,7 @@ export default function AdminRow({
           </span>
         )}
       </td>
-      <td className="px-5 py-3.5 text-sm text-text-primary">
+      <td className="p-4 text-sm text-text-primary">
         {formatRelativeDate(m.last_check_in)}
         {m.last_login && (
           <div className="text-[11px] text-text-secondary mt-0.5">
@@ -144,7 +144,7 @@ export default function AdminRow({
           </div>
         )}
       </td>
-      <td className="px-5 py-3.5">
+      <td className="p-4">
         <div className="flex items-center justify-end">
           <button
             ref={triggerRef}

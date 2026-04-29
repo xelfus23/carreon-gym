@@ -24,43 +24,6 @@ export function MuscleTag({ muscle }: { muscle: string }) {
   );
 }
 
-// ─── Skeleton Row ─────────────────────────────────────────────────────────────
-
-export function SkeletonRow() {
-  return (
-    <tr className="border-b border-border">
-      <td className="px-5 py-4">
-        <div className="h-3 w-10 bg-border animate-pulse" />
-      </td>
-      <td className="px-5 py-4">
-        <div className="h-3.5 w-36 bg-border animate-pulse" />
-      </td>
-      <td className="px-5 py-4">
-        <div className="h-5 w-20 bg-border animate-pulse" />
-      </td>
-      <td className="px-5 py-4">
-        <div className="h-3 w-8 bg-border animate-pulse" />
-      </td>
-      <td className="px-5 py-4">
-        <div className="flex gap-1.5">
-          {[52, 44].map((w, i) => (
-            <div
-              key={i}
-              className="h-5 bg-border animate-pulse"
-              style={{ width: w }}
-            />
-          ))}
-        </div>
-      </td>
-      <td className="px-5 py-4">
-        <div className="h-3 w-36 bg-border animate-pulse" />
-      </td>
-      <td className="px-5 py-4">
-        <div className="ml-auto h-8 w-20 bg-border animate-pulse" />
-      </td>
-    </tr>
-  );
-}
 
 // ─── Equipment Row ────────────────────────────────────────────────────────────
 
@@ -80,11 +43,11 @@ export default function EquipmentRow({
 
   return (
     <tr className="border-b border-border hover:bg-surface/70 transition-colors">
-      <td className="px-5 py-4 text-xs text-text-secondary font-semibold">
-        {item.id}
+      <td className="p-4 text-xs text-text-secondary">
+        {item.id.toString()}
       </td>
 
-      <td className="px-5 py-4">
+      <td className="p-4">
         <div className="flex items-center gap-2.5">
           <span className="text-sm font-semibold text-text-primary">
             {item.equipment_name}
@@ -92,25 +55,25 @@ export default function EquipmentRow({
         </div>
       </td>
 
-      <td className="px-5 py-4">
+      <td className="p-4">
         <CategoryBadge category={item.category} />
       </td>
-      <td className="px-5 py-4 text-sm font-semibold text-text-primary">
+      <td className="p-4 text-sm font-semibold text-text-primary">
         {item.quantity ?? "-"}
       </td>
-      <td className="px-5 py-4">
+      <td className="p-4">
         <div className="flex flex-wrap gap-1.5 max-w-xs">
           {muscles.map((m) => (
             <MuscleTag key={m} muscle={m} />
           ))}
         </div>
       </td>
-      <td className="px-5 py-4 max-w-sm">
+      <td className="p-4 max-w-sm">
         <p className="text-xs text-text-secondary line-clamp-2">
           {item.description?.trim() || "-"}
         </p>
       </td>
-      <td className="px-5 py-4">
+      <td className="p-4">
         <div className="flex gap-1.5 justify-end">
           <button
             title="Edit"

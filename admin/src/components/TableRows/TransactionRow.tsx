@@ -35,37 +35,26 @@ export default function TransactionRow({
       key={tx.transaction_id}
       className="hover:bg-border/10 transition-colors group"
     >
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="p-4 whitespace-nowrap">
         <p className="text-text-secondary text-[10px]">{tx.reference_no}</p>
       </td>
 
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="p-4 whitespace-nowrap">
         <span className="text-xs">{formatDate(tx.paid_at)}</span>
       </td>
 
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="p-4 whitespace-nowrap">
         <p className="font-bold text-sm">{tx.member_name}</p>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="p-4 whitespace-nowrap">
         <p className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
           {tx.item_name}
         </p>
       </td>
-      {/* <td className="px-6 py-4">
-        <span
-          className={`px-2 py-1 text-[10px] font-black uppercase tracking-tighter ${
-            tx.transaction_type === "plan"
-              ? "bg-blue-500/10 text-blue-500"
-              : "bg-purple-500/10 text-purple-500"
-          }`}
-        >
-          {tx.transaction_type}
-        </span>
-      </td> */}
-      <td className="px-6 py-4 font-mono font-bold text-sm">
+      <td className="p-4 text-xs">
         {formatCurrency(tx.amount)}
       </td>
-      <td className="px-6 py-4">
+      <td className="p-4">
         {tx.status === "paid" ? (
           <span className="inline-flex items-center gap-1.5 text-emerald-500 text-[11px] font-black">
             <CheckCircle size={14} /> PAID
@@ -76,7 +65,7 @@ export default function TransactionRow({
           </span>
         )}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="p-4 whitespace-nowrap">
         {tx.receipt_image_url ? (
           <button
             onClick={() => setSelectedReceipt(tx.receipt_image_url!)}
@@ -90,7 +79,7 @@ export default function TransactionRow({
           </span>
         )}
       </td>
-      <td className="px-6 py-4 text-right">
+      <td className="p-4 text-right">
         <div className="relative inline-flex">
           <button
             onClick={() =>

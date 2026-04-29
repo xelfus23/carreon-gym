@@ -19,40 +19,38 @@ export default function SubscriptionsRow({
 }) {
   return (
     <tr key={plan.id} className="hover:bg-border/10 transition-colors group">
-      <td className="px-6 py-4">
-        <p className="font-bold text-sm tracking-tight text-text-primary">
-          {plan.id}
-        </p>
+      <td className="p-4 text-xs text-text-secondary">
+        {plan.id.toString()}
       </td>
-      <td className="px-6 py-4">
+      <td className="p-4">
         <p className="font-bold text-sm tracking-tight text-text-primary">
           {plan.name}
         </p>
       </td>
-      <td className="px-6 py-4">
+      <td className="p-4">
         <p className="text-xs text-text-secondary line-clamp-1">
           {plan.description}
         </p>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="p-4 whitespace-nowrap">
         <span
           className={`px-2 py-1 text-xs font-bold tracking-tighter  ${CATEGORY_COLORS[plan.category]}`}
         >
           {formatSlug(plan.category)}
         </span>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="p-4 whitespace-nowrap">
         {plan.duration_days} {plan.duration_days > 1 ? "Days" : "Day"}
       </td>
-      <td className="px-6 py-4 text-xs text-text-secondary">
+      <td className="p-4 text-xs text-text-secondary">
         {formatCurrency(plan.price)}
       </td>
-      <td className="px-6 py-4">
+      <td className="p-4">
         <span className="inline-flex items-center gap-1.5 text-emerald-500 text-[11px] font-black">
           <CheckCircle size={14} /> Active
         </span>
       </td>
-      <td className="px-6 py-4 text-right">
+      <td className="p-4 text-right">
         <div className="relative inline-flex">
           <button
             onClick={onClick}

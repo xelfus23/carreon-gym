@@ -432,7 +432,7 @@ export default function MemberManagement() {
               key: "total_visits_this_month",
               sortable: true,
             },
-            { label: "Attendance", key: "attendance_rate", sortable: true },
+            // { label: "Attendance", key: "attendance_rate", sortable: true },
             { label: "", key: null },
           ]}
         />
