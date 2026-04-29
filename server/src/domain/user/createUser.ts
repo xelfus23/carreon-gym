@@ -8,9 +8,8 @@ export const createUserDomain = async (params: {
   password: string;
   email: string;
   phoneNumber: string;
-  username?: string;
 }) => {
-  const { firstName, lastName, password, email, phoneNumber, username } =
+  const { firstName, lastName, password, email, phoneNumber } =
     params;
 
   if (!firstName || !lastName || !password || !email || !phoneNumber) {

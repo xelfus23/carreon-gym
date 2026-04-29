@@ -28,10 +28,10 @@ export default function BasicInfoCard() {
                 label="Account Status"
                 value={profile?.verified ? "Verified" : "Not Verified"}
                 valueColor={
-                    profile?.verified ? "text-success" : "text-text-secondary"
+                    profile?.verified ? "text-primary" : "text-text-secondary"
                 }
                 isLast
             />
         </View>
     );
-}
+} 

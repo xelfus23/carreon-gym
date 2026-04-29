@@ -9,7 +9,6 @@ import { saveSessionToDB } from "../../services/saveSession.ts";
 import { catchAsync } from "../../utils/catchAsync.ts";
 import { AppError } from "../../utils/appError.ts";
 import { mapAdminData, mapUserData } from "../../utils/map.ts";
-import { success } from "zod";
 import {
   addBodyMetricQuery,
   updateProfileQuery,
