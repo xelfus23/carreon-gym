@@ -98,7 +98,7 @@ export default function AttendanceLog() {
       activeNow: logs.filter((l) => l.status === "checked_in").length,
       avgDuration: logs.length
         ? logs.reduce((acc, curr) => acc + (curr.duration || 0), 0) /
-          logs.length
+        logs.length
         : 0,
     }),
     [logs],
