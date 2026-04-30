@@ -62,7 +62,7 @@ export default function ExerciseDetailModal({
         } else {
             slideAnim.setValue(300);
         }
-    }, [visible]);
+    }, [slideAnim, visible]);
 
     if (!exercise) return null;
 

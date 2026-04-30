@@ -5,7 +5,7 @@ import { router } from "expo-router";
 
 import ExerciseDetailModal, {
     type ExerciseDetail,
-} from "../../../components/Plans/ExerciseDetailModal";
+} from "../../components/Plans/ExerciseDetailModal";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/consts/colors";
 import type { WorkoutLog } from "@/src/services/workoutService";

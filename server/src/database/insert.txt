@@ -296,17 +296,17 @@ INSERT INTO product_categories (name, description) VALUES
 ('Equipment', 'Gym gear and accessories');
 
 INSERT INTO products (name, category_id, price, stocks) VALUES 
-('Whey Protein (27g)', 1, 55.00, 50),
-('Creatine (5g)', 1, 45.00, 50),
-('Mineral Water', 2, 20.00, 100),
-('C2 Iced Tea', 2, 30.00, 40),
-('Sting Energy Drink', 2, 35.00, 40),
-('Cobra Energy Drink', 2, 35.00, 40),
-('Vitamilk', 2, 40.00, 30),
-('Pocari Sweat', 2, 50.00, 30),
-('Hard Boiled Egg', 3, 25.00, 20),
-('Saba Banana (Saging Saba)', 3, 20.00, 30),
-('Barbell Foam Grip', 4, 80.00, 10);
+('Whey Protein (27g)', 100000, 55.00, 50),
+('Creatine (5g)', 100000, 45.00, 50),
+('Mineral Water', 100001, 20.00, 100),
+('C2 Iced Tea', 100001, 30.00, 40),
+('Sting Energy Drink', 100001, 35.00, 40),
+('Cobra Energy Drink', 100001, 35.00, 40),
+('Vitamilk', 100001, 40.00, 30),
+('Pocari Sweat', 100001, 50.00, 30),
+('Hard Boiled Egg', 100002, 25.00, 20),
+('Saba Banana (Saging Saba)', 100002, 20.00, 30),
+('Barbell Foam Grip', 100003, 80.00, 10);
 
 INSERT INTO gym_details (gym_name, contact_number, email, gcash_name, gcash_number) VALUES ('Careon Gym', '09123456789', 'carreon.gym@email.com', 'Carreon Gym', '09123234345');
 
@@ -326,126 +326,206 @@ INSERT INTO users (first_name, last_name, phone_number, email, hashed_password, 
 
 -- 2. Insert Profiles (Linking via Email lookup to ensure IDs match)
 INSERT INTO user_profiles (user_id, height_cm, gender, birth_date, goal, activity_level)
-SELECT id, 170 + (id % 20), 
-       CASE WHEN id % 2 = 0 THEN 'male' ELSE 'female' END,
-       '1990-01-01'::DATE + (id * 100),
-       'General fitness and health improvement',
-       'moderate'
-FROM users WHERE email LIKE '%@example.com';
+SELECT 
+    id, 
+    -- Subtract 100000 to keep height realistic (e.g., 170 + 5)
+    170 + ((id - 100000) % 20), 
+    CASE WHEN (id - 100000) % 2 = 0 THEN 'male' ELSE 'female' END,
+    '1990-01-01'::DATE + ((id - 100000) * 10), -- Adjusted multiplier for birth date
+    'General fitness and health improvement',
+    'moderate'
+FROM users 
+WHERE email LIKE '%@example.com';
 
 -- 3. Insert Initial Body Metrics
 INSERT INTO body_metrics (user_id, weight_kg, body_fat_percent, muscle_mass_kg)
-SELECT id, 70.5 + id, 15.0 + (id % 10), 30.0 + (id % 5)
-FROM users WHERE email LIKE '%@example.com';
+SELECT 
+    id, 
+    -- 70.5 + (0, 1, 2...) instead of 70.5 + 100000
+    70.5 + ((id - 100000) % 30), 
+    15.0 + ((id - 100000) % 10), 
+    30.0 + ((id - 100000) % 5)
+FROM users 
+WHERE email LIKE '%@example.com';
 
 -- ============================================================================
 -- ATTENDANCE DATA
 -- ============================================================================
 
+-- 1. Alex Rivers (100001)
 INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
-(2, NOW() - INTERVAL '142 days 4 hours', NOW() - INTERVAL '142 days 4 hours' + INTERVAL '75 minutes', 75, 'checked_out', 'success', 'qr', NOW() - INTERVAL '142 days 4 hours');
-INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(2, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '142 days 4 hours');
-INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
-(3, NOW() - INTERVAL '88 days 12 hours', NOW() - INTERVAL '88 days 12 hours' + INTERVAL '60 minutes', 60, 'checked_out', 'success', 'manual', NOW() - INTERVAL '88 days 12 hours');
-INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(3, 'check_in', 'success', NULL, '{"source": "manual"}', NOW() - INTERVAL '88 days 12 hours');
-INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
-(4, NOW() - INTERVAL '10 days 2 hours', NOW() - INTERVAL '10 days 2 hours' + INTERVAL '120 minutes', 120, 'checked_out', 'success', 'qr', NOW() - INTERVAL '10 days 2 hours');
-INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(4, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '10 days 2 hours');
-INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
-(5, NOW() - INTERVAL '165 days 5 hours', NOW() - INTERVAL '165 days 5 hours' + INTERVAL '45 minutes', 45, 'checked_out', 'success', 'admin', NOW() - INTERVAL '165 days 5 hours');
-INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(5, 'check_in', 'success', NULL, '{"source": "admin"}', NOW() - INTERVAL '165 days 5 hours');
-INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
-(6, NOW() - INTERVAL '45 days 8 hours', NOW() - INTERVAL '45 days 8 hours' + INTERVAL '90 minutes', 90, 'checked_out', 'success', 'qr', NOW() - INTERVAL '45 days 8 hours');
-INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(6, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '45 days 8 hours');
-INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
-(7, NOW() - INTERVAL '120 days 1 hour', NOW() - INTERVAL '120 days 1 hour' + INTERVAL '55 minutes', 55, 'checked_out', 'success', 'manual', NOW() - INTERVAL '120 days 1 hour');
-INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(7, 'check_in', 'success', NULL, '{"source": "manual"}', NOW() - INTERVAL '120 days 1 hour');
-INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
-(8, NOW() - INTERVAL '32 days 10 hours', NOW() - INTERVAL '32 days 10 hours' + INTERVAL '80 minutes', 80, 'checked_out', 'success', 'qr', NOW() - INTERVAL '32 days 10 hours');
-INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(8, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '32 days 10 hours');
-INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
-(9, NOW() - INTERVAL '15 days 3 hours', NOW() - INTERVAL '15 days 3 hours' + INTERVAL '110 minutes', 110, 'checked_out', 'success', 'admin', NOW() - INTERVAL '15 days 3 hours');
-INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(9, 'check_in', 'success', NULL, '{"source": "admin"}', NOW() - INTERVAL '15 days 3 hours');
-INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
-(10, NOW() - INTERVAL '75 days 15 hours', NOW() - INTERVAL '75 days 15 hours' + INTERVAL '65 minutes', 65, 'checked_out', 'success', 'qr', NOW() - INTERVAL '75 days 15 hours');
-INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(10, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '75 days 15 hours');
-INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
-(11, NOW() - INTERVAL '150 days 6 hours', NOW() - INTERVAL '150 days 6 hours' + INTERVAL '50 minutes', 50, 'checked_out', 'success', 'manual', NOW() - INTERVAL '150 days 6 hours');
-INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(11, 'check_in', 'success', NULL, '{"source": "manual"}', NOW() - INTERVAL '150 days 6 hours');
-INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
-(12, NOW() - INTERVAL '2 days 20 hours', NOW() - INTERVAL '2 days 20 hours' + INTERVAL '100 minutes', 100, 'checked_out', 'success', 'qr', NOW() - INTERVAL '2 days 20 hours');
-INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(12, 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '2 days 20 hours');
+((SELECT id FROM users WHERE email = 'alex.rivers@example.com'), NOW() - INTERVAL '142 days 4 hours', NOW() - INTERVAL '142 days 4 hours' + INTERVAL '75 minutes', 75, 'checked_out', 'success', 'qr', NOW() - INTERVAL '142 days 4 hours');
 
+-- 2. Casey Morgan (100002)
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users WHERE email = 'casey.m@example.com'), 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '142 days 4 hours');
 
----ERRORS
+-- 3. Jordan Lee (100003)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), NOW() - INTERVAL '88 days 12 hours', NOW() - INTERVAL '88 days 12 hours' + INTERVAL '60 minutes', 60, 'checked_out', 'success', 'manual', NOW() - INTERVAL '88 days 12 hours');
 
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(4, 'check_in', 'failed', 'No Subscription', '{"source": "mobile_qr", "ar_data": "GYM:in"}', NOW() - INTERVAL '34 days 2 hours');
+((SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), 'check_in', 'success', NULL, '{"source": "manual"}', NOW() - INTERVAL '88 days 12 hours');
+
+-- 4. Taylor Swift (100004)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'taylor.s@example.com'), NOW() - INTERVAL '10 days 2 hours', NOW() - INTERVAL '10 days 2 hours' + INTERVAL '120 minutes', 120, 'checked_out', 'success', 'qr', NOW() - INTERVAL '10 days 2 hours');
 
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(6, 'check_in', 'failed', 'No Subscription', '{"source": "mobile_qr", "ar_data": "GYM:in"}', NOW() - INTERVAL '64 days 4 hours');
+((SELECT id FROM users WHERE email = 'taylor.s@example.com'), 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '10 days 2 hours');
+
+-- 5. Riley Reid (100005)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'riley.r@example.com'), NOW() - INTERVAL '165 days 5 hours', NOW() - INTERVAL '165 days 5 hours' + INTERVAL '45 minutes', 45, 'checked_out', 'success', 'admin', NOW() - INTERVAL '165 days 5 hours');
 
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(5, 'check_in', 'failed', 'Already Checked In', '{"source": "mobile_qr", "ar_data": "GYM:in"}', NOW() - INTERVAL '64 days 4 hours');
+((SELECT id FROM users WHERE email = 'riley.r@example.com'), 'check_in', 'success', NULL, '{"source": "admin"}', NOW() - INTERVAL '165 days 5 hours');
+
+-- 6. Quinn Fabray (100006)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'q.fabray@example.com'), NOW() - INTERVAL '45 days 8 hours', NOW() - INTERVAL '45 days 8 hours' + INTERVAL '90 minutes', 90, 'checked_out', 'success', 'qr', NOW() - INTERVAL '45 days 8 hours');
 
 INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
-(5, 'check_in', 'failed', 'Unverified User', '{"source": "mobile_qr", "ar_data": "GYM:in"}', NOW() - INTERVAL '70 days 4 hours');
+((SELECT id FROM users WHERE email = 'q.fabray@example.com'), 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '45 days 8 hours');
+
+-- 7. Skyler White (100007)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'skyler.w@example.com'), NOW() - INTERVAL '120 days 1 hour', NOW() - INTERVAL '120 days 1 hour' + INTERVAL '55 minutes', 55, 'checked_out', 'success', 'manual', NOW() - INTERVAL '120 days 1 hour');
+
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users WHERE email = 'skyler.w@example.com'), 'check_in', 'success', NULL, '{"source": "manual"}', NOW() - INTERVAL '120 days 1 hour');
+
+-- 8. Charlie Day (100008)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'wildcard@example.com'), NOW() - INTERVAL '32 days 10 hours', NOW() - INTERVAL '32 days 10 hours' + INTERVAL '80 minutes', 80, 'checked_out', 'success', 'qr', NOW() - INTERVAL '32 days 10 hours');
+
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users WHERE email = 'wildcard@example.com'), 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '32 days 10 hours');
+
+-- 9. Morgan Freeman (100009)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'voice.god@example.com'), NOW() - INTERVAL '15 days 3 hours', NOW() - INTERVAL '15 days 3 hours' + INTERVAL '110 minutes', 110, 'checked_out', 'success', 'admin', NOW() - INTERVAL '15 days 3 hours');
+
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users WHERE email = 'voice.god@example.com'), 'check_in', 'success', NULL, '{"source": "admin"}', NOW() - INTERVAL '15 days 3 hours');
+
+-- 10. Jules Winnfield (100010)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'badmother@example.com'), NOW() - INTERVAL '75 days 15 hours', NOW() - INTERVAL '75 days 15 hours' + INTERVAL '65 minutes', 65, 'checked_out', 'success', 'qr', NOW() - INTERVAL '75 days 15 hours');
+
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users WHERE email = 'badmother@example.com'), 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '75 days 15 hours');
+
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'taylor.s@example.com'), NOW() - INTERVAL '5 days 10 hours', NOW() - INTERVAL '5 days 10 hours' + INTERVAL '45 minutes', 45, 'checked_out', 'success', 'qr', NOW() - INTERVAL '5 days 10 hours');
+
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users WHERE email = 'taylor.s@example.com'), 'check_in', 'success', NULL, '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '5 days 10 hours');
+
+-- 12. Riley Reid (riley.r@example.com) - A failed attempt log for variety
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users WHERE email = 'riley.r@example.com'), 'check_in', 'failed', 'Expired Subscription', '{"source": "mobile_qr", "error_code": "SUB_EXP"}', NOW() - INTERVAL '3 days 1 hour');
+
+-- 13. Quinn Fabray (q.fabray@example.com)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'q.fabray@example.com'), NOW() - INTERVAL '22 days 4 hours', NOW() - INTERVAL '22 days 4 hours' + INTERVAL '90 minutes', 90, 'checked_out', 'success', 'manual', NOW() - INTERVAL '22 days 4 hours');
+
+-- 14. Skyler White (skyler.w@example.com)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'skyler.w@example.com'), NOW() - INTERVAL '12 days 8 hours', NOW() - INTERVAL '12 days 8 hours' + INTERVAL '65 minutes', 65, 'checked_out', 'success', 'qr', NOW() - INTERVAL '12 days 8 hours');
+
+-- 15. Charlie Day (wildcard@example.com)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'wildcard@example.com'), NOW() - INTERVAL '8 days 2 hours', NOW() - INTERVAL '8 days 2 hours' + INTERVAL '120 minutes', 120, 'checked_out', 'success', 'admin', NOW() - INTERVAL '88 days 12 hours');
+
+-- 16. Morgan Freeman (voice.god@example.com)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'voice.god@example.com'), NOW() - INTERVAL '1 day 5 hours', NOW() - INTERVAL '1 day 5 hours' + INTERVAL '55 minutes', 55, 'checked_out', 'success', 'qr', NOW() - INTERVAL '1 day 5 hours');
+
+-- 17. Jules Winnfield (badmother@example.com)
+INSERT INTO gym_attendance (user_id, check_in_time, check_out_time, duration_minutes, status, log_status, method, created_at) VALUES
+((SELECT id FROM users WHERE email = 'badmother@example.com'), NOW() - INTERVAL '14 days 9 hours', NOW() - INTERVAL '14 days 9 hours' + INTERVAL '80 minutes', 80, 'checked_out', 'success', 'manual', NOW() - INTERVAL '14 days 9 hours');
+
+-- ERRORS
+
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users WHERE email = 'taylor.s@example.com'), 'check_in', 'failed', 'No Subscription', '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '34 days 2 hours');
+
+-- 2. Quinn Fabray (Fixed ID)
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users WHERE email = 'q.fabray@example.com'), 'check_in', 'failed', 'No Subscription', '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '64 days 4 hours');
+
+-- 3. Riley Reid (Fixed ID - Already Checked In)
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users WHERE email = 'riley.r@example.com'), 'check_in', 'failed', 'Already Checked In', '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '64 days 4 hours');
+
+-- 4. Riley Reid (Fixed ID - Unverified)
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users WHERE email = 'riley.r@example.com'), 'check_in', 'failed', 'Unverified User', '{"source": "mobile_qr", "qr_data": "GYM:in"}', NOW() - INTERVAL '70 days 4 hours');
+
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users ORDER BY RANDOM() LIMIT 1), 'check_in', 'failed', 'Invalid QR Code', '{"source": "mobile_qr", "error": "checksum_fail"}', NOW() - INTERVAL '5 days');
+
+-- Random User: Suspended Account
+INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, created_at) VALUES
+((SELECT id FROM users ORDER BY RANDOM() LIMIT 1), 'check_in', 'failed', 'Account Suspended', '{"source": "mobile_qr", "admin_note": "Payment dispute"}', NOW() - INTERVAL '12 hours');
 
 -- ============================================================================
--- PAYMENT DATA
+-- PLAN PAYMENTS
 -- ============================================================================
 
+-- Alex Rivers - Membership Renewal
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, reference_no, paid_at) VALUES
+((SELECT id FROM users WHERE email = 'alex.rivers@example.com'), (SELECT id FROM subscription_plans WHERE category = 'membership' LIMIT 1), 'plan', 1500.00, 'gcash', 'GC-MEM-9921', NOW() - INTERVAL '2 months');
 
+-- Jordan Lee - Personal Training Add-on
 INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, reference_no, paid_at) VALUES
-(2, 1, 'plan', 1500.00, 'gcash', 'REF-2026-001', NOW() - INTERVAL '5 months');
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
-(3, 5, 'product', 120.00, 2, 'cash', 'Pre-workout drinks', NOW() - INTERVAL '4 months 10 days');
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, reference_no, paid_at) VALUES
-(4, 3, 'plan', 3500.00, 'bank_transfer', 'BNK-99218', NOW() - INTERVAL '3 months 15 days');
+((SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), (SELECT id FROM subscription_plans WHERE category = 'personal_training' LIMIT 1), 'plan', 3500.00, 'bank_transfer', 'BNK-PT-4412', NOW() - INTERVAL '1 month');
+
+-- Charlie Day - Membership Payment (Cash)
 INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, paid_at) VALUES
-(5, 1, 'plan', 1500.00, 'cash', NOW() - INTERVAL '3 months');
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
-(6, 8, 'product', 95.00, 1, 'cash', NOW() - INTERVAL '2 months 5 days');
+((SELECT id FROM users WHERE email = 'wildcard@example.com'), (SELECT id FROM subscription_plans WHERE category = 'membership' LIMIT 1), 'plan', 1500.00, 'cash', NOW() - INTERVAL '12 days');
+
+-- Casey Morgan - Plan Payment
 INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, reference_no, paid_at) VALUES
-(7, 2, 'plan', 1200.00, 'gcash', 'GC-882100', NOW() - INTERVAL '1 month 20 days');
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
-(8, 10, 'product', 25.00, 1, 'cash', NOW() - INTERVAL '1 month');
+((SELECT id FROM users WHERE email = 'casey.m@example.com'), (SELECT id FROM subscription_plans LIMIT 1), 'plan', 1500.00, 'gcash', 'REF-2026-001', NOW() - INTERVAL '5 months');
+
+-- Taylor Swift - Plan Payment
 INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, reference_no, paid_at) VALUES
-(9, 3, 'plan', 3500.00, 'bank_transfer', 'BNK-77122', NOW() - INTERVAL '25 days');
+((SELECT id FROM users WHERE email = 'taylor.s@example.com'), (SELECT id FROM subscription_plans OFFSET 1 LIMIT 1), 'plan', 3500.00, 'bank_transfer', 'BNK-99218', NOW() - INTERVAL '3 months 15 days');
+
+-- Riley Reid - Plan Payment
 INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, paid_at) VALUES
-(10, 1, 'plan', 1500.00, 'cash', NOW() - INTERVAL '12 days');
+((SELECT id FROM users WHERE email = 'riley.r@example.com'), (SELECT id FROM subscription_plans LIMIT 1), 'plan', 1500.00, 'cash', NOW() - INTERVAL '3 months');
+
+-- ============================================================================
+-- PRODUCT PAYMENTS
+-- ============================================================================
+
+-- Jordan Lee - Product (Pre-workout)
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
-(11, 15, 'product', 550.00, 1, 'gcash', 'Official Gym Merch', NOW() - INTERVAL '5 days');
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, reference_no, paid_at) VALUES
-(12, 2, 'plan', 1200.00, 'gcash', 'GC-441092', NOW() - INTERVAL '1 day');
+((SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), (SELECT id FROM products LIMIT 1), 'product', 120.00, 2, 'cash', 'Pre-workout drinks', NOW() - INTERVAL '4 months 10 days');
+
+-- Quinn Fabray - Product
+INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
+((SELECT id FROM users WHERE email = 'q.fabray@example.com'), (SELECT id FROM products OFFSET 1 LIMIT 1), 'product', 95.00, 1, 'cash', NOW() - INTERVAL '2 months 5 days');
+
+-- Jules Winnfield - Product (Gym Merch)
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
-(2, 1, 'product', 2400.00, 1, 'bank_transfer', 'Whey Protein 5lbs', NOW() - INTERVAL '5 months 2 days');
+((SELECT id FROM users WHERE email = 'badmother@example.com'), (SELECT id FROM products OFFSET 2 LIMIT 1), 'product', 550.00, 1, 'gcash', 'Official Gym Merch', NOW() - INTERVAL '5 days');
+
+-- Casey Morgan - Product (Whey Protein)
+INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
+((SELECT id FROM users WHERE email = 'casey.m@example.com'), (SELECT id FROM products OFFSET 3 LIMIT 1), 'product', 2400.00, 1, 'bank_transfer', 'Whey Protein 5lbs', NOW() - INTERVAL '5 months 2 days');
+
+-- Skyler White - Multiple items
+INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
+((SELECT id FROM users WHERE email = 'skyler.w@example.com'), (SELECT id FROM products WHERE name ILIKE '%drink%' LIMIT 1), 'product', 180.00, 3, 'cash', 'Energy drinks pack', NOW() - INTERVAL '20 days');
+
+-- Quinn Fabray - Gym Merch
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, reference_no, paid_at) VALUES
-(3, 2, 'product', 450.00, 1, 'gcash', 'REF-GC-1029', NOW() - INTERVAL '4 months 15 days');
+((SELECT id FROM users WHERE email = 'q.fabray@example.com'), (SELECT id FROM products WHERE name ILIKE '%merch%' OR name ILIKE '%shirt%' LIMIT 1), 'product', 450.00, 1, 'gcash', 'REF-GC-SHIRT', NOW() - INTERVAL '8 days');
+
+-- Morgan Freeman - Supplement Purchase
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
-(4, 3, 'product', 1800.00, 1, 'cash', NOW() - INTERVAL '4 months');
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
-(5, 4, 'product', 350.00, 1, 'cash', NOW() - INTERVAL '3 months 10 days');
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
-(6, 5, 'product', 250.00, 2, 'cash', NOW() - INTERVAL '3 months');
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
-(7, 6, 'product', 90.00, 3, 'cash', NOW() - INTERVAL '2 months 20 days');
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, reference_no, paid_at) VALUES
-(8, 7, 'product', 150.00, 1, 'gcash', 'REF-GC-9921', NOW() - INTERVAL '2 months');
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
-(9, 8, 'product', 1100.00, 1, 'bank_transfer', NOW() - INTERVAL '1 month 15 days');
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
-(10, 9, 'product', 1350.00, 1, 'gcash', 'Intra-workout supplement', NOW() - INTERVAL '1 month');
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
-(11, 10, 'product', 400.00, 1, 'cash', NOW() - INTERVAL '15 days');
+((SELECT id FROM users WHERE email = 'voice.god@example.com'), (SELECT id FROM products WHERE name ILIKE '%protein%' LIMIT 1), 'product', 2200.00, 1, 'bank_transfer', NOW() - INTERVAL '2 days');

@@ -2,8 +2,6 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React, { useMemo, useState } from "react";
 import { useWorkout } from "@/src/hooks/useWorkout";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "@/src/consts/colors";
-import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function WorkoutPlan() {
@@ -25,29 +23,8 @@ export default function WorkoutPlan() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-1 bg-background p-4">
-        <View className="flex-row items-center justify-between mb-4">
-          <View>
-            <Text className="text-2xl font-bold text-text-primary">
-              All Workout Plans
-            </Text>
-            <Text className="text-text-secondary mt-1">
-              Only one plan can be active at a time.
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="w-9 h-9 rounded-full items-center justify-center bg-surface border border-border"
-          >
-            <Ionicons
-              name="close"
-              size={18}
-              color={COLORS.textSecondary}
-            />
-          </TouchableOpacity>
-        </View>
-
+    <SafeAreaView className="flex-1 border border-red-300">
+      <ScrollView className=" flex-1 bg-background px-4 border border-red-400" contentContainerClassName="pb-16">
         {workoutPlans.map((plan) => (
           <View
             key={plan.id}

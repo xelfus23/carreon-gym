@@ -13,6 +13,7 @@ export interface PlanRow {
     day_order: number;
     is_rest_day: boolean;
     rest_day_notes: string | null;
+    day_date: string;
 
     exercise_id: number | null;
     exercise_name: string | null;
@@ -40,6 +41,7 @@ export async function getWorkoutPlansDomain(params: { userId: number }) {
       wd.title AS day_title,
       wd.day_order,
       wd.is_rest_day,
+      wd.day_date,
       wd.rest_day_notes,
 
       we.id AS exercise_id,
@@ -93,6 +95,7 @@ export async function getWorkoutPlansDomain(params: { userId: number }) {
                 order: row.day_order,
                 is_rest_day: row.is_rest_day,
                 rest_day_notes: row.rest_day_notes,
+                day_date: row.day_date,
                 exercises: [],
             };
             plan.days.push(day);
