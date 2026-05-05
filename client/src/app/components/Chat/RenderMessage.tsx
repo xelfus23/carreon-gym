@@ -7,6 +7,8 @@ import { ChatMessage } from "@/src/types/chats";
 import { markdownStyle } from "@/src/consts/markdownStyle";
 
 export default function renderMessageItem({ item }: { item: ChatMessage }) {
+  console.log(item.content);
+
   const isUser = item.role === "user";
   let parsedContent = item.content || "";
   let thinkingProcess = "";
@@ -46,9 +48,7 @@ export default function renderMessageItem({ item }: { item: ChatMessage }) {
     <View className={`mb-4 ${isUser ? "items-end" : "items-start"} px-4`}>
       <View
         className={
-          isUser
-            ? "bg-surface px-4 py-2 rounded-2xl max-w-[85%]"
-            : "w-full"
+          isUser ? "bg-surface px-4 py-2 rounded-2xl max-w-[85%]" : "w-full"
         }
       >
         {/* 1. Reasoning Layer */}
@@ -61,11 +61,7 @@ export default function renderMessageItem({ item }: { item: ChatMessage }) {
 
         {/* 2. Main Content Layer */}
         {content.length > 0 && (
-          <View
-            className={
-              !isUser && thinkingProcess.length > 0 ? "mt-2" : ""
-            }
-          >
+          <View className={!isUser && thinkingProcess.length > 0 ? "mt-2" : ""}>
             <Markdown
               style={markdownStyle as any}
               rules={{
@@ -76,12 +72,7 @@ export default function renderMessageItem({ item }: { item: ChatMessage }) {
                     showsHorizontalScrollIndicator
                     style={{ flexGrow: 0 }}
                   >
-                    <View
-                      style={[
-                        styles.table,
-                        { width: "100%" },
-                      ]}
-                    >
+                    <View style={[styles.table, { width: "100%" }]}>
                       {children}
                     </View>
                   </ScrollView>

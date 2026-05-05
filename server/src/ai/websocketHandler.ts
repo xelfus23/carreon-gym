@@ -61,7 +61,6 @@ export const WebsocketHandler = async (server: Server) => {
     const { userId, sessionId } = auth;
 
     ws.on("message", async (message) => {
-
       console.log("Client WSS connection");
 
       try {
@@ -75,21 +74,12 @@ export const WebsocketHandler = async (server: Server) => {
 
         let newMessage = [newMsg];
 
-        const chatHistory = await getChatHistory(
-          userId,
-          sessionId!,
-          newMsg,
-        );
+        const chatHistory = await getChatHistory(userId, sessionId!, newMsg);
 
         let messages: ChatMessage[] = [...chatHistory];
 
         const msgResult: ChatMessage | undefined =
-          await handleModelStreamWithTools(
-            messages,
-            userId,
-            sessionId!,
-            ws,
-          );
+          await handleModelStreamWithTools(messages, userId, sessionId!, ws);
 
         if (msgResult) {
           await saveMessageDomain(ws, sessionId!, userId, {
@@ -109,10 +99,7 @@ export const WebsocketHandler = async (server: Server) => {
           if (messageCount % 10 === 0) {
             await saveSummaryDomain(sessionId!);
           } else {
-            console.log(
-              "Skip Summarization message count: ",
-              messageCount,
-            );
+            console.log("Skip Summarization message count: ", messageCount);
           }
         } else {
           console.log("AI did not return a response, skipping save");
@@ -145,10 +132,7 @@ export const WebsocketHandler = async (server: Server) => {
         return;
       }
 
-      const payload = jwt.verify(
-        token,
-        env.JWT_ACCESS_SECRET!,
-      ) as JwtPayload;
+      const payload = jwt.verify(token, env.JWT_ACCESS_SECRET!) as JwtPayload;
 
       if (payload?.role !== "admin") {
         ws.close(1008, "FORBIDDEN");

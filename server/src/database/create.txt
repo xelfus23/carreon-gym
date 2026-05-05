@@ -275,7 +275,7 @@ CREATE TABLE equipment (
     maintenance_notes TEXT,
     last_maintenance_date DATE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP.
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT unique_equipment UNIQUE (name, category_id, type)
 );
 

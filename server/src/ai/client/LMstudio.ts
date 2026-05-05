@@ -4,22 +4,25 @@ import type { ChatMessage } from "../../types/index.ts";
 import { tools } from "../tools/toolRegistry.ts";
 
 export const LMstudio = async (messages: ChatMessage[]) => {
-    const response = await fetch(env.LMSTUDIO_BASE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            model: model.qwen9b,
-            stream: true,
-            messages: messages,
-            tools: tools,
-        }),
-    });
+  const response = await fetch(env.LMSTUDIO_BASE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: model.qwen9b,
+      stream: true,
+      messages: messages,
+      tools: tools,
+      reasoning: {
+        effort: "medium", // or "low", "high"
+      },
+    }),
+  });
 
-    if (!response.ok) {
-        const text = await response.text();
-        console.error("❌ LM Studio error:", text);
-        throw new Error("LM Studio request failed");
-    }
+  if (!response.ok) {
+    const text = await response.text();
+    console.error("❌ LM Studio error:", text);
+    throw new Error("LM Studio request failed");
+  }
 
-    return response.body;
+  return response.body;
 };

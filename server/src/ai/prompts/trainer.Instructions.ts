@@ -1,23 +1,23 @@
 import { getEquipmentDomain } from "../../domain/equipments/getEquipments.ts";
 import {
-    metricsQuery,
-    summaryQuery,
-    userQuery,
+  metricsQuery,
+  summaryQuery,
+  userQuery,
 } from "../../repositories/user.repository.ts";
 
 const formatInventory = (equipments: any[]) => {
-    if (!equipments || equipments.length === 0) return "No equipment found.";
+  if (!equipments || equipments.length === 0) return "No equipment found.";
 
-    return equipments
-        .map(
-            (item) =>
-                `- ID ${item.id}: ${item.equipment_name} (${item.category || "General"})`,
-        )
-        .join("\n");
+  return equipments
+    .map(
+      (item) =>
+        `- ID ${item.id}: ${item.equipment_name} (${item.category || "General"})`,
+    )
+    .join("\n");
 };
 
 const formatUserProfile = (user: any, metrics: any) => {
-    return `
+  return `
     - Name: ${user.first_name || "Member"} ${user.last_name}
     - Gender: ${user.gender || "Not specific"}
     - Goal: ${user.goal || "General Fitness"}
@@ -28,27 +28,25 @@ const formatUserProfile = (user: any, metrics: any) => {
 };
 
 export const Instructions = async (userId: number) => {
-    const userData = await userQuery(userId);
-    const userMetrics = await metricsQuery(userId);
-    const summary = await summaryQuery(userId);
-    const equipmentResult = await getEquipmentDomain();
-    const inventoryList = formatInventory(equipmentResult);
-    const userProfile = formatUserProfile(
-        userData.rows[0],
-        userMetrics.rows[0],
-    );
+  const userData = await userQuery(userId);
+  const userMetrics = await metricsQuery(userId);
+  const summary = await summaryQuery(userId);
+  const equipmentResult = await getEquipmentDomain();
+  const inventoryList = formatInventory(equipmentResult);
 
-    const today = new Date();
-    const formattedDate = today.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    });
+  const userProfile = formatUserProfile(userData.rows[0], userMetrics.rows[0]);
 
-    console.log("CURRENT SUMMARY:", summary);
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
-    return `
+  console.log("CURRENT SUMMARY:", summary);
+
+  return `
 You are **Coach AI**, a virtual Personal Trainer for **Carreon Gym**.
 You are friendly, professional, and supportive.
 
@@ -81,6 +79,7 @@ When the user clearly requests a plan (e.g., "create me a plan", "build my routi
 
 ## TOOL REFERENCE
 
+- \`get_user_details\` — Get the current user's personal details that are necessary for creating workout plans.
 - \`create_workout_plan\` — Creates the overall plan container.
 - \`add_workout_day\` — Creates a day container (does NOT accept exercises).
 - \`add_exercise\` — Adds a single exercise to a specific day.
@@ -96,11 +95,6 @@ ${formattedDate}
 
 ## CAREON GYM INVENTORY
 ${inventoryList}
-
----
-
-## MEMBER PROFILE
-${userProfile}
 
 ---
 
