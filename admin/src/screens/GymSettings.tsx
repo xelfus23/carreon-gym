@@ -74,6 +74,7 @@ export default function GymSettings() {
           Settings
         </h1>
         <div className="flex items-center gap-2 ml-auto">
+
           {!isLoading && (
             <button
               onClick={refresh}
@@ -98,18 +99,19 @@ export default function GymSettings() {
               Refresh
             </button>
           )}
+
         </div>
       </div>
 
-      <div className="max-w-md">
-        <div className="space-y-4">
+      <div className="max-w-full">
+        <div className="space-y-4 grid grid-cols-3 gap-4">
           {editableKeys.map((key) => (
-            <div className="flex flex-col space-y-1" key={key}>
+            <div className="flex flex-col space-y-1 col-span-1" key={key}>
               <label className="capitalize font-medium text-text-secondary text-sm">
                 {key.replace("_", " ")}
               </label>
               <input
-                className="border border-border p-2 rounded focus:ring-2 text-text-primary focus:ring-primary outline-none transition-all"
+                className="border border-border p-2 focus:ring-2 text-text-primary focus:ring-primary outline-none transition-all"
                 // Use type assertion or optional chaining to safely access keys
                 value={(formValue[key] as string) || ""}
                 onChange={(e) =>
@@ -119,18 +121,19 @@ export default function GymSettings() {
             </div>
           ))}
         </div>
-
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className={`mt-6 w-full py-2 rounded text-background font-semibold transition-colors ${isSaving
-            ? "bg-gray-400"
-            : "bg-primary hover:bg-primary-dark"
-            }`}
-        >
-          {isSaving ? "Saving..." : "Save Changes"}
-        </button>
       </div>
+
+      <button
+        onClick={handleSave}
+        disabled={isSaving}
+        className={`mt-6 w-40 px-4 py-2 text-background font-semibold transition-colors ${isSaving
+          ? "bg-gray-400"
+          : "bg-primary hover:bg-primary-dark"
+          }`}
+      >
+        {isSaving ? "Saving..." : "Save Changes"}
+      </button>
+
     </div>
   );
 }

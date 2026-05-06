@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Login from "./components/Login";
 import { useAuthContext } from "./hooks/contextHooks";
 import DashboardHome from "./screens/DashboardHome";
-import AssistantTab from "./screens/AssistantTab";
+// import AssistantTab from "./screens/AssistantTab";
 import { NavItem } from "./types";
 import Sidebar from "./components/SideBar";
 import QRTab from "./screens/QRTab";
@@ -52,8 +52,8 @@ const App: React.FC = () => {
         return <EquipmentTab />;
       case NavItem.GYM_PRODUCTS:
         return <Product />;
-      case NavItem.AI_INSIGHTS:
-        return <AssistantTab />;
+      // case NavItem.AI_INSIGHTS:
+      //   return <AssistantTab />;
       case NavItem.SUBSCRIPTIONS:
         return <GymSubscriptions />;
       case NavItem.QR_CODE:

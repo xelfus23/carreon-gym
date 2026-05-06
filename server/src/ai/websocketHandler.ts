@@ -76,6 +76,8 @@ export const WebsocketHandler = async (server: Server) => {
 
         const chatHistory = await getChatHistory(userId, sessionId!, newMsg);
 
+        console.log("Chat History", chatHistory);
+
         let messages: ChatMessage[] = [...chatHistory];
 
         const msgResult: ChatMessage | undefined =

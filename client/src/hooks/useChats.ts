@@ -12,6 +12,8 @@ import { UserProfile } from "../types/users";
 
 let tempIdCounter = 0;
 const newTempId = () => `__streaming_${tempIdCounter++}__`;
+const GENERIC_ASSISTANT_ERROR =
+  "I ran into an issue while processing your request. Please try again.";
 
 export function useChat(params?: {
   initialSessionId?: number;
@@ -43,6 +45,7 @@ export function useChat(params?: {
 
   const abortRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
+  const activeAssistantIdRef = useRef<string | null>(null);
 
   const sessionResolvedRef = useRef(!!params?.initialSessionId);
 
@@ -164,7 +167,8 @@ export function useChat(params?: {
       setError(null);
 
       const userTempId = `__user_${Date.now()}__`;
-      const assistantTempId = newTempId();
+      const initialAssistantId = newTempId();
+      activeAssistantIdRef.current = initialAssistantId;
 
       setMessages((prev) => [
         ...prev,
@@ -179,10 +183,10 @@ export function useChat(params?: {
       setMessages((prev) => [
         ...prev,
         {
-          id: assistantTempId,
+          id: initialAssistantId,
           role: "assistant",
           content: "",
-          aiStatus: "Thinking",
+          aiStatus: "Preparing assistant",
         },
       ]);
 
@@ -193,20 +197,61 @@ export function useChat(params?: {
           (token) => {
             setMessages((prev) =>
               prev.map((msg) =>
-                msg.id === assistantTempId
+                msg.id === activeAssistantIdRef.current
                   ? { ...msg, content: msg.content + token }
                   : msg,
               ),
             );
           },
           (state) => {
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === assistantTempId
+            setMessages((prev) => {
+              if (state === "Done") {
+                return prev.map((msg) =>
+                  msg.role === "assistant" &&
+                  String(msg.id).startsWith("__streaming_")
+                    ? { ...msg, aiStatus: "Done" }
+                    : msg,
+                );
+              }
+
+              return prev.map((msg) =>
+                msg.id === activeAssistantIdRef.current
                   ? { ...msg, aiStatus: state }
                   : msg,
-              ),
-            );
+              );
+            });
+          },
+          () => {
+            setMessages((prev) => {
+              const activeId = activeAssistantIdRef.current;
+              if (!activeId) return prev;
+
+              const activeMessage = prev.find((msg) => msg.id === activeId);
+              const shouldStartNewAssistantMessage =
+                !!activeMessage &&
+                (activeMessage.content.trim().length > 0 ||
+                  (!!activeMessage.aiStatus &&
+                    activeMessage.aiStatus !== "Preparing assistant"));
+
+              if (!shouldStartNewAssistantMessage) {
+                return prev;
+              }
+
+              const nextAssistantId = newTempId();
+              activeAssistantIdRef.current = nextAssistantId;
+
+              return [
+                ...prev.map((msg) =>
+                  msg.id === activeId ? { ...msg, aiStatus: "Done" } : msg,
+                ),
+                {
+                  id: nextAssistantId,
+                  role: "assistant",
+                  content: "",
+                  aiStatus: "Processing tool results",
+                },
+              ];
+            });
           },
           abortRef.current.signal,
         );
@@ -219,18 +264,26 @@ export function useChat(params?: {
 
         if (mountedRef.current) {
           setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantTempId
-                ? {
-                  ...msg,
-                  content: `⚠️ ${message}`,
-                  aiStatus: "Error",
-                }
-                : msg,
+            prev.filter(
+              (msg) =>
+                msg.id !== userTempId &&
+                !String(msg.id).startsWith("__streaming_"),
             ),
           );
+
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `__error_${Date.now()}__`,
+              role: "assistant",
+              content: `⚠️ ${message || GENERIC_ASSISTANT_ERROR}`,
+              timestamp: Date.now(),
+              aiStatus: "Error",
+            },
+          ]);
         }
       } finally {
+        activeAssistantIdRef.current = null;
         if (mountedRef.current) {
           setLoading(false);
         } else {

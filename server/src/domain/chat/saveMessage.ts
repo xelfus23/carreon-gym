@@ -1,6 +1,7 @@
 import { WebSocket } from "ws";
 import pool from "../../config/pool.ts";
 import type { ChatMessage } from "../../types/index.ts";
+import { sanitizeAssistantContent } from "../../ai/utils/sanitizeAssistantContent.ts";
 
 export const saveMessageDomain = async (
     ws: WebSocket,
@@ -17,6 +18,7 @@ export const saveMessageDomain = async (
             [sessionId, userId, "user", message.content],
         );
     } else if (message.role === "assistant") {
+        const cleanedAssistantContent = sanitizeAssistantContent(message.content);
         const toolCallsJson = message.tool_calls
             ? JSON.stringify(message.tool_calls)
             : null;
@@ -28,7 +30,7 @@ export const saveMessageDomain = async (
                 sessionId,
                 userId,
                 "assistant",
-                message.content || null,
+                cleanedAssistantContent || null,
                 toolCallsJson,
             ],
         );

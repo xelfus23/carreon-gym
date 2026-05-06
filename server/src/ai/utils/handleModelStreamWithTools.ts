@@ -33,12 +33,30 @@ export async function handleModelStreamWithTools(
         }
     };
 
+    const toReadableToolState = (toolName: string) =>
+        toolName
+            .replace(/^get_/, "getting ")
+            .replace(/^create_/, "creating ")
+            .replace(/^add_/, "updating ")
+            .replace(/^delete_/, "updating ")
+            .replace(/_/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+            .replace(/^./, (c) => c.toUpperCase());
+
     log("▶️ Starting stream loop");
 
     try {
         while (true) {
             iteration++;
             log(`🔄 Loop iteration start`);
+            safeSend({
+                type: "state",
+                state:
+                    iteration === 1
+                        ? "Understanding your request"
+                        : "Preparing response from latest updates",
+            });
 
             let toolCalls: Awaited<ReturnType<typeof streamModel>>["toolCalls"];
             let assistantContent: Awaited<
@@ -64,14 +82,17 @@ export async function handleModelStreamWithTools(
             // ── Final response (no tool calls) ──────────────────────────
             if (toolCalls.length === 0) {
                 log("🏁 No tool calls — final response");
-                safeSend({ type: "done" });
+                safeSend({ type: "state", state: "Finalizing response" });
 
                 if (!assistantContent) {
                     log(
                         "⚠️ No assistant content and no tool calls — empty response",
                     );
+                    safeSend({ type: "error", message: "Empty assistant response" });
                     return undefined;
                 }
+
+                safeSend({ type: "done" });
 
                 return {
                     role: "assistant",
@@ -101,14 +122,19 @@ export async function handleModelStreamWithTools(
                         ws,
                         { disableTools: true },
                     );
-                    safeSend({ type: "done" });
 
                     if (summary) {
+                        safeSend({ type: "done" });
                         return {
                             role: "assistant",
                             content: summary,
                         } as ChatMessage;
                     }
+
+                    safeSend({
+                        type: "error",
+                        message: "Unable to produce final response after tools",
+                    });
                 } catch (err) {
                     console.error(
                         `[Stream][session=${sessionId}] ❌ streamModel (disableTools) threw:`,
@@ -141,7 +167,13 @@ export async function handleModelStreamWithTools(
 
             const toolResults = await Promise.allSettled(
                 toolCalls.map((toolCall) =>
-                    handleToolCall(ws, toolCall, userId),
+                    (async () => {
+                        safeSend({
+                            type: "state",
+                            state: toReadableToolState(toolCall.name),
+                        });
+                        return handleToolCall(ws, toolCall, userId);
+                    })(),
                 ),
             );
 
@@ -157,6 +189,10 @@ export async function handleModelStreamWithTools(
                         `[Stream][session=${sessionId}] ❌ Tool "${toolCall.name}" failed:`,
                         result.reason,
                     );
+                    safeSend({
+                        type: "state",
+                        state: `Retrying after ${toolCall.name.replace(/_/g, " ")} issue`,
+                    });
                 } else {
                     log(`✅ Tool "${toolCall.name}" succeeded`);
                 }

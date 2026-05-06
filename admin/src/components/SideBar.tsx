@@ -10,7 +10,7 @@ import {
   QrCode,
   Settings,
   ShoppingBasket,
-  Sparkles,
+  // Sparkles,
   Ticket,
   UserRoundKey,
   UsersRound,
@@ -71,11 +71,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       icon: <Ticket className="h-4 stroke-2" />,
     },
 
-    {
-      id: NavItem.AI_INSIGHTS,
-      label: "AI Insights",
-      icon: <Sparkles className="h-4 stroke-2" />,
-    },
+    // {
+    //   id: NavItem.AI_INSIGHTS,
+    //   label: "AI Insights",
+    //   icon: <Sparkles className="h-4 stroke-2" />,
+    // },
     {
       id: NavItem.GYM_SETTINGS,
       label: "Gym Settings",

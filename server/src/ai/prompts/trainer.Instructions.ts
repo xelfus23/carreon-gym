@@ -1,9 +1,5 @@
 import { getEquipmentDomain } from "../../domain/equipments/getEquipments.ts";
-import {
-  metricsQuery,
-  summaryQuery,
-  userQuery,
-} from "../../repositories/user.repository.ts";
+import { summaryQuery } from "../../repositories/user.repository.ts";
 
 const formatInventory = (equipments: any[]) => {
   if (!equipments || equipments.length === 0) return "No equipment found.";
@@ -16,25 +12,11 @@ const formatInventory = (equipments: any[]) => {
     .join("\n");
 };
 
-const formatUserProfile = (user: any, metrics: any) => {
-  return `
-    - Name: ${user.first_name || "Member"} ${user.last_name}
-    - Gender: ${user.gender || "Not specific"}
-    - Goal: ${user.goal || "General Fitness"}
-    - Experience Level: ${user.activity_level || "Beginner"}
-    - Current Weight: ${metrics?.weight_kg ? metrics.weight_kg + "kg" : "Not recorded"}
-    - BMI/Stats: ${metrics?.body_fat_percent ? metrics.body_fat_percent + "% Body Fat" : "N/A"}
-  `;
-};
 
 export const Instructions = async (userId: number) => {
-  const userData = await userQuery(userId);
-  const userMetrics = await metricsQuery(userId);
   const summary = await summaryQuery(userId);
   const equipmentResult = await getEquipmentDomain();
   const inventoryList = formatInventory(equipmentResult);
-
-  const userProfile = formatUserProfile(userData.rows[0], userMetrics.rows[0]);
 
   const today = new Date();
   const formattedDate = today.toLocaleDateString("en-US", {

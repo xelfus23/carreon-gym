@@ -43,6 +43,7 @@ export const chatService = {
     text: string,
     onToken: (token: string) => void,
     onState: (state: string) => void,
+    onAssistantResponseStart?: () => void,
     signal?: AbortSignal,
     isRetry = false, // Add a retry flag to prevent infinite loops
   ): Promise<void> => {
@@ -73,6 +74,8 @@ export const chatService = {
 
         const socket = activeSocket;
         let settled = false;
+        let receivedDone = false;
+        let receivedError = false;
 
 
         const settle = (fn: () => void) => {
@@ -93,6 +96,7 @@ export const chatService = {
         };
 
         socket.onopen = () => {
+          onState("Connecting to assistant");
           socket.send(JSON.stringify({ message: text }));
         };
 
@@ -100,11 +104,15 @@ export const chatService = {
           try {
             const data = JSON.parse(e.data as string);
 
-            if (data.type === "token") onToken(data.content);
+            if (data.type === "assistant_response_start") {
+              onAssistantResponseStart?.();
+            }
+            else if (data.type === "token") onToken(data.content);
 
             else if (data.type === "state") onState(data.state);
 
             else if (data.type === "error") {
+              receivedError = true;
               cleanup();
 
               if (data.message === "AUTHENTICATION_FAILED") {
@@ -122,6 +130,7 @@ export const chatService = {
               }
               socket.close();
             } else if (data.type === "done") {
+              receivedDone = true;
               onState("Done");
               cleanup();
               settle(() => resolve());
@@ -132,6 +141,7 @@ export const chatService = {
         };
 
         socket.onerror = () => {
+          receivedError = true;
           cleanup();
           settle(() =>
             reject(new Error('Error please try again later.')),
@@ -140,6 +150,8 @@ export const chatService = {
 
         socket.onclose = (e) => {
           cleanup();
+          if (receivedDone || settled) return;
+
           if (!e.wasClean && e.code !== 1000) {
             // Check for Auth error in Close Reason
             const reason =
@@ -149,6 +161,12 @@ export const chatService = {
             settle(() =>
               reject(
                 new Error(reason || "Unknown Connection Error"),
+              ),
+            );
+          } else if (!receivedError) {
+            settle(() =>
+              reject(
+                new Error("Connection closed before completion."),
               ),
             );
           }
@@ -170,6 +188,7 @@ export const chatService = {
             text,
             onToken,
             onState,
+            onAssistantResponseStart,
             signal,
             true,
           );

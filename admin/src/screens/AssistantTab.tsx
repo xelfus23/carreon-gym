@@ -2,10 +2,13 @@ import React, { useState, useRef, useEffect } from "react";
 import { chatService } from "../services/ai.service";
 import { Send } from "lucide-react";
 
+type UiMessage = {
+  role: "user" | "assistant" | "system";
+  text: string;
+};
+
 const AssistantTab: React.FC = () => {
-  const [messages, setMessages] = useState<
-    { role: "user" | "assistant"; text: string }[]
-  >([
+  const [messages, setMessages] = useState<UiMessage[]>([
     {
       role: "assistant",
       text: "Hello! I'm your Careon Gym AI Assistant. How can I help you optimize your gym business today?",
@@ -14,7 +17,9 @@ const AssistantTab: React.FC = () => {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [currentState, setCurrentState] = useState("");
+  const [streamError, setStreamError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<number | null>(null);
+  const activeAssistantIndexRef = useRef<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,20 +48,22 @@ const AssistantTab: React.FC = () => {
     setInput("");
     setMessages((prev) => [...prev, { role: "user", text: userMessage }]);
     setIsTyping(true);
-
-    // Add placeholder for AI response
-    setMessages((prev) => [...prev, { role: "assistant", text: "" }]);
+    setStreamError(null);
+    activeAssistantIndexRef.current = null;
 
     try {
       await chatService.sendMessage(
         sessionId,
         userMessage,
         (token) => {
+          const activeIndex = activeAssistantIndexRef.current;
+          if (activeIndex === null) return;
+
           setMessages((prev) => {
             const updated = [...prev];
-            const last = updated[updated.length - 1];
-            if (last && last.role === "assistant") {
-              last.text += token;
+            const target = updated[activeIndex];
+            if (target && target.role === "assistant") {
+              target.text += token;
             }
             return updated;
           });
@@ -64,20 +71,28 @@ const AssistantTab: React.FC = () => {
         (state) => {
           setCurrentState(state);
         },
+        () => {
+          setMessages((prev) => {
+            const nextIndex = prev.length;
+            activeAssistantIndexRef.current = nextIndex;
+            return [...prev, { role: "assistant", text: "" }];
+          });
+        },
       );
     } catch (e) {
-      console.error(e);
-      setMessages((prev) => {
-        const updated = [...prev];
-        const last = updated[updated.length - 1];
-        if (last && last.role === "assistant" && last.text === "") {
-          last.text = `Service error. Please check your backend connection at ${import.meta.env.VITE_SERVER_URL}.`;
-        }
-        return updated;
-      });
+      const message =
+        e instanceof Error
+          ? e.message
+          : `Service error. Please check your backend connection at ${import.meta.env.VITE_SERVER_URL}.`;
+      setStreamError(message);
+      setMessages((prev) => [
+        ...prev,
+        { role: "system", text: `Assistant error: ${message}` },
+      ]);
     } finally {
       setIsTyping(false);
       setCurrentState("");
+      activeAssistantIndexRef.current = null;
     }
   };
 
@@ -126,16 +141,13 @@ const AssistantTab: React.FC = () => {
               className={`max-w-[80%] p-4 shadow-sm leading-relaxed ${
                 msg.role === "user"
                   ? "bg-surface text-text-secondary rounded-tr-none"
-                  : "text-text-primary"
+                  : msg.role === "system"
+                    ? "bg-rose-500/10 border border-rose-500/30 text-rose-300"
+                    : "text-text-primary"
               }`}
             >
               <p className="text-sm whitespace-pre-line">
-                {msg.text ||
-                  (msg.role === "assistant" &&
-                  isTyping &&
-                  i === messages.length - 1
-                    ? "..."
-                    : "")}
+                {msg.text}
               </p>
             </div>
           </div>
@@ -149,10 +161,13 @@ const AssistantTab: React.FC = () => {
                 <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce delay-200"></div>
               </div>
               <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">
-                {currentState || "Thinking"}
+                {currentState || "Processing request"}
               </span>
             </div>
           </div>
+        )}
+        {streamError && (
+          <p className="text-xs text-rose-400">{streamError}</p>
         )}
       </div>
 

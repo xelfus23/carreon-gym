@@ -3,6 +3,7 @@ import type { ChatMessage, ToolCall } from "../../types/index.ts";
 import { LMstudio } from "../client/LMstudio.ts";
 import { Gemini } from "../client/Gemini.ts";
 import { env } from "../../config/env.ts";
+import { sanitizeAssistantContent } from "./sanitizeAssistantContent.ts";
 
 export const modelProvider = async (
     messages: ChatMessage[],
@@ -19,7 +20,7 @@ export async function streamModel(
     ws: WebSocket,
     params?: { disableTools?: boolean },
 ): Promise<{ toolCalls: ToolCall[]; assistantContent: string }> {
-    ws.send(JSON.stringify({ type: "state", state: "Thinking" }));
+    ws.send(JSON.stringify({ type: "assistant_response_start" }));
 
     const response = await modelProvider(messages, {
         disableTools: params?.disableTools ?? false,
@@ -35,11 +36,69 @@ export async function streamModel(
     let buffer = "";
     let toolCallBuffer: Record<number, ToolCall> = {};
     let assistantContent = "";
+    let pendingText = "";
+    let inThinkBlock = false;
     let done = false; // ✅ single flag to break both loops
+
+    const THINK_OPEN = "<think>";
+    const THINK_CLOSE = "</think>";
+
+    const sanitizeVisibleText = (content: string) =>
+        content
+            .replace(
+                /"?\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b"?\s*[:=]\s*"?[a-z0-9_-]+"?,?/gi,
+                "",
+            )
+            .replace(
+                /\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b\s*[:=]\s*[a-z0-9_-]+/gi,
+                "",
+            );
+
+    const consumeSafeStreamText = (chunk: string): string => {
+        pendingText += chunk;
+        let visible = "";
+
+        while (pendingText.length > 0) {
+            const lower = pendingText.toLowerCase();
+
+            if (inThinkBlock) {
+                const closeIdx = lower.indexOf(THINK_CLOSE);
+                if (closeIdx === -1) {
+                    // Keep a small tail for partial closing tags across chunks.
+                    if (pendingText.length > THINK_CLOSE.length) {
+                        pendingText = pendingText.slice(
+                            pendingText.length - THINK_CLOSE.length,
+                        );
+                    }
+                    return sanitizeVisibleText(visible);
+                }
+
+                pendingText = pendingText.slice(closeIdx + THINK_CLOSE.length);
+                inThinkBlock = false;
+                continue;
+            }
+
+            const openIdx = lower.indexOf(THINK_OPEN);
+            if (openIdx === -1) {
+                // Emit everything except a small tail for partial opening tags.
+                const safeLen = Math.max(0, pendingText.length - THINK_OPEN.length);
+                if (safeLen === 0) return sanitizeVisibleText(visible);
+                visible += pendingText.slice(0, safeLen);
+                pendingText = pendingText.slice(safeLen);
+                return sanitizeVisibleText(visible);
+            }
+
+            visible += pendingText.slice(0, openIdx);
+            pendingText = pendingText.slice(openIdx + THINK_OPEN.length);
+            inThinkBlock = true;
+        }
+
+        return sanitizeVisibleText(visible);
+    };
 
     while (!done) {
         const { value, done: streamDone } = await reader.read();
-
+ 
         if (streamDone) break;
 
         buffer += decoder.decode(value, { stream: true });
@@ -65,12 +124,15 @@ export async function streamModel(
 
                 if (delta.content) {
                     assistantContent += delta.content;
-                    ws.send(
-                        JSON.stringify({
-                            type: "token",
-                            content: delta.content,
-                        }),
-                    );
+                    const streamSafeText = consumeSafeStreamText(delta.content);
+                    if (streamSafeText) {
+                        ws.send(
+                            JSON.stringify({
+                                type: "token",
+                                content: streamSafeText,
+                            }),
+                        );
+                    }
                 }
 
                 if (delta.tool_calls) {
@@ -107,6 +169,17 @@ export async function streamModel(
     }
 
     const toolCalls = Object.values(toolCallBuffer);
+    const cleanedAssistantContent = sanitizeAssistantContent(assistantContent);
+    const trailingVisible =
+        !inThinkBlock && pendingText ? sanitizeVisibleText(pendingText) : "";
+    if (trailingVisible) {
+        ws.send(
+            JSON.stringify({
+                type: "token",
+                content: trailingVisible,
+            }),
+        );
+    }
 
     if (toolCalls.length > 0) {
         console.log(`✅ Collected ${toolCalls.length} tool call(s):`);
@@ -115,9 +188,9 @@ export async function streamModel(
         });
     } else {
         console.log(
-            `✅ streamModel done — contentLength=${assistantContent.length}`,
+            `✅ streamModel done — contentLength=${cleanedAssistantContent.length}`,
         );
     }
 
-    return { toolCalls, assistantContent };
+    return { toolCalls, assistantContent: cleanedAssistantContent };
 }

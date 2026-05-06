@@ -6,7 +6,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import SubscriptionModal from "../components/SubscriptionModal";
 import { memberService } from "../services/member.service";
 import {
-  Calendar,
+  // Calendar,
   CircleAlert,
   CircleCheck,
   Loader2,
@@ -257,12 +257,12 @@ export default function MemberManagement() {
       color: "border-indigo-500/30 bg-indigo-500/5 text-indigo-500",
       icon: <Star size={16} />,
     },
-    {
-      label: "Avg Attendance",
-      value: `${stats.avgAttendance}%`,
-      color: "border-violet-500/30 bg-violet-500/5 text-violet-500",
-      icon: <Calendar size={16} />,
-    },
+    // {
+    //   label: "Avg Attendance",
+    //   value: `${stats.avgAttendance}%`,
+    //   color: "border-violet-500/30 bg-violet-500/5 text-violet-500",
+    //   icon: <Calendar size={16} />,
+    // },
   ];
 
   const select: SelectProps[] = [
@@ -382,7 +382,7 @@ export default function MemberManagement() {
         </form>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map(({ label, value, color, icon }) => (
           <StatsCard label={label} value={value} color={color} icon={icon} />
         ))}
