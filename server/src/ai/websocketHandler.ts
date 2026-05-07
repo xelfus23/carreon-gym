@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
 import { WSAuthentication } from "../middleware/wsAuth.ts";
 import type { ChatMessage } from "../types/index.ts";
-import { getChatHistory } from "../utils/getChatHistory.ts";
+import { getChatHistory } from "./utils/getChatHistory.ts";
 import { handleModelStreamWithTools } from "./utils/handleModelStreamWithTools.ts";
 import { saveMessageDomain } from "../domain/chat/saveMessage.ts";
 import { saveSummaryDomain } from "../domain/chat/saveSummary.ts";
@@ -72,11 +72,7 @@ export const WebsocketHandler = async (server: Server) => {
           content: userMessage,
         };
 
-        let newMessage = [newMsg];
-
         const chatHistory = await getChatHistory(userId, sessionId!, newMsg);
-
-        console.log("Chat History", chatHistory);
 
         let messages: ChatMessage[] = [...chatHistory];
 

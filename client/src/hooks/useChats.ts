@@ -195,15 +195,18 @@ export function useChat(params?: {
           sessionId,
           text,
           (token) => {
+            const targetAssistantId = activeAssistantIdRef.current;
+            if (!targetAssistantId) return;
             setMessages((prev) =>
               prev.map((msg) =>
-                msg.id === activeAssistantIdRef.current
+                msg.id === targetAssistantId
                   ? { ...msg, content: msg.content + token }
                   : msg,
               ),
             );
           },
           (state) => {
+            const targetAssistantId = activeAssistantIdRef.current;
             setMessages((prev) => {
               if (state === "Done") {
                 return prev.map((msg) =>
@@ -215,7 +218,7 @@ export function useChat(params?: {
               }
 
               return prev.map((msg) =>
-                msg.id === activeAssistantIdRef.current
+                msg.id === targetAssistantId
                   ? { ...msg, aiStatus: state }
                   : msg,
               );

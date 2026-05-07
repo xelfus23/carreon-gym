@@ -12,9 +12,6 @@ export const LMstudio = async (messages: ChatMessage[]) => {
       stream: true,
       messages: messages,
       tools: tools,
-      reasoning: {
-        effort: "medium", // or "low", "high"
-      },
     }),
   });
 
@@ -23,6 +20,7 @@ export const LMstudio = async (messages: ChatMessage[]) => {
     console.error("❌ LM Studio error:", text);
     throw new Error("LM Studio request failed");
   }
+
 
   return response.body;
 };

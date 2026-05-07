@@ -78,7 +78,7 @@ export default function WorkoutLayout() {
       <Tabs.Screen
         name="plans"
         options={{
-          title: "Workout",
+          title: "Plans",
           tabBarIcon: (props) => (
             <View style={{ transform: [{ rotate: "45deg" }] }}>
               <LucideDumbbell {...props} />
@@ -89,7 +89,7 @@ export default function WorkoutLayout() {
       <Tabs.Screen
         name="today-exercise"
         options={{
-          title: "Workout",
+          title: "Today's Workout",
           tabBarIcon: (props) => (
             <View style={{ transform: [{ rotate: "45deg" }] }}>
               <LucideDumbbell {...props} />

@@ -2,7 +2,6 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React, { useMemo, useState } from "react";
 import { useWorkout } from "@/src/hooks/useWorkout";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function WorkoutPlan() {
   const { workoutPlans, isLoading, togglePlanStatus, deletePlan } =
@@ -23,8 +22,8 @@ export default function WorkoutPlan() {
   }
 
   return (
-    <SafeAreaView className="flex-1 border border-red-300">
-      <ScrollView className=" flex-1 bg-background px-4 border border-red-400" contentContainerClassName="pb-16">
+    <View className="flex-1">
+      <ScrollView className="h-screen p-4" contentContainerClassName="">
         {workoutPlans.map((plan) => (
           <View
             key={plan.id}
@@ -35,9 +34,7 @@ export default function WorkoutPlan() {
                 <Text className="text-lg font-bold text-text-primary">
                   {plan.title}
                 </Text>
-                <Text className="text-text-secondary mt-1">
-                  {plan.description}
-                </Text>
+
                 <View className="flex-row items-center gap-2 mt-2">
                   <Text className="text-text-secondary text-xs">
                     {plan.days?.length ?? 0} day
@@ -66,8 +63,8 @@ export default function WorkoutPlan() {
                   <Ionicons
                     name={
                       expandedPlanId === plan.id
-                        ? "eye-off-outline"
-                        : "eye-outline"
+                        ? "caret-up-outline"
+                        : "caret-down-outline"
                     }
                     size={20}
                     color="#3B82F6"
@@ -114,6 +111,10 @@ export default function WorkoutPlan() {
 
             {expandedPlanId === plan.id && (
               <View className="mt-4 pt-4 border-t border-border">
+                <Text className="text-text-secondary pb-4">
+                  {plan.description}
+                </Text>
+
                 {(plan.days ?? []).length === 0 ? (
                   <Text className="text-text-secondary text-sm">
                     No generated workout days yet.
@@ -156,11 +157,11 @@ export default function WorkoutPlan() {
         ))}
 
         {workoutPlans.length === 0 && (
-          <View className="mt-6 bg-surface border border-border rounded-2xl p-5">
-            <Text className="text-text-primary font-semibold text-base">
+          <View className="mt-6 p-5">
+            <Text className="text-text-primary font-semibold text-base text-center">
               No Workout Plans
             </Text>
-            <Text className="text-text-secondary mt-1">
+            <Text className="text-text-secondary mt-1 text-center">
               Generate a plan first, then activate one to start
               today&apos;s training flow.
             </Text>
@@ -168,17 +169,17 @@ export default function WorkoutPlan() {
         )}
 
         {activePlanId == null && workoutPlans.length > 0 && (
-          <View className="mt-2 mb-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4">
-            <Text className="text-amber-600 font-semibold">
+          <View className="mt-2 mb-6 p-4">
+            <Text className="text-amber-600 font-semibold text-center">
               No plan is active
             </Text>
-            <Text className="text-amber-700 text-sm mt-1">
+            <Text className="text-amber-700 text-sm mt-1 text-center">
               Activate one plan to populate the Workout tab with
               today&apos;s exercises.
             </Text>
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

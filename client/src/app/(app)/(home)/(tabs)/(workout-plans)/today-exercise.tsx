@@ -131,7 +131,10 @@ export default function TodayWorkoutScreen() {
 
   const todayExercises =
     activePlan?.days
-      ?.filter((day) => formatLocalDate(day.day_date) === todayStr)
+      ?.filter((day) => {
+        console.log("Day", day)
+        // formatLocalDate(day.day_date) === todayStr
+      })
       .flatMap((day) =>
         day.exercises.map((ex) => ({
           ...ex,
@@ -150,7 +153,7 @@ export default function TodayWorkoutScreen() {
 
   return (
     <ScrollView className="flex-1 bg-background p-4">
-      <Text className="text-2xl font-bold">Today&Apos;s Session</Text>
+      <Text className="text-2xl font-bold text-text-primary">Today&apos;s Session</Text>
 
       {/* INCOMPLETE FIRST */}
       <SectionHeader

@@ -2,7 +2,7 @@ import { SummaryInstructions } from "../../ai/prompts/summarizer.Instructions.ts
 import { env } from "../../config/env.ts";
 import { model } from "../../config/models.ts";
 import pool from "../../config/pool.ts";
-import { formatChatHistory } from "../../utils/formatHistory.ts";
+import { formatChatHistory } from "../../ai/utils/formatHistory.ts";
 
 export const saveSummaryDomain = async (sessionId: number) => {
   console.log("START SUMMARIZATION");

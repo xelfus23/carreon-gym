@@ -6,191 +6,201 @@ import { env } from "../../config/env.ts";
 import { sanitizeAssistantContent } from "./sanitizeAssistantContent.ts";
 
 export const modelProvider = async (
-    messages: ChatMessage[],
-    options?: { disableTools: boolean },
+  messages: ChatMessage[],
+  options?: { disableTools: boolean },
 ) => {
-    if (env.PROVIDER === "gemini") {
-        return Gemini(messages, options);
-    }
-    return LMstudio(messages);
+  if (env.PROVIDER === "gemini") {
+    return Gemini(messages, options);
+  }
+  return LMstudio(messages);
 };
 
 export async function streamModel(
-    messages: ChatMessage[],
-    ws: WebSocket,
-    params?: { disableTools?: boolean },
+  messages: ChatMessage[],
+  ws: WebSocket,
+  params?: { disableTools?: boolean },
 ): Promise<{ toolCalls: ToolCall[]; assistantContent: string }> {
-    ws.send(JSON.stringify({ type: "assistant_response_start" }));
+  ws.send(JSON.stringify({ type: "assistant_response_start" }));
 
-    const response = await modelProvider(messages, {
-        disableTools: params?.disableTools ?? false,
-    });
+  const response = await modelProvider(messages, {
+    disableTools: params?.disableTools ?? false,
+  });
 
-    if (!response) {
-        throw new Error("No response from model");
-    }
+  if (!response) {
+    throw new Error("No response from model");
+  }
 
-    const reader = response.getReader();
-    const decoder = new TextDecoder();
 
-    let buffer = "";
-    let toolCallBuffer: Record<number, ToolCall> = {};
-    let assistantContent = "";
-    let pendingText = "";
-    let inThinkBlock = false;
-    let done = false; // ✅ single flag to break both loops
+  const reader = response.getReader();
+  const decoder = new TextDecoder();
 
-    const THINK_OPEN = "<think>";
-    const THINK_CLOSE = "</think>";
 
-    const sanitizeVisibleText = (content: string) =>
-        content
-            .replace(
-                /"?\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b"?\s*[:=]\s*"?[a-z0-9_-]+"?,?/gi,
-                "",
-            )
-            .replace(
-                /\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b\s*[:=]\s*[a-z0-9_-]+/gi,
-                "",
+  let buffer = "";
+  let toolCallBuffer: Record<number, ToolCall> = {};
+  let assistantContent = "";
+  let pendingText = "";
+  let inThinkBlock = false;
+  let done = false; // ✅ single flag to break both loops
+
+  const THINK_OPEN = "<think>";
+  const THINK_CLOSE = "</think>";
+
+  const sanitizeVisibleText = (content: string) =>
+    content
+      .replace(
+        /"?\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b"?\s*[:=]\s*"?[a-z0-9_-]+"?,?/gi,
+        "",
+      )
+      .replace(
+        /\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b\s*[:=]\s*[a-z0-9_-]+/gi,
+        "",
+      );
+
+  const consumeSafeStreamText = (chunk: string): string => {
+    pendingText += chunk;
+    let visible = "";
+
+    while (pendingText.length > 0) {
+      const lower = pendingText.toLowerCase();
+
+      if (inThinkBlock) {
+        const closeIdx = lower.indexOf(THINK_CLOSE);
+        if (closeIdx === -1) {
+          // Keep a small tail for partial closing tags across chunks.
+          if (pendingText.length > THINK_CLOSE.length) {
+            pendingText = pendingText.slice(
+              pendingText.length - THINK_CLOSE.length,
             );
-
-    const consumeSafeStreamText = (chunk: string): string => {
-        pendingText += chunk;
-        let visible = "";
-
-        while (pendingText.length > 0) {
-            const lower = pendingText.toLowerCase();
-
-            if (inThinkBlock) {
-                const closeIdx = lower.indexOf(THINK_CLOSE);
-                if (closeIdx === -1) {
-                    // Keep a small tail for partial closing tags across chunks.
-                    if (pendingText.length > THINK_CLOSE.length) {
-                        pendingText = pendingText.slice(
-                            pendingText.length - THINK_CLOSE.length,
-                        );
-                    }
-                    return sanitizeVisibleText(visible);
-                }
-
-                pendingText = pendingText.slice(closeIdx + THINK_CLOSE.length);
-                inThinkBlock = false;
-                continue;
-            }
-
-            const openIdx = lower.indexOf(THINK_OPEN);
-            if (openIdx === -1) {
-                // Emit everything except a small tail for partial opening tags.
-                const safeLen = Math.max(0, pendingText.length - THINK_OPEN.length);
-                if (safeLen === 0) return sanitizeVisibleText(visible);
-                visible += pendingText.slice(0, safeLen);
-                pendingText = pendingText.slice(safeLen);
-                return sanitizeVisibleText(visible);
-            }
-
-            visible += pendingText.slice(0, openIdx);
-            pendingText = pendingText.slice(openIdx + THINK_OPEN.length);
-            inThinkBlock = true;
+          }
+          return sanitizeVisibleText(visible);
         }
 
+        pendingText = pendingText.slice(closeIdx + THINK_CLOSE.length);
+        inThinkBlock = false;
+        continue;
+      }
+
+      const openIdx = lower.indexOf(THINK_OPEN);
+      if (openIdx === -1) {
+        // Emit everything except a small tail for partial opening tags.
+        const safeLen = Math.max(0, pendingText.length - THINK_OPEN.length);
+        if (safeLen === 0) return sanitizeVisibleText(visible);
+        visible += pendingText.slice(0, safeLen);
+        pendingText = pendingText.slice(safeLen);
         return sanitizeVisibleText(visible);
-    };
+      }
 
-    while (!done) {
-        const { value, done: streamDone } = await reader.read();
- 
-        if (streamDone) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-
-        for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith("data:")) continue;
-
-            const data = trimmed.slice("data:".length).trim();
-
-            if (data === "[DONE]") {
-                done = true;
-                break;
-            }
-
-            try {
-                const json = JSON.parse(data);
-                const delta = json.choices?.[0]?.delta;
-
-                if (!delta) continue;
-
-                if (delta.content) {
-                    assistantContent += delta.content;
-                    const streamSafeText = consumeSafeStreamText(delta.content);
-                    if (streamSafeText) {
-                        ws.send(
-                            JSON.stringify({
-                                type: "token",
-                                content: streamSafeText,
-                            }),
-                        );
-                    }
-                }
-
-                if (delta.tool_calls) {
-                    for (const tc of delta.tool_calls) {
-                        const index: number = tc.index ?? 0;
-
-                        if (!toolCallBuffer[index]) {
-                            toolCallBuffer[index] = {
-                                id: tc.id || `tool_${index}`,
-                                name: tc.function?.name || "",
-                                arguments: tc.function?.arguments || "",
-                            };
-                        } else {
-                            if (tc.id) {
-                                toolCallBuffer[index].id = tc.id;
-                            }
-                            if (tc.function?.name) {
-                                toolCallBuffer[index].name += tc.function.name;
-                            }
-                            if (tc.function?.arguments) {
-                                toolCallBuffer[index].arguments +=
-                                    tc.function.arguments;
-                            }
-                        }
-                    }
-                }
-            } catch (parseErr) {
-                console.warn(
-                    `⚠️ Could not parse chunk:`,
-                    (parseErr as Error).message.substring(0, 80),
-                );
-            }
-        }
+      visible += pendingText.slice(0, openIdx);
+      pendingText = pendingText.slice(openIdx + THINK_OPEN.length);
+      inThinkBlock = true;
     }
 
-    const toolCalls = Object.values(toolCallBuffer);
-    const cleanedAssistantContent = sanitizeAssistantContent(assistantContent);
-    const trailingVisible =
-        !inThinkBlock && pendingText ? sanitizeVisibleText(pendingText) : "";
-    if (trailingVisible) {
-        ws.send(
-            JSON.stringify({
+    return sanitizeVisibleText(visible);
+  };
+
+  while (!done) {
+    const { value, done: streamDone } = await reader.read();
+
+    if (streamDone) break;
+
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split("\n");
+
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+
+      console.log(line)
+
+      const trimmed = line.trim();
+
+      if (!trimmed.startsWith("data:")) continue;
+
+      const data = trimmed.slice("data:".length).trim();
+
+      if (data === "[DONE]") {
+        done = true;
+        break;
+      }
+
+
+
+      try {
+        const json = JSON.parse(data);
+        const delta = json.choices?.[0]?.delta;
+
+        if (!delta) continue;
+
+        if (delta.content) {
+          assistantContent += delta.content;
+          const streamSafeText = consumeSafeStreamText(delta.content);
+          if (streamSafeText) {
+            ws.send(
+              JSON.stringify({
                 type: "token",
-                content: trailingVisible,
-            }),
-        );
-    }
+                content: streamSafeText,
+              }),
+            );
+          }
+        }
 
-    if (toolCalls.length > 0) {
-        console.log(`✅ Collected ${toolCalls.length} tool call(s):`);
-        toolCalls.forEach((tc, i) => {
-            console.log(`   [${i}] ${tc.name}: ${tc.arguments.length} chars`);
-        });
-    } else {
-        console.log(
-            `✅ streamModel done — contentLength=${cleanedAssistantContent.length}`,
-        );
-    }
+        if (delta.tool_calls) {
+          for (const tc of delta.tool_calls) {
+            const index: number = tc.index ?? 0;
 
-    return { toolCalls, assistantContent: cleanedAssistantContent };
+            if (!toolCallBuffer[index]) {
+              toolCallBuffer[index] = {
+                id: tc.id || `tool_${index}`,
+                name: tc.function?.name || "",
+                arguments: tc.function?.arguments || "",
+              };
+            } else {
+              if (tc.id) {
+                toolCallBuffer[index].id = tc.id;
+              }
+              if (tc.function?.name) {
+                toolCallBuffer[index].name += tc.function.name;
+              }
+              if (tc.function?.arguments) {
+                toolCallBuffer[index].arguments +=
+                  tc.function.arguments;
+              }
+            }
+          }
+        }
+      } catch (parseErr) {
+        console.warn(
+          `⚠️ Could not parse chunk:`,
+          (parseErr as Error).message.substring(0, 80),
+        );
+      }
+    }
+  }
+
+  const toolCalls = Object.values(toolCallBuffer);
+  const cleanedAssistantContent = sanitizeAssistantContent(assistantContent);
+  const trailingVisible =
+    !inThinkBlock && pendingText ? sanitizeVisibleText(pendingText) : "";
+  if (trailingVisible) {
+    ws.send(
+      JSON.stringify({
+        type: "token",
+        content: trailingVisible,
+      }),
+    );
+  }
+
+  if (toolCalls.length > 0) {
+    console.log(`✅ Collected ${toolCalls.length} tool call(s):`);
+    toolCalls.forEach((tc, i) => {
+      console.log(`   [${i}] ${tc.name}: ${tc.arguments.length} chars`);
+    });
+  } else {
+    console.log(
+      `✅ streamModel done — contentLength=${cleanedAssistantContent.length}`,
+    );
+  }
+
+  return { toolCalls, assistantContent: cleanedAssistantContent };
 }
