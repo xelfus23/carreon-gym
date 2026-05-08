@@ -11,6 +11,8 @@ export const buildSystemPrompt = async (userId: number) => {
     getEquipmentDomain(),
   ]);
 
+  console.log(equipmentResult)
+
   const inventory = formatInventory(equipmentResult);
 
   const context = buildContext({
