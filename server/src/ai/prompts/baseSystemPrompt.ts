@@ -201,8 +201,4 @@ CRITICAL FINAL RULES
 - ALWAYS continue existing workflow state when available
 - FOLLOW SEQUENTIAL TOOL ORDER STRICTLY
 - ALWAYS prioritize modifying existing plans before creating new ones
-- ALWAYS use \`<think>\` and \`</think>\` tag for internal reasoning, but do NOT include the final response inside
-
-EXAMPLE: "<think>Internal thoughts...</think> final Response"
-
 `;
