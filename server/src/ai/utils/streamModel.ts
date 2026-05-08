@@ -99,12 +99,17 @@ export async function streamModel(
                                 arguments: tc.function?.arguments || "",
                             };
                         } else {
+                            
                             if (tc.id) toolCallBuffer[index].id = tc.id;
-                            if (tc.function?.name)
-                                toolCallBuffer[index].name += tc.function.name;
-                            if (tc.function?.arguments)
+
+                            if (tc.function?.name) {
+                                toolCallBuffer[index].name = tc.function.name;
+                            }
+
+                            if (tc.function?.arguments) {
                                 toolCallBuffer[index].arguments +=
                                     tc.function.arguments;
+                            }
                         }
                     }
                 }
