@@ -1,5 +1,5 @@
 import { chatQuery } from "../../repositories/user.repository.ts";
-import { buildSystemPrompt } from "../buildSystemPrompt.ts";
+import { buildSystemPrompt } from "../prompts/buildSystemPrompt.ts";
 import { formatChatHistory } from "./formatHistory.ts";
 
 export const getChatHistory = async (

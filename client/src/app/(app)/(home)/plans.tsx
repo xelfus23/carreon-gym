@@ -320,7 +320,7 @@ export default function Plans() {
                         Activate a workout plan to see today&apos;s exercises.
                     </Text>
                     <TouchableOpacity
-                        onPress={() => router.push("/(app)/(home)/plan-list")}
+                        onPress={() => router.push("/plan-list")}
                         className="mt-4 bg-primary/10 rounded-xl px-4 py-3 self-start"
                     >
                         <Text className="text-primary font-semibold">
@@ -345,7 +345,7 @@ export default function Plans() {
                         today.
                     </Text>
                     <TouchableOpacity
-                        onPress={() => router.push("/(app)/(home)/plan-list")}
+                        onPress={() => router.push("/plan-list")}
                         className="mt-4 bg-primary/10 rounded-xl px-4 py-3 self-start"
                     >
                         <Text className="text-primary font-semibold">
@@ -376,7 +376,7 @@ export default function Plans() {
                             </Text>
                             <TouchableOpacity
                                 onPress={() =>
-                                    router.push("/(app)/(home)/plan-list")
+                                    router.push("/plan-list")
                                 }
                                 className="px-3 py-2 bg-primary/10 rounded-xl"
                             >

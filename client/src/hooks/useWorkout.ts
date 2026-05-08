@@ -35,6 +35,7 @@ export function useWorkout() {
   const [checkedExercises, setCheckedExercises] = useState<
     Record<string, WorkoutLog>
   >({});
+  
   const [loadingDays, setLoadingDays] = useState<Record<number, boolean>>({});
   const [modal, setModal] = useState<LogModalState>(EMPTY_MODAL);
   const [formSets, setFormSets] = useState("");
@@ -180,10 +181,7 @@ export function useWorkout() {
       const existing = checkedExercises[logKey(dayId, exerciseId)];
       setFormSets(String(existing?.completed_sets ?? defaultSets ?? ""));
       setFormReps(String(existing?.completed_reps ?? defaultReps ?? ""));
-      // Convert duration_minutes from log to seconds for display
-      const existingDurationSeconds = existing?.duration_minutes
-        ? existing.duration_minutes * 60
-        : null;
+      const existingDurationSeconds = existing?.duration_seconds ?? null;
       setFormDuration(
         String(existingDurationSeconds ?? defaultDuration ?? ""),
       );
@@ -227,16 +225,15 @@ export function useWorkout() {
     if (!modal.exerciseId || !modal.dayId) return;
     setIsSaving(true);
     try {
-      // Convert duration_seconds to duration_minutes for the API
-      const durationMinutes = formDuration
-        ? Math.round(parseInt(formDuration) / 60)
+      const durationSeconds = formDuration
+        ? parseInt(formDuration)
         : null;
 
       const data = await workoutService.logExercise({
         workout_exercise_id: modal.exerciseId,
         completed_sets: formSets ? parseInt(formSets) : null,
         completed_reps: formReps ? parseInt(formReps) : null,
-        duration_minutes: durationMinutes,
+        duration_seconds: durationSeconds,
         weight_used_kg: formWeight ? parseFloat(formWeight) : null,
         difficulty_rating: formDifficulty
           ? parseInt(formDifficulty)

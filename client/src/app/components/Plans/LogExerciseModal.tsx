@@ -27,6 +27,9 @@ type Props = {
     onSetFormDifficulty: (v: string) => void;
     onClose: () => void;
     onSave: () => void;
+    actionLabel?: string;
+    actionIcon?: keyof typeof Ionicons.glyphMap;
+    onAction?: () => void;
 };
 
 export default function LogExerciseModal({
@@ -44,6 +47,9 @@ export default function LogExerciseModal({
     onSetFormDifficulty,
     onClose,
     onSave,
+    actionLabel = "Mark Done",
+    actionIcon = "checkmark-circle-outline",
+    onAction,
 }: Props) {
     // Determine if this is a duration-based exercise (has duration_seconds but no reps)
     const isDurationBased =
@@ -169,7 +175,7 @@ export default function LogExerciseModal({
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            onPress={onSave}
+                            onPress={onAction ?? onSave}
                             disabled={isSaving}
                             className="flex-2 bg-primary rounded-2xl py-4 px-8 items-center justify-center flex-row gap-2"
                             activeOpacity={0.8}
@@ -180,12 +186,12 @@ export default function LogExerciseModal({
                             ) : (
                                 <>
                                     <Ionicons
-                                        name="checkmark-circle-outline"
+                                        name={actionIcon}
                                         size={18}
                                         color={COLORS.background}
                                     />
                                     <Text className="text-background font-bold text-base">
-                                        Mark Done
+                                        {actionLabel}
                                     </Text>
                                 </>
                             )}

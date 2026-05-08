@@ -345,6 +345,8 @@ CREATE TABLE workout_logs (
     completed_sets INT,
     completed_reps INT,
     duration_seconds INT,
+    difficulty_rating INT,
+    notes TEXT,
     weight_used_kg NUMERIC(6,2),
     logged_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

@@ -4,29 +4,33 @@ import Markdown from "react-native-markdown-display";
 import { ChatMessage } from "@/src/types/chats";
 import { markdownStyle } from "@/src/consts/markdownStyle";
 import { COLORS } from "@/src/consts/colors";
+import { Check } from "lucide-react-native";
 
 export default function renderMessageItem({ item }: { item: ChatMessage }) {
   const isUser = item.role === "user";
   const content = item.content || "";
   const status = item.aiStatus;
-  const showStatus = !isUser && !!status && status !== "Done";
+  const showStatus = !isUser && !!status;
+  const isDone = status === "Done";
 
   return (
     <View className={`mb-4 ${isUser ? "items-end" : "items-start"} px-4`}>
       <View
         className={
-          isUser ? "bg-surface px-4 py-2 rounded-2xl max-w-[85%]" : "w-full"
+          isUser ? "bg-surface px-4 rounded-2xl max-w-[85%]" : "w-full"
         }
       >
         {showStatus && (
           <View className="flex-row items-center gap-2 opacity-70 mb-1">
-            <Image
+            {isDone ? <Check size={14} color={COLORS.primary}/> : <Image
               source={require("../../../assets/ui/star-icon.png")}
               resizeMode="contain"
-              className="w-3.5 h-3.5 animate-spin"
+              className={`w-3.5 h-3.5 animate-spin`}
               style={{ tintColor: COLORS.primary }}
-            />
-            <Text className="text-text-secondary text-[10px] font-bold uppercase tracking-wider animate-pulse">
+            />}
+            <Text
+              className={`text-text-secondary text-[10px] font-bold uppercase tracking-wider ${isDone ? "" : "animate-pulse"}`}
+            >
               {status.replace(/_/g, " ")}
             </Text>
           </View>

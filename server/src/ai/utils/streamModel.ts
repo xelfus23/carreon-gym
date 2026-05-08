@@ -30,17 +30,18 @@ export async function streamModel(
     throw new Error("No response from model");
   }
 
-
   const reader = response.getReader();
   const decoder = new TextDecoder();
 
-
   let buffer = "";
   let toolCallBuffer: Record<number, ToolCall> = {};
-  let assistantContent = "";
   let pendingText = "";
-  let inThinkBlock = false;
-  let done = false; // ✅ single flag to break both loops
+
+  let assistantContent = "";
+  let visibleContent = "";
+
+  let inThinkBlock = true;
+  let done = false;
 
   const THINK_OPEN = "<think>";
   const THINK_CLOSE = "</think>";
@@ -66,23 +67,22 @@ export async function streamModel(
       if (inThinkBlock) {
         const closeIdx = lower.indexOf(THINK_CLOSE);
         if (closeIdx === -1) {
-          // Keep a small tail for partial closing tags across chunks.
+          // Still in thinking block, buffer the tail to check for the tag in next chunk
           if (pendingText.length > THINK_CLOSE.length) {
-            pendingText = pendingText.slice(
-              pendingText.length - THINK_CLOSE.length,
-            );
+            pendingText = pendingText.slice(pendingText.length - THINK_CLOSE.length);
           }
-          return sanitizeVisibleText(visible);
+          return "";
         }
 
+        // Found the end of thoughts!
         pendingText = pendingText.slice(closeIdx + THINK_CLOSE.length);
         inThinkBlock = false;
         continue;
       }
 
+      // Check for a new think block (unlikely after the first one, but good for safety)
       const openIdx = lower.indexOf(THINK_OPEN);
       if (openIdx === -1) {
-        // Emit everything except a small tail for partial opening tags.
         const safeLen = Math.max(0, pendingText.length - THINK_OPEN.length);
         if (safeLen === 0) return sanitizeVisibleText(visible);
         visible += pendingText.slice(0, safeLen);
@@ -100,42 +100,36 @@ export async function streamModel(
 
   while (!done) {
     const { value, done: streamDone } = await reader.read();
-
     if (streamDone) break;
 
     buffer += decoder.decode(value, { stream: true });
-
     const lines = buffer.split("\n");
-
     buffer = lines.pop() ?? "";
 
     for (const line of lines) {
-
-      console.log(line)
-
       const trimmed = line.trim();
-
       if (!trimmed.startsWith("data:")) continue;
 
       const data = trimmed.slice("data:".length).trim();
-
       if (data === "[DONE]") {
         done = true;
         break;
       }
 
-
-
       try {
         const json = JSON.parse(data);
         const delta = json.choices?.[0]?.delta;
-
         if (!delta) continue;
 
         if (delta.content) {
           assistantContent += delta.content;
           const streamSafeText = consumeSafeStreamText(delta.content);
+
           if (streamSafeText) {
+            // Update the Database-ready string
+            visibleContent += streamSafeText;
+
+            // Send real-time token to client
             ws.send(
               JSON.stringify({
                 type: "token",
@@ -148,7 +142,6 @@ export async function streamModel(
         if (delta.tool_calls) {
           for (const tc of delta.tool_calls) {
             const index: number = tc.index ?? 0;
-
             if (!toolCallBuffer[index]) {
               toolCallBuffer[index] = {
                 id: tc.id || `tool_${index}`,
@@ -156,51 +149,38 @@ export async function streamModel(
                 arguments: tc.function?.arguments || "",
               };
             } else {
-              if (tc.id) {
-                toolCallBuffer[index].id = tc.id;
-              }
-              if (tc.function?.name) {
-                toolCallBuffer[index].name += tc.function.name;
-              }
-              if (tc.function?.arguments) {
-                toolCallBuffer[index].arguments +=
-                  tc.function.arguments;
-              }
+              if (tc.id) toolCallBuffer[index].id = tc.id;
+              if (tc.function?.name) toolCallBuffer[index].name += tc.function.name;
+              if (tc.function?.arguments) toolCallBuffer[index].arguments += tc.function.arguments;
             }
           }
         }
       } catch (parseErr) {
-        console.warn(
-          `⚠️ Could not parse chunk:`,
-          (parseErr as Error).message.substring(0, 80),
-        );
+        console.warn(`⚠️ Could not parse chunk:`, (parseErr as Error).message);
       }
     }
   }
 
-  const toolCalls = Object.values(toolCallBuffer);
-  const cleanedAssistantContent = sanitizeAssistantContent(assistantContent);
-  const trailingVisible =
-    !inThinkBlock && pendingText ? sanitizeVisibleText(pendingText) : "";
+  // Handle any final text left in the buffer
+  const trailingVisible = !inThinkBlock && pendingText ? sanitizeVisibleText(pendingText) : "";
   if (trailingVisible) {
-    ws.send(
-      JSON.stringify({
-        type: "token",
-        content: trailingVisible,
-      }),
-    );
+    visibleContent += trailingVisible;
+    ws.send(JSON.stringify({ type: "token", content: trailingVisible }));
   }
+
+  const toolCalls = Object.values(toolCallBuffer);
+
+  // Use visibleContent as the source for the final result
+  const cleanedResponse = sanitizeAssistantContent(visibleContent).trim();
 
   if (toolCalls.length > 0) {
-    console.log(`✅ Collected ${toolCalls.length} tool call(s):`);
-    toolCalls.forEach((tc, i) => {
-      console.log(`   [${i}] ${tc.name}: ${tc.arguments.length} chars`);
-    });
+    console.log(`✅ Collected ${toolCalls.length} tool call(s)`);
   } else {
-    console.log(
-      `✅ streamModel done — contentLength=${cleanedAssistantContent.length}`,
-    );
+    console.log(`✅ streamModel done — visibleLength=${cleanedResponse.length}`);
   }
 
-  return { toolCalls, assistantContent: cleanedAssistantContent };
+  return {
+    toolCalls,
+    assistantContent: cleanedResponse
+  };
 }

@@ -1,6 +1,10 @@
 import { COLORS } from "@/src/consts/colors";
+import ExerciseDetailModal, {
+  type ExerciseDetail,
+} from "@/src/app/components/Plans/ExerciseDetailModal";
 import { useWorkout } from "@/src/hooks/useWorkout";
 import { Ionicons } from "@expo/vector-icons";
+import React, { useCallback, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 type SectionHeaderProps = {
@@ -41,9 +45,6 @@ type ExerciseCardProps = {
 
 export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
   const isTimed = ex.duration_seconds != null && ex.reps == null;
-
-
-  console.log(ex)
 
   return (
     <TouchableOpacity
@@ -116,7 +117,12 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
 }
 
 export default function TodayWorkoutScreen() {
-  const { workoutPlans, isExerciseChecked, openLogModal } = useWorkout();
+  const { workoutPlans, isExerciseChecked } = useWorkout();
+  const [detailModal, setDetailModal] = useState<{
+    visible: boolean;
+    exercise: ExerciseDetail | null;
+    dayId: number | null;
+  }>({ visible: false, exercise: null, dayId: null });
 
   // 1. Get ONLY the active plan
   const activePlan = workoutPlans.find((p) => p.is_active);
@@ -131,10 +137,9 @@ export default function TodayWorkoutScreen() {
 
   const todayExercises =
     activePlan?.days
-      ?.filter((day) => {
-        console.log("Day", day)
-        // formatLocalDate(day.day_date) === todayStr
-      })
+      ?.filter((day) =>
+        formatLocalDate(day.day_date) === todayStr
+      )
       .flatMap((day) =>
         day.exercises.map((ex) => ({
           ...ex,
@@ -151,47 +156,55 @@ export default function TodayWorkoutScreen() {
     isExerciseChecked(ex.dayId, ex.id),
   );
 
+  const openDetail = useCallback((ex: (typeof todayExercises)[number]) => {
+    setDetailModal({ visible: true, exercise: ex, dayId: ex.dayId });
+  }, []);
+
+  const closeDetail = useCallback(() => {
+    setDetailModal({ visible: false, exercise: null, dayId: null });
+  }, []);
+
   return (
-    <ScrollView className="flex-1 bg-background p-4">
-      <Text className="text-2xl font-bold text-text-primary">Today&apos;s Session</Text>
+    <>
+      <ScrollView className="flex-1 bg-background p-4">
+        <Text className="text-2xl font-bold text-text-primary">Today&apos;s Session</Text>
 
       {/* INCOMPLETE FIRST */}
-      <SectionHeader
-        title="To Do"
-        count={incomplete.length}
-        accent={COLORS.primary}
-      />
-      {incomplete.map((ex) => (
-        <ExerciseCard
-          key={ex.id}
-          ex={ex}
-          checked={false}
-          onPress={() =>
-            openLogModal(
-              ex.dayId,
-              ex.id,
-              ex.name,
-              ex.sets,
-              ex.reps,
-              ex.duration_seconds,
-            )
-          }
+        <SectionHeader
+          title="To Do"
+          count={incomplete.length}
+          accent={COLORS.primary}
         />
-      ))}
+        {incomplete.map((ex) => (
+          <ExerciseCard
+            key={ex.id}
+            ex={ex}
+            checked={false}
+            onPress={() => openDetail(ex)}
+          />
+        ))}
 
       {/* COMPLETED SECOND */}
-      {completed.length > 0 && (
-        <View className="mt-6 opacity-60">
-          <SectionHeader
-            title="Completed"
-            count={completed.length}
-            accent={COLORS.success}
-          />
-          {completed.map((ex) => (
-            <ExerciseCard key={ex.id} ex={ex} checked={true} />
-          ))}
-        </View>
-      )}
-    </ScrollView>
+        {completed.length > 0 && (
+          <View className="mt-6 opacity-60">
+            <SectionHeader
+              title="Completed"
+              count={completed.length}
+              accent={COLORS.success}
+            />
+            {completed.map((ex) => (
+              <ExerciseCard key={ex.id} ex={ex} checked={true} />
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      <ExerciseDetailModal
+        visible={detailModal.visible}
+        dayId={detailModal.dayId}
+        exercise={detailModal.exercise}
+        onClose={closeDetail}
+      />
+    </>
   );
 }

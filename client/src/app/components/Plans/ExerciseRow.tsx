@@ -150,13 +150,13 @@ export default function ExerciseRow({
                             </Text>
                         </View>
                     )}
-                    {log.duration_minutes != null && log.completed_reps == null && (
+                    {log.duration_seconds != null && log.completed_reps == null && (
                         <View className="bg-green-500/10 px-3 py-1.5 rounded-lg flex-row items-center gap-1">
                             <Ionicons name="time-outline" size={12} color="#10B981" />
                             <Text className="text-green-600 text-xs font-medium">
-                                {log.duration_minutes >= 1
-                                    ? `${log.duration_minutes}m`
-                                    : `${log.duration_minutes * 60}s`}
+                                {log.duration_seconds >= 60
+                                    ? `${Math.floor(log.duration_seconds / 60)}m`
+                                    : `${log.duration_seconds}s`}
                             </Text>
                         </View>
                     )}

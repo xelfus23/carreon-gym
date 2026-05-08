@@ -5,9 +5,10 @@ import {
     TouchableOpacity,
     ScrollView,
     Animated,
+    TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { COLORS } from "@/src/consts/colors";
 
@@ -50,6 +51,9 @@ export default function ExerciseDetailModal({
 }: Props) {
     const router = useRouter();
     const slideAnim = useRef(new Animated.Value(300)).current;
+    const [setsInput, setSetsInput] = useState("");
+    const [repsInput, setRepsInput] = useState("");
+    const [durationInput, setDurationInput] = useState("");
 
     useEffect(() => {
         if (visible) {
@@ -64,11 +68,36 @@ export default function ExerciseDetailModal({
         }
     }, [slideAnim, visible]);
 
+    const timedMode = exercise ? isDurationBased(exercise) : false;
+    const defaultSets = String(exercise?.sets ?? 1);
+    const defaultReps = exercise?.reps != null ? String(exercise.reps) : "";
+    const defaultDuration =
+        exercise?.duration_seconds != null ? String(exercise.duration_seconds) : "";
+
+    useEffect(() => {
+        if (!visible || !exercise) return;
+        setSetsInput(defaultSets);
+        setRepsInput(defaultReps);
+        setDurationInput(defaultDuration);
+    }, [visible, exercise, defaultSets, defaultReps, defaultDuration]);
+
     if (!exercise) return null;
 
-    const timedMode = isDurationBased(exercise);
-
     const handleStartSession = () => {
+        const parsedSets = Number.parseInt(setsInput, 10);
+        const parsedReps = Number.parseInt(repsInput, 10);
+        const parsedDuration = Number.parseInt(durationInput, 10);
+
+        const finalSets = Number.isFinite(parsedSets) && parsedSets > 0 ? parsedSets : 1;
+        const finalReps =
+            !timedMode && Number.isFinite(parsedReps) && parsedReps > 0
+                ? parsedReps
+                : null;
+        const finalDuration =
+            timedMode && Number.isFinite(parsedDuration) && parsedDuration > 0
+                ? parsedDuration
+                : exercise.duration_seconds ?? null;
+
         onClose();
         router.push({
             pathname: "/(app)/(home)/workout-session",
@@ -76,12 +105,9 @@ export default function ExerciseDetailModal({
                 exerciseId: String(exercise.id),
                 exerciseName: exerciseName(exercise),
                 dayId: String(dayId ?? 0),
-                sets: String(exercise.sets ?? 1),
-                reps: exercise.reps != null ? String(exercise.reps) : "",
-                durationSeconds:
-                    exercise.duration_seconds != null
-                        ? String(exercise.duration_seconds)
-                        : "",
+                sets: String(finalSets),
+                reps: finalReps != null ? String(finalReps) : "",
+                durationSeconds: finalDuration != null ? String(finalDuration) : "",
             },
         });
     };
@@ -189,7 +215,7 @@ export default function ExerciseDetailModal({
                                 {!timedMode && exercise.reps != null && (
                                     <View className="flex-1 bg-background rounded-2xl p-4 items-center">
                                         <Ionicons
-                                            name="fitness-outline"
+                                            name="infinite"
                                             size={20}
                                             color={COLORS.primary}
                                         />
@@ -219,6 +245,57 @@ export default function ExerciseDetailModal({
                                             </Text>
                                         </View>
                                     )}
+                            </View>
+
+                            {/* Editable targets before starting */}
+                            <View className="bg-background rounded-2xl p-4 mb-5">
+                                <Text className="text-text-secondary text-xs uppercase tracking-widest mb-3">
+                                    Session Targets
+                                </Text>
+                                <View className="flex-row gap-3">
+                                    <View className="flex-1">
+                                        <Text className="text-text-secondary text-xs mb-2">
+                                            Sets
+                                        </Text>
+                                        <TextInput
+                                            className="bg-surface border border-border rounded-xl px-4 py-3 text-text-primary"
+                                            keyboardType="number-pad"
+                                            value={setsInput}
+                                            onChangeText={setSetsInput}
+                                            placeholder="1"
+                                            placeholderTextColor={COLORS.textSecondary}
+                                        />
+                                    </View>
+                                    {timedMode ? (
+                                        <View className="flex-1">
+                                            <Text className="text-text-secondary text-xs mb-2">
+                                                Duration (seconds)
+                                            </Text>
+                                            <TextInput
+                                                className="bg-surface border border-border rounded-xl px-4 py-3 text-text-primary"
+                                                keyboardType="number-pad"
+                                                value={durationInput}
+                                                onChangeText={setDurationInput}
+                                                placeholder={defaultDuration || "30"}
+                                                placeholderTextColor={COLORS.textSecondary}
+                                            />
+                                        </View>
+                                    ) : (
+                                        <View className="flex-1">
+                                            <Text className="text-text-secondary text-xs mb-2">
+                                                Reps
+                                            </Text>
+                                            <TextInput
+                                                className="bg-surface border border-border rounded-xl px-4 py-3 text-text-primary"
+                                                keyboardType="number-pad"
+                                                value={repsInput}
+                                                onChangeText={setRepsInput}
+                                                placeholder={defaultReps || "8"}
+                                                placeholderTextColor={COLORS.textSecondary}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
                             </View>
 
                             {/* Muscle Groups */}
@@ -330,7 +407,7 @@ export default function ExerciseDetailModal({
                                 color={COLORS.background}
                             />
                             <Text className="text-background font-bold text-base">
-                                Start Workout
+                                Start Exercise
                             </Text>
                         </TouchableOpacity>
                     </View>

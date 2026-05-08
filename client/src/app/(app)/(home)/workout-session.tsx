@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { COLORS } from "@/src/consts/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { workoutService } from "@/src/services/workoutService";
 
 type SessionMode = "reps" | "timer";
 
@@ -28,7 +29,6 @@ export default function WorkoutSession() {
 
     const exerciseId = Number(params.exerciseId);
     const exerciseName = params.exerciseName ?? "Exercise";
-    const dayId = Number(params.dayId);
     const totalSets = Number(params.sets) || 1;
     const repsPerSet = params.reps ? Number(params.reps) : null;
     const durationSeconds = params.durationSeconds
@@ -48,6 +48,7 @@ export default function WorkoutSession() {
     const [timeLeft, setTimeLeft] = useState(durationSeconds ?? 0);
     const [isRunning, setIsRunning] = useState(false);
     const [timerDone, setTimerDone] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     // ── Animations ────────────────────────────────────────────────────
     const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -143,15 +144,36 @@ export default function WorkoutSession() {
     }, [timeLeft, durationSeconds, progressAnim, mode]);
 
     const handleFinish = useCallback(
-        (setsCompleted = completedSets) => {
-            // Navigate back with exercise log data
-            // Use router.back() and pass results via a shared store / context / params
-            router.back();
-            // NOTE: Wire this to your openLogModal or directly call workoutService.logExercise
-            // by passing a callback through router params or a Zustand/context store.
-            // Example pattern shown in integration notes below.
+        async (setsCompleted = completedSets) => {
+            if (!exerciseId || isSaving) return;
+            setIsSaving(true);
+            try {
+                await workoutService.logExercise({
+                    workout_exercise_id: exerciseId,
+                    completed_sets: mode === "reps" ? setsCompleted : totalSets,
+                    completed_reps: mode === "reps" ? repsPerSet : null,
+                    duration_seconds:
+                        mode === "timer" && durationSeconds != null
+                            ? durationSeconds
+                            : null,
+                });
+                router.back();
+            } catch (err) {
+                if (err instanceof Error) console.error(err.message);
+            } finally {
+                setIsSaving(false);
+            }
         },
-        [completedSets, router],
+        [
+            completedSets,
+            exerciseId,
+            isSaving,
+            mode,
+            repsPerSet,
+            router,
+            totalSets,
+            durationSeconds,
+        ],
     );
 
     const handleCompleteSet = useCallback(() => {
@@ -165,7 +187,9 @@ export default function WorkoutSession() {
                 toValue: 1,
                 useNativeDriver: true,
             }).start();
-            setTimeout(() => handleFinish(newCompleted), 600);
+            setTimeout(() => {
+                void handleFinish(newCompleted);
+            }, 600);
         } else {
             setCurrentSet(newCompleted + 1);
             setIsResting(true);
@@ -371,11 +395,14 @@ export default function WorkoutSession() {
                                 Great work! Exercise complete 💪
                             </Text>
                             <TouchableOpacity
-                                onPress={() => handleFinish()}
+                                onPress={() => {
+                                    void handleFinish();
+                                }}
+                                disabled={isSaving}
                                 className="bg-primary rounded-2xl px-10 py-4"
                             >
                                 <Text className="text-background font-bold text-base">
-                                    Continue
+                                    {isSaving ? "Saving..." : "Continue"}
                                 </Text>
                             </TouchableOpacity>
                         </Animated.View>

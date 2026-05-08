@@ -54,6 +54,7 @@ export const chatService = {
 
         const token = tokenManager.getAccessToken();
 
+
         if (!token) {
           reject(new Error("No auth token available"));
           return;
@@ -136,7 +137,7 @@ export const chatService = {
               settle(() => resolve());
               socket.close(1000, "Done");
             }
-          } catch(e){
+          } catch (e) {
           }
         };
 

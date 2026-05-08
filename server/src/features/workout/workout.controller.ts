@@ -34,11 +34,13 @@ export const logComplete = catchAsync(async (req: Request, res: Response) => {
         workout_exercise_id,
         completed_sets,
         completed_reps,
-        duration_minutes,
+        duration_seconds,
         weight_used_kg,
         difficulty_rating,
         notes,
     } = req.body;
+
+    console.log(req.body)
 
     if (!workout_exercise_id) {
         return res.status(400).json({
@@ -63,7 +65,7 @@ export const logComplete = catchAsync(async (req: Request, res: Response) => {
             `UPDATE workout_logs
                SET completed_sets = $1,
                    completed_reps = $2,
-                   duration_minutes = $3,
+                   duration_seconds = $3,
                    weight_used_kg = $4,
                    difficulty_rating = $5,
                    notes = $6,
@@ -73,7 +75,7 @@ export const logComplete = catchAsync(async (req: Request, res: Response) => {
             [
                 completed_sets ?? null,
                 completed_reps ?? null,
-                duration_minutes ?? null,
+                duration_seconds ?? null,
                 weight_used_kg ?? null,
                 difficulty_rating ?? null,
                 notes ?? null,
@@ -85,7 +87,7 @@ export const logComplete = catchAsync(async (req: Request, res: Response) => {
         result = await pool.query(
             `INSERT INTO workout_logs
                   (user_id, workout_exercise_id, completed_sets, completed_reps,
-                   duration_minutes, weight_used_kg, difficulty_rating, notes, logged_at)
+                   duration_seconds, weight_used_kg, difficulty_rating, notes, logged_at)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
                RETURNING *`,
             [
@@ -93,7 +95,7 @@ export const logComplete = catchAsync(async (req: Request, res: Response) => {
                 workout_exercise_id,
                 completed_sets ?? null,
                 completed_reps ?? null,
-                duration_minutes ?? null,
+                duration_seconds?? null,
                 weight_used_kg ?? null,
                 difficulty_rating ?? null,
                 notes ?? null,

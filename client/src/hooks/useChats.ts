@@ -9,6 +9,7 @@ import {
 import { chatService } from "@/src/services/chatService";
 import { ChatMessage } from "../types/chats";
 import { UserProfile } from "../types/users";
+import { tokenManager } from "../utils/tokenManager";
 
 let tempIdCounter = 0;
 const newTempId = () => `__streaming_${tempIdCounter++}__`;
@@ -48,6 +49,10 @@ export function useChat(params?: {
   const activeAssistantIdRef = useRef<string | null>(null);
 
   const sessionResolvedRef = useRef(!!params?.initialSessionId);
+
+  useEffect(() => {
+    console.log(tokenManager.getAccessToken())
+  }, [])
 
   useEffect(() => {
     mountedRef.current = true;
@@ -108,7 +113,11 @@ export function useChat(params?: {
             : undefined,
           tool_call_id: msg.tool_call_id,
           name: msg.name,
-          aiStatus: msg.aiStatus,
+          aiStatus:
+            msg.aiStatus ??
+            (msg.role === "assistant" && String(msg.content ?? "").trim().length > 0
+              ? "Done"
+              : undefined),
         }));
 
       setMessages(formatted);
@@ -211,7 +220,7 @@ export function useChat(params?: {
               if (state === "Done") {
                 return prev.map((msg) =>
                   msg.role === "assistant" &&
-                  String(msg.id).startsWith("__streaming_")
+                    String(msg.id).startsWith("__streaming_")
                     ? { ...msg, aiStatus: "Done" }
                     : msg,
                 );
@@ -251,7 +260,7 @@ export function useChat(params?: {
                   id: nextAssistantId,
                   role: "assistant",
                   content: "",
-                  aiStatus: "Processing tool results",
+                  aiStatus: "Processing...",
                 },
               ];
             });

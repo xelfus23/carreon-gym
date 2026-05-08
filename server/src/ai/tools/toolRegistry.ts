@@ -55,7 +55,7 @@ export const tools = [
             description: "ISO 8601 format: YYYY-MM-DD (e.g., '2026-03-22')",
           },
         },
-        required: ["plan_id", "day_order", "title"],
+        required: ["plan_id", "day_order", "title", "day_date"],
       },
     },
   },
@@ -89,12 +89,12 @@ export const tools = [
           reps: {
             type: "integer",
             description:
-              "Number of reps. USE ONLY for strength exercises. Set to null if duration_seconds is used.",
+              "Number of reps for strength exercises. OMIT this field when using duration_seconds."
           },
           duration_seconds: {
             type: "integer",
             description:
-              "Time in seconds. USE ONLY for cardio or isometric holds. Set to null if reps is used.",
+              "Time in seconds for cardio or holds. OMIT this field when using reps."
           },
           rest_seconds: {
             type: "integer",

@@ -5,6 +5,9 @@ export const addWorkoutDayDomain = async (params: {
     userId: number;
 }) => {
     const { args, userId } = params;
+
+    console.log(args)
+
     const { plan_id, day_order, title, is_rest_day, rest_day_notes, day_date } =
         args;
 
