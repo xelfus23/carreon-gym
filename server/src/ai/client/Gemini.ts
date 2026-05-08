@@ -7,7 +7,8 @@ import type { ChatMessage } from "../../types/index.ts";
 const model = {
   gemini_2_flash: "gemini-2.0-flash-",
   gemini_2_5_flash_lite: "gemini-2.5-flash-lite",
-  gemini_2_flash_lite: "gemini-2.0-flash-lite"
+  gemini_2_flash_lite: "gemini-2.0-flash-lite",
+  gemini_2_5_flash: "gemini-2.5-flash",
 };
 
 /**
@@ -123,7 +124,7 @@ export const Gemini = async (
     : toGeminiTools(toolRegistry);
 
   const responseStream = await ai.models.generateContentStream({
-    model: model.gemini_2_flash_lite,
+    model: model.gemini_2_5_flash,
     contents,
     ...(systemInstruction && { config: { systemInstruction } }),
     ...(geminiTools && { config: { tools: geminiTools } }),
