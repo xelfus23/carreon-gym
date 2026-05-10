@@ -14,7 +14,7 @@ export interface SubscriptionCardProps {
   onSelect: () => void;
 }
 
-export function SubscriptionCard({
+export default function SubscriptionCard({
   name,
   price,
   duration_days,
