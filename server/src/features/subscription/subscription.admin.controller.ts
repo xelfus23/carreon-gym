@@ -1,10 +1,6 @@
-// controllers/admin/subscription.controller.ts
 import type { Request, Response } from "express";
 import { subscriptionService } from "../../services/subscription.service.ts";
 
-// ── Plans ─────────────────────────────────────────────────────────────────────
-
-/** GET /api/admin/subscriptions/plans — list all active plans for the form dropdown */
 export const getPlans = async (_req: Request, res: Response) => {
     try {
         const plans = await subscriptionService.getPlans();
@@ -17,22 +13,6 @@ export const getPlans = async (_req: Request, res: Response) => {
     }
 };
 
-// ── Subscriptions ─────────────────────────────────────────────────────────────
-
-/**
- * POST /api/admin/subscriptions
- *
- * Body:
- * {
- *   user_id:           number,   // member to subscribe
- *   plan_id:           number,   // from subscription_plans table
- *   amount_override?:  number,   // optional discount / adjusted price
- *   duration_override?: number,  // optional extra days (defaults to plan duration_days)
- *   method?:           string,   // 'cash' | 'gcash' | 'maya' | 'bank_transfer' | 'card' | 'other'
- *   reference_no?:     string,   // GCash/bank ref
- *   notes?:            string,
- * }
- */
 export const createForMember = async (req: Request, res: Response) => {
     try {
         const {
@@ -54,22 +34,21 @@ export const createForMember = async (req: Request, res: Response) => {
         };
 
         // ── Validate required fields ──
-        if (!Number.isInteger(user_id) || user_id == null) {
+        if (user_id == null) {
             return res.status(400).json({
                 success: false,
-                message: "user_id (integer) is required.",
+                message: "User ID is required.",
             });
         }
 
-        if (!Number.isInteger(plan_id) || plan_id == null) {
+        if (plan_id == null) {
             return res.status(400).json({
                 success: false,
                 message:
-                    "plan_id (integer) is required. Fetch available plans from GET /plans.",
+                    "Plan ID is required. Fetch available plans from GET /plans.",
             });
         }
 
-        // ── Validate overrides if provided ──
         if (
             amount_override !== undefined &&
             (typeof amount_override !== "number" || amount_override < 0)
@@ -94,8 +73,8 @@ export const createForMember = async (req: Request, res: Response) => {
         const recordedBy = (req as any).user?.id as number;
 
         const result = await subscriptionService.createSubscription(
-            user_id,
-            plan_id,
+            Number(user_id),
+            Number(plan_id),
             recordedBy,
             {
                 amountOverride: amount_override,
@@ -127,19 +106,23 @@ export const cancelForMember = async (req: Request, res: Response) => {
     try {
         const { user_id } = req.body as { user_id?: number };
 
-        if (!Number.isInteger(user_id) || user_id == null) {
+        console.log("server userid", user_id);
+
+        if (user_id == null) {
             return res.status(400).json({
                 success: false,
-                message: "user_id (integer) is required.",
+                message: "User ID is required.",
             });
         }
 
-        const subscription =
-            await subscriptionService.cancelSubscription(user_id);
+        const result = await subscriptionService.cancelSubscription(
+            Number(user_id),
+        );
+
         return res.status(200).json({
             success: true,
             message: "Subscription cancelled.",
-            data: subscription,
+            data: result,
         });
     } catch (err) {
         console.error("Admin cancel subscription error:", err);
@@ -151,19 +134,21 @@ export const cancelForMember = async (req: Request, res: Response) => {
     }
 };
 
-/** POST /api/admin/subscriptions/reset — clear a member's subscription rows */
 export const resetForMember = async (req: Request, res: Response) => {
     try {
         const { user_id } = req.body as { user_id?: number };
 
-        if (!Number.isInteger(user_id) || user_id == null) {
+        if (user_id == null) {
             return res.status(400).json({
                 success: false,
-                message: "user_id (integer) is required.",
+                message: "User ID is required.",
             });
         }
 
-        const result = await subscriptionService.resetSubscription(user_id);
+        const result = await subscriptionService.resetSubscription(
+            Number(user_id),
+        );
+
         return res.status(200).json({
             success: true,
             message: "Subscription reset completed.",
@@ -172,9 +157,7 @@ export const resetForMember = async (req: Request, res: Response) => {
     } catch (err) {
         console.error("Admin reset subscription error:", err);
         const message =
-            err instanceof Error
-                ? err.message
-                : "Failed to reset subscription";
+            err instanceof Error ? err.message : "Failed to reset subscription";
         return res.status(500).json({ success: false, message });
     }
 };
@@ -199,7 +182,6 @@ export const getForMember = async (req: Request, res: Response) => {
     }
 };
 
-/** GET /api/admin/subscriptions/:userId/payments — payment history for a member */
 export const getPaymentHistory = async (req: Request, res: Response) => {
     try {
         const userId = Number(req.params.userId);
@@ -214,11 +196,9 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
         return res.status(200).json({ success: true, data: payments });
     } catch (err) {
         console.error("Admin get payment history error:", err);
-        return res
-            .status(500)
-            .json({
-                success: false,
-                message: "Failed to fetch payment history.",
-            });
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch payment history.",
+        });
     }
 };

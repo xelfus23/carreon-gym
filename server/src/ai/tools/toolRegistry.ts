@@ -52,7 +52,7 @@ export const tools = [
           rest_day_notes: { type: "string" },
           day_date: {
             type: "string",
-            description: "ISO 8601 format: YYYY-MM-DD (e.g., '2026-03-22')",
+            description: "Strictly use this format: ISO 8601 format: YYYY-MM-DD (e.g., '2026-03-22')",
           },
         },
         required: ["plan_id", "day_order", "title", "day_date"],
@@ -132,7 +132,7 @@ export const tools = [
     type: "function",
     function: {
       name: "get_user_workout_plans",
-      description: "Lists all current workout plans for the member.",
+      description: "A full list of all the user's workout plans with their associated days and exercises.",
       parameters: { type: "object", properties: {}, required: [] },
     },
   },

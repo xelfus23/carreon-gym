@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { type SubscriptionPlan, subscriptionService } from "../services/subscription.service";
+import { subscriptionService } from "../services/subscription.service";
+import type { SubscriptionPlanProps } from "../types";
 
 export const useGymSubs = () => {
-  const [membership, setMembership] = useState<SubscriptionPlan[]>([]);
-  const [classes, setClasses] = useState<SubscriptionPlan[]>([]);
-  const [personalTrainer, setPersonalTrainer] = useState<SubscriptionPlan[]>([]);
-  const [addOns, setAddOns] = useState<SubscriptionPlan[]>([]);
+  const [membership, setMembership] = useState<SubscriptionPlanProps[]>([]);
+  const [classes, setClasses] = useState<SubscriptionPlanProps[]>([]);
+  const [personalTrainer, setPersonalTrainer] = useState<SubscriptionPlanProps[]>([]);
+  const [addOns, setAddOns] = useState<SubscriptionPlanProps[]>([]);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<null | string>(null);
@@ -32,7 +33,7 @@ export const useGymSubs = () => {
   }, []);
 
 
-  const saveEdit = async (editingId: number, editForm: Partial<SubscriptionPlan>) => {
+  const saveEdit = async (editingId: number, editForm: Partial<SubscriptionPlanProps>) => {
     await subscriptionService.updatePlan(editingId!, editForm);
   };
 
