@@ -127,6 +127,8 @@ export default function TodayWorkoutScreen() {
   // 1. Get ONLY the active plan
   const activePlan = workoutPlans.find((p) => p.is_active);
 
+  console.log(activePlan)
+
   // 2. Get ONLY today's exercises
   const formatLocalDate = (date: string | Date) => {
     const d = new Date(date);
@@ -134,6 +136,8 @@ export default function TodayWorkoutScreen() {
   };
 
   const todayStr = formatLocalDate(new Date());
+
+  console.log("Today's Date:", todayStr);
 
   const todayExercises =
     activePlan?.days
