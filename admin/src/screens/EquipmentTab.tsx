@@ -138,12 +138,12 @@ export default function EquipmentTab() {
           />
 
           <CustomTable
-            renderRow={(eq) => (
+            renderRow={(eq: EquipmentTypes) => (
               <EquipmentRow
                 key={eq.id}
                 item={eq}
-                onEdit={setEditTarget}
-                onDelete={setDeleteTarget}
+                onEdit={(eq) => setEditTarget(eq)}
+                onDelete={(eq) => setDeleteTarget(eq)}
               />
             )}
             data={paginated}

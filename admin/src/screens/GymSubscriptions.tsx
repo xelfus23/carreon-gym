@@ -226,7 +226,7 @@ export default function GymSubscriptionsAdmin() {
             { label: "Category", key: "category" },
             { label: "Duration", key: "duration_days" },
             { label: "Price", key: "price" },
-            { label: "Status", key: "is_active" },
+            { label: "Status", key: "is_active" }, 
             { label: "", key: null },
           ]}
         />

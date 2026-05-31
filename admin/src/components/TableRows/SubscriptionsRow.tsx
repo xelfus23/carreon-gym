@@ -1,24 +1,39 @@
-import { CheckCircle, EllipsisVertical } from "lucide-react";
-import type { SubscriptionPlanProps } from "../../types";
+import { CheckCircle, Edit } from "lucide-react";
+import type { ActionItemProps, SubscriptionPlanProps } from "../../types";
 import { formatSlug } from "../../utils/formatSlug";
 import { formatCurrency } from "../../utils/formatCurrency";
+import { useCallback, useRef, useState } from "react";
+import { ActionMenu } from "../ActionMenu";
 
 const CATEGORY_COLORS = {
-  personal_training: "text-violet-500 bg-violet-500/10 ",
-  membership: "text-emerald-500 bg-emerald-500/10",
-  class: "text-amber-500 bg-amber-500/10",
-  add_on: "text-blue-500 bg-blue-500/10",
+  personal_training: "text-violet-50",
+  membership: "text-emerald-500",
+  class: "text-amber-500",
+  add_on: "text-blue-500",
 };
 
 export default function SubscriptionsRow({
   plan,
-  onClick,
+  onClick
 }: {
   plan: SubscriptionPlanProps;
   onClick: () => void;
 }) {
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => setMenuOpen(false), []);
+
+  const actions: ActionItemProps[] = [
+    {
+      label: "Edit",
+      onClick: onClick,
+      icon: <Edit />
+    },
+  ]
+
   return (
-    <tr key={plan.id} className="hover:bg-border/10 transition-colors group">
+    <tr key={plan.id} className={`transition-colors group hover:bg-border/40`}>
       <td className="p-4 text-xs text-text-secondary">
         {plan.id.toString()}
       </td>
@@ -39,7 +54,7 @@ export default function SubscriptionsRow({
           {formatSlug(plan.category)}
         </span>
       </td>
-      <td className="p-4 whitespace-nowrap">
+      <td className="p-4 whitespace-nowrap text-xs">
         {plan.duration_days} {plan.duration_days > 1 ? "Days" : "Day"}
       </td>
       <td className="p-4 text-xs text-text-secondary">
@@ -50,14 +65,35 @@ export default function SubscriptionsRow({
           <CheckCircle size={14} /> Active
         </span>
       </td>
-      <td className="p-4 text-right">
-        <div className="relative inline-flex">
+      <td className="p-4">
+        <div className="flex items-center justify-end">
           <button
-            onClick={onClick}
-            className="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-border text-text-secondary hover:text-text-primary hover:bg-border/50 transition-colors"
+            ref={triggerRef}
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Member actions"
+            aria-haspopup="true"
+            aria-expanded={menuOpen}
+            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
+                            opacity-0 group-hover:opacity-100 focus:opacity-100
+                            ${menuOpen
+                ? "opacity-100 bg-border text-text-primary"
+                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              }`}
           >
-            <EllipsisVertical size={16} />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="8" cy="3" r="1.4" />
+              <circle cx="8" cy="8" r="1.4" />
+              <circle cx="8" cy="13" r="1.4" />
+            </svg>
           </button>
+
+          {menuOpen && (
+            <ActionMenu
+              items={actions}
+              anchorRef={triggerRef}
+              onClose={close}
+            />
+          )}
         </div>
       </td>
     </tr>

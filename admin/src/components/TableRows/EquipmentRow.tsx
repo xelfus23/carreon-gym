@@ -1,5 +1,9 @@
+import { Edit, Trash } from "lucide-react";
 import type { EquipmentTypes } from "../../hooks/useEquipments";
+import type { ActionItemProps } from "../../types";
 import { getMuscleStyle } from "../equipment/equipmentConstants";
+import { useCallback, useRef, useState } from "react";
+import { ActionMenu } from "../ActionMenu";
 
 // ─── Category Badge ───────────────────────────────────────────────────────────
 
@@ -33,16 +37,45 @@ export default function EquipmentRow({
   onDelete,
 }: {
   item: EquipmentTypes;
-  onEdit: (item: EquipmentTypes) => void;
-  onDelete: (item: EquipmentTypes) => void;
+  onEdit: (e: EquipmentTypes) => void;
+  onDelete: (e: EquipmentTypes) => void;
 }) {
+
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => setMenuOpen(false), []);
+
+
   const muscles = (item.target_muscles ?? "")
     .split(",")
     .map((muscle) => muscle.trim())
     .filter(Boolean);
 
+
+  const actions: ActionItemProps[] = [
+    {
+      label: "Edit",
+      onClick: () => {
+        onEdit(item); 
+        close();
+      },
+      icon: <Edit size={16} />
+    },
+    {
+      label: "Delete",
+      onClick: () => {
+        onDelete(item); // 
+        close();
+      },
+      icon: <Trash size={16} />,
+      dividerBefore: true,
+      variant: "danger"
+    }
+  ];
+
   return (
-    <tr className="border-b border-border hover:bg-surface/70 transition-colors">
+    <tr className={`transition-colors group hover:bg-border/40`}>
       <td className="p-4 text-xs text-text-secondary">
         {item.id.toString()}
       </td>
@@ -74,25 +107,34 @@ export default function EquipmentRow({
         </p>
       </td>
       <td className="p-4">
-        <div className="flex gap-1.5 justify-end">
+        <div className="flex items-center justify-end">
           <button
-            title="Edit"
-            onClick={() => onEdit(item)}
-            className="px-2.5 py-1.5 border border-border text-text-secondary
-                                   hover:border-primary/30 hover:bg-primary/10 hover:text-primary
-                                   transition-all duration-150 cursor-pointer text-xs font-semibold"
+            ref={triggerRef}
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Member actions"
+            aria-haspopup="true"
+            aria-expanded={menuOpen}
+            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
+                            opacity-0 group-hover:opacity-100 focus:opacity-100
+                            ${menuOpen
+                ? "opacity-100 bg-border text-text-primary"
+                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              }`}
           >
-            Edit
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="8" cy="3" r="1.4" />
+              <circle cx="8" cy="8" r="1.4" />
+              <circle cx="8" cy="13" r="1.4" />
+            </svg>
           </button>
-          <button
-            title="Delete"
-            onClick={() => onDelete(item)}
-            className="px-2.5 py-1.5 border border-border text-text-secondary
-                                   hover:border-danger/40 hover:bg-danger/10 hover:text-danger
-                                   transition-all duration-150 cursor-pointer text-xs font-semibold"
-          >
-            Delete
-          </button>
+
+          {menuOpen && (
+            <ActionMenu
+              items={actions}
+              anchorRef={triggerRef}
+              onClose={close}
+            />
+          )}
         </div>
       </td>
     </tr>

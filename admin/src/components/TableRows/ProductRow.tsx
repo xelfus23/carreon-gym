@@ -1,13 +1,63 @@
-import { Calendar } from 'lucide-react'
-import type { ProductProps } from '../../types'
+import { Calendar, Edit, SquareCheck, Trash } from 'lucide-react'
+import type { ActionItemProps, ProductProps } from '../../types'
+import { useCallback, useRef, useState } from 'react';
+import { ActionMenu } from '../ActionMenu';
 
-export default function ProductRow({ product }: { product: ProductProps }) {
+interface ProductRow {
+  product: ProductProps,
+  onUpdateStocks: (p: ProductProps) => void;
+  onDelete: (p: ProductProps) => void;
+  onUpdateAvailability: (p: ProductProps) => void;
+}
+
+export default function ProductRow({
+  product,
+  onDelete,
+  onUpdateStocks,
+  onUpdateAvailability
+}: ProductRow) {
+
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => setMenuOpen(false), []);
+
+
+  const actions: ActionItemProps[] = [
+    {
+      label: "Update Stocks",
+      icon: <Edit size={16} />,
+      onClick: () => {
+        onUpdateStocks(product);
+        close();
+      }
+    },
+    {
+      label: "Set Availability",
+      icon: <SquareCheck size={16} />,
+      onClick: () => {
+        onUpdateAvailability(product);
+        close();
+      }
+    },
+    {
+      label: "Delete Product",
+      icon: <Trash size={16} />,
+      onClick: () => {
+        onDelete(product);
+        close();
+      },
+      variant: "danger" as const,
+      dividerBefore: true,
+    }
+  ];
+
   return (
-    <tr className="hover:bg-muted/30 transition-colors">
+    <tr className={`transition-colors group hover:bg-border/40`}>
       <td className="p-4 text-xs text-text-secondary">
         {product.id.toString()}
-      </td>     
-       <td className="p-4 font-medium">
+      </td>
+      <td className="p-4 font-medium">
         {product.product_name}
       </td>
       <td className="p-4 text-text-secondary">
@@ -34,6 +84,37 @@ export default function ProductRow({ product }: { product: ProductProps }) {
         >
           {product.status.replace("_", " ")}
         </span>
+      </td>
+      <td className="p-4">
+        <div className="flex items-center justify-end">
+          <button
+            ref={triggerRef}
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Product actions"
+            aria-haspopup="true"
+            aria-expanded={menuOpen}
+            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
+                            opacity-0 group-hover:opacity-100 focus:opacity-100
+                            ${menuOpen
+                ? "opacity-100 bg-border text-text-primary"
+                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              }`}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="8" cy="3" r="1.4" />
+              <circle cx="8" cy="8" r="1.4" />
+              <circle cx="8" cy="13" r="1.4" />
+            </svg>
+          </button>
+
+          {menuOpen && (
+            <ActionMenu
+              items={actions}
+              anchorRef={triggerRef}
+              onClose={close}
+            />
+          )}
+        </div>
       </td>
     </tr>
   )

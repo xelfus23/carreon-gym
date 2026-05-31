@@ -91,6 +91,18 @@ export default function Product() {
     },
   ]
 
+  const onUpdateStocks = (p: ProductProps) => {
+    console.log(`UPDATING: `, p.product_name)
+  }
+
+  const onDelete = (p: ProductProps) => {
+    console.log(`DELETING: `, p.product_name)
+  }
+
+  const onUpdateAvailability = (p: ProductProps) => {
+    console.log(`UPDATING AVAILABILITY: `, p.product_name)
+  }
+
   return (
     <>
       <div className="space-y-4">
@@ -115,6 +127,9 @@ export default function Product() {
               <ProductRow
                 key={m.id}
                 product={m}
+                onDelete={(m) => onDelete(m)}
+                onUpdateStocks={(m) => onUpdateStocks(m)}
+                onUpdateAvailability={(m) => onUpdateAvailability(m)}
               />
             )}
             data={paginatedData}

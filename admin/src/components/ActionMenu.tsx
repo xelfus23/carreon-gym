@@ -89,7 +89,7 @@ export function ActionMenu({
       {items.map((item, i) => (
         <div key={i}>
           {item.dividerBefore && (
-            <div className="my-1 border-t border-border" />
+            <div className="border-t border-border" />
           )}
           <button
             disabled={item.disabled}
@@ -97,10 +97,10 @@ export function ActionMenu({
               item.onClick();
               onClose();
             }}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-xs transition-colors font-bold text-left uppercase tracking-tight
+            className={`w-full flex items-center gap-3 px-3 py-3 text-xs transition-colors font-bold text-left tracking-tight
               disabled:opacity-40 disabled:cursor-not-allowed ${variantCls[item.variant ?? "default"]}`}
           >
-            <span className="flex items-center justify-center w-4">
+            <span className="flex w-4">
               {item.icon}
             </span>
             {item.label}

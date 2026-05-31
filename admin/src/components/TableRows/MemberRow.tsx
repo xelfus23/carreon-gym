@@ -2,9 +2,8 @@ import {
   useState,
   useRef,
   useCallback,
-  type ReactElement,
 } from "react";
-import type { AdminMemberListItem, SubscriptionStatus } from "../../types";
+import type { ActionItemProps, AdminMemberListItem, SubscriptionStatus } from "../../types";
 import {
   Ban,
   Check,
@@ -40,14 +39,6 @@ const SUB_BADGE: Record<SubscriptionStatus, string> = {
   cancelled: "bg-rose-100 text-rose-600",
 };
 
-interface ActionItem {
-  label: string;
-  icon: ReactElement;
-  onClick: () => void;
-  variant?: "default" | "warning" | "danger";
-  dividerBefore?: boolean;
-  disabled?: boolean;
-}
 
 
 // ── MemberRow ─────────────────────────────────────────────────────────────────
@@ -72,17 +63,10 @@ export default function MemberRow({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
 
-  // const attendanceColor =
-  //   m.attendance_rate > 80
-  //     ? "bg-emerald-500"
-  //     : m.attendance_rate > 50
-  //       ? "bg-amber-500"
-  //       : "bg-rose-500";
-
   const isSuspended = m.account_status === "suspended";
   const isDeleted = m.account_status === "deleted";
 
-  const actions: ActionItem[] = [
+  const actions: ActionItemProps[] = [
     {
       label: "Set Plan",
       icon: <ClockPlus className="h-4" />,
