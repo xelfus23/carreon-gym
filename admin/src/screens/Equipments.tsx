@@ -1,20 +1,67 @@
 import { useMemo, useState } from "react";
 import { useEquipments, type EquipmentTypes } from "../hooks/useEquipments";
-import {
-  AddModal,
-  EditModal,
-  DeleteModal,
-} from "../components/equipment/EquipmentModals";
 import { Dumbbell, Loader2 } from "lucide-react";
 import CustomTable from "../components/CustomTable";
 import CustomHeader from "../components/CustomHeader";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import EquipmentRow from "../components/TableRows/EquipmentRow";
+import type { FormField } from "../types";
+
+// Import your universal dynamic modals
+import EditModal from "../components/Modals/EditModal";
+import AddModal from "../components/Modals/AddModal";
+import ConfirmDialog from "../components/Modals/ConfirmDialog";
 
 type SortKey = keyof EquipmentTypes | null;
 type SortDir = "asc" | "desc";
 
-export default function EquipmentTab() {
+// Define the schema configuration outside the render cycle
+const EQUIPMENT_FIELDS: FormField[] = [
+  {
+    name: "equipment_name",
+    label: "Equipment Name",
+    type: "text",
+    placeholder: "e.g., Olympic Barbell",
+    required: true,
+    gridSpan: "full",
+  },
+  {
+    name: "category",
+    label: "Category",
+    type: "select",
+    required: true,
+    options: [
+      { label: "Free Weights", value: "Free Weight" },
+      { label: "Accessories", value: "Accessory" },
+      { label: "Cardio", value: "Cardio" },
+      { label: "Machines", value: "Machine" },
+    ],
+  },
+  {
+    name: "quantity",
+    label: "Quantity",
+    type: "number",
+    placeholder: "Enter quantity",
+    required: true,
+  },
+  {
+    name: "target_muscles",
+    label: "Target Muscles",
+    type: "text",
+    placeholder: "e.g., Chest, Triceps, Deltoids",
+    required: true,
+    gridSpan: "full",
+  },
+  {
+    name: "description",
+    label: "Description",
+    type: "textarea",
+    placeholder: "Provide optional visual configurations or specifications...",
+    gridSpan: "full",
+  },
+];
+
+export default function Equipments() {
   const {
     equipments,
     isLoading,
@@ -25,9 +72,12 @@ export default function EquipmentTab() {
     deleteEquipment,
   } = useEquipments();
 
-  const [showAdd, setShowAdd] = useState(false);
-  const [editTarget, setEditTarget] = useState<EquipmentTypes | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] =
+    useState<EquipmentTypes | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<EquipmentTypes | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey>("equipment_name");
@@ -77,9 +127,19 @@ export default function EquipmentTab() {
       setSortDir((dir) => (dir === "asc" ? "desc" : "asc"));
       return;
     }
-
     setSortKey(key);
     setSortDir("asc");
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await deleteEquipment(deleteTarget.id);
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
   };
 
   if (isLoading)
@@ -123,6 +183,7 @@ export default function EquipmentTab() {
           title="Equipment Management"
           icon={<Dumbbell className="text-primary" />}
           description="Manage carreon gym equipments"
+          onClick={() => setIsAddModalOpen(true)}
         />
 
         <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0">
@@ -142,8 +203,11 @@ export default function EquipmentTab() {
               <EquipmentRow
                 key={eq.id}
                 item={eq}
-                onEdit={(eq) => setEditTarget(eq)}
-                onDelete={(eq) => setDeleteTarget(eq)}
+                onEdit={(target) => setSelectedEquipment(target)}
+                onDelete={(target) => {
+                  setDeleteTarget(target);
+                  setIsDeleting(true);
+                }}
               />
             )}
             data={paginated}
@@ -168,7 +232,6 @@ export default function EquipmentTab() {
           />
         </div>
 
-        {/* ── Error banner ── */}
         {error && (
           <div className="flex items-center gap-2.5 bg-danger/8 border border-danger/30 px-4 py-3">
             <svg
@@ -191,25 +254,48 @@ export default function EquipmentTab() {
         )}
       </div>
 
-      {/* ── Modals ── */}
-      {showAdd && (
+      {/* ── Universal Create Modal ── */}
+      {isAddModalOpen && (
         <AddModal
-          onCreate={createEquipment}
-          onClose={() => setShowAdd(false)}
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSuccess={refresh}
+          title="Add New Equipment"
+          subtitle="Register inventory logs inside management pipelines"
+          fields={EQUIPMENT_FIELDS}
+          onSave={async (data) => {
+            await createEquipment(data as any);
+          }}
+          submitButtonText="Create Record"
         />
       )}
-      {editTarget && (
+
+      {/* ── Universal Edit Modal ── */}
+      {!!selectedEquipment && (
         <EditModal
-          item={editTarget}
-          onUpdate={updateEquipment}
-          onClose={() => setEditTarget(null)}
+          isOpen={!!selectedEquipment}
+          onClose={() => setSelectedEquipment(null)}
+          onSuccess={refresh}
+          title="Edit Equipment Properties"
+          subtitle="Adjust technical specifications or quantity totals"
+          fields={EQUIPMENT_FIELDS}
+          initialData={selectedEquipment}
+          onSave={async (data) => {
+            await updateEquipment(selectedEquipment.id, data as any);
+          }}
         />
       )}
-      {deleteTarget && (
-        <DeleteModal
-          item={deleteTarget}
-          onDelete={deleteEquipment}
+
+      {isDeleting && (
+        <ConfirmDialog
+          isOpen={!!deleteTarget}
           onClose={() => setDeleteTarget(null)}
+          onConfirm={handleDelete}
+          isLoading={isDeleting}
+          variant="danger"
+          title="Delete Equipment Record"
+          message={`Are you sure you want to delete "${deleteTarget?.equipment_name}"? This action removes the entry permanently from database records.`}
+          confirmLabel="Permanently Delete"
         />
       )}
     </>

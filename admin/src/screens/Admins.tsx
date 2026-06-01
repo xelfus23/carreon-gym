@@ -12,7 +12,7 @@ import CustomTable from "../components/CustomTable";
 type SortKey = keyof AdminMemberListItem | null;
 type SortDir = "asc" | "desc";
 
-export default function AdminManagement() {
+export default function Admins() {
   const { admins, refresh, isLoading, verifyMember } = useMember();
   const [subscriptionMember, setSubscriptionMember] =
     useState<AdminMemberListItem | null>(null);

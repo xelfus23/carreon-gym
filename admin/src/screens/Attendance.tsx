@@ -23,7 +23,7 @@ import { formatTime } from "../utils/formatTime";
 import { formatDate } from "../utils/formatDate";
 import AttendanceRow from "../components/TableRows/AttendanceRow";
 
-export default function AttendanceLog() {
+export default function Attendance() {
   const {
     logs,
     attempts,
@@ -98,7 +98,7 @@ export default function AttendanceLog() {
       activeNow: logs.filter((l) => l.status === "checked_in").length,
       avgDuration: logs.length
         ? logs.reduce((acc, curr) => acc + (curr.duration || 0), 0) /
-        logs.length
+          logs.length
         : 0,
     }),
     [logs],

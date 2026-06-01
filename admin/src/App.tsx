@@ -1,19 +1,19 @@
 import React, { useState } from "react";
 import Login from "./components/Login";
 import { useAuthContext } from "./hooks/contextHooks";
-import DashboardHome from "./screens/DashboardHome";
+import DashboardHome from "./screens/Dashboard";
 // import AssistantTab from "./screens/AssistantTab";
 import { NavItem } from "./types";
 import Sidebar from "./components/SideBar";
-import QRTab from "./screens/QRTab";
-import MemberManagement from "./screens/MemberManagement";
-import EquipmentTab from "./screens/EquipmentTab";
-import AttendanceLog from "./screens/AttendanceLog";
-import Product from "./screens/Product";
-import AdminManagement from "./screens/AdminManagement";
+import QRTab from "./screens/QR";
+import MemberManagement from "./screens/Members";
+import EquipmentTab from "./screens/Equipments";
+import AttendanceLog from "./screens/Attendance";
+import Product from "./screens/Products";
+import AdminManagement from "./screens/Admins";
 import Transactions from "./screens/Transactions";
-import GymSettings from "./screens/GymSettings";
-import GymSubscriptions from "./screens/GymSubscriptions";
+import GymSettings from "./screens/Settings";
+import GymSubscriptions from "./screens/Subscriptions";
 
 const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<NavItem>(NavItem.ANALYTICS);

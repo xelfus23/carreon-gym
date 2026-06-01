@@ -4,7 +4,6 @@ import {
   type TransactionProps,
 } from "../hooks/useTransactions";
 import { purchaseService } from "../services/purchase.service";
-import ConfirmDialog from "../components/ConfirmDialog";
 import { Receipt, CheckCircle, Clock, X } from "lucide-react";
 import StatsCard from "../components/CustomStatsCard";
 import CustomHeader from "../components/CustomHeader";
@@ -13,7 +12,7 @@ import TransactionRow from "../components/TableRows/TransactionRow";
 import { formatCurrency } from "../utils/formatCurrency";
 import ToolBar from "../components/ToolBar";
 
-export default function TransactionsLog() {
+export default function Transactions() {
   const { transactions, isLoading, refresh } = useTransactions();
 
   const [search, setSearch] = useState("");
@@ -22,13 +21,9 @@ export default function TransactionsLog() {
     string | null | undefined
   >();
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [confirmDialog, setConfirmDialog] = useState<{
-    title: string;
-    message: string;
-    confirmLabel: string;
-    variant: "warning" | "danger";
-    onConfirm: () => void;
-  } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<TransactionProps | null>();
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const menuWrapRef = useRef<HTMLDivElement | null>(null);
 
   const PAGE_SIZE = 50;
@@ -103,7 +98,6 @@ export default function TransactionsLog() {
         throw new Error(result?.message || "Failed to deny payment");
       }
       setOpenMenuId(null);
-      setConfirmDialog(null);
       refresh();
     } catch (err) {
       console.error(err);
@@ -117,7 +111,6 @@ export default function TransactionsLog() {
         throw new Error(result?.message || "Failed to delete transaction");
       }
       setOpenMenuId(null);
-      setConfirmDialog(null);
       refresh();
     } catch (err) {
       console.error(err);
@@ -270,37 +263,12 @@ export default function TransactionsLog() {
               openMenuId={openMenuId}
               tx={tr}
               OnVerify={() => handleVerify(tr.transaction_id)}
-              OnDelete={() =>
-                setConfirmDialog({
-                  title: "Delete Transaction",
-                  message: `Delete this transaction for ${tr.member_name}? This cannot be undone.`,
-                  confirmLabel: "Delete",
-                  variant: "danger",
-                  onConfirm: () => handleDelete(tr.transaction_id),
-                })
-              }
-              OnDeny={() =>
-                setConfirmDialog({
-                  title: "Deny Payment Request",
-                  message: `Deny payment request for ${tr.member_name}?`,
-                  confirmLabel: "Deny Payment",
-                  variant: "warning",
-                  onConfirm: () => handleDeny(tr.transaction_id),
-                })
-              }
+              OnDelete={() => handleDelete(tr.transaction_id)}
+              OnDeny={() => handleDeny(tr.transaction_id)}
             />
           )}
         />
       </div>
-      {confirmDialog && (
-        <ConfirmDialog
-          {...confirmDialog}
-          onCancel={() => {
-            setConfirmDialog(null);
-            setOpenMenuId(null);
-          }}
-        />
-      )}
     </div>
   );
 }

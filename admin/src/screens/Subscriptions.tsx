@@ -9,20 +9,69 @@ import type { FormField, SubscriptionPlanProps } from "../types";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import SubscriptionsRow from "../components/TableRows/SubscriptionsRow";
 import EditModal from "../components/Modals/EditModal";
-import { subscriptionService } from "../services/subscription.service";
+// import { subscriptionService } from "../services/subscription.service";
+import AddModal from "../components/Modals/AddModal";
 
 type SortKey = keyof SubscriptionPlanProps | null;
 type SortDir = "asc" | "desc";
+
+const fields: FormField[] = [
+  {
+    name: "name",
+    label: "Name",
+    type: "text",
+    placeholder: "Enter the name of the subscription plan",
+  },
+  {
+    name: "description",
+    label: "Description",
+    type: "textarea",
+    placeholder: "Enter the description of the subscription plan",
+  },
+  {
+    name: "category",
+    label: "Category",
+    type: "select",
+    placeholder: "Select the category of the subscription plan",
+    options: [
+      { label: "Membership", value: "membership" },
+      { label: "Class", value: "class" },
+      { label: "Personal Trainer", value: "personal_training" },
+      { label: "Addon", value: "add_on" },
+    ],
+  },
+  {
+    name: "duration_days",
+    label: "Duration (Days)",
+    type: "number",
+    placeholder: "Enter the duration of the subscription plan in days",
+  },
+  {
+    name: "price",
+    label: "Price",
+    type: "number",
+    placeholder: "Enter the price of the subscription plan",
+  },
+  {
+    name: "is_active",
+    label: "Active",
+    type: "checkbox",
+    placeholder: "Is the subscription plan active?",
+  },
+];
 
 export default function GymSubscriptionsAdmin() {
   const { membership, classes, addOns, personalTrainer, isLoading, refresh } =
     useGymSubs();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [filterSub, setFilterSub] = useState("all");
-  const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionPlanProps | null>(null);
+  const [selectedSubscription, setSelectedSubscription] =
+    useState<SubscriptionPlanProps | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -95,19 +144,6 @@ export default function GymSubscriptionsAdmin() {
     setSortDir("asc");
   };
 
-  useEffect(() => {
-    const onMouseDown = (event: MouseEvent) => {
-      if (
-        menuWrapRef.current &&
-        !menuWrapRef.current.contains(event.target as Node)
-      ) {
-        setSelectedSubscription(null);
-      }
-    };
-    document.addEventListener("mousedown", onMouseDown);
-    return () => document.removeEventListener("mousedown", onMouseDown);
-  }, []);
-
   if (isLoading)
     return (
       <div className="flex h-full flex-col items-center justify-center space-y-4">
@@ -165,54 +201,13 @@ export default function GymSubscriptionsAdmin() {
     },
   ];
 
-  const fields: FormField[] = [
-    {
-      name: "name",
-      label: "Name",
-      type: "text",
-      placeholder: "Enter the name of the subscription plan",
-    },
-    {
-      name: "description",
-      label: "Description",
-      type: "textarea",
-      placeholder: "Enter the description of the subscription plan",
-    },
-    {
-      name: "category",
-      label: "Category",
-      type: "select",
-      placeholder: "Select the category of the subscription plan",
-      options: [
-        { label: "Membership", value: "membership" },
-        { label: "Class", value: "class" },
-        { label: "Personal Trainer", value: "personal_training" },
-        { label: "Addon", value: "add_on" },
-      ],
-    },
-    {
-      name: "duration_days",
-      label: "Duration (Days)",
-      type: "number",
-      placeholder: "Enter the duration of the subscription plan in days",
-    },
-    {
-      name: "price",
-      label: "Price",
-      type: "number",
-      placeholder: "Enter the price of the subscription plan",
-    },
-    {
-      name: "is_active",
-      label: "Active",
-      type: "checkbox",
-      placeholder: "Is the subscription plan active?",
-    },
-  ];
-
-  const saveEdit = async (id: number | undefined, data: Partial<SubscriptionPlanProps>) => {
-    await subscriptionService.updatePlan(id!, data);
-  }
+  const saveEdit = async (
+    id: number | undefined,
+    data: Partial<SubscriptionPlanProps>,
+  ) => {
+    console.log(data);
+    // await subscriptionService.updatePlan(id!, data);
+  };
 
   return (
     <div className="space-y-4">
@@ -223,7 +218,7 @@ export default function GymSubscriptionsAdmin() {
         icon={<Dumbbell className="text-primary" />}
         description="Manage and configure carreon gym plan offerings"
         refresh={refresh}
-        onClick={() => console.log("Hey")}
+        onClick={() => setIsAddModalOpen(true)}
         buttonLabel="Create New Plan"
         isLoading={isLoading}
       />
@@ -261,10 +256,9 @@ export default function GymSubscriptionsAdmin() {
             <SubscriptionsRow
               plan={sub}
               onClick={() => {
-                setIsEditModalOpen(true)
-                setSelectedSubscription(sub)
-              }
-              }
+                setIsEditModalOpen(true);
+                setSelectedSubscription(sub);
+              }}
             />
           )}
           onSort={handleSort}
@@ -297,20 +291,31 @@ export default function GymSubscriptionsAdmin() {
         />
       )}
 
-      {
-        isEditModalOpen && (
-          <EditModal
-            isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            onSuccess={refresh}
-            title="Edit Subscription"
-            subtitle="Edit the subscription plan"
-            fields={fields}
-            initialData={selectedSubscription}
-            onSave={(data) => saveEdit(selectedSubscription?.id, data)}
-          />
-        )
-      }
+      {isEditModalOpen && (
+        <EditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSuccess={refresh}
+          title="Edit Subscription"
+          subtitle="Edit the subscription plan"
+          fields={fields}
+          initialData={selectedSubscription}
+          onSave={(data) => saveEdit(selectedSubscription?.id, data)}
+        />
+      )}
+
+      {isAddModalOpen && (
+        <AddModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSuccess={refresh}
+          title="Add Subscription"
+          subtitle="Add a subscription plan"
+          fields={fields}
+          onSave={(data) => saveEdit(selectedSubscription?.id, data)}
+          submitButtonText="Add Subscription"
+        />
+      )}
     </div>
   );
 }

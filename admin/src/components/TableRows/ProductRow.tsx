@@ -1,29 +1,18 @@
-import { Calendar, Edit, SquareCheck, Trash } from 'lucide-react'
-import type { ActionItemProps, ProductProps } from '../../types'
-import { useCallback, useRef, useState } from 'react';
-import { ActionMenu } from '../ActionMenu';
+import { Calendar, Edit, SquareCheck, Trash } from "lucide-react";
+import type { ActionItemProps, ProductProps } from "../../types";
+import { useCallback, useRef, useState } from "react";
+import { ActionMenu } from "../ActionMenu";
 
 interface ProductRow {
-  product: ProductProps,
+  product: ProductProps;
   onEdit: (p: ProductProps) => void;
-  onUpdateStocks: (p: ProductProps) => void;
   onDelete: (p: ProductProps) => void;
-  onUpdateAvailability: (p: ProductProps) => void;
 }
 
-export default function ProductRow({
-  product,
-  onEdit,
-  onDelete,
-  onUpdateStocks,
-  onUpdateAvailability
-}: ProductRow) {
-
-
+export default function ProductRow({ product, onEdit, onDelete }: ProductRow) {
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
-
 
   const actions: ActionItemProps[] = [
     {
@@ -32,26 +21,10 @@ export default function ProductRow({
       onClick: () => {
         onEdit(product);
         close();
-      }
+      },
     },
     {
-      label: "Update Stocks",
-      icon: <Edit size={16} />,
-      onClick: () => {
-        onUpdateStocks(product);
-        close();
-      }
-    },
-    {
-      label: "Set Availability",
-      icon: <SquareCheck size={16} />,
-      onClick: () => {
-        onUpdateAvailability(product);
-        close();
-      }
-    },
-    {
-      label: "Delete Product",
+      label: "Delete",
       icon: <Trash size={16} />,
       onClick: () => {
         onDelete(product);
@@ -59,7 +32,7 @@ export default function ProductRow({
       },
       variant: "danger" as const,
       dividerBefore: true,
-    }
+    },
   ];
 
   return (
@@ -67,15 +40,9 @@ export default function ProductRow({
       <td className="p-4 text-xs text-text-secondary">
         {product.id.toString()}
       </td>
-      <td className="p-4 font-medium">
-        {product.product_name}
-      </td>
-      <td className="p-4 text-text-secondary">
-        {product.category}
-      </td>
-      <td className="p-4 font-mono">
-        ₱{product.price.toLocaleString()}
-      </td>
+      <td className="p-4 font-medium">{product.product_name}</td>
+      <td className="p-4 text-text-secondary">{product.category}</td>
+      <td className="p-4 font-mono">₱{product.price.toLocaleString()}</td>
       <td className="p-4">{product.stocks}</td>
       <td className="p-4 text-xs text-text-secondary">
         <div className="flex items-center gap-1">
@@ -85,12 +52,13 @@ export default function ProductRow({
       </td>
       <td className="p-4">
         <span
-          className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${product.status === "available"
-            ? "bg-green-100 text-green-700"
-            : product.status === "out_of_stock"
-              ? "bg-orange-100 text-orange-700"
-              : "bg-red-100 text-red-700"
-            }`}
+          className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+            product.status === "available"
+              ? "bg-green-100 text-green-700"
+              : product.status === "out_of_stock"
+                ? "bg-orange-100 text-orange-700"
+                : "bg-red-100 text-red-700"
+          }`}
         >
           {product.status.replace("_", " ")}
         </span>
@@ -105,10 +73,11 @@ export default function ProductRow({
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                             opacity-0 group-hover:opacity-100 focus:opacity-100
-                            ${menuOpen
-                ? "opacity-100 bg-border text-text-primary"
-                : "text-text-secondary hover:bg-border hover:text-text-primary"
-              }`}
+                            ${
+                              menuOpen
+                                ? "opacity-100 bg-border text-text-primary"
+                                : "text-text-secondary hover:bg-border hover:text-text-primary"
+                            }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />
@@ -127,5 +96,5 @@ export default function ProductRow({
         </div>
       </td>
     </tr>
-  )
+  );
 }

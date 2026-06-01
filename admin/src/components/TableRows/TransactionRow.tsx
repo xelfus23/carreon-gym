@@ -3,13 +3,25 @@ import {
   CheckCircle,
   CheckCircle2,
   Clock,
+  Edit,
   ExternalLink,
+  Trash,
   Trash2,
+  X,
+  XCircle,
 } from "lucide-react";
 import { type TransactionProps } from "../../hooks/useTransactions";
 import { formatDate } from "../../utils/formatDate";
 import { formatCurrency } from "../../utils/formatCurrency";
-import type { Dispatch, SetStateAction } from "react";
+import {
+  useCallback,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+import type { ActionItemProps } from "../../types";
+import { ActionMenu } from "../ActionMenu";
 
 interface TransactionRowProps {
   tx: TransactionProps;
@@ -30,10 +42,46 @@ export default function TransactionRow({
   OnDeny,
   OnDelete,
 }: TransactionRowProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => setMenuOpen(false), []);
+
+  const actions: ActionItemProps[] =
+    tx.status === "paid"
+      ? [
+          {
+            label: "Delete",
+            icon: <Trash size={16} />,
+            onClick: () => {
+              close();
+            },
+            variant: "danger" as const,
+            dividerBefore: true,
+          },
+        ]
+      : [
+          {
+            label: "Accept",
+            icon: <CheckCircle2 size={16} />,
+            onClick: () => {
+              close();
+            },
+            variant: "success",
+          },
+          {
+            label: "Deny",
+            icon: <XCircle size={16} />,
+            onClick: () => {
+              close();
+            },
+            variant: "warning",
+          },
+        ];
+
   return (
     <tr
       key={tx.transaction_id}
-      className="hover:bg-border/10 transition-colors group"
+      className={`transition-colors group hover:bg-border/40`}
     >
       <td className="p-4 whitespace-nowrap">
         <p className="text-text-secondary text-[10px]">{tx.reference_no}</p>
@@ -51,9 +99,7 @@ export default function TransactionRow({
           {tx.item_name}
         </p>
       </td>
-      <td className="p-4 text-xs">
-        {formatCurrency(tx.amount)}
-      </td>
+      <td className="p-4 text-xs">{formatCurrency(tx.amount)}</td>
       <td className="p-4">
         {tx.status === "paid" ? (
           <span className="inline-flex items-center gap-1.5 text-emerald-500 text-[11px] font-black">
@@ -79,16 +125,21 @@ export default function TransactionRow({
           </span>
         )}
       </td>
-      <td className="p-4 text-right">
-        <div className="relative inline-flex">
+      <td className="p-4">
+        <div className="flex items-center justify-end">
           <button
-            onClick={() =>
-              setOpenMenuId((prev) =>
-                prev === tx.transaction_id ? null : tx.transaction_id!,
-              )
-            }
-            className="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-border text-text-secondary hover:text-text-primary hover:bg-border/50 transition-colors"
-            aria-label="Transaction actions"
+            ref={triggerRef}
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Product actions"
+            aria-haspopup="true"
+            aria-expanded={menuOpen}
+            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
+                            opacity-0 group-hover:opacity-100 focus:opacity-100
+                            ${
+                              menuOpen
+                                ? "opacity-100 bg-border text-text-primary"
+                                : "text-text-secondary hover:bg-border hover:text-text-primary"
+                            }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />
@@ -97,31 +148,12 @@ export default function TransactionRow({
             </svg>
           </button>
 
-          {openMenuId === tx.transaction_id && (
-            <div className="absolute right-0 top-10 z-20 w-48 bg-surface border border-border shadow-xl overflow-hidden">
-              {tx.status === "pending" && (
-                <>
-                  <button
-                    onClick={OnVerify}
-                    className="w-full px-3 py-2 text-xs font-semibold text-left flex items-center gap-2 hover:bg-border/40 text-emerald-500"
-                  >
-                    <CheckCircle2 size={14} /> Verify payment
-                  </button>
-                  <button
-                    onClick={OnDeny}
-                    className="w-full px-3 py-2 text-xs font-semibold text-left flex items-center gap-2 hover:bg-border/40 text-amber-500"
-                  >
-                    <Ban size={14} /> Deny payment
-                  </button>
-                </>
-              )}
-              <button
-                onClick={OnDelete}
-                className="w-full px-3 py-2 text-xs font-semibold text-left flex items-center gap-2 hover:bg-rose-500/10 text-rose-500 border-t border-border"
-              >
-                <Trash2 size={14} /> Delete transaction
-              </button>
-            </div>
+          {menuOpen && (
+            <ActionMenu
+              items={actions}
+              anchorRef={triggerRef}
+              onClose={close}
+            />
           )}
         </div>
       </td>

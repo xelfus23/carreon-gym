@@ -14,12 +14,11 @@ const CATEGORY_COLORS = {
 
 export default function SubscriptionsRow({
   plan,
-  onClick
+  onClick,
 }: {
   plan: SubscriptionPlanProps;
   onClick: () => void;
 }) {
-
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
@@ -27,16 +26,17 @@ export default function SubscriptionsRow({
   const actions: ActionItemProps[] = [
     {
       label: "Edit",
-      onClick: onClick,
-      icon: <Edit />
+      onClick: () => {
+        onClick();
+        close();
+      },
+      icon: <Edit />,
     },
-  ]
+  ];
 
   return (
     <tr key={plan.id} className={`transition-colors group hover:bg-border/40`}>
-      <td className="p-4 text-xs text-text-secondary">
-        {plan.id.toString()}
-      </td>
+      <td className="p-4 text-xs text-text-secondary">{plan.id.toString()}</td>
       <td className="p-4">
         <p className="font-bold text-sm tracking-tight text-text-primary">
           {plan.name}
@@ -75,10 +75,11 @@ export default function SubscriptionsRow({
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                             opacity-0 group-hover:opacity-100 focus:opacity-100
-                            ${menuOpen
-                ? "opacity-100 bg-border text-text-primary"
-                : "text-text-secondary hover:bg-border hover:text-text-primary"
-              }`}
+                            ${
+                              menuOpen
+                                ? "opacity-100 bg-border text-text-primary"
+                                : "text-text-secondary hover:bg-border hover:text-text-primary"
+                            }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />

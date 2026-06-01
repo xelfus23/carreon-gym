@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useGymDetails } from "../hooks/useGymDetails";
 import { gymDetailService } from "../services/gymDetails.service";
-import { Loader2, Settings } from "lucide-react";
+import { Loader2, Settings as Sett } from "lucide-react";
 import type { gymDetailsProps } from "../types";
 
-export default function GymSettings() {
+export default function Settings() {
   const { gymDetails, isLoading, refresh, error } = useGymDetails();
 
   const [formValue, setFormValue] = useState<Partial<gymDetailsProps>>({});
@@ -51,7 +51,6 @@ export default function GymSettings() {
     "maya_number",
   ];
 
-
   if (isLoading)
     return (
       <div className="flex h-full flex-col items-center justify-center space-y-4">
@@ -65,16 +64,13 @@ export default function GymSettings() {
       </div>
     );
 
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Settings className="text-primary" /> {gymDetails?.gym_name}{" "}
-          Settings
+          <Sett className="text-primary" /> {gymDetails?.gym_name} Settings
         </h1>
         <div className="flex items-center gap-2 ml-auto">
-
           {!isLoading && (
             <button
               onClick={refresh}
@@ -99,7 +95,6 @@ export default function GymSettings() {
               Refresh
             </button>
           )}
-
         </div>
       </div>
 
@@ -114,9 +109,7 @@ export default function GymSettings() {
                 className="border border-border p-2 focus:ring-2 text-text-primary focus:ring-primary outline-none transition-all"
                 // Use type assertion or optional chaining to safely access keys
                 value={(formValue[key] as string) || ""}
-                onChange={(e) =>
-                  handleChange(key, e.target.value)
-                }
+                onChange={(e) => handleChange(key, e.target.value)}
               />
             </div>
           ))}
@@ -126,14 +119,12 @@ export default function GymSettings() {
       <button
         onClick={handleSave}
         disabled={isSaving}
-        className={`mt-6 w-40 px-4 py-2 text-background font-semibold transition-colors ${isSaving
-          ? "bg-gray-400"
-          : "bg-primary hover:bg-primary-dark"
-          }`}
+        className={`mt-6 w-40 px-4 py-2 text-background font-semibold transition-colors ${
+          isSaving ? "bg-gray-400" : "bg-primary hover:bg-primary-dark"
+        }`}
       >
         {isSaving ? "Saving..." : "Save Changes"}
       </button>
-
     </div>
   );
 }

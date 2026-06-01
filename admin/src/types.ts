@@ -11,7 +11,7 @@ export enum NavItem {
   GYM_PRODUCTS = "GYM_PRODUCTS",
   // AI_INSIGHTS = "AI_INSIGHTS",
   GYM_SETTINGS = "GYM_SETTINGS",
-  SUBSCRIPTIONS = "SUBSCRIPTIONS"
+  SUBSCRIPTIONS = "SUBSCRIPTIONS",
 }
 
 export type SubscriptionStatus = "active" | "expired" | "pending" | "cancelled";
@@ -83,7 +83,7 @@ export interface ActionItemProps {
   label: string;
   icon: ReactElement;
   onClick: () => void;
-  variant?: "default" | "warning" | "danger";
+  variant?: "default" | "danger" | "warning" | "success";
   dividerBefore?: boolean;
   disabled?: boolean;
 }
@@ -139,42 +139,29 @@ export interface SubscriptionPlanProps {
   price: number;
   duration_days: number;
   category: "personal_training" | "class" | "membership" | "add_on";
-  is_active: boolean,
+  is_active: boolean;
 }
-
 
 export interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'number' | 'textarea' | 'checkbox' | 'select';
+  type: "text" | "number" | "textarea" | "checkbox" | "select" | "image";
   placeholder?: string;
-  options?: { label: string; value: string | number }[]; // For select fields
   required?: boolean;
+  options?: { label: string; value: string | number }[]; // For select fields
+  icon?: ComponentType<{ className?: string; size?: number }>; // Lucide prefix icon
+  gridSpan?: "full" | "half";
 }
 
 export interface UniversalEditModalProps<T> {
-  isOpen: boolean; // Good practice to control visibility from outside
+  isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   title: string;
   subtitle?: string;
   fields: FormField[];
   initialData: T | null;
-  onSave: (data: T) => Promise<void>;
-}
-
-
-// types.ts
-
-export interface AddFormField {
-  name: string;
-  label: string;
-  type: 'text' | 'number' | 'textarea' | 'select' | 'image';
-  required?: boolean;
-  placeholder?: string;
-  options?: { label: string; value: string | number }[]; // For select fields
-  icon?: ComponentType<{ className?: string; size?: number }>; // Optional Lucide icon prefix
-  gridSpan?: 'full' | 'half'; // Control form layout width
+  onSave: (data: T, imageFile: File | null) => Promise<void>; // Updated to handle image files
 }
 
 export interface UniversalAddModalProps<T> {
@@ -183,7 +170,19 @@ export interface UniversalAddModalProps<T> {
   onSuccess: () => void;
   title: string;
   subtitle?: string;
-  fields: AddFormField[];
+  fields: FormField[]; // Synchronized field properties
   submitButtonText?: string;
   onSave: (data: T, imageFile: File | null) => Promise<void>;
 }
+
+export type ConfirmDialogProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void | Promise<void>;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: "danger" | "warning" | "success";
+  isLoading?: boolean;
+};

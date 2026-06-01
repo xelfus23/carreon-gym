@@ -3,16 +3,56 @@ import { useMemo, useState } from "react";
 import { useProducts } from "../hooks/useProducts";
 import ProductRow from "../components/TableRows/ProductRow";
 import CustomTable from "../components/CustomTable";
-import type { AddFormField, ProductProps } from "../types";
+import type { FormField, ProductProps } from "../types";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import CustomHeader from "../components/CustomHeader";
 import AddModal from "../components/Modals/AddModal";
+import EditModal from "../components/Modals/EditModal";
 
 type SortKey = keyof ProductProps;
 type SortDir = "asc" | "desc";
 type FilterStatus = "all" | "available" | "unavailable" | "out_of_stock";
 
-export default function Product() {
+const fields: FormField[] = [
+  {
+    name: "product_image",
+    label: "Product Image",
+    type: "image",
+    gridSpan: "full",
+  },
+  {
+    name: "product_name",
+    label: "Product Name",
+    type: "text",
+    required: true,
+  },
+  {
+    name: "category",
+    label: "Category",
+    type: "select",
+    options: [
+      { label: "Food", value: "food" },
+      { label: "Drink", value: "drink" },
+      { label: "Accessory", value: "accessory" },
+      { label: "Other", value: "other" },
+    ],
+  },
+  { name: "price", label: "Price", type: "number", required: true },
+  { name: "stocks", label: "Stocks", type: "number", required: true },
+  { name: "last_restock", label: "Last Restock", type: "text" },
+  {
+    name: "status",
+    label: "Status",
+    type: "select",
+    options: [
+      { label: "Available", value: "available" },
+      { label: "Out of Stock", value: "out_of_stock" },
+      { label: "Unavailable", value: "unavailable" },
+    ],
+  },
+];
+
+export default function Products() {
   const { products, isLoading, refresh } = useProducts();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
@@ -20,12 +60,18 @@ export default function Product() {
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [page, setPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Track selected product object configuration for updates
+  const [selectedProduct, setSelectedProduct] = useState<ProductProps | null>(
+    null,
+  );
 
   const PAGE_SIZE = 50;
 
+  // Process and sort arrays unchanged...
   const processedData = useMemo(() => {
     let list = [...(products || [])];
-
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -34,11 +80,9 @@ export default function Product() {
           m.category.toLowerCase().includes(q),
       );
     }
-
     if (filterStatus !== "all") {
       list = list.filter((m) => m.status === filterStatus);
     }
-
     list.sort((a, b) => {
       const av = a[sortKey];
       const bv = b[sortKey];
@@ -50,7 +94,6 @@ export default function Product() {
       });
       return sortDir === "asc" ? cmp : -cmp;
     });
-
     return list;
   }, [search, filterStatus, sortKey, sortDir, products]);
 
@@ -86,81 +129,22 @@ export default function Product() {
         { label: "All Status", value: "all" },
         { label: "Available", value: "available" },
         { label: "Unavailable", value: "unavailable" },
-        { label: "Out of Stock", value: "out_of_stock" }
-      ]
+        { label: "Out of Stock", value: "out_of_stock" },
+      ],
     },
-  ]
-
-  const onUpdateStocks = (p: ProductProps) => {
-    console.log(`UPDATING: `, p.product_name)
-  }
-
-  const onDelete = (p: ProductProps) => {
-    console.log(`DELETING: `, p.product_name)
-  }
-
-  const onUpdateAvailability = (p: ProductProps) => {
-    console.log(`UPDATING AVAILABILITY: `, p.product_name)
-  }
+  ];
 
   const onEdit = (p: ProductProps) => {
-    console.log(`EDITING: `, p.product_name)
-  }
+    setSelectedProduct(p);
+    setIsEditModalOpen(true);
+  };
 
-  const fields: AddFormField[] = [
-    {
-      name: "product_name",
-      label: "Product Name",
-      type: "text",
-    },
-    {
-      name: "category",
-      label: "Category",
-      type: "select",
-      options: [
-        { label: "Food", value: "food" },
-        { label: "Drink", value: "drink" },
-        { label: "Accessory", value: "accessory" },
-        { label: "Other", value: "other" },
-      ],
-    },
-    {
-      name: "price",
-      label: "Price",
-      type: "number",
-    },
-    {
-      name: "stocks",
-      label: "Stocks",
-      type: "number",
-    },
-    {
-      name: "last_restock",
-      label: "Last Restock",
-      type: "text",
-    },
-    {
-      name: "available",
-      label: "Available",
-      type: "text",
-    },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      options: [
-        { label: "Available", value: "available" },
-        { label: "Out of Stock", value: "out_of_stock" },
-        { label: "Unavailable", value: "unavailable" },
-      ],
-    },
-
-  ];
+  const onDelete = (p: ProductProps) =>
+    console.log(`DELETING: `, p.product_name);
 
   return (
     <>
       <div className="space-y-4">
-
         <CustomHeader
           isLoading={isLoading}
           refresh={refresh}
@@ -168,23 +152,26 @@ export default function Product() {
           buttonLabel="Add Product"
           title="Inventory Management"
           description="Manage carreon gym product inventory"
-          icon={<Package className='text-primary' />}
+          icon={<Package className="text-primary" />}
           hasAction={true}
         />
 
         <div className="bg-surface border border-border shadow-sm overflow-hidden flex flex-col">
-
-          <ToolBar placeholder="Search product" filtered={paginatedData} search={search} select={select} handleSearchChange={handleSearchChange} />
+          <ToolBar
+            placeholder="Search product"
+            filtered={paginatedData}
+            search={search}
+            select={select}
+            handleSearchChange={handleSearchChange}
+          />
 
           <CustomTable
             renderRow={(m: ProductProps) => (
               <ProductRow
                 key={m.id}
                 product={m}
-                onEdit={(m) => onEdit(m)}
-                onDelete={(m) => onDelete(m)}
-                onUpdateStocks={(m) => onUpdateStocks(m)}
-                onUpdateAvailability={(m) => onUpdateAvailability(m)}
+                onEdit={onEdit}
+                onDelete={onDelete}
               />
             )}
             data={paginatedData}
@@ -204,25 +191,42 @@ export default function Product() {
             ]}
           />
         </div>
-
-      </div >
+      </div>
 
       {isAddModalOpen && (
         <AddModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
-          onSuccess={() => console.log("Hello World")}
+          onSuccess={() => refresh()}
           title="Add Product"
           subtitle="Add a new product to the inventory"
           fields={fields}
           onSave={(data, imageFile) => {
-            console.log(`ADDING: `, data, imageFile)
-            return Promise.resolve()
+            console.log(`ADDING PAYLOAD: `, data, imageFile);
+            return Promise.resolve();
           }}
           submitButtonText="Add Product"
         />
-      )
-      }
+      )}
+
+      {isEditModalOpen && (
+        <EditModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedProduct(null);
+          }}
+          onSuccess={() => refresh()}
+          title="Edit Product"
+          subtitle={`Modifying context details for ${selectedProduct?.product_name || "product"}`}
+          fields={fields}
+          initialData={selectedProduct}
+          onSave={(data, imageFile) => {
+            console.log(`UPDATING PAYLOAD: `, data, imageFile);
+            return Promise.resolve();
+          }}
+        />
+      )}
     </>
   );
 }

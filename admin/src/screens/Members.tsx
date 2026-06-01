@@ -25,7 +25,7 @@ export type SortDir = "asc" | "desc";
 export type FilterStatus = "all" | "active" | "suspended" | "deleted";
 export type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
-export default function MemberManagement() {
+export default function Members() {
   const { members, refresh, isLoading, verifyMember } = useMember();
   const [subscriptionMember, setSubscriptionMember] =
     useState<AdminMemberListItem | null>(null);

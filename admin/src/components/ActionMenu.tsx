@@ -64,6 +64,7 @@ export function ActionMenu({
     default: "text-text-primary hover:bg-border/60",
     warning: "text-amber-500 hover:bg-amber-500/10",
     danger: "text-rose-500 hover:bg-rose-500/10",
+    success: "text-emerald-500 hover:bg-emerald-500/10",
   };
 
   if (!pos) return null;
@@ -88,9 +89,7 @@ export function ActionMenu({
       `}</style>
       {items.map((item, i) => (
         <div key={i}>
-          {item.dividerBefore && (
-            <div className="border-t border-border" />
-          )}
+          {item.dividerBefore && <div className="border-t border-border" />}
           <button
             disabled={item.disabled}
             onClick={() => {
@@ -100,9 +99,7 @@ export function ActionMenu({
             className={`w-full flex items-center gap-3 px-3 py-3 text-xs transition-colors font-bold text-left tracking-tight
               disabled:opacity-40 disabled:cursor-not-allowed ${variantCls[item.variant ?? "default"]}`}
           >
-            <span className="flex w-4">
-              {item.icon}
-            </span>
+            <span className="flex w-4">{item.icon}</span>
             {item.label}
           </button>
         </div>
