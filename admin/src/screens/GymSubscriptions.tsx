@@ -5,9 +5,11 @@ import { Dumbbell, Zap, Users, Layers, Loader2 } from "lucide-react";
 import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
 import CustomTable from "../components/CustomTable";
-import type { SubscriptionPlanProps } from "../types";
+import type { FormField, SubscriptionPlanProps } from "../types";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import SubscriptionsRow from "../components/TableRows/SubscriptionsRow";
+import EditModal from "../components/Modals/EditModal";
+import { subscriptionService } from "../services/subscription.service";
 
 type SortKey = keyof SubscriptionPlanProps | null;
 type SortDir = "asc" | "desc";
@@ -16,10 +18,11 @@ export default function GymSubscriptionsAdmin() {
   const { membership, classes, addOns, personalTrainer, isLoading, refresh } =
     useGymSubs();
 
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [filterSub, setFilterSub] = useState("all");
+  const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionPlanProps | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -98,7 +101,7 @@ export default function GymSubscriptionsAdmin() {
         menuWrapRef.current &&
         !menuWrapRef.current.contains(event.target as Node)
       ) {
-        setOpenMenuId(null);
+        setSelectedSubscription(null);
       }
     };
     document.addEventListener("mousedown", onMouseDown);
@@ -162,6 +165,55 @@ export default function GymSubscriptionsAdmin() {
     },
   ];
 
+  const fields: FormField[] = [
+    {
+      name: "name",
+      label: "Name",
+      type: "text",
+      placeholder: "Enter the name of the subscription plan",
+    },
+    {
+      name: "description",
+      label: "Description",
+      type: "textarea",
+      placeholder: "Enter the description of the subscription plan",
+    },
+    {
+      name: "category",
+      label: "Category",
+      type: "select",
+      placeholder: "Select the category of the subscription plan",
+      options: [
+        { label: "Membership", value: "membership" },
+        { label: "Class", value: "class" },
+        { label: "Personal Trainer", value: "personal_training" },
+        { label: "Addon", value: "add_on" },
+      ],
+    },
+    {
+      name: "duration_days",
+      label: "Duration (Days)",
+      type: "number",
+      placeholder: "Enter the duration of the subscription plan in days",
+    },
+    {
+      name: "price",
+      label: "Price",
+      type: "number",
+      placeholder: "Enter the price of the subscription plan",
+    },
+    {
+      name: "is_active",
+      label: "Active",
+      type: "checkbox",
+      placeholder: "Is the subscription plan active?",
+    },
+  ];
+
+  const saveEdit = async (id: number | undefined, data: Partial<SubscriptionPlanProps>) => {
+    await subscriptionService.updatePlan(id!, data);
+  }
+
   return (
     <div className="space-y-4">
       {/* ── Header Section ── */}
@@ -208,8 +260,10 @@ export default function GymSubscriptionsAdmin() {
           renderRow={(sub) => (
             <SubscriptionsRow
               plan={sub}
-              onClick={() =>
-                setOpenMenuId(openMenuId === sub.id ? null : sub.id)
+              onClick={() => {
+                setIsEditModalOpen(true)
+                setSelectedSubscription(sub)
+              }
               }
             />
           )}
@@ -226,7 +280,7 @@ export default function GymSubscriptionsAdmin() {
             { label: "Category", key: "category" },
             { label: "Duration", key: "duration_days" },
             { label: "Price", key: "price" },
-            { label: "Status", key: "is_active" }, 
+            { label: "Status", key: "is_active" },
             { label: "", key: null },
           ]}
         />
@@ -237,10 +291,26 @@ export default function GymSubscriptionsAdmin() {
           {...confirmDialog}
           onCancel={() => {
             setConfirmDialog(null);
-            setOpenMenuId(null);
+            setIsEditModalOpen(false);
+            setSelectedSubscription(null);
           }}
         />
       )}
+
+      {
+        isEditModalOpen && (
+          <EditModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onSuccess={refresh}
+            title="Edit Subscription"
+            subtitle="Edit the subscription plan"
+            fields={fields}
+            initialData={selectedSubscription}
+            onSave={(data) => saveEdit(selectedSubscription?.id, data)}
+          />
+        )
+      }
     </div>
   );
 }

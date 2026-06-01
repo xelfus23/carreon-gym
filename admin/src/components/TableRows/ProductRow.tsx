@@ -5,6 +5,7 @@ import { ActionMenu } from '../ActionMenu';
 
 interface ProductRow {
   product: ProductProps,
+  onEdit: (p: ProductProps) => void;
   onUpdateStocks: (p: ProductProps) => void;
   onDelete: (p: ProductProps) => void;
   onUpdateAvailability: (p: ProductProps) => void;
@@ -12,6 +13,7 @@ interface ProductRow {
 
 export default function ProductRow({
   product,
+  onEdit,
   onDelete,
   onUpdateStocks,
   onUpdateAvailability
@@ -24,6 +26,14 @@ export default function ProductRow({
 
 
   const actions: ActionItemProps[] = [
+    {
+      label: "Edit",
+      icon: <Edit size={16} />,
+      onClick: () => {
+        onEdit(product);
+        close();
+      }
+    },
     {
       label: "Update Stocks",
       icon: <Edit size={16} />,

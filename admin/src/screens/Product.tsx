@@ -1,12 +1,12 @@
 import { Package } from "lucide-react";
 import { useMemo, useState } from "react";
-import AddProductModal from "../components/Modals/AddProductModal";
 import { useProducts } from "../hooks/useProducts";
 import ProductRow from "../components/TableRows/ProductRow";
 import CustomTable from "../components/CustomTable";
-import type { ProductProps } from "../types";
+import type { AddFormField, ProductProps } from "../types";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import CustomHeader from "../components/CustomHeader";
+import AddModal from "../components/Modals/AddModal";
 
 type SortKey = keyof ProductProps;
 type SortDir = "asc" | "desc";
@@ -103,6 +103,60 @@ export default function Product() {
     console.log(`UPDATING AVAILABILITY: `, p.product_name)
   }
 
+  const onEdit = (p: ProductProps) => {
+    console.log(`EDITING: `, p.product_name)
+  }
+
+  const fields: AddFormField[] = [
+    {
+      name: "product_name",
+      label: "Product Name",
+      type: "text",
+    },
+    {
+      name: "category",
+      label: "Category",
+      type: "select",
+      options: [
+        { label: "Food", value: "food" },
+        { label: "Drink", value: "drink" },
+        { label: "Accessory", value: "accessory" },
+        { label: "Other", value: "other" },
+      ],
+    },
+    {
+      name: "price",
+      label: "Price",
+      type: "number",
+    },
+    {
+      name: "stocks",
+      label: "Stocks",
+      type: "number",
+    },
+    {
+      name: "last_restock",
+      label: "Last Restock",
+      type: "text",
+    },
+    {
+      name: "available",
+      label: "Available",
+      type: "text",
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "select",
+      options: [
+        { label: "Available", value: "available" },
+        { label: "Out of Stock", value: "out_of_stock" },
+        { label: "Unavailable", value: "unavailable" },
+      ],
+    },
+
+  ];
+
   return (
     <>
       <div className="space-y-4">
@@ -127,6 +181,7 @@ export default function Product() {
               <ProductRow
                 key={m.id}
                 product={m}
+                onEdit={(m) => onEdit(m)}
                 onDelete={(m) => onDelete(m)}
                 onUpdateStocks={(m) => onUpdateStocks(m)}
                 onUpdateAvailability={(m) => onUpdateAvailability(m)}
@@ -153,9 +208,18 @@ export default function Product() {
       </div >
 
       {isAddModalOpen && (
-        <AddProductModal
+        <AddModal
+          isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSuccess={() => console.log("Hello World")}
+          title="Add Product"
+          subtitle="Add a new product to the inventory"
+          fields={fields}
+          onSave={(data, imageFile) => {
+            console.log(`ADDING: `, data, imageFile)
+            return Promise.resolve()
+          }}
+          submitButtonText="Add Product"
         />
       )
       }

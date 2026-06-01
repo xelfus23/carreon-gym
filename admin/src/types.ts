@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import type { ComponentType, ReactElement } from "react";
 
 export enum NavItem {
   ANALYTICS = "ANALYTICS",
@@ -140,4 +140,50 @@ export interface SubscriptionPlanProps {
   duration_days: number;
   category: "personal_training" | "class" | "membership" | "add_on";
   is_active: boolean,
+}
+
+
+export interface FormField {
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'textarea' | 'checkbox' | 'select';
+  placeholder?: string;
+  options?: { label: string; value: string | number }[]; // For select fields
+  required?: boolean;
+}
+
+export interface UniversalEditModalProps<T> {
+  isOpen: boolean; // Good practice to control visibility from outside
+  onClose: () => void;
+  onSuccess: () => void;
+  title: string;
+  subtitle?: string;
+  fields: FormField[];
+  initialData: T | null;
+  onSave: (data: T) => Promise<void>;
+}
+
+
+// types.ts
+
+export interface AddFormField {
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'textarea' | 'select' | 'image';
+  required?: boolean;
+  placeholder?: string;
+  options?: { label: string; value: string | number }[]; // For select fields
+  icon?: ComponentType<{ className?: string; size?: number }>; // Optional Lucide icon prefix
+  gridSpan?: 'full' | 'half'; // Control form layout width
+}
+
+export interface UniversalAddModalProps<T> {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  title: string;
+  subtitle?: string;
+  fields: AddFormField[];
+  submitButtonText?: string;
+  onSave: (data: T, imageFile: File | null) => Promise<void>;
 }
