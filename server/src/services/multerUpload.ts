@@ -27,6 +27,18 @@ export const uploadAssetImages = multer({
   }),
 })
 
+export const uploadProductImages = multer({
+  storage: multerS3({
+    s3,
+    bucket: env.AWS_S3_BUCKET_NAME!,
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, cb) => {
+      const fileName = `public/products/${Date.now()}-${file.originalname}`;
+      cb(null, fileName);
+    },
+  }),
+})
+
 export const uploadPaymentReceipt = multer({
   storage: multerS3({
     s3,

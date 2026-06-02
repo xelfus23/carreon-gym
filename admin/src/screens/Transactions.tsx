@@ -11,6 +11,8 @@ import CustomTable, { type ColumnDefinition } from "../components/CustomTable";
 import TransactionRow from "../components/TableRows/TransactionRow";
 import { formatCurrency } from "../utils/formatCurrency";
 import ToolBar from "../components/ToolBar";
+import ConfirmDialog from "../components/Modals/ConfirmDialog";
+import type { ConfirmDialogTypes } from "../types";
 
 export default function Transactions() {
   const { transactions, isLoading, refresh } = useTransactions();
@@ -20,15 +22,11 @@ export default function Transactions() {
   const [selectedReceipt, setSelectedReceipt] = useState<
     string | null | undefined
   >();
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<TransactionProps | null>();
-  const [isDeleting, setIsDeleting] = useState(false);
-
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogTypes>(null);
   const menuWrapRef = useRef<HTMLDivElement | null>(null);
 
   const PAGE_SIZE = 50;
 
-  // Close modal on Escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") setSelectedReceipt(null);
@@ -78,64 +76,52 @@ export default function Transactions() {
   );
   const totalPages = Math.ceil(filteredTransactions.length / PAGE_SIZE) || 1;
 
-  const handleVerify = async (paymentId: number) => {
-    try {
-      const result = await purchaseService.verifyPurchase(paymentId);
-      if (!result?.success) {
-        throw new Error(result?.message || "Failed to verify payment");
-      }
-      setOpenMenuId(null);
-      refresh();
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
-  const handleDeny = async (paymentId: number) => {
-    try {
-      const result = await purchaseService.denyPurchase(paymentId);
-      if (!result?.success) {
-        throw new Error(result?.message || "Failed to deny payment");
-      }
-      setOpenMenuId(null);
-      refresh();
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const onAccept = (t: TransactionProps) => {
+    setConfirmDialog({
+      title: "Verify Transaction",
+      message: `Requested by ${t.member_name} with amount of ${t.amount}? This action cannot be undone.`,
+      confirmLabel: "Verify",
+      variant: "success",
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        await purchaseService.verifyPurchase(t.transaction_id);
+        refresh();
+      },
+      onClose: () => setConfirmDialog(null),
+    })
+  }
 
-  const handleDelete = async (paymentId: number) => {
-    try {
-      const result = await purchaseService.deleteTransaction(paymentId);
-      if (!result?.success) {
-        throw new Error(result?.message || "Failed to delete transaction");
-      }
-      setOpenMenuId(null);
-      refresh();
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const onDeny = (t: TransactionProps) => {
+    setConfirmDialog({
+      title: "Deny Transaction",
+      message: `Requested ${t.member_name} with amount of ${t.amount}? This action cannot be undone.`,
+      confirmLabel: "Deny",
+      variant: "warning",
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        await purchaseService.denyPurchase(t.transaction_id);
+        refresh();
+      },
+      onClose: () => setConfirmDialog(null),
+    })
+  }
 
-  useEffect(() => {
-    const onMouseDown = (event: MouseEvent) => {
-      if (!menuWrapRef.current) return;
-      if (!menuWrapRef.current.contains(event.target as Node)) {
-        setOpenMenuId(null);
-      }
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpenMenuId(null);
-      }
-    };
-    document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, []);
+  const onDelete = (t: TransactionProps) => {
+    setConfirmDialog({
+      title: "Delete Transaction",
+      message: `Requested by ${t.member_name} with amount of ${t.amount}? This action cannot be undone.`,
+      confirmLabel: "Delete",
+      variant: "danger",
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        await purchaseService.deleteTransaction(t.transaction_id);
+        refresh();
+      },
+      onClose: () => setConfirmDialog(null),
+    })
+  }
+
 
   const columns: ColumnDefinition<TransactionProps>[] = useMemo(
     () => [
@@ -258,17 +244,29 @@ export default function Transactions() {
           pageSize={PAGE_SIZE}
           renderRow={(tr) => (
             <TransactionRow
-              setOpenMenuId={setOpenMenuId}
               setSelectedReceipt={setSelectedReceipt}
-              openMenuId={openMenuId}
               tx={tr}
-              OnVerify={() => handleVerify(tr.transaction_id)}
-              OnDelete={() => handleDelete(tr.transaction_id)}
-              OnDeny={() => handleDeny(tr.transaction_id)}
+              onAccept={onAccept}
+              onDelete={onDelete}
+              onDeny={onDeny}
             />
           )}
         />
       </div>
+
+
+
+      {confirmDialog && (
+        <ConfirmDialog
+          isOpen={!!confirmDialog}
+          onClose={confirmDialog.onClose}
+          onConfirm={confirmDialog.onConfirm}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmLabel={confirmDialog.confirmLabel}
+          variant={confirmDialog.variant}
+        />
+      )}
     </div>
   );
 }

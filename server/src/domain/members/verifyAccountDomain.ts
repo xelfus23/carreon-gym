@@ -1,4 +1,3 @@
-import { stat } from "node:fs";
 import pool from "../../config/pool.ts";
 
 export const verifyAccountDomain = async (userId: number) => {
@@ -13,8 +12,6 @@ export const verifyAccountDomain = async (userId: number) => {
   );
 
   const status = result.rows[0];
-
-  console.log(status);
 
   const res = await pool.query(
     status.verified

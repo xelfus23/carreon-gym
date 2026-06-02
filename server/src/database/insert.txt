@@ -13,264 +13,121 @@ INSERT INTO equipment_category (name, description) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- ============================================================================
--- ENSURE MUSCLE GROUPS EXIST
--- ============================================================================
-
-INSERT INTO muscle_group (name, description) VALUES
-('Chest', 'Pectoralis major and minor muscles'),
-('Back', 'Latissimus dorsi, rhomboids, and trapezius'),
-('Legs', 'Quadriceps, hamstrings, glutes, and calves'),
-('Shoulders', 'Deltoid muscle group'),
-('Arms', 'Biceps, triceps, and forearms'),
-('Core', 'Abdominals, obliques, and lower back'),
-('Cardio', 'Heart and cardiovascular system')
-ON CONFLICT (name) DO NOTHING;
-
--- ============================================================================
 -- INSERT EQUIPMENT WITH DESCRIPTIONS
 -- ============================================================================
 
-INSERT INTO equipment (name, category_id, type, description, quantity)
+INSERT INTO equipment (name, category_id, type, quantity)
 VALUES
 -- FREE WEIGHTS
 ('Dumbbells',
  (SELECT id FROM equipment_category WHERE name='Free Weight'),
  'Free Weight',
- 'Handheld weights used for a wide range of exercises targeting all major muscle groups',
  20),
 
 ('Barbells',
  (SELECT id FROM equipment_category WHERE name='Free Weight'),
  'Free Weight',
- 'Long bar used for compound lifts such as squats, deadlifts, and bench press',
  5),
 
 ('Curve Barbells',
  (SELECT id FROM equipment_category WHERE name='Free Weight'),
  'Free Weight',
- 'EZ curl bars designed to reduce wrist strain during arm exercises',
  3),
 
 ('Arm Bars',
  (SELECT id FROM equipment_category WHERE name='Free Weight'),
  'Free Weight',
- 'Specialized bars for bicep curls and tricep extensions',
  2),
 
 -- ACCESSORIES
 ('Yoga Ball',
  (SELECT id FROM equipment_category WHERE name='Accessory'),
  'Accessory',
- 'Stability ball used for core strengthening, balance, and flexibility exercises',
  10),
 
 ('Resistance Bands',
  (SELECT id FROM equipment_category WHERE name='Accessory'),
  'Accessory',
- 'Elastic bands used for resistance training, stretching, and rehabilitation',
  15),
 
 -- MACHINES (UPPER BODY)
 ('Bench Press',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Station for performing chest press exercises using a barbell or weights',
  3),
 
 ('Pec Deck',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Machine used for chest fly movements to isolate the chest muscles',
  1),
 
 ('Incline Press',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Machine designed to target the upper chest through incline pressing movement',
  1),
 
 ('Cable Row',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Seated machine for rowing exercises to strengthen the back muscles',
  2),
 
 ('Lat Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Cable-based machine for various pulling exercises targeting back and arms',
  2),
 
 ('Lat Pulldown',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Machine used to perform vertical pulling movements for back development',
  2),
 
 -- LOWER BODY MACHINES
 ('Leg Press',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Machine used to perform leg pressing movements targeting quadriceps and glutes',
  2),
 
 ('Smith Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Guided barbell system providing stability and safety for various lifts',
  1),
 
 ('Calf Raise Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Machine designed to isolate and strengthen the calf muscles',
  1),
 
 ('Leg Extension Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Machine used to isolate and strengthen the quadriceps',
  1),
 
 ('Leg Curl Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Machine used to target the hamstrings through curling motion',
  1),
 
 ('Hack Squat Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 'Machine used for squat movements with added support and stability',
  1),
 
 -- SPECIAL STATION
 ('Barbell Squat Rack',
  (SELECT id FROM equipment_category WHERE name='Free Weight'),
  'Station',
- 'Rack used for safely performing barbell squats and other heavy lifts',
  2),
 
 -- CARDIO
 ('Cardio Bike',
  (SELECT id FROM equipment_category WHERE name='Cardio'),
  'Cardio',
- 'Stationary bike used for cardiovascular workouts and leg endurance',
  10),
 
 ('Treadmill',
  (SELECT id FROM equipment_category WHERE name='Cardio'),
  'Cardio',
- 'Machine used for walking, jogging, or running indoors',
  8);
-
--- ============================================================================
--- MAP EQUIPMENT TO TARGET MUSCLE GROUPS
--- ============================================================================
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Arms'
-WHERE e.name = 'Dumbbells'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Shoulders'
-WHERE e.name = 'Dumbbells'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Chest'
-WHERE e.name = 'Barbells'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Back'
-WHERE e.name = 'Barbells'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Arms'
-WHERE e.name = 'Curve Barbells'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Arms'
-WHERE e.name = 'Arm Bars'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Core'
-WHERE e.name = 'Yoga Ball'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Arms'
-WHERE e.name = 'Resistance Bands'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Chest'
-WHERE e.name = 'Bench Press'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Chest'
-WHERE e.name = 'Pec Deck'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Chest'
-WHERE e.name = 'Incline Press'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Back'
-WHERE e.name = 'Cable Row'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Back'
-WHERE e.name = 'Lat Machine'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Back'
-WHERE e.name = 'Lat Pulldown'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Legs'
-WHERE e.name IN (
-    'Leg Press',
-    'Smith Machine',
-    'Calf Raise Machine',
-    'Leg Extension Machine',
-    'Leg Curl Machine',
-    'Hack Squat Machine',
-    'Barbell Squat Rack'
-)
-ON CONFLICT DO NOTHING;
-
-INSERT INTO equipment_muscle (equipment_id, muscle_group_id)
-SELECT e.id, mg.id FROM equipment e
-JOIN muscle_group mg ON mg.name = 'Cardio'
-WHERE e.name IN ('Cardio Bike', 'Treadmill')
-ON CONFLICT DO NOTHING;
 
 -- ============================================================================
 -- SUBSCRIPTION PLANS (Daily / Weekly / Monthly)
@@ -295,19 +152,40 @@ INSERT INTO product_categories (name, description) VALUES
 ('Food', 'Ready-to-eat gym snacks'),
 ('Equipment', 'Gym gear and accessories');
 
-INSERT INTO products (name, category_id, price, stocks) VALUES 
-('Whey Protein (27g)', 100000, 55.00, 50),
-('Creatine (5g)', 100000, 45.00, 50),
-('Mineral Water', 100001, 20.00, 100),
-('C2 Iced Tea', 100001, 30.00, 40),
-('Sting Energy Drink', 100001, 35.00, 40),
-('Cobra Energy Drink', 100001, 35.00, 40),
-('Vitamilk', 100001, 40.00, 30),
-('Pocari Sweat', 100001, 50.00, 30),
-('Hard Boiled Egg', 100002, 25.00, 20),
-('Saba Banana (Saging Saba)', 100002, 20.00, 30),
-('Barbell Foam Grip', 100003, 80.00, 10);
+INSERT INTO products (
+    id, 
+    name, 
+    category_id, 
+    price, 
+    stocks, 
+    status, 
+    is_active, 
+    last_restock_at, 
+    created_at, 
+    updated_at, 
+    image_urls
+) VALUES 
+(100000, 'Whey Protein (27g)', 100000, 55.00, 50, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:31:58.427633+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410718120-100.avif']),
 
+(100001, 'Creatine (5g)', 100000, 45.00, 50, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:20:30.19067+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406429958-cr.webp']),
+
+(100002, 'Mineral Water', 100001, 20.00, 100, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:25:38.739737+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410328871-4800049720114_1024x.webp']),
+
+(100003, 'C2 Iced Tea', 100001, 30.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 20:41:05.092226+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780404064811-c2.jpg']),
+
+(100004, 'Sting Energy Drink', 100001, 35.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:27:31.168209+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410437136-480392503342_800x.webp']),
+
+(100005, 'Cobra Energy Drink', 100001, 35.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:19:42.600722+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406382311-ced.jpg']),
+
+(100006, 'Vitamilk', 100001, 40.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:30:05.82817+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410605558-26_f7986cc4-bf72-4a23-ad72-a22ba425edf1_1200x1200.webp']),
+
+(100007, 'Pocari Sweat', 100001, 50.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:26:10.339799+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410370038-Pocari_20Sweat_20Small_20Pet_20350ml_grande.webp']),
+
+(100008, 'Hard Boiled Egg', 100002, 25.00, 20, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:24:00.922698+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410240674-a.webp']),
+
+(100009, 'Saba Banana (Saging Saba)', 100002, 20.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:26:54.468117+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410404129-Saba-Bananas-featured-image.jpg']),
+
+(100010, 'Barbell Foam Grip', 100003, 80.00, 10, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:17:27.372258+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406247112-barbelfoamgrip.png']);
 INSERT INTO gym_details (gym_name, contact_number, email, gcash_name, gcash_number) VALUES ('Careon Gym', '09123456789', 'carreon.gym@email.com', 'Carreon Gym', '09123234345');
 
 -- 1. Insert 10 Users
@@ -521,10 +399,6 @@ INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, m
 -- Skyler White - Multiple items
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
 ((SELECT id FROM users WHERE email = 'skyler.w@example.com'), (SELECT id FROM products WHERE name ILIKE '%drink%' LIMIT 1), 'product', 180.00, 3, 'cash', 'Energy drinks pack', NOW() - INTERVAL '20 days');
-
--- Quinn Fabray - Gym Merch
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, reference_no, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'q.fabray@example.com'), (SELECT id FROM products WHERE name ILIKE '%merch%' OR name ILIKE '%shirt%' LIMIT 1), 'product', 450.00, 1, 'gcash', 'REF-GC-SHIRT', NOW() - INTERVAL '8 days');
 
 -- Morgan Freeman - Supplement Purchase
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES

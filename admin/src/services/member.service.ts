@@ -49,10 +49,41 @@ export const memberService = {
     const data = await result.json();
 
     if (!data.success) {
-      throw new Error(data.message || "Failed to failed  to delete account");
+      throw new Error(data.message || "Failed to delete account");
     }
 
     return data
+  },
+
+  banAccount: async (accountId: number) => {
+    const result = await authService.fetchWithRefresh(`${API_URL}/api/members/ban/${accountId}`, {
+      method: "PATCH"
+    })
+
+    const data = await result.json()
+
+    if (!data.success) {
+      throw new Error(data.message || "Failed to ban Account")
+    }
+
+    return data
+  },
+
+  suspendAccount: async (accountId: number) => {
+    const result = await authService.fetchWithRefresh(
+      `${API_URL}/api/members/suspend/${accountId}`,
+      {
+        method: "PATCH",
+      },
+    );
+
+    const data = await result.json();
+
+    if (!data.success) {
+      throw new Error(data.message || "Failed to update suspend status");
+    }
+
+    return data;
   },
 
   createMember: async (payload: {

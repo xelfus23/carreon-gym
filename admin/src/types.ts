@@ -16,7 +16,7 @@ export enum NavItem {
 
 export type SubscriptionStatus = "active" | "expired" | "pending" | "cancelled";
 
-export type AccountStatus = "active" | "suspended" | "deleted";
+export type AccountStatus = "active" | "suspended" | "banned" | "deleted";
 
 export interface AdminMemberListItem {
   id: number;
@@ -118,12 +118,14 @@ export type gymDetailsProps = {
 export type ProductProps = {
   id: number;
   product_name: string;
+  image_urls: string[];
   price: number;
   last_restock: string;
   available: boolean;
   stocks: number;
   status: "available" | "out_of_stock" | "unavailable";
   category: string;
+  is_active?: boolean;
 };
 
 export interface PurchaseRequestProps {
@@ -151,6 +153,7 @@ export interface FormField {
   options?: { label: string; value: string | number }[]; // For select fields
   icon?: ComponentType<{ className?: string; size?: number }>; // Lucide prefix icon
   gridSpan?: "full" | "half";
+  description?: string;
 }
 
 export interface UniversalEditModalProps<T> {
@@ -191,7 +194,7 @@ export type ConfirmDialogTypes = {
   title: string;
   message: string;
   confirmLabel: string;
-  variant: "warning" | "danger";
+  variant: "warning" | "danger" | "success";
   onConfirm: () => void;
   onClose: () => void;
 } | null

@@ -11,86 +11,69 @@ export const useMember = () => {
     setIsLoading(true);
     try {
       const result = await memberService.getMember();
+
       setMembers(
-        result.data.filter((v: AdminMemberListItem) => v.role !== "admin") ??
-        [],
+        result.data?.filter((v: AdminMemberListItem) => v.role !== "admin") ?? []
       );
       setAdmins(
-        result.data.filter((v: AdminMemberListItem) => v.role !== "member") ??
-        [],
+        result.data?.filter((v: AdminMemberListItem) => v.role !== "member") ?? []
       );
     } catch (err) {
-      if (err instanceof Error) console.log(err.message);
+      if (err instanceof Error) console.error("Fetch error:", err.message);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
+
   const verifyMember = async (memberId: number) => {
-    setIsLoading(true);
     try {
       await memberService.verifyAccount(memberId);
-      refetch();
+      await refetch();
     } catch (err) {
-      if (err instanceof Error) console.log(err.message);
-    } finally {
-      setIsLoading(false);
+      if (err instanceof Error) console.error("Verify error:", err.message);
+    }
+  };
+
+  const suspendMember = async (memberId: number) => {
+    try {
+      await memberService.suspendAccount(memberId);
+      await refetch();
+    } catch (err) {
+      if (err instanceof Error) console.error("Suspend error:", err.message);
     }
   };
 
   const deleteMember = async (memberId: number) => {
-    setIsLoading(true);
     try {
-      await memberService.deleteAccount(memberId)
-      refetch();
+      await memberService.deleteAccount(memberId);
+      await refetch();
     } catch (err) {
-      if (err instanceof Error) console.log(err.message);
-    } finally {
-      setIsLoading(false);
-
+      if (err instanceof Error) console.error("Delete error:", err.message);
     }
-  }
+  };
+
+  const banMember = async (memberId: number) => {
+    try {
+      await memberService.banAccount(memberId);
+      await refetch();
+    } catch (err) {
+      if (err instanceof Error) console.error("Ban error:", err.message);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-
-    const fetchMembers = async () => {
-      setIsLoading(true);
-      try {
-        const result = await memberService.getMember();
-
-        if (!cancelled) {
-          setMembers(
-            result.data.filter(
-              (v: AdminMemberListItem) => v.role !== "admin",
-            ) ?? [],
-          );
-          setAdmins(
-            result.data.filter(
-              (v: AdminMemberListItem) => v.role !== "member",
-            ) ?? [],
-          );
-        }
-      } catch (err) {
-        if (err instanceof Error) console.log(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMembers();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    refetch();
+  }, [refetch]);
 
   return {
     members,
     admins,
     refresh: refetch,
     verifyMember,
+    suspendMember,
     deleteMember,
+    banMember,
     isLoading,
   };
 };

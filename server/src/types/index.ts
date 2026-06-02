@@ -33,6 +33,7 @@ export interface ProductProps {
     category: string;
     price: number;
     stocks: number;
+    image_urls?: string[];
     is_active?: boolean;
     last_restock?: string;
 }

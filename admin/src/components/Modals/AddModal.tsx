@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef } from "react";
-import { X, Upload, Loader2 } from "lucide-react";
+import { X, Upload, Loader2, Check } from "lucide-react";
 import type { UniversalAddModalProps } from "../../types";
+import { COLORS } from "../../constants";
 
 export default function AddModal<T extends Record<string, any>>({
   isOpen,
@@ -76,8 +77,8 @@ export default function AddModal<T extends Record<string, any>>({
   };
 
   return (
-    <div className="fixed inset-0 z-20 flex justify-center bg-black/60 backdrop-blur-sm p-10">
-      <div className="w-full max-w-xl bg-surface h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+    <div className="fixed inset-0 z-20  flex justify-center items-center bg-black/60 backdrop-blur-sm p-10">
+      <div className="w-full max-w-md bg-surface max-h-[70%] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="p-6 border-b border-border flex items-center justify-between">
           <div>
@@ -123,8 +124,8 @@ export default function AddModal<T extends Record<string, any>>({
 
                 {/* Render Logic: Image Dropzone */}
                 {field.type === "image" && (
-                  <div className="space-y-3 w-full">
-                    <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+                  <div className="space-y-3 w-full flex flex-col items-center justify-center">
+                    <label className="text-xs w-full font-bold text-text-secondary uppercase tracking-wider">
                       {field.label}{" "}
                       {field.required && (
                         <span className="text-red-500">*</span>
@@ -132,7 +133,7 @@ export default function AddModal<T extends Record<string, any>>({
                     </label>
                     <div
                       onClick={() => !loading && fileInputRef.current?.click()}
-                      className="relative aspect-video border-2 border-dashed border-border hover:border-primary cursor-pointer overflow-hidden flex flex-col items-center justify-center bg-background group transition-all"
+                      className="relative aspect-square border-2 border-dashed border-border hover:border-primary cursor-pointer overflow-hidden flex flex-col items-center justify-center bg-background group transition-all w-60 p-4"
                     >
                       {imagePreview ? (
                         <img
@@ -143,7 +144,7 @@ export default function AddModal<T extends Record<string, any>>({
                       ) : (
                         <div className="text-center space-y-2">
                           <div className="p-3 bg-surface rounded-full inline-block mb-2 group-hover:scale-110 transition-transform">
-                            <Upload className="text-primary" size={24} />
+                            <Upload className="text-primary" size={18} />
                           </div>
                           <p className="text-sm font-medium text-text-primary">
                             Click to upload image
@@ -174,7 +175,7 @@ export default function AddModal<T extends Record<string, any>>({
                     onChange={handleInputChange}
                     placeholder={field.placeholder}
                     required={field.required}
-                    className="w-full px-4 py-3 bg-background border border-border focus:ring-2 focus:ring-primary outline-none resize-none text-text-primary"
+                    className="w-full p-2 text-sm bg-background border border-border focus:ring-2 focus:ring-primary outline-none resize-none text-text-primary"
                   />
                 )}
 
@@ -192,7 +193,7 @@ export default function AddModal<T extends Record<string, any>>({
                       value={formData[field.name] ?? ""}
                       onChange={handleInputChange}
                       required={field.required}
-                      className={`w-full ${IconComponent ? "pl-10" : "px-4"} pr-4 py-3 bg-background border border-border focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer text-text-primary`}
+                      className={`w-full text-sm ${IconComponent ? "pl-2" : "px-2"} py-2  bg-background border border-border focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer text-text-primary`}
                     >
                       {field.options?.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -202,6 +203,43 @@ export default function AddModal<T extends Record<string, any>>({
                     </select>
                   </div>
                 )}
+
+                {field.type === "checkbox" && (
+                  <label className="group flex items-center space-x-3 cursor-pointer py-2 px-1 rounded-md transition-all duration-200">
+                    <div className="relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        name={field.name}
+                        checked={formData[field.name] ?? false}
+                        onChange={handleInputChange}
+                        className="peer sr-only" // Hidden safely for accessibility parsing
+                      />
+
+                      {/* Box Container */}
+                      <div className="h-5 w-5 rounded-full border-2 border-border bg-background transition-all duration-200 
+   peer-checked:bg-primary peer-checked:border-primary 
+   peer-focus-visible:ring-2 peer-focus-visible:ring-primary/50 peer-focus-visible:ring-offset-2
+   group-hover:border-primary/70 peer-checked:group-hover:border-primary
+   flex items-center justify-center group/icon">
+
+                        {/* The Check icon reads the parent container state instead */}
+                        <Check
+                          color={COLORS.background} // Explicit inline property fallback for safety
+                          strokeWidth={3.5}
+                          className="h-3.5 w-3.5 scale-0 group-peer-checked/icon:scale-100 transition-transform duration-200"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Checkbox Metadata Text */}
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors duration-150 select-none">
+                        {field.label}
+                      </span>
+                    </div>
+                  </label>
+                )}
+
 
                 {/* Render Logic: Input Fields (Text/Number) */}
                 {(field.type === "text" || field.type === "number") && (
@@ -219,7 +257,7 @@ export default function AddModal<T extends Record<string, any>>({
                       onChange={handleInputChange}
                       placeholder={field.placeholder}
                       required={field.required}
-                      className={`w-full ${IconComponent ? "pl-10" : "px-4"} pr-4 py-3 bg-background border border-border focus:ring-2 focus:ring-primary outline-none text-text-primary`}
+                      className={`w-full ${IconComponent ? "pl-10" : "px-2"} pr-2 py-2 bg-background border border-border focus:ring-2 focus:ring-primary text-sm outline-none text-text-primary`}
                     />
                   </div>
                 )}
@@ -229,12 +267,12 @@ export default function AddModal<T extends Record<string, any>>({
         </form>
 
         {/* Sticky Footer */}
-        <div className="p-6 border-t border-border bg-surface flex gap-3">
+        <div className="p-4 border-t border-border bg-surface flex gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 py-3.5 px-4 border border-border font-bold text-text-secondary hover:bg-border transition-colors"
+            className="flex-1 p-2 border border-border font-bold text-text-secondary hover:bg-border transition-colors"
           >
             Cancel
           </button>
@@ -242,7 +280,7 @@ export default function AddModal<T extends Record<string, any>>({
             form="universal-add-form"
             type="submit"
             disabled={loading}
-            className="flex-2 py-3.5 px-4 bg-primary hover:bg-primary-dark text-background font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all disabled:opacity-70 active:scale-[0.98]"
+            className="flex-2 p-2 bg-primary hover:bg-primary-dark text-background font-bold flex items-center justify-center transition-all disabled:opacity-70 text-sm"
           >
             {loading ? (
               <Loader2 className="animate-spin" size={20} />

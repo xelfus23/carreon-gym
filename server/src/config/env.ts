@@ -41,7 +41,7 @@ export const env = {
   AWS_ACCESS_KEY_ID: requireEnv("AWS_ACCESS_KEY_ID"),
   AWS_SECRET_ACCESS_KEY: requireEnv("AWS_SECRET_ACCESS_KEY"),
   AWS_S3_BUCKET_NAME: requireEnv("AWS_S3_BUCKET_NAME"),
-
+  AWS_REGION: requireEnv("AWS_REGION"),
   // AI
   LMSTUDIO_BASE_URL: requireEnv("LMSTUDIO_BASE_URL") ?? "http://localhost:1234",
   GOOGLE_API_KEY: requireEnv("GOOGLE_API_KEY") ?? "",

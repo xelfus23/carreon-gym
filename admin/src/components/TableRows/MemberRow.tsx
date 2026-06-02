@@ -8,7 +8,6 @@ import {
   Ban,
   Check,
   ClockPlus,
-  Mail,
   Trash,
   UserKey,
   UserLock,
@@ -29,7 +28,8 @@ function formatRelativeDate(iso: string | null): string {
 const ACCOUNT_BADGE: Record<string, string> = {
   active: "bg-emerald-500 text-background",
   suspended: "bg-amber-500 text-amber-50",
-  deleted: "bg-rose-500 text-rose-50",
+  banned: "bg-rose-500 text-rose-50",
+  deleted: "bg-zinc-700 text-zinc-50",
 };
 
 const SUB_BADGE: Record<SubscriptionStatus, string> = {
@@ -48,7 +48,6 @@ export default function MemberRow({
   onSuspend,
   onBan,
   onDelete,
-  onSendEmail,
   onVerify,
 }: {
   m: AdminMemberListItem;
@@ -56,7 +55,6 @@ export default function MemberRow({
   onSuspend: (m: AdminMemberListItem) => void;
   onBan: (m: AdminMemberListItem) => void;
   onDelete: (m: AdminMemberListItem) => void;
-  onSendEmail: (m: AdminMemberListItem) => void;
   onVerify: (m: AdminMemberListItem) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -65,17 +63,13 @@ export default function MemberRow({
 
   const isSuspended = m.account_status === "suspended";
   const isDeleted = m.account_status === "deleted";
+  const isBanned = m.account_status === "banned";
 
   const actions: ActionItemProps[] = [
     {
       label: "Set Plan",
       icon: <ClockPlus className="h-4" />,
       onClick: () => { onSetPlan(m); close() },
-    },
-    {
-      label: "Send Email",
-      icon: <Mail className="h-4" />,
-      onClick: () => { onSendEmail(m); close() },
     },
     {
       label: m.verified ? "Unverify Member" : "Verify Member",
@@ -92,12 +86,14 @@ export default function MemberRow({
       onClick: () => { onSuspend(m); close() },
       variant: isSuspended ? "default" : "warning",
       dividerBefore: true,
+      disabled: isBanned || isDeleted,
     },
     {
       label: "Ban / Blacklist",
       icon: <Ban className="h-4" />,
       onClick: () => { onBan(m); close() },
       variant: "danger",
+      disabled: isBanned,
     },
     ...(!isDeleted
       ? [

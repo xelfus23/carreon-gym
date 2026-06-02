@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { gymDetailService } from "../services/gymDetails.service";
-import type { gymDetailsType } from "../types";
+import type { gymDetailsProps } from "../types";
 
 
 export const useGymDetails = () => {
-  const [gymDetails, setGymDetails] = useState<gymDetailsType>();
+  const [gymDetails, setGymDetails] = useState<gymDetailsProps>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 

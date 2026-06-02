@@ -99,6 +99,7 @@ export const denyPurchase = catchAsync(async (req: Request, res: Response) => {
 export const deleteTransaction = catchAsync(
   async (req: Request, res: Response) => {
     const { paymentId } = req.params;
+
     const data = await deleteTransactionDomain(Number(paymentId));
 
     broadcastNotification("TRANSACTION_DELETED", {

@@ -31,24 +31,24 @@ export default function ConfirmDialog({
     switch (variant) {
       case "success":
         return {
-          iconBg: "bg-success/10 text-success",
+          iconBg: "bg-emerald-500/10 text-emerald-500",
           confirmBtnBg:
-            "bg-success hover:bg-success-dark focus:ring-success/20 text-white",
+            "bg-emerald-500 hover:bg-emerald-500 focus:ring-emerald-500/20 text-white",
           icon: <CheckCircle2 size={22} />,
         };
       case "warning":
         return {
-          iconBg: "bg-warning/10 text-warning",
+          iconBg: "bg-amber-500/10 text-amber-500",
           confirmBtnBg:
-            "bg-warning hover:bg-warning-dark focus:ring-warning/20 text-white",
+            "bg-amber-500 hover:bg-amber-800 focus:ring-amber-500/20 text-white",
           icon: <AlertTriangle size={22} />,
         };
       case "danger":
       default:
         return {
-          iconBg: "bg-danger/10 text-danger",
+          iconBg: "bg-red-500/10 text-red-500",
           confirmBtnBg:
-            "bg-danger hover:bg-danger-dark focus:ring-danger/20 text-white",
+            "bg-red-500 hover:bg-red-800 focus:ring-red-500/20 text-white",
           icon: <Trash2 size={22} />,
         };
     }
@@ -67,7 +67,7 @@ export default function ConfirmDialog({
       {/* Modal Card wrapper */}
       <div
         ref={modalRef}
-        className="relative w-full max-w-md bg-surface border border-border shadow-2xl p-6 flex flex-col space-y-4 animate-in zoom-in-95 duration-200 content-start"
+        className="relative w-full max-w-md bg-surface border border-border shadow-2xl p-4 flex flex-col space-y-4 animate-in zoom-in-95 duration-200 content-start"
       >
         {/* Top Close Button */}
         <button
@@ -84,10 +84,10 @@ export default function ConfirmDialog({
             {styles.icon}
           </div>
           <div className="space-y-1 flex-1 pr-6">
-            <h3 className="text-lg font-bold text-text-primary leading-tight">
+            <h3 className="text-md font-bold text-text-primary leading-tight">
               {title}
             </h3>
-            <p className="text-sm text-text-secondary leading-relaxed">
+            <p className="text-xs text-text-secondary leading-relaxed">
               {message}
             </p>
           </div>
@@ -99,7 +99,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2.5 border border-border font-bold text-sm text-text-secondary hover:bg-border transition-colors min-w-20"
+            className="p-2 border border-border font-bold text-sm text-text-secondary hover:bg-border transition-colors min-w-20"
           >
             {cancelLabel}
           </button>
@@ -110,7 +110,7 @@ export default function ConfirmDialog({
               onClose();
             }}
             disabled={isLoading}
-            className={`px-5 py-2.5 font-bold text-sm rounded shadow-sm focus:ring-4 outline-none transition-all flex items-center justify-center min-w-25 disabled:opacity-70 ${styles.confirmBtnBg}`}
+            className={`p-2 font-bold text-sm shadow-sm focus:ring-4 outline-none transition-all flex items-center justify-center min-w-25 disabled:opacity-70 ${styles.confirmBtnBg}`}
           >
             {isLoading ? "Processing..." : confirmLabel}
           </button>

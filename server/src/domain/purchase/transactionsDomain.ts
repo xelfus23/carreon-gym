@@ -131,6 +131,7 @@ export const denyPendingPurchaseDomain = async (
 };
 
 export const deleteTransactionDomain = async (paymentId: number) => {
+
   const res = await pool.query(
     `DELETE FROM payments
      WHERE id = $1

@@ -44,21 +44,6 @@ const EQUIPMENT_FIELDS: FormField[] = [
     placeholder: "Enter quantity",
     required: true,
   },
-  // {
-  //   name: "target_muscles",
-  //   label: "Target Muscles",
-  //   type: "text",
-  //   placeholder: "e.g., Chest, Triceps, Deltoids",
-  //   required: true,
-  //   gridSpan: "full",
-  // },
-  // {
-  //   name: "description",
-  //   label: "Description",
-  //   type: "textarea",
-  //   placeholder: "Provide optional visual configurations or specifications...",
-  //   gridSpan: "full",
-  // },
 ];
 
 export default function Equipments() {
@@ -225,12 +210,6 @@ export default function Equipments() {
               { label: "Equipment", key: "equipment_name", sortable: true },
               { label: "Category", key: "category", sortable: true },
               { label: "Qty", key: "quantity", sortable: true },
-              // {
-              //   label: "Target Muscles",
-              //   key: "target_muscles",
-              //   sortable: true,
-              // },
-              // { label: "Description", key: "description", sortable: true },
               { label: "", key: null },
             ]}
           />
@@ -267,33 +246,29 @@ export default function Equipments() {
           title="Add New Equipment"
           subtitle="Register inventory logs inside management pipelines"
           fields={EQUIPMENT_FIELDS}
-          onSave={async (data: EquipmentPayload) => {
-            await createEquipment(data);
-          }}
+          onSave={(data: EquipmentPayload) => createEquipment(data)}
           submitButtonText="Create Record"
         />
       )}
 
       {/* ── Universal Edit Modal ── */}
-      {!!selectedEquipment && (
+      {selectedEquipment && (
         <EditModal
           isOpen={!!selectedEquipment}
           onClose={() => setSelectedEquipment(null)}
           onSuccess={refresh}
           title="Edit Equipment Properties"
           subtitle="Adjust technical specifications or quantity totals"
-          fields={EQUIPMENT_FIELDS}
+          fields={EQUIPMENT_FIELDS} 
           initialData={selectedEquipment as EquipmentPayload}
-          onSave={async (data: Partial<EquipmentPayload>) => {
-            await updateEquipment(selectedEquipment.id, data);
-          }}
+          onSave={(data: Partial<EquipmentPayload>) => updateEquipment(selectedEquipment.id, data)}
         />
       )}
 
       {confirmDialog && (
         <ConfirmDialog
           isOpen={!!confirmDialog}
-          onClose={confirmDialog.onConfirm}
+          onClose={confirmDialog.onClose}
           onConfirm={confirmDialog.onConfirm}
           variant={confirmDialog.variant}
           title={confirmDialog.title}

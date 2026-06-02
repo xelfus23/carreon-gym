@@ -5,7 +5,6 @@ import MemberRow from "../components/TableRows/MemberRow";
 import SubscriptionModal from "../components/SubscriptionModal";
 import { memberService } from "../services/member.service";
 import {
-  // Calendar,
   CircleAlert,
   CircleCheck,
   Loader2,
@@ -22,11 +21,11 @@ import ConfirmDialog from "../components/Modals/ConfirmDialog";
 
 export type SortKey = keyof AdminMemberListItem | null;
 export type SortDir = "asc" | "desc";
-export type FilterStatus = "all" | "active" | "suspended" | "deleted";
+export type FilterStatus = "all" | "active" | "suspended" | "banned" | "deleted";
 export type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
 export default function Members() {
-  const { members, refresh, isLoading, verifyMember, deleteMember } = useMember();
+  const { members, refresh, isLoading, verifyMember, deleteMember, banMember, suspendMember } = useMember();
   const [subscriptionMember, setSubscriptionMember] =
     useState<AdminMemberListItem | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
@@ -43,7 +42,7 @@ export default function Members() {
 
   // Table controls
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("active");
   const [filterSub, setFilterSub] = useState<FilterSub>("all");
   const [sortKey, setSortKey] = useState<SortKey>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -66,9 +65,7 @@ export default function Members() {
       variant: "warning",
       onConfirm: async () => {
         setConfirmDialog(null);
-        // TODO: call memberService.suspend(m.id, !isSuspended)
-        console.log("suspend/unsuspend", m.id);
-        refresh();
+        await suspendMember(m.id);
       },
       onClose: () => setConfirmDialog(null)
     });
@@ -82,9 +79,7 @@ export default function Members() {
       variant: "danger",
       onConfirm: async () => {
         setConfirmDialog(null);
-        // TODO: call memberService.ban(m.id)
-        console.log("ban", m.id);
-        refresh();
+        await banMember(m.id)
       },
       onClose: () => setConfirmDialog(null)
 
@@ -98,18 +93,11 @@ export default function Members() {
       confirmLabel: "Delete",
       variant: "danger",
       onConfirm: async () => {
-        deleteMember(m.id)
-        console.log("delete", m.id);
         setConfirmDialog(null);
-        refresh();
+        await deleteMember(m.id)
       },
       onClose: () => setConfirmDialog(null)
     });
-  };
-
-  const handleSendEmail = (m: AdminMemberListItem) => {
-    // TODO: open email composer modal
-    alert(`Sending email to ${m.email}…`);
   };
 
   const handleVerify = async (m: AdminMemberListItem) => {
@@ -267,9 +255,10 @@ export default function Members() {
       },
       options: [
         { label: "All Accounts", value: "all" },
-        { label: "Active", value: "active" },
-        { label: "Suspended", value: "suspended" },
-        { label: "Deleted", value: "deleted" },
+        { label: "Active Accounts", value: "active" },
+        { label: "Suspended Accounts", value: "suspended" },
+        { label: "Banned Accounts", value: "banned" },
+        { label: "Deleted Accounts", value: "deleted" },
       ],
     },
     {
@@ -399,7 +388,6 @@ export default function Members() {
               onSuspend={handleSuspend}
               onBan={handleBan}
               onDelete={handleDelete}
-              onSendEmail={handleSendEmail}
               onVerify={handleVerify}
             />
           )}

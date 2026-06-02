@@ -9,10 +9,17 @@ export const updateProductDomain = async (
     const values: any[] = [];
     let count = 1;
 
+    let nextStocks: number | undefined = undefined;
+    let nextIsActive: boolean | undefined = undefined;
+
     // Build Dynamic Query
     if (params.product_name) {
         updates.push(`name = $${count++}`);
         values.push(params.product_name);
+    }
+    if (params.image_urls !== undefined) {
+        updates.push(`image_urls = $${count++}`);
+        values.push(params.image_urls);
     }
     if (params.price !== undefined) {
         updates.push(`price = $${count++}`);
@@ -21,14 +28,21 @@ export const updateProductDomain = async (
     if (params.stocks !== undefined) {
         updates.push(`stocks = $${count++}`);
         values.push(params.stocks);
-        // Automatically update status based on stock count
-        const status = params.stocks <= 0 ? "out_of_stock" : "available";
-        updates.push(`status = $${count++}`);
-        values.push(status);
+        nextStocks = params.stocks;
     }
     if (params.is_active !== undefined) {
         updates.push(`is_active = $${count++}`);
         values.push(params.is_active);
+        nextIsActive = params.is_active;
+    }
+
+    // Automatically update status based on stock + is_active (prefer explicit updates if provided)
+    if (nextStocks !== undefined || nextIsActive !== undefined) {
+        const active = nextIsActive ?? true;
+        const stocks = nextStocks ?? 1;
+        const status = active === false ? "unavailable" : stocks <= 0 ? "out_of_stock" : "available";
+        updates.push(`status = $${count++}`);
+        values.push(status);
     }
 
     if (updates.length === 0) return { message: "No changes made" };

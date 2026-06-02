@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { X, Upload } from "lucide-react";
+import { X, Upload, Check } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import type { UniversalEditModalProps } from "../../types";
+import { COLORS } from "../../constants";
 
 export default function EditModal<T extends Record<string, any>>({
   isOpen,
@@ -24,8 +25,8 @@ export default function EditModal<T extends Record<string, any>>({
 
     if (initialData) {
       setFormData({ ...initialData });
-      if (initialData.image_url || initialData.image) {
-        setImagePreview(initialData.image_url || initialData.image);
+      if (initialData.image_urls?.[0] || initialData.image_url || initialData.image) {
+        setImagePreview(initialData.image_urls?.[0] || initialData.image_url || initialData.image);
       } else {
         setImagePreview(null);
       }
@@ -90,7 +91,7 @@ export default function EditModal<T extends Record<string, any>>({
 
   return (
     <div className="fixed inset-0 z-20 flex justify-center items-center bg-black/60 backdrop-blur-sm p-10">
-      <div className="w-full max-w-md bg-surface h-[70%] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="w-full max-w-md bg-surface max-h-[70%] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="p-6 border-b border-border flex items-center justify-between">
           <div>
@@ -136,13 +137,13 @@ export default function EditModal<T extends Record<string, any>>({
 
                 {/* Render Logic: Image Field */}
                 {field.type === "image" && (
-                  <div className="space-y-3 w-full">
-                    <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+                  <div className="space-y-3 w-full flex flex-col items-center justify-center">
+                    <label className="text-xs w-full font-bold text-text-secondary uppercase tracking-wider">
                       {field.label}
                     </label>
                     <div
                       onClick={() => !loading && fileInputRef.current?.click()}
-                      className="relative aspect-video border-2 border-dashed border-border hover:border-primary cursor-pointer overflow-hidden flex flex-col items-center justify-center bg-background group transition-all"
+                      className="relative aspect-square border-2 border-dashed border-border hover:border-primary cursor-pointer overflow-hidden flex flex-col items-center justify-center bg-background group transition-all w-60 p-4"
                     >
                       {imagePreview ? (
                         <img
@@ -211,17 +212,38 @@ export default function EditModal<T extends Record<string, any>>({
 
                 {/* Render Logic: Checkbox Field */}
                 {field.type === "checkbox" && (
-                  <label className="flex items-center space-x-3 cursor-pointer py-2">
-                    <input
-                      type="checkbox"
-                      name={field.name}
-                      checked={!!currentValue}
-                      onChange={handleChange}
-                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                    />
-                    <span className="text-sm font-medium text-text-primary">
-                      {field.label}
-                    </span>
+                  <label className="group flex items-center space-x-3 cursor-pointer py-2 px-1 rounded-md transition-all duration-200">
+                    <div className="relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        name={field.name}
+                        checked={!!currentValue}
+                        onChange={handleChange}
+                        className="peer sr-only" // Hidden safely for accessibility parsing
+                      />
+
+                      {/* Box Container */}
+                      <div className="h-5 w-5 rounded-full border-2 border-border bg-background transition-all duration-200 
+    peer-checked:bg-primary peer-checked:border-primary 
+    peer-focus-visible:ring-2 peer-focus-visible:ring-primary/50 peer-focus-visible:ring-offset-2
+    group-hover:border-primary/70 peer-checked:group-hover:border-primary
+    flex items-center justify-center group/icon">
+
+                        {/* The Check icon reads the parent container state instead */}
+                        <Check
+                          color={COLORS.background} // Explicit inline property fallback for safety
+                          strokeWidth={3.5}
+                          className="h-3.5 w-3.5 scale-0 group-peer-checked/icon:scale-100 transition-transform duration-200"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Checkbox Metadata Text */}
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors duration-150 select-none">
+                        {field.label}
+                      </span>
+                    </div>
                   </label>
                 )}
 

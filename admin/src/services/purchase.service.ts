@@ -40,7 +40,6 @@ export const purchaseService = {
     return await result.json();
   },
 
-  // Admin: Delete a transaction
   deleteTransaction: async (paymentId: number) => {
     const result = await authService.fetchWithRefresh(
       `${API_URL}/api/purchase/${paymentId}`,
@@ -52,7 +51,6 @@ export const purchaseService = {
     return await result.json();
   },
 
-  // Admin/Member: Get transaction history (optional userId filter)
   getAllTransactions: async (userId?: number) => {
     const url = userId
       ? `${API_URL}/api/purchase?userId=${userId}`

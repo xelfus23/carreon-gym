@@ -102,10 +102,55 @@ export const useTransactions = (userId?: number) => {
     };
   }, [getTransactions]);
 
+
+  const verifyTransaction = async (paymentId: number) => {
+    try {
+      const result = await purchaseService.verifyPurchase(paymentId);
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to verify payment");
+      }
+
+      getTransactions()
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const denyTransaction = async (paymentId: number) => {
+    try {
+      const result = await purchaseService.denyPurchase(paymentId);
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to deny payment");
+      }
+
+      getTransactions()
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteTransaction = async (paymentId: number) => {
+    try {
+      const result = await purchaseService.deleteTransaction(paymentId);
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to delete transaction");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
   return {
     transactions,
     isLoading,
     error,
     refresh: getTransactions,
+    verifyTransaction,
+    denyTransaction,
+    deleteTransaction
   };
 };

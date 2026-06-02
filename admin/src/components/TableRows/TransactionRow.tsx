@@ -1,13 +1,8 @@
 import {
-  Ban,
-  CheckCircle,
   CheckCircle2,
   Clock,
-  Edit,
   ExternalLink,
   Trash,
-  Trash2,
-  X,
   XCircle,
 } from "lucide-react";
 import { type TransactionProps } from "../../hooks/useTransactions";
@@ -26,57 +21,56 @@ import { ActionMenu } from "../ActionMenu";
 interface TransactionRowProps {
   tx: TransactionProps;
   setSelectedReceipt: Dispatch<SetStateAction<string | null | undefined>>;
-  setOpenMenuId: Dispatch<SetStateAction<number | null>>;
-  openMenuId: number | null;
-  OnVerify: () => void;
-  OnDeny: () => void;
-  OnDelete: () => void;
+  onAccept: (t: TransactionProps) => void;
+  onDeny: (t: TransactionProps) => void;
+  onDelete: (t: TransactionProps) => void;
 }
 
 export default function TransactionRow({
   tx,
   setSelectedReceipt,
-  setOpenMenuId,
-  openMenuId,
-  OnVerify,
-  OnDeny,
-  OnDelete,
+  onAccept,
+  onDeny,
+  onDelete,
 }: TransactionRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
 
   const actions: ActionItemProps[] =
-    tx.status === "paid"
+    (tx.status === "paid" || tx.status === "cancelled")
       ? [
-          {
-            label: "Delete",
-            icon: <Trash size={16} />,
-            onClick: () => {
-              close();
-            },
-            variant: "danger" as const,
-            dividerBefore: true,
+        {
+          label: "Delete",
+          icon: <Trash size={16} />,
+          onClick: () => {
+            onDelete(tx)
+            close();
           },
-        ]
+          variant: "danger" as const,
+          dividerBefore: true,
+        },
+      ]
       : [
-          {
-            label: "Accept",
-            icon: <CheckCircle2 size={16} />,
-            onClick: () => {
-              close();
-            },
-            variant: "success",
+        {
+          label: "Accept",
+          icon: <CheckCircle2 size={16} />,
+          onClick: () => {
+            onAccept(tx)
+            close();
           },
-          {
-            label: "Deny",
-            icon: <XCircle size={16} />,
-            onClick: () => {
-              close();
-            },
-            variant: "warning",
+          variant: "success",
+        },
+        {
+          label: "Deny",
+          icon: <XCircle size={16} />,
+          onClick: () => {
+            onDeny(tx)
+            close();
           },
-        ];
+          variant: "warning",
+        },
+      ];
 
   return (
     <tr
@@ -103,7 +97,11 @@ export default function TransactionRow({
       <td className="p-4">
         {tx.status === "paid" ? (
           <span className="inline-flex items-center gap-1.5 text-emerald-500 text-[11px] font-black">
-            <CheckCircle size={14} /> PAID
+            <CheckCircle2 size={14} /> PAID
+          </span>
+        ) : tx.status === "cancelled" ? (
+          <span className="inline-flex items-center gap-1.5 text-red-500 text-[11px] font-black">
+            <XCircle size={14} /> CANCELLED
           </span>
         ) : (
           <span className="inline-flex items-center gap-1.5 text-amber-500 text-[11px] font-black">
@@ -135,11 +133,10 @@ export default function TransactionRow({
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                             opacity-0 group-hover:opacity-100 focus:opacity-100
-                            ${
-                              menuOpen
-                                ? "opacity-100 bg-border text-text-primary"
-                                : "text-text-secondary hover:bg-border hover:text-text-primary"
-                            }`}
+                            ${menuOpen
+                ? "opacity-100 bg-border text-text-primary"
+                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />

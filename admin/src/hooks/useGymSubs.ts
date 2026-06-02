@@ -16,7 +16,6 @@ export const useGymSubs = () => {
     setError(null);
     try {
       const data = await subscriptionService.getPlans();
-
       setMembership(data.filter(v => v.category === 'membership'));
       setClasses(data.filter(v => v.category === 'class'));
       setPersonalTrainer(data.filter(v => v.category === 'personal_training'));
@@ -42,6 +41,8 @@ export const useGymSubs = () => {
       setIsLoading(false)
     }
   };
+
+
 
   useEffect(() => {
     refetch()

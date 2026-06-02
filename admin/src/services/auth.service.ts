@@ -44,9 +44,15 @@ async function fetchWithRefresh(
   input: RequestInfo,
   init: RequestInit = {},
 ): Promise<Response> {
+  const isFormData =
+    typeof FormData !== "undefined" && init.body instanceof FormData;
+
   const defaults: RequestInit = {
     credentials: "include",
-    headers: { "Content-Type": "application/json", ...init.headers },
+    headers: {
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      ...init.headers,
+    },
   };
 
   const res = await fetch(input, { ...defaults, ...init });

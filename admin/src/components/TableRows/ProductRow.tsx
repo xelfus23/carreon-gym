@@ -13,6 +13,7 @@ export default function ProductRow({ product, onEdit, onDelete }: ProductRow) {
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
+  const previewUrl = product.image_urls?.[0] ?? null;
 
   const actions: ActionItemProps[] = [
     {
@@ -40,16 +41,22 @@ export default function ProductRow({ product, onEdit, onDelete }: ProductRow) {
       <td className="p-4 text-xs text-text-secondary">
         {product.id.toString()}
       </td>
+      <td className="p-4">
+        {previewUrl ? (
+          <img
+            src={previewUrl}
+            alt={product.product_name}
+            className="h-10 w-10 rounded-md object-cover border border-border bg-background"
+            loading="lazy"
+          />
+        ) : (
+          <div className="h-10 w-10 rounded-md border border-border bg-background" />
+        )}
+      </td>
       <td className="p-4 font-medium">{product.product_name}</td>
       <td className="p-4 text-text-secondary">{product.category}</td>
       <td className="p-4 font-mono">₱{product.price.toLocaleString()}</td>
       <td className="p-4">{product.stocks}</td>
-      <td className="p-4 text-xs text-text-secondary">
-        <div className="flex items-center gap-1">
-          <Calendar size={12} />
-          {new Date(product.last_restock).toLocaleDateString()}
-        </div>
-      </td>
       <td className="p-4">
         <span
           className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${product.status === "available"
@@ -61,6 +68,12 @@ export default function ProductRow({ product, onEdit, onDelete }: ProductRow) {
         >
           {product.status.replace("_", " ")}
         </span>
+      </td>
+      <td className="p-4 text-xs text-text-secondary">
+        <div className="flex items-center gap-1">
+          <Calendar size={12} />
+          {new Date(product.last_restock).toLocaleDateString()}
+        </div>
       </td>
       <td className="p-4">
         <div className="flex items-center justify-end">

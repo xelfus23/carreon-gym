@@ -16,7 +16,7 @@ type FilterStatus = "all" | "available" | "unavailable" | "out_of_stock";
 
 const fields: FormField[] = [
   {
-    name: "product_image",
+    name: "image_urls",
     label: "Product Image",
     type: "image",
     gridSpan: "full",
@@ -56,7 +56,7 @@ const fields: FormField[] = [
 export default function Products() {
   const { products, isLoading, refresh, createProduct, deleteProduct, updateProduct } = useProducts();
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("available");
   const [sortKey, setSortKey] = useState<SortKey>("product_name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [page, setPage] = useState(1);
@@ -195,10 +195,12 @@ export default function Products() {
             onSort={handleSort}
             columns={[
               { label: "Product ID", key: "id", sortable: true },
+              { label: "Image", key: "image_urls", sortable: false },
               { label: "Product", key: "product_name", sortable: true },
               { label: "Category", key: "category", sortable: true },
               { label: "Price", key: "price", sortable: true },
               { label: "Stocks", key: "stocks", sortable: true },
+              { label: "Status", key: "status", sortable: true },
               { label: "Last Restock", key: "last_restock", sortable: true },
               { label: "", key: null },
             ]}
@@ -228,7 +230,7 @@ export default function Products() {
           subtitle={`Modifying context details for ${selectedProduct?.product_name || "product"}`}
           fields={fields}
           initialData={selectedProduct}
-          onSave={(data) => updateProduct(data.id, data)}
+          onSave={(data, imageFile) => updateProduct(data.id, data, imageFile)}
         />
       )}
 
