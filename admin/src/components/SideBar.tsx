@@ -54,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
     },
     {
       id: NavItem.MEMBERS,
-      label: "Members List",
+      label: "Members",
       icon: <UsersRound className="h-4 stroke-2" />,
     },
     {

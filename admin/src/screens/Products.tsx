@@ -13,6 +13,7 @@ import ConfirmDialog from "../components/Modals/ConfirmDialog";
 type SortKey = keyof ProductProps;
 type SortDir = "asc" | "desc";
 type FilterStatus = "all" | "available" | "unavailable" | "out_of_stock";
+type FilterCategory = "All" | "Food" | "Drinks" | "Supplement" | "Equipment";
 
 const fields: FormField[] = [
   {
@@ -33,10 +34,10 @@ const fields: FormField[] = [
     label: "Category",
     type: "select",
     options: [
-      { label: "Food", value: "food" },
-      { label: "Drink", value: "drink" },
-      { label: "Accessory", value: "accessory" },
-      { label: "Other", value: "other" },
+      { label: "Food", value: "Food" },
+      { label: "Drink", value: "Drink" },
+      { label: "Accessory", value: "Accessory" },
+      { label: "Other", value: "Other" },
     ],
   },
   { name: "price", label: "Price", type: "number", required: true },
@@ -57,6 +58,7 @@ export default function Products() {
   const { products, isLoading, refresh, createProduct, deleteProduct, updateProduct } = useProducts();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("available");
+  const [filterCategory, setFilterCategory] = useState<FilterCategory>("All")
   const [sortKey, setSortKey] = useState<SortKey>("product_name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [page, setPage] = useState(1);
@@ -83,6 +85,9 @@ export default function Products() {
     if (filterStatus !== "all") {
       list = list.filter((m) => m.status === filterStatus);
     }
+    if (filterCategory !== "All") {
+      list = list.filter((m) => m.category === filterCategory);
+    }
     list.sort((a, b) => {
       const av = a[sortKey];
       const bv = b[sortKey];
@@ -95,7 +100,7 @@ export default function Products() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return list;
-  }, [search, filterStatus, sortKey, sortDir, products]);
+  }, [search, filterStatus, sortKey, sortDir, products, filterCategory]);
 
   const totalPages = Math.ceil(processedData.length / PAGE_SIZE);
 
@@ -131,7 +136,23 @@ export default function Products() {
         { label: "Unavailable", value: "unavailable" },
         { label: "Out of Stock", value: "out_of_stock" },
       ],
+      label: "Status"
     },
+    {
+      value: filterCategory,
+      onChange: (e) => {
+        setFilterCategory(e.target.value as FilterCategory);
+        setPage(1)
+      },
+      options: [
+        { label: "All", value: "All" },
+        { label: "Food", value: "Food" },
+        { label: "Drinks", value: "Drinks" },
+        { label: "Supplements", value: "Supplements" },
+        { label: "Equipment", value: "Equipment" }
+      ],
+      label: "Category"
+    }
   ];
 
   const onEdit = (p: ProductProps) => {
@@ -216,7 +237,7 @@ export default function Products() {
           title="Add Product"
           subtitle="Add a new product to the inventory"
           fields={fields}
-          onSave={createProduct}
+          onSave={(data, imageFile) => createProduct(data, imageFile)}
           submitButtonText="Add Product"
         />
       )}

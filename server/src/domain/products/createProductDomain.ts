@@ -7,6 +7,7 @@ export const createProductDomain = async (params: ProductProps) => {
   try {
     await client.query("BEGIN");
 
+    console.log("CATEGORY:", params.category)
     // 1. Get Category ID from Name
     const catRes = await client.query(
       "SELECT id FROM product_categories WHERE name = $1",

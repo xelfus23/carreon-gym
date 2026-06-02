@@ -26,6 +26,7 @@ export const useProducts = () => {
   const createProduct = async (product: Partial<ProductProps>, imageFile: File | null) => {
     try {
       let image_urls = product.image_urls ?? [];
+
       if (imageFile) {
         const upload = await productService.uploadProductImage(imageFile);
         if (upload?.success && upload.data?.url) image_urls = [upload.data.url];
@@ -73,7 +74,6 @@ export const useProducts = () => {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to fetch products";
-
       setError(message);
     }
   };
@@ -81,10 +81,10 @@ export const useProducts = () => {
   const deleteProduct = async (productId: number) => {
     try {
       await productService.deleteProduct(productId);
+      getProducts()
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to fetch products";
-
       setError(message);
     }
   };

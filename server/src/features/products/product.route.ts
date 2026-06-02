@@ -16,14 +16,15 @@ const productRoutes = Router();
 
 productRoutes.get("", webAuthMiddleware, getAllProducts);
 productRoutes.get("/mobile", mobileAuthMiddleware, getAllProducts);
-
 productRoutes.post("", webAuthMiddleware, createProduct);
+
 productRoutes.post(
   "/upload",
   webAuthMiddleware,
   uploadProductImages.single("image"),
   uploadProductImage,
 );
+
 productRoutes.patch("/:id", webAuthMiddleware, updateProduct);
 productRoutes.delete("/:id", webAuthMiddleware, deleteProduct);
 

@@ -98,7 +98,7 @@ export default function Attendance() {
       activeNow: logs.filter((l) => l.status === "checked_in").length,
       avgDuration: logs.length
         ? logs.reduce((acc, curr) => acc + (curr.duration || 0), 0) /
-          logs.length
+        logs.length
         : 0,
     }),
     [logs],
@@ -286,7 +286,7 @@ export default function Attendance() {
                   key={attempt.id}
                   className="hover:bg-border/30 transition-colors"
                 >
-                  <td className="px-5 py-4 whitespace-nowrap font-medium">
+                  <td className="px-5 py-4 whitespace-nowrap text-xs text-text-secondary">
                     {formatDate(attempt.created_at)}{" "}
                     {formatTime(attempt.created_at)}
                   </td>
@@ -294,11 +294,11 @@ export default function Attendance() {
                     {attempt.first_name} {attempt.last_name}
                   </td>
                   <td className="px-5 py-4">
-                    <span className="px-2 py-1 rounded-md bg-amber-100 text-amber-700 text-[10px] font-bold uppercase">
+                    <span className="rounded-md text-amber-500 text-[10px] font-bold uppercase">
                       {attempt.action.replace("_", " ")}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-rose-600 font-semibold">
+                  <td className=" text-xs text-rose-600 font-semibold">
                     {formatAttemptReason(attempt.reason)}
                   </td>
                 </tr>

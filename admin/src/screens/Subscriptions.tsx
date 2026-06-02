@@ -62,7 +62,7 @@ const fields: FormField[] = [
 ];
 
 export default function GymSubscriptionsAdmin() {
-  const { membership, classes, addOns, personalTrainer, isLoading, refresh } =
+  const { membership, classes, addOns, personalTrainer, isLoading, refresh, updateSub, deleteSub } =
     useGymSubs();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -161,14 +161,6 @@ export default function GymSubscriptionsAdmin() {
     console.log(selectedSubscription)
   }, [selectedSubscription])
 
-  const handleSave = async (
-    id: number | undefined,
-    data: Partial<SubscriptionPlanProps>,
-  ) => {
-    console.log(data);
-    // await subscriptionService.updatePlan(id!, data);
-  };
-
 
   if (isLoading)
     return (
@@ -218,12 +210,13 @@ export default function GymSubscriptionsAdmin() {
         setPage(1);
       },
       options: [
-        { label: "All Subscriptions", value: "all" },
+        { label: "All", value: "all" },
         { label: "Membership", value: "membership" },
         { label: "Class", value: "class" },
         { label: "Personal Trainer", value: "personal_training" },
         { label: "Addon", value: "add_on" },
       ],
+      label: "Category"
     },
   ];
 
@@ -318,7 +311,7 @@ export default function GymSubscriptionsAdmin() {
           subtitle="Edit the subscription plan"
           fields={fields}
           initialData={selectedSubscription}
-          onSave={(data) => handleSave(selectedSubscription?.id, data)}
+          onSave={(data) => updateSub(selectedSubscription?.id, data)}
         />
       )}
 
@@ -330,7 +323,7 @@ export default function GymSubscriptionsAdmin() {
           title="Add Subscription"
           subtitle="Add a subscription plan"
           fields={fields}
-          onSave={(data) => handleSave(selectedSubscription?.id, data)}
+          onSave={(data: Partial<SubscriptionPlanProps>) => deleteSub(data.id!)}
           submitButtonText="Add Subscription"
         />
       )}

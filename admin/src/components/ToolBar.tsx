@@ -9,7 +9,8 @@ export type options = {
 export type SelectProps = {
   value: string,
   onChange: ChangeEventHandler<HTMLSelectElement>;
-  options: options[]
+  options: options[],
+  label: string
 }
 
 interface ToolbarProps<T> {
@@ -17,7 +18,7 @@ interface ToolbarProps<T> {
   handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   select?: SelectProps[];
   filtered: T[];
-  placeholder: string
+  placeholder: string,
 }
 
 
@@ -31,15 +32,19 @@ export default function ToolBar<T>({ search, handleSearchChange, select, filtere
       />
 
       {select?.map((values) => (
-        <select
-          value={values.value}
-          onChange={values.onChange}
-          className="px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
-        >
-          {values.options.map((v) => (
-            <option value={v.value}>{v.label}</option>
-          ))}
-        </select>
+        <div className="space-x-2">
+          <label className="text-xs">{values.label}:</label>
+          <select
+            value={values.value}
+            onChange={values.onChange}
+            className="px-2 py-1 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+          >
+            {values.options.map((v) => (
+              <option value={v.value}>{v.label}</option>
+            ))}
+          </select>
+
+        </div>
       ))}
 
       <span className="ml-auto text-xs text-text-secondary font-medium whitespace-nowrap">

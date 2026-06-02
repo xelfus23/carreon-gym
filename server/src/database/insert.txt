@@ -153,7 +153,6 @@ INSERT INTO product_categories (name, description) VALUES
 ('Equipment', 'Gym gear and accessories');
 
 INSERT INTO products (
-    id, 
     name, 
     category_id, 
     price, 
@@ -165,27 +164,27 @@ INSERT INTO products (
     updated_at, 
     image_urls
 ) VALUES 
-(100000, 'Whey Protein (27g)', 100000, 55.00, 50, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:31:58.427633+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410718120-100.avif']),
+('Whey Protein (27g)', 100000, 55.00, 50, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:31:58.427633+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410718120-100.avif']),
 
-(100001, 'Creatine (5g)', 100000, 45.00, 50, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:20:30.19067+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406429958-cr.webp']),
+('Creatine (5g)', 100000, 45.00, 50, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:20:30.19067+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406429958-cr.webp']),
 
-(100002, 'Mineral Water', 100001, 20.00, 100, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:25:38.739737+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410328871-4800049720114_1024x.webp']),
+('Mineral Water', 100001, 20.00, 100, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:25:38.739737+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410328871-4800049720114_1024x.webp']),
 
-(100003, 'C2 Iced Tea', 100001, 30.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 20:41:05.092226+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780404064811-c2.jpg']),
+('C2 Iced Tea', 100001, 30.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 20:41:05.092226+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780404064811-c2.jpg']),
 
-(100004, 'Sting Energy Drink', 100001, 35.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:27:31.168209+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410437136-480392503342_800x.webp']),
+('Sting Energy Drink', 100001, 35.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:27:31.168209+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410437136-480392503342_800x.webp']),
 
-(100005, 'Cobra Energy Drink', 100001, 35.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:19:42.600722+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406382311-ced.jpg']),
+('Cobra Energy Drink', 100001, 35.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:19:42.600722+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406382311-ced.jpg']),
 
-(100006, 'Vitamilk', 100001, 40.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:30:05.82817+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410605558-26_f7986cc4-bf72-4a23-ad72-a22ba425edf1_1200x1200.webp']),
+('Vitamilk', 100001, 40.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:30:05.82817+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410605558-26_f7986cc4-bf72-4a23-ad72-a22ba425edf1_1200x1200.webp']),
 
-(100007, 'Pocari Sweat', 100001, 50.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:26:10.339799+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410370038-Pocari_20Sweat_20Small_20Pet_20350ml_grande.webp']),
+('Pocari Sweat', 100001, 50.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:26:10.339799+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410370038-Pocari_20Sweat_20Small_20Pet_20350ml_grande.webp']),
 
-(100008, 'Hard Boiled Egg', 100002, 25.00, 20, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:24:00.922698+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410240674-a.webp']),
+('Hard Boiled Egg', 100002, 25.00, 20, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:24:00.922698+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410240674-a.webp']),
 
-(100009, 'Saba Banana (Saging Saba)', 100002, 20.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:26:54.468117+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410404129-Saba-Bananas-featured-image.jpg']),
+('Saba Banana (Saging Saba)', 100002, 20.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:26:54.468117+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410404129-Saba-Bananas-featured-image.jpg']),
 
-(100010, 'Barbell Foam Grip', 100003, 80.00, 10, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:17:27.372258+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406247112-barbelfoamgrip.png']);
+('Barbell Foam Grip', 100003, 80.00, 10, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:17:27.372258+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406247112-barbelfoamgrip.png']);
 INSERT INTO gym_details (gym_name, contact_number, email, gcash_name, gcash_number) VALUES ('Careon Gym', '09123456789', 'carreon.gym@email.com', 'Carreon Gym', '09123234345');
 
 -- 1. Insert 10 Users

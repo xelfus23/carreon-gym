@@ -254,12 +254,13 @@ export default function Members() {
         setPage(1);
       },
       options: [
-        { label: "All Accounts", value: "all" },
-        { label: "Active Accounts", value: "active" },
-        { label: "Suspended Accounts", value: "suspended" },
-        { label: "Banned Accounts", value: "banned" },
-        { label: "Deleted Accounts", value: "deleted" },
+        { label: "All", value: "all" },
+        { label: "Active", value: "active" },
+        { label: "Suspended", value: "suspended" },
+        { label: "Banned", value: "banned" },
+        { label: "Deleted", value: "deleted" },
       ],
+      label: "Account Status"
     },
     {
       value: filterSub,
@@ -268,12 +269,13 @@ export default function Members() {
         setPage(1);
       },
       options: [
-        { label: "All Plans", value: "all" },
-        { label: "Active Plan", value: "active" },
+        { label: "All", value: "all" },
+        { label: "Active", value: "active" },
         { label: "Expired", value: "expired" },
         { label: "Pending", value: "pending" },
         { label: "Cancelled", value: "cancelled" },
       ],
+      label: "Subscription Status"
     },
   ];
 

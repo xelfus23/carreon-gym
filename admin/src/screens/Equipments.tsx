@@ -155,12 +155,13 @@ export default function Equipments() {
         setPage(1);
       },
       options: [
-        { label: "All Equipments", value: "all" },
+        { label: "All", value: "all" },
         { label: "Free Weights", value: "Free Weight" },
         { label: "Accessories", value: "Accessory" },
         { label: "Cardio", value: "Cardio" },
         { label: "Machines", value: "Machine" },
       ],
+      label: "Category"
     },
   ];
 

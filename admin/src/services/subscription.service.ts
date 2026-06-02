@@ -4,6 +4,10 @@ import { authService } from "./auth.service";
 
 export const subscriptionService = {
 
+  createPlan: async () => {
+    //TODO: 
+  },
+
   updatePlan: async (id: number, planData: Partial<SubscriptionPlanProps>) => {
     const res = await authService.fetchWithRefresh(`/api/subscription-plans/${id}`, {
       method: "PATCH",
@@ -12,10 +16,15 @@ export const subscriptionService = {
 
     const data = await res.json();
 
-
     return data.data;
   },
-  
+
+  deletePlan: async (id: number) => {
+    return await authService.fetchWithRefresh(`/api/subscription-plans/${id}`, {
+      method: "DELETE"
+    })
+  },
+
   async getPlans(): Promise<SubscriptionPlanProps[]> {
     const res = await authService.fetchWithRefresh(
       `${API_URL}/api/web/subscriptions/plans`,
