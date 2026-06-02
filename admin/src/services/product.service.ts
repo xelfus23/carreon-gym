@@ -12,6 +12,7 @@ export const productService = {
 
     return data;
   },
+
   createProduct: async (product: ProductProps) => {
     const result = await authService.fetchWithRefresh(
       `${API_URL}/api/products`,
@@ -26,7 +27,7 @@ export const productService = {
     return data;
   },
 
-  updateProduct: async (id: string, updates: Partial<ProductProps>) => {
+  updateProduct: async (id: number, updates: Partial<ProductProps>) => {
     const result = await authService.fetchWithRefresh(
       `${API_URL}/api/products/${id}`,
       {
@@ -39,7 +40,8 @@ export const productService = {
 
     return data;
   },
-  deleteProduct: async (id: string) => {
+
+  deleteProduct: async (id: number) => {
     const result = await authService.fetchWithRefresh(
       `${API_URL}/api/products/${id}`,
       {

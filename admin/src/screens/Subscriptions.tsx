@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useGymSubs } from "../hooks/useGymSubs";
-import ConfirmDialog from "../components/ConfirmDialog";
+import ConfirmDialog from "../components/Modals/ConfirmDialog";
 import { Dumbbell, Zap, Users, Layers, Loader2 } from "lucide-react";
 import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
 import CustomTable from "../components/CustomTable";
-import type { FormField, SubscriptionPlanProps } from "../types";
+import type { ConfirmDialogTypes, FormField, SubscriptionPlanProps } from "../types";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import SubscriptionsRow from "../components/TableRows/SubscriptionsRow";
 import EditModal from "../components/Modals/EditModal";
@@ -21,6 +21,7 @@ const fields: FormField[] = [
     label: "Name",
     type: "text",
     placeholder: "Enter the name of the subscription plan",
+    gridSpan: "full",
   },
   {
     name: "description",
@@ -64,7 +65,6 @@ export default function GymSubscriptionsAdmin() {
   const { membership, classes, addOns, personalTrainer, isLoading, refresh } =
     useGymSubs();
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const [search, setSearch] = useState("");
@@ -75,13 +75,7 @@ export default function GymSubscriptionsAdmin() {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  const [confirmDialog, setConfirmDialog] = useState<{
-    title: string;
-    message: string;
-    confirmLabel: string;
-    variant: "warning" | "danger";
-    onConfirm: () => void;
-  } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogTypes>(null);
 
   const menuWrapRef = useRef<HTMLDivElement | null>(null);
   const PAGE_SIZE = 10;
@@ -144,6 +138,38 @@ export default function GymSubscriptionsAdmin() {
     setSortDir("asc");
   };
 
+  const onDelete = async (s: SubscriptionPlanProps) => {
+    setConfirmDialog({
+      title: "Delete Subscription",
+      message: `Permanently delete ${s.name}? This action cannot be undone and will be removed permanently`,
+      confirmLabel: "Delete",
+      variant: "danger",
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        console.log("delete", s.id);
+        refresh();
+      },
+      onClose: () => setConfirmDialog(null),
+    });
+  }
+
+  const handleEdit = (sub: SubscriptionPlanProps) => {
+    setSelectedSubscription(sub);
+  }
+
+  useEffect(() => {
+    console.log(selectedSubscription)
+  }, [selectedSubscription])
+
+  const handleSave = async (
+    id: number | undefined,
+    data: Partial<SubscriptionPlanProps>,
+  ) => {
+    console.log(data);
+    // await subscriptionService.updatePlan(id!, data);
+  };
+
+
   if (isLoading)
     return (
       <div className="flex h-full flex-col items-center justify-center space-y-4">
@@ -201,13 +227,6 @@ export default function GymSubscriptionsAdmin() {
     },
   ];
 
-  const saveEdit = async (
-    id: number | undefined,
-    data: Partial<SubscriptionPlanProps>,
-  ) => {
-    console.log(data);
-    // await subscriptionService.updatePlan(id!, data);
-  };
 
   return (
     <div className="space-y-4">
@@ -255,10 +274,8 @@ export default function GymSubscriptionsAdmin() {
           renderRow={(sub) => (
             <SubscriptionsRow
               plan={sub}
-              onClick={() => {
-                setIsEditModalOpen(true);
-                setSelectedSubscription(sub);
-              }}
+              onEdit={handleEdit}
+              onDelete={onDelete}
             />
           )}
           onSort={handleSort}
@@ -282,25 +299,26 @@ export default function GymSubscriptionsAdmin() {
 
       {confirmDialog && (
         <ConfirmDialog
-          {...confirmDialog}
-          onCancel={() => {
-            setConfirmDialog(null);
-            setIsEditModalOpen(false);
-            setSelectedSubscription(null);
-          }}
+          isOpen={!!confirmDialog}
+          onClose={confirmDialog.onClose}
+          onConfirm={confirmDialog.onConfirm}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmLabel={confirmDialog.confirmLabel}
+          variant={confirmDialog.variant}
         />
       )}
 
-      {isEditModalOpen && (
+      {selectedSubscription && (
         <EditModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
+          isOpen={!!selectedSubscription}
+          onClose={() => setSelectedSubscription(null)}
           onSuccess={refresh}
           title="Edit Subscription"
           subtitle="Edit the subscription plan"
           fields={fields}
           initialData={selectedSubscription}
-          onSave={(data) => saveEdit(selectedSubscription?.id, data)}
+          onSave={(data) => handleSave(selectedSubscription?.id, data)}
         />
       )}
 
@@ -312,7 +330,7 @@ export default function GymSubscriptionsAdmin() {
           title="Add Subscription"
           subtitle="Add a subscription plan"
           fields={fields}
-          onSave={(data) => saveEdit(selectedSubscription?.id, data)}
+          onSave={(data) => handleSave(selectedSubscription?.id, data)}
           submitButtonText="Add Subscription"
         />
       )}

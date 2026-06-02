@@ -13,6 +13,7 @@ export const memberService = {
 
     return data;
   },
+
   getAttendance: async () => {
     const result = await authService.fetchWithRefresh(
       `${API_URL}/api/attendance/log`,
@@ -23,9 +24,9 @@ export const memberService = {
     return data;
   },
 
-  verifyMember: async (memberId: number) => {
+  verifyAccount: async (accountId: number) => {
     const result = await authService.fetchWithRefresh(
-      `${API_URL}/api/members/verify/${memberId}`,
+      `${API_URL}/api/members/verify/${accountId}`,
       {
         method: "PATCH",
       },
@@ -33,7 +34,25 @@ export const memberService = {
 
     const data = await result.json();
 
+    if (!data.success) {
+      throw new Error(data.message || "Failed to verify member");
+    }
+
     return data;
+  },
+
+  deleteAccount: async (accountId: number) => {
+    const result = await authService.fetchWithRefresh(`${API_URL}/api/members/delete/${accountId}`, {
+      method: "DELETE",
+    })
+
+    const data = await result.json();
+
+    if (!data.success) {
+      throw new Error(data.message || "Failed to failed  to delete account");
+    }
+
+    return data
   },
 
   createMember: async (payload: {

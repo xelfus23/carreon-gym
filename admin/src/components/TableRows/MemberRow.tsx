@@ -70,17 +70,17 @@ export default function MemberRow({
     {
       label: "Set Plan",
       icon: <ClockPlus className="h-4" />,
-      onClick: () => onSetPlan(m),
+      onClick: () => { onSetPlan(m); close() },
     },
     {
       label: "Send Email",
       icon: <Mail className="h-4" />,
-      onClick: () => onSendEmail(m),
+      onClick: () => { onSendEmail(m); close() },
     },
     {
       label: m.verified ? "Unverify Member" : "Verify Member",
       icon: <Check className="h-4" />,
-      onClick: () => onVerify(m),
+      onClick: () => { onVerify(m); close() },
     },
     {
       label: isSuspended ? "Unsuspend Member" : "Suspend Member",
@@ -89,14 +89,14 @@ export default function MemberRow({
       ) : (
         <UserKey className="h-4" />
       ),
-      onClick: () => onSuspend(m),
+      onClick: () => { onSuspend(m); close() },
       variant: isSuspended ? "default" : "warning",
       dividerBefore: true,
     },
     {
       label: "Ban / Blacklist",
       icon: <Ban className="h-4" />,
-      onClick: () => onBan(m),
+      onClick: () => { onBan(m); close() },
       variant: "danger",
     },
     ...(!isDeleted
@@ -104,7 +104,10 @@ export default function MemberRow({
         {
           label: "Delete Member",
           icon: <Trash className="h-4" />,
-          onClick: () => onDelete(m),
+          onClick: () => {
+            onDelete(m);
+            close();
+          },
           variant: "danger" as const,
           dividerBefore: true,
         },

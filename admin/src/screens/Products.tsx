@@ -3,11 +3,12 @@ import { useMemo, useState } from "react";
 import { useProducts } from "../hooks/useProducts";
 import ProductRow from "../components/TableRows/ProductRow";
 import CustomTable from "../components/CustomTable";
-import type { FormField, ProductProps } from "../types";
+import type { ConfirmDialogTypes, FormField, ProductProps } from "../types";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import CustomHeader from "../components/CustomHeader";
 import AddModal from "../components/Modals/AddModal";
 import EditModal from "../components/Modals/EditModal";
+import ConfirmDialog from "../components/Modals/ConfirmDialog";
 
 type SortKey = keyof ProductProps;
 type SortDir = "asc" | "desc";
@@ -25,6 +26,7 @@ const fields: FormField[] = [
     label: "Product Name",
     type: "text",
     required: true,
+    gridSpan: "full",
   },
   {
     name: "category",
@@ -39,7 +41,6 @@ const fields: FormField[] = [
   },
   { name: "price", label: "Price", type: "number", required: true },
   { name: "stocks", label: "Stocks", type: "number", required: true },
-  { name: "last_restock", label: "Last Restock", type: "text" },
   {
     name: "status",
     label: "Status",
@@ -53,14 +54,14 @@ const fields: FormField[] = [
 ];
 
 export default function Products() {
-  const { products, isLoading, refresh } = useProducts();
+  const { products, isLoading, refresh, createProduct, deleteProduct, updateProduct } = useProducts();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [sortKey, setSortKey] = useState<SortKey>("product_name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [page, setPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogTypes | null>(null)
 
   // Track selected product object configuration for updates
   const [selectedProduct, setSelectedProduct] = useState<ProductProps | null>(
@@ -69,7 +70,6 @@ export default function Products() {
 
   const PAGE_SIZE = 50;
 
-  // Process and sort arrays unchanged...
   const processedData = useMemo(() => {
     let list = [...(products || [])];
     if (search.trim()) {
@@ -136,11 +136,23 @@ export default function Products() {
 
   const onEdit = (p: ProductProps) => {
     setSelectedProduct(p);
-    setIsEditModalOpen(true);
   };
 
-  const onDelete = (p: ProductProps) =>
-    console.log(`DELETING: `, p.product_name);
+  const onDelete = (p: ProductProps) => {
+    setConfirmDialog({
+      title: "Delete Product",
+      message: `Permanently delete ${p.product_name}? This action cannot be undone.`,
+      confirmLabel: "Delete",
+      variant: "danger",
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        deleteProduct(p.id)
+        refresh();
+      },
+      onClose: () => setConfirmDialog(null)
+    }
+    );
+  };
 
   return (
     <>
@@ -157,6 +169,7 @@ export default function Products() {
         />
 
         <div className="bg-surface border border-border shadow-sm overflow-hidden flex flex-col">
+
           <ToolBar
             placeholder="Search product"
             filtered={paginatedData}
@@ -201,32 +214,36 @@ export default function Products() {
           title="Add Product"
           subtitle="Add a new product to the inventory"
           fields={fields}
-          onSave={(data, imageFile) => {
-            console.log(`ADDING PAYLOAD: `, data, imageFile);
-            return Promise.resolve();
-          }}
+          onSave={createProduct}
           submitButtonText="Add Product"
         />
       )}
 
-      {isEditModalOpen && (
+      {selectedProduct && (
         <EditModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setSelectedProduct(null);
-          }}
+          isOpen={!!selectedProduct}
+          onClose={() => setSelectedProduct(null)}
           onSuccess={() => refresh()}
           title="Edit Product"
           subtitle={`Modifying context details for ${selectedProduct?.product_name || "product"}`}
           fields={fields}
           initialData={selectedProduct}
-          onSave={(data, imageFile) => {
-            console.log(`UPDATING PAYLOAD: `, data, imageFile);
-            return Promise.resolve();
-          }}
+          onSave={(data) => updateProduct(data.id, data)}
         />
       )}
+
+      {
+        confirmDialog &&
+        <ConfirmDialog
+          isOpen={!!confirmDialog}
+          onClose={confirmDialog.onClose}
+          onConfirm={confirmDialog.onConfirm}
+          variant={confirmDialog.variant}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmLabel={confirmDialog.confirmLabel}
+        />
+      }
     </>
   );
 }

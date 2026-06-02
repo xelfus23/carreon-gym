@@ -154,7 +154,7 @@ export default function Attendance() {
   return (
     <div className="space-y-4">
       <CustomHeader
-        hasAction={true}
+        hasAction={false}
         isLoading={isLoading}
         refresh={refresh}
         icon={<Logs className="text-primary" />}

@@ -41,7 +41,7 @@ export const useProducts = () => {
   };
 
   const updateProduct = async (
-    productId: string,
+    productId: number,
     updates: Partial<ProductProps>,
   ) => {
     try {
@@ -54,7 +54,7 @@ export const useProducts = () => {
     }
   };
 
-  const deleteProduct = async (productId: string) => {
+  const deleteProduct = async (productId: number) => {
     try {
       await productService.deleteProduct(productId);
     } catch (err) {

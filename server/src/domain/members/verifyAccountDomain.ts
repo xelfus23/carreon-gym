@@ -1,7 +1,7 @@
 import { stat } from "node:fs";
 import pool from "../../config/pool.ts";
 
-export const verifyMemberDomain = async (userId: number) => {
+export const verifyAccountDomain = async (userId: number) => {
   const result = await pool.query(
     `
     SELECT 

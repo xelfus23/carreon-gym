@@ -1,19 +1,19 @@
 import { useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
-import type { AdminMemberListItem } from "../types";
+import type { AdminMemberListItem, ConfirmDialogTypes } from "../types";
 import { Loader2, UserRoundKey } from "lucide-react";
 import SubscriptionModal from "../components/SubscriptionModal";
-import ConfirmDialog from "../components/ConfirmDialog";
 import AdminRow from "../components/TableRows/AdminRow";
 import CustomHeader from "../components/CustomHeader";
 import ToolBar from "../components/ToolBar";
 import CustomTable from "../components/CustomTable";
+import ConfirmDialog from "../components/Modals/ConfirmDialog";
 
 type SortKey = keyof AdminMemberListItem | null;
 type SortDir = "asc" | "desc";
 
 export default function Admins() {
-  const { admins, refresh, isLoading, verifyMember } = useMember();
+  const { admins, refresh, isLoading, verifyMember, deleteMember } = useMember();
   const [subscriptionMember, setSubscriptionMember] =
     useState<AdminMemberListItem | null>(null);
 
@@ -25,13 +25,7 @@ export default function Admins() {
   const PAGE_SIZE = 50;
 
   // Confirm dialog state
-  const [confirmDialog, setConfirmDialog] = useState<{
-    title: string;
-    message: string;
-    confirmLabel: string;
-    variant: "warning" | "danger";
-    onConfirm: () => void;
-  } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogTypes>(null);
 
   // ── Action handlers ────────────────────────────────────────────────────
 
@@ -50,6 +44,7 @@ export default function Admins() {
         console.log("suspend/unsuspend", m.id);
         refresh();
       },
+      onClose: () => setConfirmDialog(null)
     });
   };
 
@@ -65,6 +60,8 @@ export default function Admins() {
         console.log("ban", m.id);
         refresh();
       },
+      onClose: () => setConfirmDialog(null)
+
     });
   };
 
@@ -76,10 +73,11 @@ export default function Admins() {
       variant: "danger",
       onConfirm: async () => {
         setConfirmDialog(null);
-        // TODO: call memberService.delete(m.id)
         console.log("delete", m.id);
+        deleteMember(m.id)
         refresh();
       },
+      onClose: () => setConfirmDialog(null)
     });
   };
 
@@ -221,8 +219,14 @@ export default function Admins() {
 
       {confirmDialog && (
         <ConfirmDialog
-          {...confirmDialog}
-          onCancel={() => setConfirmDialog(null)}
+          isOpen={!!confirmDialog}
+          onClose={confirmDialog.onClose}
+          onConfirm={confirmDialog.onConfirm}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmLabel={confirmDialog.confirmLabel}
+          variant="danger"
+          isLoading={false}
         />
       )}
     </div>

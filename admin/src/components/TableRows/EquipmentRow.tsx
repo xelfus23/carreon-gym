@@ -43,10 +43,10 @@ export default function EquipmentRow({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
 
-  const muscles = (item.target_muscles ?? "")
-    .split(",")
-    .map((muscle) => muscle.trim())
-    .filter(Boolean);
+  // const muscles = (item.target_muscles ?? "")
+  //   .split(",")
+  //   .map((muscle) => muscle.trim())
+  //   .filter(Boolean);
 
   const actions: ActionItemProps[] = [
     {
@@ -87,7 +87,7 @@ export default function EquipmentRow({
       <td className="p-4 text-sm font-semibold text-text-primary">
         {item.quantity ?? "-"}
       </td>
-      <td className="p-4">
+      {/* <td className="p-4">
         <div className="flex flex-wrap gap-1.5 max-w-xs">
           {muscles.map((m) => (
             <MuscleTag key={m} muscle={m} />
@@ -98,7 +98,7 @@ export default function EquipmentRow({
         <p className="text-xs text-text-secondary line-clamp-2">
           {item.description?.trim() || "-"}
         </p>
-      </td>
+      </td> */}
       <td className="p-4">
         <div className="flex items-center justify-end">
           <button

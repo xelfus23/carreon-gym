@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
-import { useEquipments, type EquipmentTypes } from "../hooks/useEquipments";
+import { useEquipments, type EquipmentPayload, type EquipmentTypes } from "../hooks/useEquipments";
 import { Dumbbell, Loader2 } from "lucide-react";
 import CustomTable from "../components/CustomTable";
 import CustomHeader from "../components/CustomHeader";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import EquipmentRow from "../components/TableRows/EquipmentRow";
-import type { FormField } from "../types";
+import type { ConfirmDialogTypes, FormField } from "../types";
 
 // Import your universal dynamic modals
 import EditModal from "../components/Modals/EditModal";
@@ -44,21 +44,21 @@ const EQUIPMENT_FIELDS: FormField[] = [
     placeholder: "Enter quantity",
     required: true,
   },
-  {
-    name: "target_muscles",
-    label: "Target Muscles",
-    type: "text",
-    placeholder: "e.g., Chest, Triceps, Deltoids",
-    required: true,
-    gridSpan: "full",
-  },
-  {
-    name: "description",
-    label: "Description",
-    type: "textarea",
-    placeholder: "Provide optional visual configurations or specifications...",
-    gridSpan: "full",
-  },
+  // {
+  //   name: "target_muscles",
+  //   label: "Target Muscles",
+  //   type: "text",
+  //   placeholder: "e.g., Chest, Triceps, Deltoids",
+  //   required: true,
+  //   gridSpan: "full",
+  // },
+  // {
+  //   name: "description",
+  //   label: "Description",
+  //   type: "textarea",
+  //   placeholder: "Provide optional visual configurations or specifications...",
+  //   gridSpan: "full",
+  // },
 ];
 
 export default function Equipments() {
@@ -75,14 +75,13 @@ export default function Equipments() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedEquipment, setSelectedEquipment] =
     useState<EquipmentTypes | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<EquipmentTypes | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey>("equipment_name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [page, setPage] = useState(1);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogTypes>(null)
 
   const PAGE_SIZE = 50;
 
@@ -131,15 +130,23 @@ export default function Equipments() {
     setSortDir("asc");
   };
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    setIsDeleting(true);
-    try {
-      await deleteEquipment(deleteTarget.id);
-    } finally {
-      setIsDeleting(false);
-      setDeleteTarget(null);
-    }
+  const onEdit = (e: EquipmentTypes) => {
+    setSelectedEquipment(e);
+  };
+
+  const onDelete = (e: EquipmentTypes) => {
+    setConfirmDialog({
+      title: "Delete Equipment",
+      message: `Permanently delete ${e.equipment_name}? This action cannot be undone.`,
+      confirmLabel: "Delete",
+      variant: "danger",
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        await deleteEquipment(e.id);
+        refresh();
+      },
+      onClose: () => setConfirmDialog(null)
+    });
   };
 
   if (isLoading)
@@ -203,11 +210,8 @@ export default function Equipments() {
               <EquipmentRow
                 key={eq.id}
                 item={eq}
-                onEdit={(target) => setSelectedEquipment(target)}
-                onDelete={(target) => {
-                  setDeleteTarget(target);
-                  setIsDeleting(true);
-                }}
+                onEdit={onEdit}
+                onDelete={onDelete}
               />
             )}
             data={paginated}
@@ -221,12 +225,12 @@ export default function Equipments() {
               { label: "Equipment", key: "equipment_name", sortable: true },
               { label: "Category", key: "category", sortable: true },
               { label: "Qty", key: "quantity", sortable: true },
-              {
-                label: "Target Muscles",
-                key: "target_muscles",
-                sortable: true,
-              },
-              { label: "Description", key: "description", sortable: true },
+              // {
+              //   label: "Target Muscles",
+              //   key: "target_muscles",
+              //   sortable: true,
+              // },
+              // { label: "Description", key: "description", sortable: true },
               { label: "", key: null },
             ]}
           />
@@ -263,8 +267,8 @@ export default function Equipments() {
           title="Add New Equipment"
           subtitle="Register inventory logs inside management pipelines"
           fields={EQUIPMENT_FIELDS}
-          onSave={async (data) => {
-            await createEquipment(data as any);
+          onSave={async (data: EquipmentPayload) => {
+            await createEquipment(data);
           }}
           submitButtonText="Create Record"
         />
@@ -279,23 +283,22 @@ export default function Equipments() {
           title="Edit Equipment Properties"
           subtitle="Adjust technical specifications or quantity totals"
           fields={EQUIPMENT_FIELDS}
-          initialData={selectedEquipment}
-          onSave={async (data) => {
-            await updateEquipment(selectedEquipment.id, data as any);
+          initialData={selectedEquipment as EquipmentPayload}
+          onSave={async (data: Partial<EquipmentPayload>) => {
+            await updateEquipment(selectedEquipment.id, data);
           }}
         />
       )}
 
-      {isDeleting && (
+      {confirmDialog && (
         <ConfirmDialog
-          isOpen={!!deleteTarget}
-          onClose={() => setDeleteTarget(null)}
-          onConfirm={handleDelete}
-          isLoading={isDeleting}
-          variant="danger"
-          title="Delete Equipment Record"
-          message={`Are you sure you want to delete "${deleteTarget?.equipment_name}"? This action removes the entry permanently from database records.`}
-          confirmLabel="Permanently Delete"
+          isOpen={!!confirmDialog}
+          onClose={confirmDialog.onConfirm}
+          onConfirm={confirmDialog.onConfirm}
+          variant={confirmDialog.variant}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmLabel={confirmDialog.confirmLabel}
         />
       )}
     </>

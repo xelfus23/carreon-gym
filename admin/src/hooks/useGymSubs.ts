@@ -11,19 +11,16 @@ export const useGymSubs = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<null | string>(null);
 
-  const getSubs = useCallback(async () => {
+  const refetch = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const data = await subscriptionService.getPlans();
 
-      console.log(data)
-
       setMembership(data.filter(v => v.category === 'membership'));
       setClasses(data.filter(v => v.category === 'class'));
       setPersonalTrainer(data.filter(v => v.category === 'personal_training'));
       setAddOns(data.filter(v => v.category === 'add_on'));
-
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to get subscriptions";
       setError(errorMessage);
@@ -32,23 +29,23 @@ export const useGymSubs = () => {
     }
   }, []);
 
-
   const saveEdit = async (editingId: number, editForm: Partial<SubscriptionPlanProps>) => {
-    await subscriptionService.updatePlan(editingId!, editForm);
+    setIsLoading(true);
+    setError(null);
+    try {
+      await subscriptionService.updatePlan(editingId!, editForm);
+      refetch()
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to save edits"
+      setError(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
   };
-
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-    }).format(amount);
-  };
-
 
   useEffect(() => {
-    getSubs();
-  }, [getSubs]);
+    refetch()
+  }, [refetch]);
 
   return {
     membership,
@@ -57,8 +54,7 @@ export const useGymSubs = () => {
     addOns,
     isLoading,
     error,
-    refresh: getSubs,
+    refresh: refetch,
     saveEdit,
-    formatCurrency,
   };
 };

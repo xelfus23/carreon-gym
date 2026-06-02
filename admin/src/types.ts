@@ -175,7 +175,7 @@ export interface UniversalAddModalProps<T> {
   onSave: (data: T, imageFile: File | null) => Promise<void>;
 }
 
-export type ConfirmDialogProps = {
+export type ConfirmDialogModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void | Promise<void>;
@@ -186,3 +186,12 @@ export type ConfirmDialogProps = {
   variant?: "danger" | "warning" | "success";
   isLoading?: boolean;
 };
+
+export type ConfirmDialogTypes = {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  variant: "warning" | "danger";
+  onConfirm: () => void;
+  onClose: () => void;
+} | null

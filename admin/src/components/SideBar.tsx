@@ -29,6 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       id: NavItem.ANALYTICS,
       label: "Analytics",
       icon: <ChartColumnBig className="h-4 stroke-2" />,
+      dividerBefore: true
     },
     {
       id: NavItem.QR_CODE,
@@ -49,6 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       id: NavItem.ADMIN,
       label: "Admin",
       icon: <UserRoundKey className="h-4 stroke-2" />,
+      dividerBefore: true
     },
     {
       id: NavItem.MEMBERS,
@@ -59,6 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       id: NavItem.GYM_EQUIPMENTS,
       label: "Equipments",
       icon: <Dumbbell className="h-4 stroke-2" />,
+      dividerBefore: true
     },
     {
       id: NavItem.GYM_PRODUCTS,
@@ -80,6 +83,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       id: NavItem.GYM_SETTINGS,
       label: "Gym Settings",
       icon: <Settings className="h-4 stroke-2" />,
+      dividerBefore: true
     },
   ];
 
@@ -109,20 +113,22 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
         )}
       </div>
 
-      <nav className="flex-1 px-4 mt-4 space-y-2">
+      <nav className="flex-1 p-4 mt-4 space-y-1">
         {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setTab(item.id)}
-            className={`w-full h-10 flex items-center ${sideBarOn ? "justify-normal aspect-auto rounded-none" : "rounded-lg aspect-square justify-center"} gap-3 px-2 py-3 transition-all duration-200 ${
-              currentTab === item.id
-                ? "bg-primary-dark text-background shadow-lg shadow-primary/20"
-                : "hover:bg-primary-dark/20 hover:text-text-primary"
-            }`}
-          >
-            {item.icon}
-            {sideBarOn && <span className={`text-sm`}>{item.label}</span>}
-          </button>
+          <div>
+            {item.dividerBefore && <div className="h-px bg-border mb-1" />}
+            <button
+              key={item.id}
+              onClick={() => setTab(item.id)}
+              className={`w-full flex items-center ${sideBarOn ? "justify-normal aspect-auto rounded-none p-3" : "rounded-lg aspect-square justify-center h-10"} gap-3 transition-all duration-200 ${currentTab === item.id
+                ? "text-primary"
+                : " hover:text-text-primary"
+                }`}
+            >
+              {item.icon}
+              {sideBarOn && <span className={`text-sm`}>{item.label}</span>}
+            </button>
+          </div>
         ))}
       </nav>
 

@@ -1,4 +1,4 @@
-import { Calendar, Edit, SquareCheck, Trash } from "lucide-react";
+import { Calendar, Edit, Trash } from "lucide-react";
 import type { ActionItemProps, ProductProps } from "../../types";
 import { useCallback, useRef, useState } from "react";
 import { ActionMenu } from "../ActionMenu";
@@ -30,7 +30,7 @@ export default function ProductRow({ product, onEdit, onDelete }: ProductRow) {
         onDelete(product);
         close();
       },
-      variant: "danger" as const,
+      variant: "danger",
       dividerBefore: true,
     },
   ];
@@ -52,13 +52,12 @@ export default function ProductRow({ product, onEdit, onDelete }: ProductRow) {
       </td>
       <td className="p-4">
         <span
-          className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-            product.status === "available"
+          className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${product.status === "available"
               ? "bg-green-100 text-green-700"
               : product.status === "out_of_stock"
                 ? "bg-orange-100 text-orange-700"
                 : "bg-red-100 text-red-700"
-          }`}
+            }`}
         >
           {product.status.replace("_", " ")}
         </span>
@@ -73,11 +72,10 @@ export default function ProductRow({ product, onEdit, onDelete }: ProductRow) {
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                             opacity-0 group-hover:opacity-100 focus:opacity-100
-                            ${
-                              menuOpen
-                                ? "opacity-100 bg-border text-text-primary"
-                                : "text-text-secondary hover:bg-border hover:text-text-primary"
-                            }`}
+                            ${menuOpen
+                ? "opacity-100 bg-border text-text-primary"
+                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />

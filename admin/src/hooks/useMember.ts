@@ -13,11 +13,11 @@ export const useMember = () => {
       const result = await memberService.getMember();
       setMembers(
         result.data.filter((v: AdminMemberListItem) => v.role !== "admin") ??
-          [],
+        [],
       );
       setAdmins(
         result.data.filter((v: AdminMemberListItem) => v.role !== "member") ??
-          [],
+        [],
       );
     } catch (err) {
       if (err instanceof Error) console.log(err.message);
@@ -29,7 +29,7 @@ export const useMember = () => {
   const verifyMember = async (memberId: number) => {
     setIsLoading(true);
     try {
-      await memberService.verifyMember(memberId);
+      await memberService.verifyAccount(memberId);
       refetch();
     } catch (err) {
       if (err instanceof Error) console.log(err.message);
@@ -37,6 +37,19 @@ export const useMember = () => {
       setIsLoading(false);
     }
   };
+
+  const deleteMember = async (memberId: number) => {
+    setIsLoading(true);
+    try {
+      await memberService.deleteAccount(memberId)
+      refetch();
+    } catch (err) {
+      if (err instanceof Error) console.log(err.message);
+    } finally {
+      setIsLoading(false);
+
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -77,6 +90,7 @@ export const useMember = () => {
     admins,
     refresh: refetch,
     verifyMember,
+    deleteMember,
     isLoading,
   };
 };

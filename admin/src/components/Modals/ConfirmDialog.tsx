@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { AlertTriangle, Trash2, X, CheckCircle2 } from "lucide-react";
-import type { ConfirmDialogProps } from "../../types";
+import type { ConfirmDialogModalProps } from "../../types";
 
 export default function ConfirmDialog({
   isOpen,
@@ -12,7 +12,7 @@ export default function ConfirmDialog({
   cancelLabel = "Cancel",
   variant = "danger",
   isLoading = false,
-}: ConfirmDialogProps) {
+}: ConfirmDialogModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Close modal on Escape key press

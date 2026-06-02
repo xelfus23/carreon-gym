@@ -1,4 +1,4 @@
-import { CheckCircle, Edit } from "lucide-react";
+import { CheckCircle, Edit, Trash } from "lucide-react";
 import type { ActionItemProps, SubscriptionPlanProps } from "../../types";
 import { formatSlug } from "../../utils/formatSlug";
 import { formatCurrency } from "../../utils/formatCurrency";
@@ -12,13 +12,18 @@ const CATEGORY_COLORS = {
   add_on: "text-blue-500",
 };
 
+interface SubscriptionsRowProps {
+
+  plan: SubscriptionPlanProps,
+  onDelete: (s: SubscriptionPlanProps) => void;
+  onEdit: (s: SubscriptionPlanProps) => void;
+}
+
 export default function SubscriptionsRow({
   plan,
-  onClick,
-}: {
-  plan: SubscriptionPlanProps;
-  onClick: () => void;
-}) {
+  onDelete,
+  onEdit,
+}: SubscriptionsRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
@@ -27,10 +32,20 @@ export default function SubscriptionsRow({
     {
       label: "Edit",
       onClick: () => {
-        onClick();
-        close();
+        onEdit(plan);
+        close()
       },
-      icon: <Edit />,
+      icon: <Edit size={16}/>,
+    },
+    {
+      label: "Delete",
+      onClick: () => {
+        onDelete(plan)
+        close()
+      },
+      icon: <Trash size={16}/>,
+      variant: "danger",
+      dividerBefore: true
     },
   ];
 
@@ -75,11 +90,10 @@ export default function SubscriptionsRow({
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                             opacity-0 group-hover:opacity-100 focus:opacity-100
-                            ${
-                              menuOpen
-                                ? "opacity-100 bg-border text-text-primary"
-                                : "text-text-secondary hover:bg-border hover:text-text-primary"
-                            }`}
+                            ${menuOpen
+                ? "opacity-100 bg-border text-text-primary"
+                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />

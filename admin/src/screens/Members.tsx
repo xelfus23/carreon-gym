@@ -1,8 +1,7 @@
 import { type FormEvent, useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
-import type { AdminMemberListItem } from "../types";
+import type { AdminMemberListItem, ConfirmDialogTypes } from "../types";
 import MemberRow from "../components/TableRows/MemberRow";
-import ConfirmDialog from "../components/ConfirmDialog";
 import SubscriptionModal from "../components/SubscriptionModal";
 import { memberService } from "../services/member.service";
 import {
@@ -19,6 +18,7 @@ import StatsCard from "../components/CustomStatsCard";
 import { COLORS } from "../constants";
 import type { SelectProps } from "../components/ToolBar";
 import ToolBar from "../components/ToolBar";
+import ConfirmDialog from "../components/Modals/ConfirmDialog";
 
 export type SortKey = keyof AdminMemberListItem | null;
 export type SortDir = "asc" | "desc";
@@ -26,7 +26,7 @@ export type FilterStatus = "all" | "active" | "suspended" | "deleted";
 export type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
 export default function Members() {
-  const { members, refresh, isLoading, verifyMember } = useMember();
+  const { members, refresh, isLoading, verifyMember, deleteMember } = useMember();
   const [subscriptionMember, setSubscriptionMember] =
     useState<AdminMemberListItem | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
@@ -51,13 +51,7 @@ export default function Members() {
   const PAGE_SIZE = 50;
 
   // Confirm dialog state
-  const [confirmDialog, setConfirmDialog] = useState<{
-    title: string;
-    message: string;
-    confirmLabel: string;
-    variant: "warning" | "danger";
-    onConfirm: () => void;
-  } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogTypes>(null);
 
   // ── Action handlers ────────────────────────────────────────────────────
 
@@ -76,6 +70,7 @@ export default function Members() {
         console.log("suspend/unsuspend", m.id);
         refresh();
       },
+      onClose: () => setConfirmDialog(null)
     });
   };
 
@@ -91,6 +86,8 @@ export default function Members() {
         console.log("ban", m.id);
         refresh();
       },
+      onClose: () => setConfirmDialog(null)
+
     });
   };
 
@@ -101,11 +98,12 @@ export default function Members() {
       confirmLabel: "Delete",
       variant: "danger",
       onConfirm: async () => {
-        setConfirmDialog(null);
-        // TODO: call memberService.delete(m.id)
+        deleteMember(m.id)
         console.log("delete", m.id);
+        setConfirmDialog(null);
         refresh();
       },
+      onClose: () => setConfirmDialog(null)
     });
   };
 
@@ -201,8 +199,8 @@ export default function Members() {
         .length,
       avgAttendance: members.length
         ? Math.round(
-            members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
-          )
+          members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
+        )
         : 0,
     }),
     [members],
@@ -257,12 +255,7 @@ export default function Members() {
       color: "border-indigo-500/30 bg-indigo-500/5 text-indigo-500",
       icon: <Star size={16} />,
     },
-    // {
-    //   label: "Avg Attendance",
-    //   value: `${stats.avgAttendance}%`,
-    //   color: "border-violet-500/30 bg-violet-500/5 text-violet-500",
-    //   icon: <Calendar size={16} />,
-    // },
+
   ];
 
   const select: SelectProps[] = [
@@ -432,7 +425,6 @@ export default function Members() {
               key: "total_visits_this_month",
               sortable: true,
             },
-            // { label: "Attendance", key: "attendance_rate", sortable: true },
             { label: "", key: null },
           ]}
         />
@@ -448,8 +440,13 @@ export default function Members() {
 
       {confirmDialog && (
         <ConfirmDialog
-          {...confirmDialog}
-          onCancel={() => setConfirmDialog(null)}
+          isOpen={!!confirmDialog}
+          onClose={confirmDialog.onClose}
+          onConfirm={confirmDialog.onConfirm}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmLabel={confirmDialog.confirmLabel}
+          variant={confirmDialog.variant}
         />
       )}
     </div>
