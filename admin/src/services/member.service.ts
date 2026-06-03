@@ -1,4 +1,5 @@
 import { API_URL } from "../constants";
+import type { AccountRegistrationProps } from "../types";
 import { authService } from "./auth.service";
 
 export const memberService = {
@@ -42,9 +43,12 @@ export const memberService = {
   },
 
   deleteAccount: async (accountId: number) => {
-    const result = await authService.fetchWithRefresh(`${API_URL}/api/members/delete/${accountId}`, {
-      method: "DELETE",
-    })
+    const result = await authService.fetchWithRefresh(
+      `${API_URL}/api/members/delete/${accountId}`,
+      {
+        method: "DELETE",
+      },
+    );
 
     const data = await result.json();
 
@@ -52,21 +56,24 @@ export const memberService = {
       throw new Error(data.message || "Failed to delete account");
     }
 
-    return data
+    return data;
   },
 
   banAccount: async (accountId: number) => {
-    const result = await authService.fetchWithRefresh(`${API_URL}/api/members/ban/${accountId}`, {
-      method: "PATCH"
-    })
+    const result = await authService.fetchWithRefresh(
+      `${API_URL}/api/members/ban/${accountId}`,
+      {
+        method: "PATCH",
+      },
+    );
 
-    const data = await result.json()
+    const data = await result.json();
 
     if (!data.success) {
-      throw new Error(data.message || "Failed to ban Account")
+      throw new Error(data.message || "Failed to ban Account");
     }
 
-    return data
+    return data;
   },
 
   suspendAccount: async (accountId: number) => {
@@ -86,17 +93,14 @@ export const memberService = {
     return data;
   },
 
-  createMember: async (payload: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phoneNumber: string;
-    password: string;
-  }) => {
-    const result = await authService.fetchWithRefresh(`${API_URL}/api/users/register`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
+  createMember: async (payload: AccountRegistrationProps) => {
+    const result = await authService.fetchWithRefresh(
+      `${API_URL}/api/users/register`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
 
     const data = await result.json();
     if (!data.success) {

@@ -1,16 +1,14 @@
 import { type FormEvent, useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
-import type { AdminMemberListItem, ConfirmDialogTypes } from "../types";
+import type {
+  AccountRegistrationProps,
+  UserAccountProps,
+  ConfirmDialogTypes,
+} from "../types";
 import MemberRow from "../components/TableRows/MemberRow";
 import SubscriptionModal from "../components/SubscriptionModal";
 import { memberService } from "../services/member.service";
-import {
-  CircleAlert,
-  CircleCheck,
-  Loader2,
-  Star,
-  Users,
-} from "lucide-react";
+import { CircleAlert, CircleCheck, Loader2, Star, Users } from "lucide-react";
 import CustomTable from "../components/CustomTable";
 import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
@@ -19,24 +17,38 @@ import type { SelectProps } from "../components/ToolBar";
 import ToolBar from "../components/ToolBar";
 import ConfirmDialog from "../components/Modals/ConfirmDialog";
 
-export type SortKey = keyof AdminMemberListItem | null;
+export type SortKey = keyof UserAccountProps | null;
 export type SortDir = "asc" | "desc";
-export type FilterStatus = "all" | "active" | "suspended" | "banned" | "deleted";
+export type FilterStatus =
+  | "all"
+  | "active"
+  | "suspended"
+  | "banned"
+  | "deleted";
 export type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
 export default function Members() {
-  const { members, refresh, isLoading, verifyMember, deleteMember, banMember, suspendMember } = useMember();
+  const {
+    members,
+    refresh,
+    isLoading,
+    verifyAccount,
+    deleteAccount,
+    banAccount,
+    suspendAccount,
+  } = useMember();
   const [subscriptionMember, setSubscriptionMember] =
-    useState<AdminMemberListItem | null>(null);
+    useState<UserAccountProps | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isSubmittingMember, setIsSubmittingMember] = useState(false);
   const [addMemberError, setAddMemberError] = useState<string | null>(null);
   const [addMemberSuccess, setAddMemberSuccess] = useState<string | null>(null);
-  const [newMember, setNewMember] = useState({
-    firstName: "",
-    lastName: "",
+
+  const [newMember, setNewMember] = useState<AccountRegistrationProps>({
+    first_name: "",
+    last_name: "",
     email: "",
-    phoneNumber: "",
+    phone_number: "",
     password: "",
   });
 
@@ -54,7 +66,7 @@ export default function Members() {
 
   // ── Action handlers ────────────────────────────────────────────────────
 
-  const handleSuspend = (m: AdminMemberListItem) => {
+  const handleSuspend = (m: UserAccountProps) => {
     const isSuspended = m.account_status === "suspended";
     setConfirmDialog({
       title: isSuspended ? "Unsuspend Member" : "Suspend Member",
@@ -65,13 +77,13 @@ export default function Members() {
       variant: "warning",
       onConfirm: async () => {
         setConfirmDialog(null);
-        await suspendMember(m.id);
+        await suspendAccount(m.id);
       },
-      onClose: () => setConfirmDialog(null)
+      onClose: () => setConfirmDialog(null),
     });
   };
 
-  const handleBan = (m: AdminMemberListItem) => {
+  const handleBan = (m: UserAccountProps) => {
     setConfirmDialog({
       title: "Ban / Blacklist Member",
       message: `Permanently ban ${m.first_name} ${m.last_name}? This will cancel their subscription and block future access.`,
@@ -79,14 +91,13 @@ export default function Members() {
       variant: "danger",
       onConfirm: async () => {
         setConfirmDialog(null);
-        await banMember(m.id)
+        await banAccount(m.id);
       },
-      onClose: () => setConfirmDialog(null)
-
+      onClose: () => setConfirmDialog(null),
     });
   };
 
-  const handleDelete = (m: AdminMemberListItem) => {
+  const handleDelete = (m: UserAccountProps) => {
     setConfirmDialog({
       title: "Delete Member",
       message: `Permanently delete ${m.first_name} ${m.last_name}'s account? This action cannot be undone and will remove all their data.`,
@@ -94,14 +105,10 @@ export default function Members() {
       variant: "danger",
       onConfirm: async () => {
         setConfirmDialog(null);
-        await deleteMember(m.id)
+        await deleteAccount(m.id);
       },
-      onClose: () => setConfirmDialog(null)
+      onClose: () => setConfirmDialog(null),
     });
-  };
-
-  const handleVerify = async (m: AdminMemberListItem) => {
-    verifyMember(m.id);
   };
 
   const handleCreateMember = async (e: FormEvent<HTMLFormElement>) => {
@@ -114,10 +121,10 @@ export default function Members() {
       await memberService.createMember(newMember);
       setAddMemberSuccess("Member created successfully.");
       setNewMember({
-        firstName: "",
-        lastName: "",
+        first_name: "",
+        last_name: "",
         email: "",
-        phoneNumber: "",
+        phone_number: "",
         password: "",
       });
       setIsAddMemberOpen(false);
@@ -187,8 +194,8 @@ export default function Members() {
         .length,
       avgAttendance: members.length
         ? Math.round(
-          members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
-        )
+            members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
+          )
         : 0,
     }),
     [members],
@@ -243,7 +250,6 @@ export default function Members() {
       color: "border-indigo-500/30 bg-indigo-500/5 text-indigo-500",
       icon: <Star size={16} />,
     },
-
   ];
 
   const select: SelectProps[] = [
@@ -260,7 +266,7 @@ export default function Members() {
         { label: "Banned", value: "banned" },
         { label: "Deleted", value: "deleted" },
       ],
-      label: "Account Status"
+      label: "Account Status",
     },
     {
       value: filterSub,
@@ -275,7 +281,7 @@ export default function Members() {
         { label: "Pending", value: "pending" },
         { label: "Cancelled", value: "cancelled" },
       ],
-      label: "Subscription Status"
+      label: "Subscription Status",
     },
   ];
 
@@ -299,7 +305,7 @@ export default function Members() {
         >
           <input
             required
-            value={newMember.firstName}
+            value={newMember.first_name}
             onChange={(e) =>
               setNewMember((prev) => ({ ...prev, firstName: e.target.value }))
             }
@@ -308,7 +314,7 @@ export default function Members() {
           />
           <input
             required
-            value={newMember.lastName}
+            value={newMember.last_name}
             onChange={(e) =>
               setNewMember((prev) => ({ ...prev, lastName: e.target.value }))
             }
@@ -327,7 +333,7 @@ export default function Members() {
           />
           <input
             required
-            value={newMember.phoneNumber}
+            value={newMember.phone_number}
             onChange={(e) =>
               setNewMember((prev) => ({ ...prev, phoneNumber: e.target.value }))
             }
@@ -390,7 +396,7 @@ export default function Members() {
               onSuspend={handleSuspend}
               onBan={handleBan}
               onDelete={handleDelete}
-              onVerify={handleVerify}
+              onVerify={() => verifyAccount(m.id)}
             />
           )}
           data={paginated}

@@ -20,7 +20,9 @@ const Login: React.FC = () => {
           <div className="flex justify-center items-center">
             <img src="careon/brand-logo.png" />
           </div>
-          <p className="text-primary text-sm font-bold">Gym Management Portal</p>
+          <p className="text-primary text-sm font-bold">
+            Gym Management Portal
+          </p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -31,7 +33,7 @@ const Login: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="text-text-secondary px-3 py-2  w-full outline-none focus:ring-1 focus:ring-primary-dark border border-border"
-              placeholder="admin@careongym.com"
+              placeholder="carreon@email.com"
             />
           </div>
 

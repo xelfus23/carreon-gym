@@ -18,7 +18,15 @@ export type SubscriptionStatus = "active" | "expired" | "pending" | "cancelled";
 
 export type AccountStatus = "active" | "suspended" | "banned" | "deleted";
 
-export interface AdminMemberListItem {
+export type AccountRegistrationProps = {
+  first_name: string;
+  last_name: string;
+  password: string;
+  email: string;
+  phone_number: string;
+};
+
+export interface UserAccountProps {
   id: number;
   role: "member" | "admin" | "trainer";
   // Basic Info
@@ -48,7 +56,7 @@ export interface AdminMemberListItem {
 }
 
 export interface SubscriptionModalProps {
-  member: AdminMemberListItem | null;
+  member: UserAccountProps | null;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -197,4 +205,4 @@ export type ConfirmDialogTypes = {
   variant: "warning" | "danger" | "success";
   onConfirm: () => void;
   onClose: () => void;
-} | null
+} | null;

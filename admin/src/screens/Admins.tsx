@@ -1,6 +1,11 @@
 import { useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
-import type { AdminMemberListItem, ConfirmDialogTypes } from "../types";
+import type {
+  UserAccountProps,
+  ConfirmDialogTypes,
+  FormField,
+  AccountRegistrationProps,
+} from "../types";
 import { Loader2, UserRoundKey } from "lucide-react";
 import SubscriptionModal from "../components/SubscriptionModal";
 import AdminRow from "../components/TableRows/AdminRow";
@@ -8,17 +13,58 @@ import CustomHeader from "../components/CustomHeader";
 import ToolBar from "../components/ToolBar";
 import CustomTable from "../components/CustomTable";
 import ConfirmDialog from "../components/Modals/ConfirmDialog";
+import AddModal from "../components/Modals/AddModal";
 
-type SortKey = keyof AdminMemberListItem | null;
+type SortKey = keyof UserAccountProps | null;
 type SortDir = "asc" | "desc";
 
+const fields: FormField[] = [
+  {
+    name: "first_name",
+    label: "First Name",
+    type: "text",
+    required: true,
+    gridSpan: "half",
+  },
+  {
+    name: "last_name",
+    label: "Last Name",
+    type: "text",
+    required: true,
+    gridSpan: "half",
+  },
+  {
+    name: "password",
+    label: "Password",
+    type: "text",
+    required: true,
+    gridSpan: "full",
+  },
+  {
+    name: "email",
+    label: "Email",
+    type: "text",
+    required: true,
+    gridSpan: "half",
+  },
+  {
+    name: "phone_number",
+    label: "Phone Number",
+    type: "text",
+    required: true,
+    gridSpan: "half",
+  },
+];
+
 export default function Admins() {
-  const { admins, refresh, isLoading, verifyMember, deleteMember } = useMember();
+  const { admins, refresh, isLoading, deleteAccount, createAccount } =
+    useMember();
   const [subscriptionMember, setSubscriptionMember] =
-    useState<AdminMemberListItem | null>(null);
+    useState<UserAccountProps | null>(null);
 
   // Table controls
   const [search, setSearch] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
@@ -29,26 +75,7 @@ export default function Admins() {
 
   // ── Action handlers ────────────────────────────────────────────────────
 
-  const handleSuspend = (m: AdminMemberListItem) => {
-    const isSuspended = m.account_status === "suspended";
-    setConfirmDialog({
-      title: isSuspended ? "Unsuspend Member" : "Suspend Member",
-      message: isSuspended
-        ? `Restore access for ${m.first_name} ${m.last_name}? They will be able to log in again.`
-        : `Suspend ${m.first_name} ${m.last_name}? They won't be able to log in until unsuspended.`,
-      confirmLabel: isSuspended ? "Unsuspend" : "Suspend",
-      variant: "warning",
-      onConfirm: async () => {
-        setConfirmDialog(null);
-        // TODO: call memberService.suspend(m.id, !isSuspended)
-        console.log("suspend/unsuspend", m.id);
-        refresh();
-      },
-      onClose: () => setConfirmDialog(null)
-    });
-  };
-
-  const handleBan = (m: AdminMemberListItem) => {
+  const handleBan = (m: UserAccountProps) => {
     setConfirmDialog({
       title: "Ban / Blacklist Member",
       message: `Permanently ban ${m.first_name} ${m.last_name}? This will cancel their subscription and block future access.`,
@@ -60,12 +87,11 @@ export default function Admins() {
         console.log("ban", m.id);
         refresh();
       },
-      onClose: () => setConfirmDialog(null)
-
+      onClose: () => setConfirmDialog(null),
     });
   };
 
-  const handleDelete = (m: AdminMemberListItem) => {
+  const handleDelete = (m: UserAccountProps) => {
     setConfirmDialog({
       title: "Delete Member",
       message: `Permanently delete ${m.first_name} ${m.last_name}'s account? This action cannot be undone and will remove all their data.`,
@@ -74,20 +100,11 @@ export default function Admins() {
       onConfirm: async () => {
         setConfirmDialog(null);
         console.log("delete", m.id);
-        deleteMember(m.id)
+        deleteAccount(m.id);
         refresh();
       },
-      onClose: () => setConfirmDialog(null)
+      onClose: () => setConfirmDialog(null),
     });
-  };
-
-  const handleSendEmail = (m: AdminMemberListItem) => {
-    // TODO: open email composer modal
-    alert(`Sending email to ${m.email}…`);
-  };
-
-  const handleVerify = async (m: AdminMemberListItem) => {
-    verifyMember(m.id);
   };
 
   // ── Table logic ───────────────────────────────────────────────────────
@@ -151,7 +168,9 @@ export default function Admins() {
         isLoading={isLoading}
         icon={<UserRoundKey className="text-primary" />}
         refresh={refresh}
-        hasAction={false}
+        hasAction={true}
+        buttonLabel="Create Admin"
+        onClick={() => setIsAddModalOpen(true)}
       />
 
       {/* ── Main layout ── */}
@@ -168,7 +187,7 @@ export default function Admins() {
           placeholder="Search name, email, phone..."
         />
 
-        <CustomTable<AdminMemberListItem>
+        <CustomTable<UserAccountProps>
           columns={[
             {
               label: "ID",
@@ -196,14 +215,7 @@ export default function Admins() {
           page={page}
           pageSize={PAGE_SIZE}
           renderRow={(admin) => (
-            <AdminRow
-              m={admin}
-              onBan={handleBan}
-              onDelete={handleDelete}
-              onSendEmail={handleSendEmail}
-              onSuspend={handleSuspend}
-              onVerify={handleVerify}
-            />
+            <AdminRow m={admin} onBan={handleBan} onDelete={handleDelete} />
           )}
         />
       </div>
@@ -214,6 +226,19 @@ export default function Admins() {
           member={subscriptionMember}
           onClose={() => setSubscriptionMember(null)}
           onSuccess={refresh}
+        />
+      )}
+
+      {isAddModalOpen && (
+        <AddModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSuccess={() => refresh()}
+          title="Create Admin"
+          subtitle="Add a new admin account"
+          fields={fields}
+          onSave={(data: AccountRegistrationProps) => createAccount(data)}
+          submitButtonText="Create Admin"
         />
       )}
 

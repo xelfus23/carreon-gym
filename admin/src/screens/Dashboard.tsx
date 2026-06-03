@@ -243,7 +243,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex-1 overflow-auto">
-            <div className="text-text-secondary leading-relaxed text-sm whitespace-pre-line bg-background p-4 border border-border min-h-[150px]">
+            <div className="text-text-secondary leading-relaxed text-sm whitespace-pre-line bg-background p-4 border border-border min-h-37.5">
               {statsLoading ? (
                 <span className="text-text-secondary text-xs animate-pulse">
                   Waiting for stats to load…

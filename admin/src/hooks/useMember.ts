@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { memberService } from "../services/member.service";
-import type { AdminMemberListItem } from "../types";
+import type { AccountRegistrationProps, UserAccountProps } from "../types";
 
 export const useMember = () => {
-  const [members, setMembers] = useState<AdminMemberListItem[]>([]);
-  const [admins, setAdmins] = useState<AdminMemberListItem[]>([]);
+  const [members, setMembers] = useState<UserAccountProps[]>([]);
+  const [admins, setAdmins] = useState<UserAccountProps[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const refetch = useCallback(async () => {
@@ -13,10 +13,10 @@ export const useMember = () => {
       const result = await memberService.getMember();
 
       setMembers(
-        result.data?.filter((v: AdminMemberListItem) => v.role !== "admin") ?? []
+        result.data?.filter((v: UserAccountProps) => v.role !== "admin") ?? [],
       );
       setAdmins(
-        result.data?.filter((v: AdminMemberListItem) => v.role !== "member") ?? []
+        result.data?.filter((v: UserAccountProps) => v.role !== "member") ?? [],
       );
     } catch (err) {
       if (err instanceof Error) console.error("Fetch error:", err.message);
@@ -25,8 +25,16 @@ export const useMember = () => {
     }
   }, []);
 
+  const createAccount = async (data: AccountRegistrationProps) => {
+    try {
+      await memberService.createMember(data);
+      await refetch();
+    } catch (err) {
+      if (err instanceof Error) console.error("Verify error:", err.message);
+    }
+  };
 
-  const verifyMember = async (memberId: number) => {
+  const verifyAccount = async (memberId: number) => {
     try {
       await memberService.verifyAccount(memberId);
       await refetch();
@@ -35,7 +43,7 @@ export const useMember = () => {
     }
   };
 
-  const suspendMember = async (memberId: number) => {
+  const suspendAccount = async (memberId: number) => {
     try {
       await memberService.suspendAccount(memberId);
       await refetch();
@@ -44,7 +52,7 @@ export const useMember = () => {
     }
   };
 
-  const deleteMember = async (memberId: number) => {
+  const deleteAccount = async (memberId: number) => {
     try {
       await memberService.deleteAccount(memberId);
       await refetch();
@@ -53,7 +61,7 @@ export const useMember = () => {
     }
   };
 
-  const banMember = async (memberId: number) => {
+  const banAccount = async (memberId: number) => {
     try {
       await memberService.banAccount(memberId);
       await refetch();
@@ -70,10 +78,11 @@ export const useMember = () => {
     members,
     admins,
     refresh: refetch,
-    verifyMember,
-    suspendMember,
-    deleteMember,
-    banMember,
+    verifyAccount,
+    createAccount,
+    suspendAccount,
+    deleteAccount,
+    banAccount,
     isLoading,
   };
 };

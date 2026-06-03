@@ -216,12 +216,13 @@ export default function AddModal<T extends Record<string, any>>({
                       />
 
                       {/* Box Container */}
-                      <div className="h-5 w-5 rounded-full border-2 border-border bg-background transition-all duration-200 
+                      <div
+                        className="h-5 w-5 rounded-full border-2 border-border bg-background transition-all duration-200 
    peer-checked:bg-primary peer-checked:border-primary 
    peer-focus-visible:ring-2 peer-focus-visible:ring-primary/50 peer-focus-visible:ring-offset-2
    group-hover:border-primary/70 peer-checked:group-hover:border-primary
-   flex items-center justify-center group/icon">
-
+   flex items-center justify-center group/icon"
+                      >
                         {/* The Check icon reads the parent container state instead */}
                         <Check
                           color={COLORS.background} // Explicit inline property fallback for safety
@@ -239,7 +240,6 @@ export default function AddModal<T extends Record<string, any>>({
                     </div>
                   </label>
                 )}
-
 
                 {/* Render Logic: Input Fields (Text/Number) */}
                 {(field.type === "text" || field.type === "number") && (
