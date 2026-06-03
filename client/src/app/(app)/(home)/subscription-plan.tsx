@@ -3,15 +3,14 @@ import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/consts/colors";
-import { SubscriptionCard } from "../../components/Subscription/SubscriptionCard";
 import { useRouter } from "expo-router";
 import { useSubscriptionPlans } from "@/src/hooks/useSubscriptionPlans";
+import SubscriptionCard from "../../components/Subscription/SubscriptionCard";
 
 export default function Subscription() {
   const [selectedPlanId, setSelectedPlanId] = useState<number>(1);
   const { subPlans } = useSubscriptionPlans();
 
-  console.log(subPlans);
   const router = useRouter();
 
   return (

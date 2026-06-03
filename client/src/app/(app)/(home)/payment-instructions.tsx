@@ -75,7 +75,7 @@ export default function PaymentInstructions() {
     try {
       setIsSubmitting(true);
 
-      const data = await submitPendingPayment({
+      await submitPendingPayment({
         transactionType,
         planId: Number(params.planId),
         planName: params.planName,
@@ -86,6 +86,7 @@ export default function PaymentInstructions() {
         method: "gcash",
         receiptUri,
       });
+      
       Alert.alert(
         "Submitted",
         "Your payment is now pending verification. Admin will mark it as paid after review.",

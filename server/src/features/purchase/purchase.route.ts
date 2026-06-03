@@ -1,8 +1,4 @@
 import { Router } from "express";
-import {
-  mobileAuthMiddleware,
-  webAuthMiddleware,
-} from "../../middleware/authenticate.ts";
 import { uploadPaymentReceipt } from "../../services/multerUpload.ts";
 import {
   deleteTransaction,
@@ -11,6 +7,8 @@ import {
   requestPurchase,
   verifyPurchase,
 } from "./purchase.controller.ts";
+import { authMiddleware } from "../../middleware/authenticate.ts";
+import { authorizeRoles } from "../../middleware/roleGuard.ts";
 
 const purchaseRoutes = Router();
 
@@ -18,18 +16,18 @@ const purchaseRoutes = Router();
 // Members can request a purchase and view their own transaction history
 purchaseRoutes.post(
   "/request",
-  mobileAuthMiddleware,
+  authMiddleware,
   uploadPaymentReceipt.single("receipt"),
   requestPurchase,
 );
 
-purchaseRoutes.get("/my-history", mobileAuthMiddleware, getAllTransactions);
+purchaseRoutes.get("/my-history", authMiddleware, getAllTransactions);
 
 // --- Admin Routes (Web/Electron) ---
-// Admins can view all transactions and verify pending payments
-purchaseRoutes.get("", webAuthMiddleware, getAllTransactions);
-purchaseRoutes.patch("/verify/:paymentId", webAuthMiddleware, verifyPurchase);
-purchaseRoutes.patch("/deny/:paymentId", webAuthMiddleware, denyPurchase);
-purchaseRoutes.delete("/:paymentId", webAuthMiddleware, deleteTransaction);
+purchaseRoutes.get("", authMiddleware, getAllTransactions);
+
+purchaseRoutes.patch("/verify/:paymentId", authMiddleware, authorizeRoles("admin"), verifyPurchase);
+purchaseRoutes.patch("/deny/:paymentId", authMiddleware, authorizeRoles("admin"), denyPurchase);
+purchaseRoutes.delete("/:paymentId", authMiddleware, authorizeRoles("admin"), deleteTransaction);
 
 export default purchaseRoutes;

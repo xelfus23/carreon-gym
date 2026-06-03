@@ -2,8 +2,8 @@
 import pool from "../config/pool.ts";
 
 export const userQuery = async (userId: number) => {
-    return await pool.query(
-        `SELECT 
+  return await pool.query(
+    `SELECT 
             u.id,
             u.first_name,
             u.last_name,
@@ -24,13 +24,13 @@ export const userQuery = async (userId: number) => {
         FROM users u
         LEFT JOIN user_profiles p ON u.id = p.user_id
         WHERE u.id = $1`,
-        [userId],
-    );
+    [userId],
+  );
 };
 
 export const chatQuery = async (sessionId: string | number) => {
   return await pool.query(
-      `SELECT 
+    `SELECT 
           role, 
           content, 
           tool_calls, 
@@ -40,13 +40,13 @@ export const chatQuery = async (sessionId: string | number) => {
        FROM chat_messages 
        WHERE session_id = $1 
        ORDER BY created_at ASC`,
-      [sessionId],
+    [sessionId],
   );
 };
 
 export const summaryQuery = async (userId: number) => {
-    const summaryResult = await pool.query(
-        `
+  const summaryResult = await pool.query(
+    `
             SELECT 
                 conversation_summary 
             FROM 
@@ -54,15 +54,15 @@ export const summaryQuery = async (userId: number) => {
             WHERE 
                 user_id = $1
         `,
-        [userId],
-    );
+    [userId],
+  );
 
-    return summaryResult.rows[0].conversation_summary;
+  return summaryResult.rows[0].conversation_summary;
 };
 
 export const metricsQuery = async (userId: number) => {
-    return await pool.query(
-        `SELECT 
+  return await pool.query(
+    `SELECT 
             weight_kg,
             body_fat_percent,
             muscle_mass_kg,
@@ -71,13 +71,13 @@ export const metricsQuery = async (userId: number) => {
         WHERE user_id = $1
         ORDER BY recorded_at DESC
         LIMIT 1`,
-        [userId],
-    );
+    [userId],
+  );
 };
 
 export const subscriptionQuery = async (userId: number) => {
-    return await pool.query(
-        `SELECT 
+  return await pool.query(
+    `SELECT 
             plan_name,
             start_date,
             expiry_date,
@@ -90,88 +90,86 @@ export const subscriptionQuery = async (userId: number) => {
             END AS status
         FROM subscriptions
         WHERE user_id = $1`,
-        [userId],
-    );
+    [userId],
+  );
 };
 
 export const updateUserQuery = async (
-    userId: number,
-    updates: {
-        firstName?: string;
-        lastName?: string;
-        username?: string;
-        phoneNumber?: string;
-        profileImageUrl?: string;
-    },
+  userId: number,
+  updates: {
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+    phoneNumber?: string;
+    profileImageUrl?: string;
+  },
 ) => {
-    const fields = [];
-    const values = [];
-    let paramCount = 1;
+  const fields = [];
+  const values = [];
+  let paramCount = 1;
 
-    if (updates.firstName !== undefined) {
-        fields.push(`first_name = $${paramCount++}`);
-        values.push(updates.firstName);
-    }
-    if (updates.lastName !== undefined) {
-        fields.push(`last_name = $${paramCount++}`);
-        values.push(updates.lastName);
-    }
-    if (updates.username !== undefined) {
-        fields.push(`username = $${paramCount++}`);
-        values.push(updates.username);
-    }
-    if (updates.phoneNumber !== undefined) {
-        fields.push(`phone_number = $${paramCount++}`);
-        values.push(updates.phoneNumber);
-    }
-    if (updates.profileImageUrl !== undefined) {
-        fields.push(`profile_image_url = $${paramCount++}`);
-        values.push(updates.profileImageUrl);
-    }
+  if (updates.firstName !== undefined) {
+    fields.push(`first_name = $${paramCount++}`);
+    values.push(updates.firstName);
+  }
+  if (updates.lastName !== undefined) {
+    fields.push(`last_name = $${paramCount++}`);
+    values.push(updates.lastName);
+  }
+  if (updates.username !== undefined) {
+    fields.push(`username = $${paramCount++}`);
+    values.push(updates.username);
+  }
+  if (updates.phoneNumber !== undefined) {
+    fields.push(`phone_number = $${paramCount++}`);
+    values.push(updates.phoneNumber);
+  }
+  if (updates.profileImageUrl !== undefined) {
+    fields.push(`profile_image_url = $${paramCount++}`);
+    values.push(updates.profileImageUrl);
+  }
 
-    if (fields.length === 0) {
-        throw new Error("No fields to update");
-    }
+  if (fields.length === 0) {
+    throw new Error("No fields to update");
+  }
 
-    values.push(userId);
+  values.push(userId);
 
-    return await pool.query(
-        `UPDATE users 
+  return await pool.query(
+    `UPDATE users 
          SET ${fields.join(", ")}
          WHERE id = $${paramCount}
          RETURNING *`,
-        values,
-    );
+    values,
+  );
 };
 
 export const updateProfileQuery = async (
-    userId: number,
-    updates: {
-        heightCm?: number;
-        gender?: string;
-        birthDate?: Date;
-        goal?: string;
-        activityLevel?: string;
-    },
+  userId: number,
+  updates: {
+    heightCm?: number;
+    gender?: string;
+    birthDate?: Date;
+    goal?: string;
+    activityLevel?: string;
+  },
 ) => {
-    const keys = Object.keys(updates);
-    if (keys.length === 0) throw new Error("No fields to update");
+  const keys = Object.keys(updates);
 
-    // Map camelCase to snake_case for the DB
-    const columns = keys.map((k) => k.replace(/([A-Z])/g, "_$1").toLowerCase());
+  if (keys.length === 0) throw new Error("No fields to update");
 
-    // Create placeholders: $1, $2, etc.
-    const values = keys.map((k) => (updates as any)[k]);
-    const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
+  const columns = keys.map((k) => k.replace(/([A-Z])/g, "_$1").toLowerCase());
 
-    // For DO UPDATE SET, we need "column = EXCLUDED.column" or "column = $i"
-    const updateSet = columns.map((col, i) => `${col} = $${i + 1}`).join(", ");
+  const values = keys.map((k) => (updates as any)[k]);
 
-    // Add userId as the last parameter
-    values.push(userId);
-    const userIdParamIndex = values.length;
+  const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
 
-    const query = `
+  const updateSet = columns.map((col, i) => `${col} = $${i + 1}`).join(", ");
+
+  values.push(userId);
+  const userIdParamIndex = values.length;
+
+  const query = `
       INSERT INTO user_profiles (user_id, ${columns.join(", ")})
       VALUES ($${userIdParamIndex}, ${placeholders})
       ON CONFLICT (user_id) 
@@ -179,31 +177,31 @@ export const updateProfileQuery = async (
       RETURNING *
   `;
 
-    const res = await pool.query(query, values);
-    return res.rows[0]; // Return the object, not the whole result set
+  const res = await pool.query(query, values);
+  return res.rows[0]; // Return the object, not the whole result set
 };
 
 export const addBodyMetricQuery = async (userId: number, metrics: any) => {
-    const res = await pool.query(
-        `INSERT INTO body_metrics (user_id, weight_kg, body_fat_percent, muscle_mass_kg)
+  const res = await pool.query(
+    `INSERT INTO body_metrics (user_id, weight_kg, body_fat_percent, muscle_mass_kg)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
-        [
-            userId,
-            metrics.weightKg,
-            metrics.bodyFatPercent,
-            metrics.muscleMassKg,
-        ],
-    );
-    return res.rows[0];
+    [
+      userId,
+      metrics.weightKg,
+      metrics.bodyFatPercent,
+      metrics.muscleMassKg,
+    ],
+  );
+  return res.rows[0];
 };
 
 export const getBodyMetricsHistoryQuery = async (
-    userId: number,
-    limit = 30,
+  userId: number,
+  limit = 30,
 ) => {
-    return await pool.query(
-        `SELECT 
+  return await pool.query(
+    `SELECT 
             weight_kg,
             body_fat_percent,
             muscle_mass_kg,
@@ -212,6 +210,6 @@ export const getBodyMetricsHistoryQuery = async (
          WHERE user_id = $1
          ORDER BY recorded_at DESC
          LIMIT $2`,
-        [userId, limit],
-    );
+    [userId, limit],
+  );
 };

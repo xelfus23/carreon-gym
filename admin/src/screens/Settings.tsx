@@ -48,7 +48,6 @@ export default function Settings() {
     "email",
     "gcash_number",
     "gcash_name",
-    "maya_number",
   ];
 
   if (isLoading)
@@ -119,9 +118,8 @@ export default function Settings() {
       <button
         onClick={handleSave}
         disabled={isSaving}
-        className={`mt-6 w-40 px-4 py-2 text-background font-semibold transition-colors ${
-          isSaving ? "bg-gray-400" : "bg-primary hover:bg-primary-dark"
-        }`}
+        className={`mt-6 w-40 px-4 py-2 text-background font-semibold transition-colors ${isSaving ? "bg-gray-400" : "bg-primary hover:bg-primary-dark"
+          }`}
       >
         {isSaving ? "Saving..." : "Save Changes"}
       </button>

@@ -2,58 +2,77 @@ import pool from "../../config/pool.ts";
 import type { ProductProps } from "../../types/index.ts";
 
 export const updateProductDomain = async (
-    id: string,
-    params: Partial<ProductProps>,
+  id: number,
+  params: Partial<ProductProps>,
 ) => {
-    const updates: string[] = [];
-    const values: any[] = [];
-    let count = 1;
 
-    let nextStocks: number | undefined = undefined;
-    let nextIsActive: boolean | undefined = undefined;
+  const currentProductRes = await pool.query(
+    `SELECT stocks, is_active FROM products WHERE id = $1`,
+    [id]
+  );
 
-    // Build Dynamic Query
-    if (params.product_name) {
-        updates.push(`name = $${count++}`);
-        values.push(params.product_name);
-    }
-    if (params.image_urls !== undefined) {
-        updates.push(`image_urls = $${count++}`);
-        values.push(params.image_urls);
-    }
-    if (params.price !== undefined) {
-        updates.push(`price = $${count++}`);
-        values.push(params.price);
-    }
-    if (params.stocks !== undefined) {
-        updates.push(`stocks = $${count++}`);
-        values.push(params.stocks);
-        nextStocks = params.stocks;
-    }
-    if (params.is_active !== undefined) {
-        updates.push(`is_active = $${count++}`);
-        values.push(params.is_active);
-        nextIsActive = params.is_active;
-    }
+  if (currentProductRes.rowCount === 0) {
+    throw new Error("Product not found");
+  }
 
-    // Automatically update status based on stock + is_active (prefer explicit updates if provided)
-    if (nextStocks !== undefined || nextIsActive !== undefined) {
-        const active = nextIsActive ?? true;
-        const stocks = nextStocks ?? 1;
-        const status = active === false ? "unavailable" : stocks <= 0 ? "out_of_stock" : "available";
-        updates.push(`status = $${count++}`);
-        values.push(status);
+  const currentProduct = currentProductRes.rows[0];
+
+  const updates: string[] = [];
+  const values: any[] = [];
+
+  let nextStocks: number = currentProduct.stocks;
+  let nextIsActive: boolean = currentProduct.is_active;
+  let stockIncreased = false;
+
+  if (params.product_name) {
+    values.push(params.product_name);
+    updates.push(`name = $${values.length}`);
+  }
+
+  if (params.image_urls !== undefined) {
+    values.push(params.image_urls);
+    updates.push(`image_urls = $${values.length}`);
+  }
+
+  if (params.price !== undefined) {
+    values.push(params.price);
+    updates.push(`price = $${values.length}`);
+  }
+
+  if (params.stocks !== undefined) {
+    values.push(params.stocks);
+    updates.push(`stocks = $${values.length}`);
+
+    if (params.stocks > currentProduct.stocks) {
+      stockIncreased = true;
     }
+    nextStocks = params.stocks;
+  }
+  if (params.is_active !== undefined) {
+    values.push(params.is_active);
+    updates.push(`is_active = $${values.length}`);
+    nextIsActive = params.is_active;
+  }
 
-    if (updates.length === 0) return { message: "No changes made" };
+  if (stockIncreased) {
+    updates.push(`last_restock_at = CURRENT_TIMESTAMP`);
+  }
 
-    values.push(id);
-    const res = await pool.query(
-        `UPDATE products SET ${updates.join(", ")}, updated_at = CURRENT_TIMESTAMP 
-       WHERE id = $${count} RETURNING *`,
-        values,
-    );
+  const status = nextIsActive === false ? "unavailable" : nextStocks <= 0 ? "out_of_stock" : "available";
+  values.push(status);
+  updates.push(`status = $${values.length}`);
 
-    if (res.rowCount === 0) throw new Error("Product not found");
-    return res.rows[0];
+  if (updates.length === 1) return { message: "No changes made" };
+
+  values.push(id);
+
+  const res = await pool.query(
+    `UPDATE products 
+     SET ${updates.join(", ")}, updated_at = CURRENT_TIMESTAMP 
+     WHERE id = $${values.length} 
+     RETURNING *`,
+    values,
+  );
+
+  return res.rows[0];
 };

@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import SubscriptionCard from "../../../components/Profile/SubscriptionCard";
+import SubscriptionCard from "../../../components/Profile/ProfileSubscriptionCard";
 import BasicInfoCard from "../../../components/Profile/BasicInfoCard";
 import CurrentStatCard from "../../../components/Profile/CurrentStatCard";
 import ProfileHeader from "../../../components/Profile/ProfileHeader";

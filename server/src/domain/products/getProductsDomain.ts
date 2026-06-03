@@ -1,6 +1,6 @@
 import pool from "../../config/pool.ts";
 
-export const getProductsDomain = async (id?: string) => {
+export const getProductsDomain = async (id?: number) => {
   const baseQuery = `
     SELECT
       p.id,

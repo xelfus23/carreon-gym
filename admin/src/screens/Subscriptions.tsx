@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useGymSubs } from "../hooks/useGymSubs";
 import ConfirmDialog from "../components/Modals/ConfirmDialog";
 import { Dumbbell, Zap, Users, Layers, Loader2 } from "lucide-react";
@@ -62,14 +62,14 @@ const fields: FormField[] = [
 ];
 
 export default function GymSubscriptionsAdmin() {
-  const { membership, classes, addOns, personalTrainer, isLoading, refresh, updateSub, deleteSub } =
+  const { membership, classes, addOns, personalTrainer, isLoading, refresh, updateSub, deleteSub, createSub } =
     useGymSubs();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [filterSub, setFilterSub] = useState("all");
+  const [filterSub, setFilterSub] = useState("membership");
   const [selectedSubscription, setSelectedSubscription] =
     useState<SubscriptionPlanProps | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("name");
@@ -146,7 +146,7 @@ export default function GymSubscriptionsAdmin() {
       variant: "danger",
       onConfirm: async () => {
         setConfirmDialog(null);
-        console.log("delete", s.id);
+        deleteSub(s.id)
         refresh();
       },
       onClose: () => setConfirmDialog(null),
@@ -156,10 +156,6 @@ export default function GymSubscriptionsAdmin() {
   const handleEdit = (sub: SubscriptionPlanProps) => {
     setSelectedSubscription(sub);
   }
-
-  useEffect(() => {
-    console.log(selectedSubscription)
-  }, [selectedSubscription])
 
 
   if (isLoading)
@@ -213,7 +209,7 @@ export default function GymSubscriptionsAdmin() {
         { label: "All", value: "all" },
         { label: "Membership", value: "membership" },
         { label: "Class", value: "class" },
-        { label: "Personal Trainer", value: "personal_training" },
+        { label: "Personal Training", value: "personal_training" },
         { label: "Addon", value: "add_on" },
       ],
       label: "Category"
@@ -323,7 +319,7 @@ export default function GymSubscriptionsAdmin() {
           title="Add Subscription"
           subtitle="Add a subscription plan"
           fields={fields}
-          onSave={(data: Partial<SubscriptionPlanProps>) => deleteSub(data.id!)}
+          onSave={(data: SubscriptionPlanProps) => createSub(data)}
           submitButtonText="Add Subscription"
         />
       )}

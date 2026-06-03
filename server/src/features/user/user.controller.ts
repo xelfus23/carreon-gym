@@ -8,33 +8,14 @@ import { hashToken } from "../../utils/hashToken.ts";
 import { saveSessionToDB } from "../../services/saveSession.ts";
 import { catchAsync } from "../../utils/catchAsync.ts";
 import { AppError } from "../../utils/appError.ts";
-import { mapAdminData, mapUserData } from "../../utils/map.ts";
+import { mapUserData } from "../../utils/map.ts";
 import {
   addBodyMetricQuery,
   updateProfileQuery,
 } from "../../repositories/user.repository.ts";
 
-export const webMeController = catchAsync(
-  async (req: Request, res: Response) => {
-    const userId = (req as any).user?.id;
 
-    if (!userId) throw new AppError("Unauthorized", 401);
-
-    const data = await meDomain({ userId });
-
-    return res.status(200).json({
-      success: true,
-      message: "User Retrieved",
-      data: {
-        user: mapAdminData(data),
-        lastLogin: data.lastLogin,
-        accountStatus: data.accountStatus,
-      },
-    });
-  },
-);
-
-export const mobileMeController = catchAsync(
+export const meController = catchAsync(
   async (req: Request, res: Response) => {
     const userId = (req as any).user?.id;
 
@@ -96,23 +77,13 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const uploadPicture = async (req: Request, res: Response) => {
-  try {
-    return res.status(200).json({ success: true, message: "Upload Success" });
-  } catch (err) {
-    if (err instanceof Error) {
-      console.error(err.message);
-      return res.status(500).json({
-        success: false,
-        message: "Server Error",
-      });
-    }
-  }
-};
+export const uploadPicture = catchAsync(async (_req: Request, res: Response) => {
+  return res.status(200).json({ success: true, message: "Upload Success" });
+});
 
-export const updateProfile = async (req: Request, res: Response) => {
+export const updateProfile = catchAsync(async (req: Request, res: Response) => {
   const updates = req.body;
-  const userId = req.user?.id;
+  const userId = Number(req.user?.id);
 
   const updatedProfile = await updateProfileQuery(userId!, updates);
 
@@ -121,11 +92,11 @@ export const updateProfile = async (req: Request, res: Response) => {
     message: "Profile Updated Successfully",
     data: updatedProfile,
   });
-};
+});
 
-export const updateStats = async (req: Request, res: Response) => {
+export const updateStats = catchAsync(async (req: Request, res: Response) => {
   const updates = req.body;
-  const userId = req.user?.id;
+  const userId = Number(req.user?.id);
 
   const updatedStats = await addBodyMetricQuery(userId!, updates);
 
@@ -134,4 +105,4 @@ export const updateStats = async (req: Request, res: Response) => {
     message: "Stats Updated Successfully",
     data: updatedStats,
   });
-};
+});

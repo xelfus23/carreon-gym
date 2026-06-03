@@ -58,15 +58,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       icon: <UsersRound className="h-4 stroke-2" />,
     },
     {
-      id: NavItem.GYM_EQUIPMENTS,
-      label: "Equipments",
-      icon: <Dumbbell className="h-4 stroke-2" />,
-      dividerBefore: true
-    },
-    {
       id: NavItem.GYM_PRODUCTS,
       label: "Products",
       icon: <ShoppingBasket className="h-4 stroke-2" />,
+      dividerBefore: true
     },
     {
       id: NavItem.SUBSCRIPTIONS,
@@ -80,10 +75,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
     //   icon: <Sparkles className="h-4 stroke-2" />,
     // },
     {
+      id: NavItem.GYM_EQUIPMENTS,
+      label: "Gym Equipments",
+      icon: <Dumbbell className="h-4 stroke-2" />,
+      dividerBefore: true
+    },
+    {
       id: NavItem.GYM_SETTINGS,
       label: "Gym Settings",
       icon: <Settings className="h-4 stroke-2" />,
-      dividerBefore: true
     },
   ];
 

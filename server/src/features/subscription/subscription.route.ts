@@ -1,14 +1,13 @@
 import { Router } from "express";
 import {
-  getMySubscription,
   getSubscriptionPlans,
 } from "./subscription.controller.ts";
-import { mobileAuthMiddleware } from "../../middleware/authenticate.ts";
+import { getUserSubscription } from "../userSubscription/userSubscription.controller.ts";
+import { authMiddleware } from "../../middleware/authenticate.ts";
 
 const subscriptionRoutes = Router();
 
-// Mobile: read-only — create/cancel are admin-only (see subscription.admin.route.ts)
-subscriptionRoutes.get("/me", mobileAuthMiddleware, getMySubscription);
-subscriptionRoutes.get("/plans", mobileAuthMiddleware, getSubscriptionPlans);
+subscriptionRoutes.get("/me", authMiddleware, getUserSubscription);
+subscriptionRoutes.get("/plans", authMiddleware, getSubscriptionPlans);
 
 export default subscriptionRoutes;

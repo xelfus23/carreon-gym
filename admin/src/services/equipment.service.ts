@@ -6,7 +6,7 @@ import { authService } from "./auth.service";
 export const EquipmentService = {
   getEquipment: async () => {
     const response = await authService.fetchWithRefresh(
-      `${API_URL}/api/equipments/web`,
+      `${API_URL}/api/equipments`,
       { method: "GET" },
     );
     const data = await response.json();

@@ -1,14 +1,3 @@
-export const mapAdminData = (user: any) => ({
-    id: user.id,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    username: user.username,
-    email: user.email,
-    role: user.role,
-    verified: user.verified,
-    createdAt: user.createdAt,
-});
-
 export const mapUserData = (user: any) => ({
     id: user.id,
     firstName: user.firstName,

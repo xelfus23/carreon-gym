@@ -1,11 +1,10 @@
 import { Router } from "express";
-import { webAuthMiddleware } from "../../middleware/authenticate.ts";
 import { getStatsController } from "./stats.controller.ts";
+import { authMiddleware } from "../../middleware/authenticate.ts";
+import { authorizeRoles } from "../../middleware/roleGuard.ts";
 
 const statsRoutes = Router();
 
-statsRoutes.use(webAuthMiddleware);
-
-statsRoutes.get("", getStatsController);
+statsRoutes.get("", authMiddleware, authorizeRoles("admin"), getStatsController);
 
 export default statsRoutes;

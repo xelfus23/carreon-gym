@@ -147,10 +147,10 @@ ON CONFLICT (name) DO NOTHING;
 
 
 INSERT INTO product_categories (name, description) VALUES 
-('Supplements', 'Protein powders, creatine, and performance boosters'),
-('Drinks', 'Beverages, water, and energy drinks'),
-('Food', 'Ready-to-eat gym snacks'),
-('Equipment', 'Gym gear and accessories');
+('Supplements', 'Protein powders, creatine, and pre-workouts'),
+('Drinks', 'Water, energy drinks, and sports drinks'),
+('Food & Snacks', 'Hard-boiled eggs, bananas, and healthy snacks'),
+('Gear & Accessories', 'Barbell grips, lifting straps, and gym gear');
 
 INSERT INTO products (
     name, 
@@ -379,26 +379,56 @@ INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, paid_a
 -- PRODUCT PAYMENTS
 -- ============================================================================
 
--- Jordan Lee - Product (Pre-workout)
+-- Jordan Lee - Product (Pre-workout / Energy Drinks)
+-- Fixed: 2 items at 60.00 each = 120.00 total
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), (SELECT id FROM products LIMIT 1), 'product', 120.00, 2, 'cash', 'Pre-workout drinks', NOW() - INTERVAL '4 months 10 days');
+(
+  (SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), 
+  (SELECT id FROM products WHERE name ILIKE '%drink%' OR name ILIKE '%pre-workout%' LIMIT 1), 
+  'product', 120.00, 2, 'cash', 'Pre-workout drinks', NOW() - INTERVAL '4 months 10 days'
+);
 
--- Quinn Fabray - Product
+-- Quinn Fabray - Product (Hard Boiled Egg)
+-- Fixed: 1 item at 25.00 total (Changed from 95.00 to match your actual asset price of 25.00)
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'q.fabray@example.com'), (SELECT id FROM products OFFSET 1 LIMIT 1), 'product', 95.00, 1, 'cash', NOW() - INTERVAL '2 months 5 days');
+(
+  (SELECT id FROM users WHERE email = 'q.fabray@example.com'), 
+  (SELECT id FROM products WHERE name = 'Hard Boiled Egg' LIMIT 1), 
+  'product', 25.00, 1, 'cash', NOW() - INTERVAL '2 months 5 days'
+);
 
--- Jules Winnfield - Product (Gym Merch)
+-- Jules Winnfield - Product (Gym Merch / Barbell Foam Grip)
+-- Fixed: Targeted 'Barbell Foam Grip' specifically instead of risky OFFSET 2
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'badmother@example.com'), (SELECT id FROM products OFFSET 2 LIMIT 1), 'product', 550.00, 1, 'gcash', 'Official Gym Merch', NOW() - INTERVAL '5 days');
+(
+  (SELECT id FROM users WHERE email = 'badmother@example.com'), 
+  (SELECT id FROM products WHERE name = 'Barbell Foam Grip' LIMIT 1), 
+  'product', 80.00, 1, 'gcash', 'Barbell Foam Grip', NOW() - INTERVAL '5 days'
+);
 
 -- Casey Morgan - Product (Whey Protein)
+-- Cleaned up subquery selection
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'casey.m@example.com'), (SELECT id FROM products OFFSET 3 LIMIT 1), 'product', 2400.00, 1, 'bank_transfer', 'Whey Protein 5lbs', NOW() - INTERVAL '5 months 2 days');
+(
+  (SELECT id FROM users WHERE email = 'casey.m@example.com'), 
+  (SELECT id FROM products WHERE name ILIKE '%protein%' LIMIT 1), 
+  'product', 2400.00, 1, 'bank_transfer', 'Whey Protein 5lbs', NOW() - INTERVAL '5 months 2 days'
+);
 
--- Skyler White - Multiple items
+-- Skyler White - Multiple items (Saba Banana)
+-- Fixed: 3 Saba Bananas at 20.00 each = 60.00 total (Changed from 180.00)
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'skyler.w@example.com'), (SELECT id FROM products WHERE name ILIKE '%drink%' LIMIT 1), 'product', 180.00, 3, 'cash', 'Energy drinks pack', NOW() - INTERVAL '20 days');
+(
+  (SELECT id FROM users WHERE email = 'skyler.w@example.com'), 
+  (SELECT id FROM products WHERE name ILIKE '%Saba Banana%' LIMIT 1), 
+  'product', 60.00, 3, 'cash', 'Saba Banana Pack', NOW() - INTERVAL '20 days'
+);
 
 -- Morgan Freeman - Supplement Purchase
+-- Cleaned up subquery selection
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'voice.god@example.com'), (SELECT id FROM products WHERE name ILIKE '%protein%' LIMIT 1), 'product', 2200.00, 1, 'bank_transfer', NOW() - INTERVAL '2 days');
+(
+  (SELECT id FROM users WHERE email = 'voice.god@example.com'), 
+  (SELECT id FROM products WHERE name ILIKE '%protein%' LIMIT 1), 
+  'product', 2200.00, 1, 'bank_transfer', NOW() - INTERVAL '2 days'
+);

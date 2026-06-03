@@ -12,7 +12,7 @@ export const createProduct = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getAllProducts = catchAsync(
-  async (req: Request, res: Response) => {
+  async (_req: Request, res: Response) => {
     const data = await getProductsDomain();
     res.status(200).json({ success: true, data });
   },
@@ -20,19 +20,19 @@ export const getAllProducts = catchAsync(
 
 export const updateProduct = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const data = await updateProductDomain(id as string, req.body);
+  const data = await updateProductDomain(Number(id), req.body);
   res.status(200).json({ success: true, message: "Product Updated", data });
 });
 
 export const deleteProduct = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  await deleteProductDomain(id as string);
+  await deleteProductDomain(Number(id));
   res.status(200).json({ success: true, message: "Product Deleted" });
 });
 
 export const uploadProductImage = catchAsync(async (req: Request, res: Response) => {
   const file = (req as any).file;
-  
+
   if (!file) throw new AppError("No file uploaded", 400);
 
   const url = file.location as string | undefined;

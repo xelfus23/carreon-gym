@@ -9,244 +9,149 @@ import { saveSessionToDB } from "../../services/saveSession.ts";
 import { catchAsync } from "../../utils/catchAsync.ts";
 import { AppError } from "../../utils/appError.ts";
 
-export const webLoginController = catchAsync(
-    async (req: Request, res: Response) => {
-        const user = await loginDomain(req.body);
+export const loginController = catchAsync(async (req: Request, res: Response) => {
+  const user = await loginDomain(req.body);
 
-        if (user.role === "member") {
-            throw new AppError(
-                "Access denied. Only staff and admins can log in here.",
-                403,
-                "AUTH_FORBIDDEN_ROLE",
-            );
-        }
+  const isMobileClient = req.body.platform === "mobile";
 
-        const { accessToken, refreshToken } = generateTokens({
-            sub: user.id,
-            role: user.role,
-        });
-        const refreshTokenHash = hashToken(refreshToken);
+  // 2. Enforce Role Guards for Admin Panel Web Access
+  if (!isMobileClient && user.role === "member") {
+    throw new AppError(
+      "Access denied. Only staff and admins can log in here.",
+      403,
+      "AUTH_FORBIDDEN_ROLE",
+    );
+  }
 
-        await saveSessionToDB({
-            userId: user.id,
-            tokenHash: refreshTokenHash,
-            deviceInfo: req.headers["user-agent"] ?? null,
-            ip: req.ip || null,
-        });
+  // 3. Token & Session Generation
+  const { accessToken, refreshToken } = generateTokens({
+    sub: user.id,
+    role: user.role,
+  });
+  const refreshTokenHash = hashToken(refreshToken);
 
-        res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+  await saveSessionToDB({
+    userId: user.id,
+    tokenHash: refreshTokenHash,
+    deviceInfo: req.headers["user-agent"] ?? null,
+    ip: req.ip || null,
+  });
 
-        res.cookie("accessToken", accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 15 * 60 * 1000,
-        });
+  // 4. Send Response based on Platform Strategy
+  if (!isMobileClient) {
+    // Web / Electron: Store tokens securely in secure HttpOnly cookies
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
-        return res.status(200).json({
-            success: true,
-            message: "Login successful",
-            data: {
-                user: {
-                    id: user.id,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    email: user.email,
-                    role: user.role,
-                },
-            },
-        });
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000, // 15 mins
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      data: {
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+        },
+      },
+    });
+  }
+
+  // Mobile (Expo React Native): Return tokens explicitly in JSON payload for AsyncStorage/SecureStore
+  return res.status(200).json({
+    success: true,
+    message: "Login Success",
+    data: {
+      user: user,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
     },
-);
+  });
+});
 
 //====================================================
-//====================================================
-//====================================================
 
-export const mobileLoginController = catchAsync(
-    async (req: Request, res: Response) => {
-        const user = await loginDomain(req.body);
+export const logoutController = catchAsync(async (req: Request, res: Response) => {
+  // 1. Unified Token Extraction (Check cookies first, then check fallback request body)
+  const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
-        const { accessToken, refreshToken } = generateTokens({
-            sub: user.id,
-            role: user.role,
-        });
+  if (!refreshToken) {
+    throw new AppError(
+      "No active session",
+      400,
+      "MISSING_REFRESH_TOKEN",
+    );
+  }
 
-        const refreshTokenHash = hashToken(refreshToken);
+  // 2. Validate Token Signature
+  let decoded: any;
+  try {
+    decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!);
+  } catch (err) {
+    // Security fallback: clear browser cookies even if the signature expired
+    res.clearCookie("accessToken", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict" });
+    res.clearCookie("refreshToken", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict" });
 
-        await saveSessionToDB({
-            userId: user.id,
-            tokenHash: refreshTokenHash,
-            deviceInfo: req.headers["user-agent"] ?? null,
-            ip: req.ip || null,
-        });
+    throw new AppError(
+      "Invalid Refresh Token",
+      401,
+      "INVALID_REFRESH_TOKEN",
+    );
+  }
 
-        return res.status(200).json({
-            success: true,
-            message: "Login Success",
-            data: {
-                user: user,
-                accessToken: accessToken,
-                refreshToken: refreshToken,
-            },
-        });
-    },
-);
+  // 🌟 FIXED BUG: Your web used decoded.sub while mobile used decoded.id
+  // Unified to check both or default to standard 'sub' claim
+  const userId = decoded.sub || decoded.id;
 
-//====================================================
-//====================================================
-//====================================================
+  // 3. Database Session Revocation (Lookup and delete single device target)
+  const { rows } = await pool.query(
+    "SELECT id, refresh_token_hash FROM user_sessions WHERE user_id = $1",
+    [userId],
+  );
 
-export const webLogoutController = catchAsync(
-    async (req: Request, res: Response) => {
-        const refreshToken = req.cookies.refreshToken;
+  let sessionId: number | null = null;
+  for (const session of rows) {
+    const match = await bcrypt.compare(refreshToken, session.refresh_token_hash);
+    if (match) {
+      sessionId = session.id;
+      break;
+    }
+  }
 
-        if (!refreshToken) {
-            throw new AppError(
-                "No active session",
-                400,
-                "MISSING_REFRESH_TOKEN",
-            );
-        }
+  if (sessionId) {
+    await pool.query("DELETE FROM user_sessions WHERE id = $1", [sessionId]);
+  } else if (req.body.refreshToken) {
+    // If mobile app sends an explicit token but it's completely missing from DB session tables
+    throw new AppError("Session not found", 404, "SESSION_NOT_FOUND");
+  }
 
-        let decoded: any;
+  // 4. Clear Cookies for Web Clients
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
 
-        try {
-            decoded = jwt.verify(
-                refreshToken,
-                process.env.REFRESH_TOKEN_SECRET!,
-            );
-        } catch {
-            // Clear cookies even if token is invalid
-            res.clearCookie("accessToken");
-            res.clearCookie("refreshToken");
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
 
-            throw new AppError(
-                "Invalid Refresh Token",
-                401,
-                "INVALID_REFRESH_TOKEN",
-            );
-        }
-
-        const userId = decoded.sub;
-
-        const { rows } = await pool.query(
-            "SELECT id, refresh_token_hash FROM user_sessions WHERE user_id = $1",
-            [userId],
-        );
-
-        let sessionId: number | null = null;
-
-        for (const session of rows) {
-            const match = await bcrypt.compare(
-                refreshToken,
-                session.refresh_token_hash,
-            );
-
-            if (match) {
-                sessionId = session.id;
-                break;
-            }
-        }
-
-        if (sessionId) {
-            await pool.query("DELETE FROM user_sessions WHERE id = $1", [
-                sessionId,
-            ]);
-        }
-
-        res.clearCookie("accessToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-        });
-
-        res.clearCookie("refreshToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-        });
-
-        return res.json({
-            success: true,
-            message: "Logged out successfully",
-        });
-    },
-);
-
-//====================================================
-//====================================================
-//====================================================
-
-export const mobileLogoutController = catchAsync(
-    async (req: Request, res: Response) => {
-        const { refreshToken } = req.body;
-
-        if (!refreshToken) {
-            throw new AppError(
-                "No active session",
-                400,
-                "MISSING_REFRESH_TOKEN",
-            );
-        }
-
-        let decoded: any;
-
-        try {
-            decoded = jwt.verify(
-                refreshToken,
-                process.env.REFRESH_TOKEN_SECRET!,
-            );
-        } catch {
-            throw new AppError(
-                "Invalid Refresh Token",
-                401,
-                "INVALID_REFRESH_TOKEN",
-            );
-        }
-
-        const userId = decoded.id;
-
-        const { rows } = await pool.query(
-            "SELECT id, refresh_token_hash FROM user_sessions WHERE user_id = $1",
-            [userId],
-        );
-
-        // Find matching hash
-        let sessionId: number | null = null;
-
-        for (const session of rows) {
-            const match = await bcrypt.compare(
-                refreshToken,
-                session.refresh_token_hash,
-            );
-
-            if (match) {
-                sessionId = session.id;
-                break;
-            }
-        }
-
-        if (!sessionId) {
-            return res.status(404).json({
-                success: false,
-                message: "Session not found",
-            });
-        }
-
-        // Delete that session only (single device logout)
-        await pool.query("DELETE FROM user_sessions WHERE id = $1", [
-            sessionId,
-        ]);
-
-        return res.json({
-            success: true,
-            message: "Logged out successfully",
-        });
-    },
-);
+  return res.json({
+    success: true,
+    message: "Logged out successfully",
+  });
+});

@@ -70,7 +70,7 @@ async function fetchWithRefresh(
   isRefreshing = true;
 
   try {
-    const refreshRes = await fetch(`${API_URL}/api/auth/web/refresh`, {
+    const refreshRes = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });
@@ -94,7 +94,7 @@ async function fetchWithRefresh(
 
 export const authService = {
   async login(email: string, password: string) {
-    const res = await fetch(`${API_URL}/api/auth/web`, {
+    const res = await fetch(`${API_URL}/api/auth`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -116,7 +116,7 @@ export const authService = {
     data?: { user: AuthUser };
   }> {
     try {
-      const res = await fetchWithRefresh(`${API_URL}/api/users/web/me`);
+      const res = await fetchWithRefresh(`${API_URL}/api/users/me`);
 
       if (!res.ok) {
         return { success: false, status: res.status };
@@ -139,7 +139,7 @@ export const authService = {
 
   async logout() {
     try {
-      const res = await fetch(`${API_URL}/api/auth/web/logout`, {
+      const res = await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -151,7 +151,7 @@ export const authService = {
   },
 
   async refreshToken() {
-    const res = await fetch(`${API_URL}/api/auth/web/refresh`, {
+    const res = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });

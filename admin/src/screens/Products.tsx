@@ -13,7 +13,7 @@ import ConfirmDialog from "../components/Modals/ConfirmDialog";
 type SortKey = keyof ProductProps;
 type SortDir = "asc" | "desc";
 type FilterStatus = "all" | "available" | "unavailable" | "out_of_stock";
-type FilterCategory = "All" | "Food" | "Drinks" | "Supplement" | "Equipment";
+type FilterCategory = "All" | "Food & Snacks" | "Drinks" | "Supplement" | "Gear & Accessories";
 
 const fields: FormField[] = [
   {
@@ -34,10 +34,10 @@ const fields: FormField[] = [
     label: "Category",
     type: "select",
     options: [
-      { label: "Food", value: "Food" },
-      { label: "Drink", value: "Drink" },
-      { label: "Accessory", value: "Accessory" },
-      { label: "Other", value: "Other" },
+      { label: "Food & Snacks", value: "Food & Snacks" },
+      { label: "Drinks", value: "Drinks" },
+      { label: "Gear & Accessories", value: "Gear & Accessories" },
+      { label: "Supplements", value: "Supplements" },
     ],
   },
   { name: "price", label: "Price", type: "number", required: true },
@@ -146,10 +146,10 @@ export default function Products() {
       },
       options: [
         { label: "All", value: "All" },
-        { label: "Food", value: "Food" },
+        { label: "Food & Snacks", value: "Food & Snacks" },
         { label: "Drinks", value: "Drinks" },
         { label: "Supplements", value: "Supplements" },
-        { label: "Equipment", value: "Equipment" }
+        { label: "Gear & Accessories", value: "Gear & Accessories" }
       ],
       label: "Category"
     }

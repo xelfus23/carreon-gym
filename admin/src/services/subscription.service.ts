@@ -4,8 +4,15 @@ import { authService } from "./auth.service";
 
 export const subscriptionService = {
 
-  createPlan: async () => {
-    //TODO: 
+  createPlan: async (subsData: SubscriptionPlanProps) => {
+    const res = await authService.fetchWithRefresh(`/api/subscription-plans`, {
+      method: "POST",
+      body: JSON.stringify(subsData)
+    });
+
+    const data = await res.json();
+
+    return data.data;
   },
 
   updatePlan: async (id: number, planData: Partial<SubscriptionPlanProps>) => {
@@ -27,7 +34,7 @@ export const subscriptionService = {
 
   async getPlans(): Promise<SubscriptionPlanProps[]> {
     const res = await authService.fetchWithRefresh(
-      `${API_URL}/api/web/subscriptions/plans`,
+      `${API_URL}/api/subscriptions/plans`,
       { method: "GET" },
     );
 
@@ -48,7 +55,7 @@ export const subscriptionService = {
     notes?: string;
   }) {
     const res = await authService.fetchWithRefresh(
-      `${API_URL}/api/web/subscriptions`,
+      `${API_URL}/api/subscriptions`,
       {
         method: "POST",
         body: JSON.stringify(params),
@@ -65,7 +72,7 @@ export const subscriptionService = {
 
   async cancelSubscription(user_id: number) {
     const res = await authService.fetchWithRefresh(
-      `${API_URL}/api/web/subscriptions/cancel`,
+      `${API_URL}/api/subscriptions/cancel`,
       {
         method: "POST",
         body: JSON.stringify({ user_id }),
@@ -79,7 +86,7 @@ export const subscriptionService = {
 
   async resetSubscription(user_id: number) {
     const res = await authService.fetchWithRefresh(
-      `${API_URL}/api/web/subscriptions/reset`,
+      `${API_URL}/api/subscriptions/reset`,
       {
         method: "POST",
         body: JSON.stringify({ user_id }),
@@ -93,7 +100,7 @@ export const subscriptionService = {
 
   async getSubscription(userId: number) {
     const res = await authService.fetchWithRefresh(
-      `${API_URL}/api/web/subscriptions/${userId}`,
+      `${API_URL}/api/subscriptions/${userId}`,
       {
         method: "GET",
       },
@@ -106,7 +113,7 @@ export const subscriptionService = {
 
   async getPaymentHistory(userId: number) {
     const res = await authService.fetchWithRefresh(
-      `${API_URL}/api/web/subscriptions/${userId}/payments`,
+      `${API_URL}/api/subscriptions/${userId}/payments`,
       {
         method: "GET",
       },

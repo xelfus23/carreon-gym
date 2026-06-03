@@ -1,4 +1,3 @@
-// middleware/authMiddleware.ts
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.ts";
@@ -6,57 +5,29 @@ import { catchAsync } from "../utils/catchAsync.ts";
 import { AppError } from "../utils/appError.ts";
 import type { AuthRequest } from "../types/index.ts";
 
-export const webAuthMiddleware = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const accessToken = req.cookies.accessToken;
+export const authMiddleware = catchAsync(
+  async (req: Request, _res: Response, next: NextFunction) => {
+    let accessToken: string | undefined = undefined;
 
-    if (!accessToken) {
-      throw new AppError(
-        "No access token provided",
-        400,
-        "MISSING_ACCESS_TOKEN",
-      );
+    // 1. Try extracting from cookies (Web App)
+    if (req.cookies?.accessToken) {
+      accessToken = req.cookies.accessToken;
+    }
+    // 2. Fallback to extracting from Authorization Header (Mobile App)
+    else if (req.headers.authorization?.startsWith("Bearer ")) {
+      accessToken = req.headers.authorization.split(" ")[1];
     }
 
-    const decoded = jwt.verify(
-      accessToken,
-      env.JWT_ACCESS_SECRET,
-    ) as unknown as {
-      sub: number;
-      role: "member" | "trainer" | "admin";
-    };
-
-    req.user = {
-      id: decoded.sub,
-      role: decoded.role,
-    };
-
-    next();
-  },
-);
-
-export const mobileAuthMiddleware = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    // 3. If neither provided a token, block the request
+    if (!accessToken) {
       throw new AppError(
-        "Please log in to access this resource.",
+        "Authentication required. No access token provided.",
         401,
-        "AUTH_REQUIRED",
+        "AUTH_REQUIRED"
       );
     }
 
-    const accessToken = authHeader.split(" ")[1];
-
-    if (!accessToken) {
-      throw new AppError(
-        "No access token provided",
-        400,
-        "MISSING_ACCESS_TOKEN",
-      );
-    }
-
+    // 4. Verify token signatures identically
     const decoded = jwt.verify(
       accessToken,
       env.JWT_ACCESS_SECRET,
@@ -65,7 +36,9 @@ export const mobileAuthMiddleware = catchAsync(
       role: "member" | "trainer" | "admin";
     };
 
-    req.user = {
+    // 5. Inject payload into user object context safely
+    const authReq = req as AuthRequest;
+    authReq.user = {
       id: decoded.sub,
       role: decoded.role,
     };

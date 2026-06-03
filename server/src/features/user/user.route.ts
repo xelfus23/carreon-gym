@@ -1,28 +1,23 @@
 import { Router } from "express";
 import {
   createUser,
-  mobileMeController,
+  meController,
   updateProfile,
   updateStats,
   uploadPicture,
-  webMeController,
 } from "./user.controller.ts";
 import { uploadProfilePicture } from "../../services/multerUpload.ts";
-import {
-  mobileAuthMiddleware,
-  webAuthMiddleware,
-} from "../../middleware/authenticate.ts";
+import { authMiddleware } from "../../middleware/authenticate.ts";
 
 const userRoutes = Router();
 
-userRoutes.get("/mobile/me", mobileAuthMiddleware, mobileMeController);
-userRoutes.get("/web/me", webAuthMiddleware, webMeController);
+userRoutes.get("/me", authMiddleware, meController);
 
-userRoutes.post("/register", createUser);
 
-userRoutes.patch("/profiles", mobileAuthMiddleware, updateProfile);
-userRoutes.patch("/stats", mobileAuthMiddleware, updateStats);
+userRoutes.patch("/profiles", authMiddleware, updateProfile);
+userRoutes.patch("/stats", authMiddleware, updateStats);
 
 userRoutes.post("/upload", uploadProfilePicture.single("image"), uploadPicture);
+userRoutes.post("/register", createUser);
 
 export default userRoutes;

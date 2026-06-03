@@ -98,7 +98,13 @@ export const memberService = {
       `${API_URL}/api/users/register`,
       {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          firstName: payload.first_name,
+          lastName: payload.last_name,
+          password: payload.password,
+          email: payload.email,
+          phoneNumber: payload.phone_number,
+        }),
       },
     );
 

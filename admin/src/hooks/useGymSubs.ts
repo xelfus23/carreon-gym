@@ -28,6 +28,20 @@ export const useGymSubs = () => {
     }
   }, []);
 
+  const createSub = async (data: SubscriptionPlanProps) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await subscriptionService.createPlan(data);
+      refetch()
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to save edits"
+      setError(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const updateSub = async (editingId: number, editForm: Partial<SubscriptionPlanProps>) => {
     setIsLoading(true);
     setError(null);
@@ -71,6 +85,7 @@ export const useGymSubs = () => {
     error,
     refresh: refetch,
     updateSub,
-    deleteSub
+    deleteSub,
+    createSub,
   };
 };

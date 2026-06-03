@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { webAuthMiddleware } from "../../middleware/authenticate.ts";
 import {
   banAccount,
   deleteAccount,
@@ -7,14 +6,15 @@ import {
   suspendAccount,
   verifyAccount,
 } from "./member.controller.ts";
+import { authMiddleware } from "../../middleware/authenticate.ts";
+import { authorizeRoles } from "../../middleware/roleGuard.ts";
 
 const memberRoutes = Router();
 
-memberRoutes.use(webAuthMiddleware);
-memberRoutes.get("", getMembers);
-memberRoutes.patch("/verify/:id", verifyAccount);
-memberRoutes.patch("/suspend/:id", suspendAccount);
-memberRoutes.patch("/ban/:id", banAccount);
-memberRoutes.delete("/delete/:id", deleteAccount);
+memberRoutes.get("", authMiddleware, authorizeRoles("admin"), getMembers);
+memberRoutes.patch("/verify/:id", authMiddleware, authorizeRoles("admin"), verifyAccount);
+memberRoutes.patch("/suspend/:id", authMiddleware, authorizeRoles("admin"), suspendAccount);
+memberRoutes.patch("/ban/:id", authMiddleware, authorizeRoles("admin"), banAccount);
+memberRoutes.delete("/delete/:id", authMiddleware, authorizeRoles("admin"), deleteAccount);
 
 export default memberRoutes;

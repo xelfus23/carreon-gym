@@ -60,13 +60,13 @@ export default function ProductRow({ product, onEdit, onDelete }: ProductRow) {
       <td className="p-3">
         <span
           className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${product.status === "available"
-            ? "bg-green-100 text-green-700"
+            ? "text-emerald-500"
             : product.status === "out_of_stock"
-              ? "bg-orange-100 text-orange-700"
-              : "bg-red-100 text-red-700"
+              ? "text-rose-500"
+              : "text-amber-500"
             }`}
         >
-          {product.status.replace("_", " ")}
+          {product.status.replaceAll("_", " ")}
         </span>
       </td>
       <td className="p-3 text-xs text-text-secondary">

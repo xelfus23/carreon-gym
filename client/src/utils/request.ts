@@ -32,7 +32,7 @@ async function refreshAccessToken() {
 
   if (!refreshToken) throw new Error("Session expired. Please log in again."); // If refresh token is not available.
 
-  const res = await fetchWithTimeout(`${API_URL}/api/auth/mobile/refresh`, {
+  const res = await fetchWithTimeout(`${API_URL}/api/auth/refresh`, {
     // fetch refresh and return a refresh token
     method: "POST",
     headers: { "Content-Type": "application/json" },

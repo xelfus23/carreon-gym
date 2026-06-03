@@ -1,8 +1,8 @@
 import pool from "../../config/pool.ts";
 
 export const getStatsDomain = async () => {
-    // ── Core stats ──────────────────────────────────────────────────────────
-    const stats = await pool.query(`
+  // ── Core stats ──────────────────────────────────────────────────────────
+  const stats = await pool.query(`
         SELECT
             -- Members
             (SELECT COUNT(*) FROM users
@@ -90,8 +90,8 @@ export const getStatsDomain = async () => {
             )::int AS expiring_soon
     `);
 
-    // ── Monthly attendance chart (last 6 months) ────────────────────────────
-    const chart = await pool.query(`
+  // ── Monthly attendance chart (last 6 months) ────────────────────────────
+  const chart = await pool.query(`
         SELECT
             TO_CHAR(DATE_TRUNC('month', check_in_time), 'Mon') AS month,
             COUNT(*)::int AS visits
@@ -101,8 +101,8 @@ export const getStatsDomain = async () => {
         ORDER BY DATE_TRUNC('month', check_in_time)
     `);
 
-    // ── Monthly revenue chart (last 6 months, from payments) ───────────────
-    const revenueChart = await pool.query(`
+  // ── Monthly revenue chart (last 6 months, from payments) ───────────────
+  const revenueChart = await pool.query(`
         SELECT
             TO_CHAR(DATE_TRUNC('month', paid_at), 'Mon') AS month,
             COALESCE(SUM(amount), 0)::numeric AS revenue
@@ -113,23 +113,23 @@ export const getStatsDomain = async () => {
         ORDER BY DATE_TRUNC('month', paid_at)
     `);
 
-    // Merge visits + revenue into one chartData array keyed by month label
-    const revenueMap = new Map(
-        revenueChart.rows.map((r: { month: string; revenue: number }) => [
-            r.month,
-            r.revenue,
-        ]),
-    );
-    const chartData = chart.rows.map(
-        (row: { month: string; visits: number }) => ({
-            month: row.month,
-            visits: row.visits,
-            revenue: Number(revenueMap.get(row.month) ?? 0),
-        }),
-    );
+  // Merge visits + revenue into one chartData array keyed by month label
+  const revenueMap = new Map(
+    revenueChart.rows.map((r: { month: string; revenue: number }) => [
+      r.month,
+      r.revenue,
+    ]),
+  );
+  const chartData = chart.rows.map(
+    (row: { month: string; visits: number }) => ({
+      month: row.month,
+      visits: row.visits,
+      revenue: Number(revenueMap.get(row.month) ?? 0),
+    }),
+  );
 
-    // ── Peak hours (hourly check-in distribution, last 30 days) ────────────
-    const peakHours = await pool.query(`
+  // ── Peak hours (hourly check-in distribution, last 30 days) ────────────
+  const peakHours = await pool.query(`
         SELECT
             EXTRACT(HOUR FROM check_in_time)::int AS hour_num,
             COUNT(*)::int AS checkins
@@ -139,23 +139,23 @@ export const getStatsDomain = async () => {
         ORDER BY hour_num
     `);
 
-    const formatHour = (h: number): string => {
-        if (h === 0) return "12AM";
-        if (h < 12) return `${h}AM`;
-        if (h === 12) return "12PM";
-        return `${h - 12}PM`;
-    };
+  const formatHour = (h: number): string => {
+    if (h === 0) return "12AM";
+    if (h < 12) return `${h}AM`;
+    if (h === 12) return "12PM";
+    return `${h - 12}PM`;
+  };
 
-    const peakHourData = peakHours.rows.map(
-        (row: { hour_num: number; checkins: number }) => ({
-            hour: formatHour(row.hour_num),
-            checkins: row.checkins,
-        }),
-    );
+  const peakHourData = peakHours.rows.map(
+    (row: { hour_num: number; checkins: number }) => ({
+      hour: formatHour(row.hour_num),
+      checkins: row.checkins,
+    }),
+  );
 
-    return {
-        stats: stats.rows[0],
-        chartData,
-        peakHourData,
-    };
+  return {
+    stats: stats.rows[0],
+    chartData,
+    peakHourData,
+  };
 };

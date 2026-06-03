@@ -1,4 +1,5 @@
 import { broadcastNotification } from "../../ai/websocketHandler.ts";
+import { getTransactionHistoryDomain } from "../../domain/purchase/getTransactionHistoryDomain.ts";
 import { getTransactionsDomain } from "../../domain/purchase/getTransactionsDomain.ts";
 import {
   createPendingPurchaseDomain,
@@ -52,9 +53,10 @@ export const requestPurchase = catchAsync(
 export const verifyPurchase = catchAsync(
   async (req: Request, res: Response) => {
     const { paymentId } = req.params;
-    const adminId = req.user?.id;
 
-    const data = await verifyPendingPurchaseDomain(Number(paymentId), adminId!);
+    const adminId = Number(req.user?.id);
+
+    const data = await verifyPendingPurchaseDomain(Number(paymentId), adminId);
 
     broadcastNotification("PAYMENT_VERIFIED", {
       userId: data.user_id,
@@ -72,7 +74,8 @@ export const verifyPurchase = catchAsync(
 
 export const denyPurchase = catchAsync(async (req: Request, res: Response) => {
   const { paymentId } = req.params;
-  const adminId = req.user?.id;
+
+  const adminId = Number(req.user?.id);
 
   if (!adminId) {
     return res.status(401).json({
@@ -136,3 +139,18 @@ export const getAllTransactions = catchAsync(
     });
   },
 );
+
+export const getPaymentHistory = catchAsync(async (req: Request, res: Response) => {
+  const userId = Number(req.params.userId);
+
+  if (!Number.isInteger(userId)) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid user id." });
+  }
+
+  const payments = await getTransactionHistoryDomain(userId);
+
+  return res.status(200).json({ success: true, data: payments });
+
+});

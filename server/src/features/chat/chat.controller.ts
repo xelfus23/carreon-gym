@@ -75,7 +75,7 @@ export const getSessionMessages = async (req: Request, res: Response) => {
     }
 };
 
-export const deletemessage = async (req: Request, res: Response) => {
+export const deleteMessage = async (req: Request, res: Response) => {
     try {
     } catch (err) {
         if (err instanceof Error) {

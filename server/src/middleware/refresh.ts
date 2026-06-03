@@ -5,119 +5,99 @@ import pool from "../config/pool.ts";
 import { env } from "../config/env.ts";
 import { generateTokens } from "../utils/generateTokens.ts";
 
-export const webRefresh = async (req: Request, res: Response) => {
-  const refreshToken = req.cookies.refreshToken;
+export const refreshController = async (req: Request, res: Response) => {
+  // 1. Extract the token from either Web cookies or Mobile request body
+  const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+  // Determine client type based on request delivery style
+  const isMobileClient = req.headers["x-client-platform"] === "mobile" || !!req.body.refreshToken;
 
   if (!refreshToken) {
     return res
       .status(401)
-      .json({ success: false, message: "No refresh token" });
+      .json({ success: false, message: "No refresh token provided" });
   }
 
   try {
+    // 2. Verify the token signature and integrity
     const payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as any;
-    const hashed = hashToken(refreshToken);
 
+    // Safety check for mixed payload properties across old logic iterations
+    const userId = payload.sub || payload.id;
+    const userRole = payload.role;
+
+    // 3. Database session lookup via hashed token string
+    const hashed = hashToken(refreshToken);
     const session = await pool.query(
-      `SELECT * FROM user_sessions WHERE user_id = $1 AND refresh_token_hash = $2`,
-      [payload.sub, hashed],
+      `SELECT id FROM user_sessions WHERE user_id = $1 AND refresh_token_hash = $2`,
+      [userId, hashed],
     );
 
+    // If the token is valid but doesn't exist in our DB, it could be reused/compromised
     if (session.rowCount === 0) {
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
+      if (!isMobileClient) {
+        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken");
+      }
       return res
         .status(403)
-        .json({ success: false, message: "Invalid session" });
+        .json({ success: false, message: "Session invalid or expired" });
     }
 
-    const { accessToken, refreshToken: newRefreshToken } =
-      generateTokens(payload);
+    // 4. Generate the rotated token pair
+    const { accessToken, refreshToken: newRefreshToken } = generateTokens({
+      sub: userId,
+      role: userRole,
+    });
     const newHashed = hashToken(newRefreshToken);
 
+    // 5. Update the session table (Token Rotation Principle)
     await pool.query(
       `UPDATE user_sessions 
-           SET refresh_token_hash = $1,
-               last_used_at = NOW(),
-               expires_at = NOW() + INTERVAL '7 days'
-           WHERE user_id = $2 AND refresh_token_hash = $3`,
-      [newHashed, payload.sub, hashed],
+       SET refresh_token_hash = $1,
+           last_used_at = NOW(),
+           expires_at = NOW() + INTERVAL '7 days'
+       WHERE user_id = $2 AND refresh_token_hash = $3`,
+      [newHashed, userId, hashed],
     );
 
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000,
-    });
+    // 6. Return response based on client storage strategy
+    if (!isMobileClient) {
+      // Browser / Electron Admin Dashboard
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 15 * 60 * 1000, // 15 mins
+      });
 
-    res.cookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+      res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
 
-    return res.json({ success: true, message: "Token refreshed" });
-  } catch (error) {
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
-    return res
-      .status(403)
-      .json({ success: false, message: "Refresh Error: Invalid Token" });
-  }
-};
-
-export const mobileRefresh = async (req: Request, res: Response) => {
-  const { refreshToken } = req.body;
-
-  if (!refreshToken) {
-    return res
-      .status(401)
-      .json({ success: false, message: "No refresh token" });
-  }
-
-  try {
-    const payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as any;
-    const hashed = hashToken(refreshToken);
-
-    const session = await pool.query(
-      `SELECT * FROM user_sessions 
-             WHERE user_id = $1 AND refresh_token_hash = $2`,
-      [payload.sub, hashed],
-    );
-
-    if (session.rowCount === 0) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Invalid session" });
+      return res.json({ success: true, message: "Token refreshed successfully" });
     }
 
-    const newTokens = generateTokens({
-      sub: payload.sub,
-      role: payload.role,
-    });
-
-    const newHashed = hashToken(newTokens.refreshToken);
-
-    await pool.query(
-      `UPDATE user_sessions 
-             SET refresh_token_hash = $1,
-                 last_used_at = NOW(),
-                 expires_at = NOW() + INTERVAL '7 days'
-             WHERE user_id = $2 AND refresh_token_hash = $3`,
-      [newHashed, payload.sub, hashed],
-    );
-
+    // Expo Mobile Client
     return res.json({
       success: true,
       message: "Token Generated",
       data: {
-        accessToken: newTokens.accessToken,
-        refreshToken: newTokens.refreshToken,
+        accessToken,
+        refreshToken: newRefreshToken,
       },
     });
-  } catch {
+
+  } catch (error) {
+    // Catch block handles token expiration signatures or structure failures
+    if (!isMobileClient) {
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
+    }
+
     return res
       .status(403)
       .json({ success: false, message: "Refresh Error: Invalid Token" });

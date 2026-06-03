@@ -39,7 +39,6 @@ export type UserProfile = {
     firstName: string;
     lastName: string;
     verified: boolean;
-    username?: string;
     email: string;
     role: string;
     phoneNumber: string;

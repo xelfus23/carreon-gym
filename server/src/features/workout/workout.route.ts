@@ -8,17 +8,17 @@ import {
     logComplete,
     toggleActivation,
 } from "./workout.controller.ts";
-import { mobileAuthMiddleware } from "../../middleware/authenticate.ts";
+import { authMiddleware } from "../../middleware/authenticate.ts";
 
 const workoutRoutes = Router();
 
-workoutRoutes.get("/", mobileAuthMiddleware, getWorkoutPlan);
+workoutRoutes.get("/", authMiddleware, getWorkoutPlan);
 
-workoutRoutes.post("/logs", mobileAuthMiddleware, logComplete);
-workoutRoutes.get("/logs/today", mobileAuthMiddleware, getTodayLogs);
-workoutRoutes.get("/logs", mobileAuthMiddleware, getCompleted);
-workoutRoutes.delete("/:workout_exercise_id", mobileAuthMiddleware, deleteLog);
-workoutRoutes.patch("/plan/:id", mobileAuthMiddleware, toggleActivation);
-workoutRoutes.delete("/plan/:id", mobileAuthMiddleware, deleteWorkoutPlan);
+workoutRoutes.post("/logs", authMiddleware, logComplete);
+workoutRoutes.get("/logs/today", authMiddleware, getTodayLogs);
+workoutRoutes.get("/logs", authMiddleware, getCompleted);
+workoutRoutes.delete("/:workout_exercise_id", authMiddleware, deleteLog);
+workoutRoutes.patch("/plan/:id", authMiddleware, toggleActivation);
+workoutRoutes.delete("/plan/:id", authMiddleware, deleteWorkoutPlan);
 
 export default workoutRoutes;
