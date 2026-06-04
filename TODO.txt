@@ -1,5 +1,2 @@
 //TODO
-1. Apply icon_url for:
-  - Subscriptions
-  - Products      
-  - Equipments
+1. UPLOADERS
