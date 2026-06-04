@@ -17,8 +17,8 @@ type FilterCategory = "All" | "Food & Snacks" | "Drinks" | "Supplement" | "Gear 
 
 const fields: FormField[] = [
   {
-    name: "image_urls",
-    label: "Product Image",
+    name: "icon_url",
+    label: "Product Icon",
     type: "image",
     gridSpan: "full",
   },
@@ -215,8 +215,8 @@ export default function Products() {
             pageSize={PAGE_SIZE}
             onSort={handleSort}
             columns={[
-              { label: "Product ID", key: "id", sortable: true },
-              { label: "Image", key: "image_urls", sortable: false },
+              { label: "ID", key: "id", sortable: true },
+              { label: "Icon", key: "icon_url", sortable: false },
               { label: "Product", key: "product_name", sortable: true },
               { label: "Category", key: "category", sortable: true },
               { label: "Price", key: "price", sortable: true },

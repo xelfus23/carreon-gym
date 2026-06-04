@@ -45,14 +45,14 @@ export default function AdminRow({
     },
     ...(!isDeleted
       ? [
-          {
-            label: "Delete Admin",
-            icon: <Trash className="h-4" />,
-            onClick: () => onDelete(m),
-            variant: "danger" as const,
-            dividerBefore: true,
-          },
-        ]
+        {
+          label: "Delete Admin",
+          icon: <Trash className="h-4" />,
+          onClick: () => onDelete(m),
+          variant: "danger" as const,
+          dividerBefore: true,
+        },
+      ]
       : []),
   ];
 
@@ -74,9 +74,8 @@ export default function AdminRow({
       {/* Account status */}
       <td className="p-4">
         <span
-          className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-            ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-slate-500"
-          }`}
+          className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-slate-500"
+            }`}
         >
           {m.account_status}
         </span>
@@ -108,11 +107,10 @@ export default function AdminRow({
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                           opacity-0 group-hover:opacity-100 focus:opacity-100
-                          ${
-                            menuOpen
-                              ? "opacity-100 bg-border text-text-primary"
-                              : "text-text-secondary hover:bg-border hover:text-text-primary"
-                          }`}
+                          ${menuOpen
+                ? "opacity-100 bg-border text-text-primary"
+                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />

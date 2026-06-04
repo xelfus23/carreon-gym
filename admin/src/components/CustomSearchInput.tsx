@@ -19,7 +19,7 @@ export default function SearchInput(props: SearchInputProps) {
         onChange={onChange}
         type="text"
         placeholder={placeholder}
-        className="w-full pl-9 pr-4 py-2.5 bg-background border border-border text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+        className="w-full pl-9 pr-4 rounded-lg py-2.5 bg-background border border-border text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
       />
     </div>
   );

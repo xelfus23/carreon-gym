@@ -4,7 +4,6 @@ import type {
   UserAccountProps,
   ConfirmDialogTypes,
   FormField,
-  AccountRegistrationProps,
 } from "../types";
 import { Loader2, UserRoundKey } from "lucide-react";
 import SubscriptionModal from "../components/SubscriptionModal";
@@ -36,7 +35,7 @@ const fields: FormField[] = [
   {
     name: "password",
     label: "Password",
-    type: "text",
+    type: "password",
     required: true,
     gridSpan: "full",
   },
@@ -50,7 +49,7 @@ const fields: FormField[] = [
   {
     name: "phone_number",
     label: "Phone Number",
-    type: "text",
+    type: "phone",
     required: true,
     gridSpan: "half",
   },
@@ -215,7 +214,7 @@ export default function Admins() {
           page={page}
           pageSize={PAGE_SIZE}
           renderRow={(admin) => (
-            <AdminRow m={admin} onBan={handleBan} onDelete={handleDelete} />
+            <AdminRow key={admin.id} m={admin} onBan={handleBan} onDelete={handleDelete} />
           )}
         />
       </div>
@@ -237,7 +236,7 @@ export default function Admins() {
           title="Create Admin"
           subtitle="Add a new admin account"
           fields={fields}
-          onSave={(data: AccountRegistrationProps) => createAccount(data)}
+          onSave={(data: Partial<UserAccountProps>) => createAccount(data)}
           submitButtonText="Create Admin"
         />
       )}

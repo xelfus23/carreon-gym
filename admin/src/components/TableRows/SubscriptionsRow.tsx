@@ -27,6 +27,7 @@ export default function SubscriptionsRow({
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
+  const previewUrl = plan.icon_url ?? null;
 
   const actions: ActionItemProps[] = [
     {
@@ -35,7 +36,7 @@ export default function SubscriptionsRow({
         onEdit(plan);
         close()
       },
-      icon: <Edit size={16}/>,
+      icon: <Edit size={16} />,
     },
     {
       label: "Delete",
@@ -43,15 +44,27 @@ export default function SubscriptionsRow({
         onDelete(plan)
         close()
       },
-      icon: <Trash size={16}/>,
+      icon: <Trash size={16} />,
       variant: "danger",
       dividerBefore: true
     },
   ];
 
   return (
-    <tr key={plan.id} className={`transition-colors group hover:bg-border/40`}>
+    <tr className={`transition-colors group hover:bg-border/40`}>
       <td className="p-4 text-xs text-text-secondary">{plan.id.toString()}</td>
+      <td className="p-4">
+        {previewUrl ? (
+          <img
+            src={previewUrl}
+            alt={plan.name}
+            className="h-10 w-10 rounded-md object-cover border border-border bg-background"
+            loading="lazy"
+          />
+        ) : (
+          <div className="h-10 w-10 rounded-md border border-border bg-background" />
+        )}
+      </td>
       <td className="p-4">
         <p className="font-bold text-sm tracking-tight text-text-primary">
           {plan.name}

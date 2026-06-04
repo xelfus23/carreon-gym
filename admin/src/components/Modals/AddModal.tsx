@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef } from "react";
-import { X, Upload, Loader2, Check } from "lucide-react";
+import { X, Upload, Check, Loader2, Eye, EyeOff } from "lucide-react";
 import type { UniversalAddModalProps } from "../../types";
 import { COLORS } from "../../constants";
 
@@ -19,6 +19,9 @@ export default function AddModal<T extends Record<string, any>>({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Track visibility per field name to support multiple password fields independently
+  const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
 
   // Initialize defaults whenever the modal opens
   useEffect(() => {
@@ -39,6 +42,7 @@ export default function AddModal<T extends Record<string, any>>({
     setFormData(defaults);
     setImagePreview(null);
     setSelectedFile(null);
+    setShowPassword({});
   }, [isOpen, fields]);
 
   if (!isOpen) return null;
@@ -49,7 +53,13 @@ export default function AddModal<T extends Record<string, any>>({
     >,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    const targetValue =
+      e.target instanceof HTMLInputElement && e.target.type === "checkbox"
+        ? e.target.checked
+        : value;
+
+    setFormData((prev) => ({ ...prev, [name]: targetValue }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,12 +70,18 @@ export default function AddModal<T extends Record<string, any>>({
     }
   };
 
+  const togglePasswordVisibility = (fieldName: string) => {
+    setShowPassword((prev) => ({
+      ...prev,
+      [fieldName]: !prev[fieldName],
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Pass form payload and raw file up to the parent handler
       await onSave(formData as T, selectedFile);
       onSuccess();
       onClose();
@@ -77,8 +93,8 @@ export default function AddModal<T extends Record<string, any>>({
   };
 
   return (
-    <div className="fixed inset-0 z-20  flex justify-center items-center bg-black/60 backdrop-blur-sm p-10">
-      <div className="w-full max-w-md bg-surface max-h-[70%] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+    <div className="fixed inset-0 z-20 flex justify-center items-center bg-black/60 backdrop-blur-sm p-10">
+      <div className="w-full rounded-lg max-w-md bg-surface max-h-[80%] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="p-6 border-b border-border flex items-center justify-between">
           <div>
@@ -103,10 +119,7 @@ export default function AddModal<T extends Record<string, any>>({
           className="flex-1 overflow-y-auto p-6 grid grid-cols-2 gap-4 content-start"
         >
           {fields.map((field) => {
-            const isFullWidth =
-              field.gridSpan === "full" ||
-              field.type === "textarea" ||
-              field.type === "image";
+            const isFullWidth = field.gridSpan === "full"
             const IconComponent = field.icon;
 
             return (
@@ -133,7 +146,7 @@ export default function AddModal<T extends Record<string, any>>({
                     </label>
                     <div
                       onClick={() => !loading && fileInputRef.current?.click()}
-                      className="relative aspect-square border-2 border-dashed border-border hover:border-primary cursor-pointer overflow-hidden flex flex-col items-center justify-center bg-background group transition-all w-60 p-4"
+                      className="relative aspect-square border-2 border-dashed border-border hover:border-primary cursor-pointer overflow-hidden flex flex-col items-center justify-center bg-background group transition-all w-60 p-4 rounded-xl"
                     >
                       {imagePreview ? (
                         <img
@@ -175,7 +188,7 @@ export default function AddModal<T extends Record<string, any>>({
                     onChange={handleInputChange}
                     placeholder={field.placeholder}
                     required={field.required}
-                    className="w-full p-2 text-sm bg-background border border-border focus:ring-2 focus:ring-primary outline-none resize-none text-text-primary"
+                    className="w-full p-2 text-sm rounded-md bg-background border border-border focus:ring-2 focus:ring-primary outline-none resize-none text-text-primary"
                   />
                 )}
 
@@ -193,7 +206,7 @@ export default function AddModal<T extends Record<string, any>>({
                       value={formData[field.name] ?? ""}
                       onChange={handleInputChange}
                       required={field.required}
-                      className={`w-full text-sm ${IconComponent ? "pl-2" : "px-2"} py-2  bg-background border border-border focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer text-text-primary`}
+                      className={`w-full rounded-md text-sm ${IconComponent ? "pl-2" : "px-2"} py-2  bg-background border border-border focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer text-text-primary`}
                     >
                       {field.options?.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -204,6 +217,7 @@ export default function AddModal<T extends Record<string, any>>({
                   </div>
                 )}
 
+                {/* Render Logic: Checkbox */}
                 {field.type === "checkbox" && (
                   <label className="group flex items-center space-x-3 cursor-pointer py-2 px-1 rounded-md transition-all duration-200">
                     <div className="relative flex items-center justify-center">
@@ -212,27 +226,22 @@ export default function AddModal<T extends Record<string, any>>({
                         name={field.name}
                         checked={formData[field.name] ?? false}
                         onChange={handleInputChange}
-                        className="peer sr-only" // Hidden safely for accessibility parsing
+                        className="peer sr-only"
                       />
-
-                      {/* Box Container */}
                       <div
                         className="h-5 w-5 rounded-full border-2 border-border bg-background transition-all duration-200 
-   peer-checked:bg-primary peer-checked:border-primary 
-   peer-focus-visible:ring-2 peer-focus-visible:ring-primary/50 peer-focus-visible:ring-offset-2
-   group-hover:border-primary/70 peer-checked:group-hover:border-primary
-   flex items-center justify-center group/icon"
+                        peer-checked:bg-primary peer-checked:border-primary 
+                        peer-focus-visible:ring-2 peer-focus-visible:ring-primary/50 peer-focus-visible:ring-offset-2
+                        group-hover:border-primary/70 peer-checked:group-hover:border-primary
+                        flex items-center justify-center group/icon"
                       >
-                        {/* The Check icon reads the parent container state instead */}
                         <Check
-                          color={COLORS.background} // Explicit inline property fallback for safety
+                          color={COLORS.background}
                           strokeWidth={3.5}
                           className="h-3.5 w-3.5 scale-0 group-peer-checked/icon:scale-100 transition-transform duration-200"
                         />
                       </div>
                     </div>
-
-                    {/* Checkbox Metadata Text */}
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors duration-150 select-none">
                         {field.label}
@@ -257,8 +266,81 @@ export default function AddModal<T extends Record<string, any>>({
                       onChange={handleInputChange}
                       placeholder={field.placeholder}
                       required={field.required}
-                      className={`w-full ${IconComponent ? "pl-10" : "px-2"} pr-2 py-2 bg-background border border-border focus:ring-2 focus:ring-primary text-sm outline-none text-text-primary`}
+                      className={`w-full rounded-md ${IconComponent ? "pl-10" : "px-2"} pr-2 py-2 bg-background border border-border focus:ring-2 focus:ring-primary text-sm outline-none text-text-primary`}
                     />
+                  </div>
+                )}
+
+                {/* Render Logic: Email Fields */}
+                {field.type === "email" && (
+                  <div className="relative">
+                    {IconComponent && (
+                      <IconComponent
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
+                        size={16}
+                      />
+                    )}
+                    <input
+                      type="email"
+                      name={field.name}
+                      value={formData[field.name] ?? ""}
+                      onChange={handleInputChange}
+                      placeholder={field.placeholder}
+                      required={field.required}
+                      className={`w-full rounded-md ${IconComponent ? "pl-10" : "px-3"} pr-2 py-2 bg-background border border-border focus:ring-2 focus:ring-primary text-sm outline-none text-text-primary`}
+                    />
+                  </div>
+                )}
+
+                {field.type === "phone" && (
+                  <div className="relative">
+                    {IconComponent && (
+                      <IconComponent
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
+                        size={16}
+                      />
+                    )}
+                    <input
+                      type="tel"
+                      name={field.name}
+                      value={formData[field.name] ?? ""}
+                      onChange={handleInputChange}
+                      placeholder={field.placeholder}
+                      required={field.required}
+                      className={`w-full rounded-md ${IconComponent ? "pl-10" : "px-3"} pr-2 py-2 bg-background border border-border focus:ring-2 focus:ring-primary text-sm outline-none text-text-primary`}
+                    />
+                  </div>
+                )}
+
+                {/* Render Logic: Password */}
+                {field.type === "password" && (
+                  <div className="relative w-full">
+                    {IconComponent && (
+                      <IconComponent
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
+                        size={16}
+                      />
+                    )}
+                    <input
+                      type={showPassword[field.name] ? "text" : "password"}
+                      name={field.name}
+                      value={formData[field.name] ?? ""}
+                      onChange={handleInputChange}
+                      placeholder={field.placeholder}
+                      required={field.required}
+                      className={`w-full rounded-md ${IconComponent ? "pl-10" : "px-3"} pr-10 py-2 bg-background border border-border focus:ring-2 focus:ring-primary text-sm outline-none text-text-primary`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility(field.name)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors focus:outline-none"
+                    >
+                      {showPassword[field.name] ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </button>
                   </div>
                 )}
               </div>
@@ -267,12 +349,12 @@ export default function AddModal<T extends Record<string, any>>({
         </form>
 
         {/* Sticky Footer */}
-        <div className="p-4 border-t border-border bg-surface flex gap-3">
+        <div className="p-6 border-t border-border bg-surface flex gap-3 rounded-b-lg">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 p-2 border border-border font-bold text-text-secondary hover:bg-border transition-colors"
+            className="flex-1 p-2 border rounded-md border-border font-bold text-text-secondary hover:bg-border transition-colors"
           >
             Cancel
           </button>
@@ -280,7 +362,7 @@ export default function AddModal<T extends Record<string, any>>({
             form="universal-add-form"
             type="submit"
             disabled={loading}
-            className="flex-2 p-2 bg-primary hover:bg-primary-dark text-background font-bold flex items-center justify-center transition-all disabled:opacity-70 text-sm"
+            className="flex-2 p-2 bg-primary rounded-md hover:bg-primary-dark text-background font-bold flex items-center justify-center transition-all disabled:opacity-70 text-sm"
           >
             {loading ? (
               <Loader2 className="animate-spin" size={20} />

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { productService } from "../services/product.service";
 import type { ProductProps } from "../types";
+import { uploadImage } from "../utils/uploadImage";
 
 export const useProducts = () => {
   const [products, setProducts] = useState<ProductProps[]>([]);
@@ -25,18 +26,19 @@ export const useProducts = () => {
 
   const createProduct = async (product: Partial<ProductProps>, imageFile: File | null) => {
     try {
-      let image_urls = product.image_urls ?? [];
+
+      let icon_url = product.icon_url || "";
 
       if (imageFile) {
-        const upload = await productService.uploadProductImage(imageFile);
-        if (upload?.success && upload.data?.url) image_urls = [upload.data.url];
+        const upload = await uploadImage(imageFile, "product");
+        if (upload?.success && upload.data?.url) icon_url = upload.data.url;
       }
 
       const is_active = product.status === "unavailable" ? false : product.is_active ?? true;
 
       const data = await productService.createProduct({
         ...(product as ProductProps),
-        image_urls,
+        icon_url,
         is_active,
       });
 
@@ -60,13 +62,14 @@ export const useProducts = () => {
       const patch: Partial<ProductProps> = { ...updates };
 
       if (imageFile) {
-        const upload = await productService.uploadProductImage(imageFile);
+        const upload = await uploadImage(imageFile, "product");
         if (upload?.success && upload.data?.url) {
-          patch.image_urls = [upload.data.url];
+          patch.icon_url = upload.data.url;
         }
       }
 
       if (patch.status === "unavailable") patch.is_active = false;
+      
       if (patch.status === "available" || patch.status === "out_of_stock")
         patch.is_active = true;
 

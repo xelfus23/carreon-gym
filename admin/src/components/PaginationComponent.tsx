@@ -19,7 +19,7 @@ export default function PaginationComponent({ page, totalPages, setPage }: Pagin
             setPage((p) => Math.max(1, p - 1))
           }
           disabled={page === 1}
-          className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
+          className="px-3 rounded-md py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
         >
           ← Prev
         </button>
@@ -39,7 +39,7 @@ export default function PaginationComponent({ page, totalPages, setPage }: Pagin
                 key={p}
                 onClick={() => setPage(p)}
                 className={`px-3 rounded-lg py-1.5 text-xs font-semibold border transition-colors ${p === page
-                  ? "bg-primary text-background border-primary"
+                  ? "bg-primary-dark text-background border-primary-dark"
                   : "border-border bg-surface hover:bg-border text-text-primary"
                   }`}
               >
@@ -55,7 +55,7 @@ export default function PaginationComponent({ page, totalPages, setPage }: Pagin
             )
           }
           disabled={page === totalPages}
-          className="px-3 py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
+          className="px-3 rounded-md py-1.5 text-xs font-semibold border border-border bg-surface hover:bg-border text-text-primary disabled:opacity-40 transition-colors"
         >
           Next →
         </button>

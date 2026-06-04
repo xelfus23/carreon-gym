@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+// import React, { useEffect, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { chatService } from "../services/ai.service";
+// import { chatService } from "../services/ai.service";
 import { useStats } from "../hooks/useStats";
 
 export default function Dashboard() {
@@ -21,55 +21,55 @@ export default function Dashboard() {
     isLoading: statsLoading,
   } = useStats();
 
-  const [aiAnalysis, setAiAnalysis] = useState<string>(
-    "Initializing analysis session...",
-  );
-  const [isTyping, setIsTyping] = useState(false);
+  // const [aiAnalysis, setAiAnalysis] = useState<string>(
+  //   "Initializing analysis session...",
+  // );
+  // const [isTyping, setIsTyping] = useState(false);
 
-  useEffect(() => {
-    if (statsLoading || !stats) return;
+  // useEffect(() => {
+  //   if (statsLoading || !stats) return;
 
-    const fetchAnalysis = async () => {
-      try {
-        const session = await chatService.createChat();
+  //   const fetchAnalysis = async () => {
+  //     try {
+  //       const session = await chatService.createChat();
 
-        const statsStr = [
-          `Total members: ${stats.total_members}`,
-          `New members this month: ${stats.new_members_this_month}`,
-          `Active subscriptions: ${stats.active_subscriptions}`,
-          `Today's check-ins: ${stats.todays_checkins}`,
-          `Revenue this month: ₱${stats.revenue_this_month}`,
-          `Revenue growth: ${stats.revenue_growth_percent}%`,
-          `Subscriptions expiring soon: ${stats.expiring_soon}`,
-          `Peak hour today: ${stats.peak_hour_today !== null ? formatHour(stats.peak_hour_today) : "N/A"}`,
-        ].join(", ");
+  //       const statsStr = [
+  //         `Total members: ${stats.total_members}`,
+  //         `New members this month: ${stats.new_members_this_month}`,
+  //         `Active subscriptions: ${stats.active_subscriptions}`,
+  //         `Today's check-ins: ${stats.todays_checkins}`,
+  //         `Revenue this month: ₱${stats.revenue_this_month}`,
+  //         `Revenue growth: ${stats.revenue_growth_percent}%`,
+  //         `Subscriptions expiring soon: ${stats.expiring_soon}`,
+  //         `Peak hour today: ${stats.peak_hour_today !== null ? formatHour(stats.peak_hour_today) : "N/A"}`,
+  //       ].join(", ");
 
-        const prompt =
-          `You are a gym business consultant. Analyze these gym stats: ${statsStr}. ` +
-          `Identify one major growth opportunity and one risk. ` +
-          `Response should be concise bullet points, max 4 bullets total.`;
+  //       const prompt =
+  //         `You are a gym business consultant. Analyze these gym stats: ${statsStr}. ` +
+  //         `Identify one major growth opportunity and one risk. ` +
+  //         `Response should be concise bullet points, max 4 bullets total.`;
 
-        setIsTyping(true);
-        setAiAnalysis("");
+  //       setIsTyping(true);
+  //       setAiAnalysis("");
 
-        await chatService.sendMessage(
-          session.id,
-          prompt,
-          (token) => setAiAnalysis((prev) => prev + token),
-          () => {},
-        );
-      } catch (error) {
-        console.error("Dashboard Analysis Error:", error);
-        setAiAnalysis(
-          "Analytics engine unavailable. Please check your backend connection.",
-        );
-      } finally {
-        setIsTyping(false);
-      }
-    };
+  //       await chatService.sendMessage(
+  //         session.id,
+  //         prompt,
+  //         (token) => setAiAnalysis((prev) => prev + token),
+  //         () => {},
+  //       );
+  //     } catch (error) {
+  //       console.error("Dashboard Analysis Error:", error);
+  //       setAiAnalysis(
+  //         "Analytics engine unavailable. Please check your backend connection.",
+  //       );
+  //     } finally {
+  //       setIsTyping(false);
+  //     }
+  //   };
 
-    fetchAnalysis();
-  }, [stats, statsLoading]);
+  //   fetchAnalysis();
+  // }, [stats, statsLoading]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -137,7 +137,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Row 2: Attendance Chart + AI Insight ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Attendance Chart */}
         <div className="lg:col-span-2 bg-surface p-6 border border-border shadow-sm">
           <div className="flex items-center justify-between mb-6">
@@ -229,7 +229,7 @@ export default function Dashboard() {
         </div>
 
         {/* AI Insight Panel */}
-        <div className="bg-surface border border-border text-text-primary p-6 shadow-xl flex flex-col">
+        {/* <div className="bg-surface border border-border text-text-primary p-6 shadow-xl flex flex-col">
           <div className="flex items-center gap-3 mb-6">
             <span className="text-2xl">✨</span>
             <div>
@@ -262,7 +262,7 @@ export default function Dashboard() {
           <button className="mt-6 w-full py-3 bg-primary text-background font-bold hover:bg-primary-dark transition-colors">
             Generate Report
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* ── Row 3: Revenue Chart + Peak Hours ── */}

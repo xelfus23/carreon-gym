@@ -1,15 +1,25 @@
 import { Edit, Trash } from "lucide-react";
-import type { EquipmentTypes } from "../../hooks/useEquipments";
-import type { ActionItemProps } from "../../types";
+import type { ActionItemProps, EquipmentProps } from "../../types";
 import { useCallback, useRef, useState } from "react";
 import { ActionMenu } from "../ActionMenu";
 import { getMuscleStyle } from "../../constants";
 
 // ─── Category Badge ───────────────────────────────────────────────────────────
 
+const categoryMap: Record<string, string> = {
+  Accessory: "text-emerald-500",
+  ["Free Weight"]: "text-amber-500",
+  Cardio: "text-indigo-500",
+  Machine: "text-sky-500"
+}
+
 export function CategoryBadge({ category }: { category: string }) {
+
+  const color = categoryMap[category]
+  console.log(category)
+  console.log(color)
   return (
-    <span className="shrink-0 text-[0.6rem] font-bold tracking-widest uppercase text-primary bg-primary/8 rounded px-2 py-0.5 whitespace-nowrap">
+    <span className={`shrink-0 text-[0.6rem] font-bold tracking-widest uppercase ${color} rounded px-2 py-0.5 whitespace-nowrap`}>
       {category}
     </span>
   );
@@ -31,28 +41,24 @@ export function MuscleTag({ muscle }: { muscle: string }) {
 // ─── Equipment Row ────────────────────────────────────────────────────────────
 
 export default function EquipmentRow({
-  item,
+  equipment,
   onEdit,
   onDelete,
 }: {
-  item: EquipmentTypes;
-  onEdit: (e: EquipmentTypes) => void;
-  onDelete: (e: EquipmentTypes) => void;
+  equipment: EquipmentProps;
+  onEdit: (e: EquipmentProps) => void;
+  onDelete: (e: EquipmentProps) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
-
-  // const muscles = (item.target_muscles ?? "")
-  //   .split(",")
-  //   .map((muscle) => muscle.trim())
-  //   .filter(Boolean);
+  const previewUrl = equipment.icon_url ?? null;
 
   const actions: ActionItemProps[] = [
     {
       label: "Edit",
       onClick: () => {
-        onEdit(item);
+        onEdit(equipment);
         close();
       },
       icon: <Edit size={16} />,
@@ -60,7 +66,7 @@ export default function EquipmentRow({
     {
       label: "Delete",
       onClick: () => {
-        onDelete(item); //
+        onDelete(equipment); //
         close();
       },
       icon: <Trash size={16} />,
@@ -71,24 +77,36 @@ export default function EquipmentRow({
 
   return (
     <tr className={`transition-colors group hover:bg-border/40`}>
-      <td className="p-3 text-xs text-text-secondary">{item.id.toString()}</td>
-
-      <td className="p-3">
+      <td className="p-4 text-xs text-text-secondary">{equipment.id.toString()}</td>
+      <td className="p-4">
+        {previewUrl ? (
+          <img
+            src={previewUrl}
+            alt={equipment.equipment_name}
+            className="h-10 w-10 rounded-md object-cover border border-border bg-background"
+            loading="lazy"
+          />
+        ) : (
+          <div className="h-10 w-10 rounded-md border text border-border bg-background" />
+        )}
+      </td>
+      <td className="p-4">
         <div className="flex items-center gap-2.5">
           <span className="text-sm font-semibold text-text-primary">
-            {item.equipment_name}
+            {equipment.equipment_name}
           </span>
         </div>
       </td>
 
-      <td className="p-3">
-        <CategoryBadge category={item.category} />
-      </td>
-      <td className="text-sm font-semibold text-text-primary">
-        {item.quantity ?? "-"}
+      <td className="p-4">
+        <CategoryBadge category={equipment.category} />
       </td>
 
-      <td className="p-3">
+      <td className="p-4 text-sm font-semibold text-text-primary">
+        {equipment.quantity ?? "-"}
+      </td>
+
+      <td className="p-4">
         <div className="flex items-center justify-end">
           <button
             ref={triggerRef}

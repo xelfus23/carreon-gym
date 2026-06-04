@@ -164,7 +164,7 @@ export default function Attendance() {
       />
 
       <div className="border border-border bg-surface p-4 flex flex-col md:flex-row md:items-end gap-3">
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col">
           <label className="text-xs text-text-secondary font-semibold uppercase tracking-wide">
             Member
           </label>
@@ -173,7 +173,7 @@ export default function Attendance() {
             onChange={(e) =>
               setSelectedMemberId(e.target.value ? Number(e.target.value) : "")
             }
-            className="mt-1 w-full px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+            className="mt-1 w-full px-2 py-2 bg-surface border rounded-lg border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
           >
             <option value="">Select member</option>
             {members.map((m) => (
@@ -193,7 +193,7 @@ export default function Attendance() {
             onChange={(e) =>
               setManualAction(e.target.value as "check_in" | "check_out")
             }
-            className="mt-1 px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+            className="mt-1 px-3 rounded-lg py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
           >
             <option value="check_in">Check In</option>
             <option value="check_out">Check Out</option>
@@ -203,7 +203,7 @@ export default function Attendance() {
         <button
           onClick={handleManualAttendance}
           disabled={isSubmittingManual}
-          className="px-4 py-2 bg-primary text-background text-sm font-semibold disabled:opacity-50"
+          className="px-4 rounded-lg cursor-pointer py-2 bg-primary hover:bg-primary-dark transition-colors text-background text-sm font-semibold disabled:opacity-50"
         >
           {isSubmittingManual ? "Saving..." : "Log Attendance"}
         </button>
@@ -257,7 +257,7 @@ export default function Attendance() {
           setPage={setPage}
           page={page}
           pageSize={PAGE_SIZE}
-          renderRow={(log) => <AttendanceRow log={log} />}
+          renderRow={(log) => <AttendanceRow key={log.id} log={log} />}
         />
       </div>
 

@@ -1,6 +1,12 @@
+/* 1. External Font Imports must always be at the very top */
+@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+/* 2. Tailwind Framework Initialization */
 @import "tailwindcss";
 
 @theme {
+    --font-mulish: "Mulish", sans-serif;
+
     /* Colors */
     --color-primary: #7cff00;
     --color-primary-dark: #5ecc00;
@@ -16,7 +22,10 @@
 }
 
 :root {
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-family: "Mulish", sans-serif;
+    font-optical-sizing: auto;
+
+
     line-height: 1.5;
     font-weight: 400;
 

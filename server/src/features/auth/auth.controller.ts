@@ -8,6 +8,7 @@ import { hashToken } from "../../utils/hashToken.ts";
 import { saveSessionToDB } from "../../services/saveSession.ts";
 import { catchAsync } from "../../utils/catchAsync.ts";
 import { AppError } from "../../utils/appError.ts";
+import { env } from "../../config/env.ts";
 
 export const loginController = catchAsync(async (req: Request, res: Response) => {
   const user = await loginDomain(req.body);
@@ -85,7 +86,8 @@ export const loginController = catchAsync(async (req: Request, res: Response) =>
 
 export const logoutController = catchAsync(async (req: Request, res: Response) => {
   // 1. Unified Token Extraction (Check cookies first, then check fallback request body)
-  const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  const refreshToken =
+    req.cookies?.refreshToken ?? req.body?.refreshToken;
 
   if (!refreshToken) {
     throw new AppError(
@@ -98,7 +100,7 @@ export const logoutController = catchAsync(async (req: Request, res: Response) =
   // 2. Validate Token Signature
   let decoded: any;
   try {
-    decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!);
+    decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET);
   } catch (err) {
     // Security fallback: clear browser cookies even if the signature expired
     res.clearCookie("accessToken", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict" });
@@ -132,7 +134,7 @@ export const logoutController = catchAsync(async (req: Request, res: Response) =
 
   if (sessionId) {
     await pool.query("DELETE FROM user_sessions WHERE id = $1", [sessionId]);
-  } else if (req.body.refreshToken) {
+  } else if (req.body?.refreshToken) {
     // If mobile app sends an explicit token but it's completely missing from DB session tables
     throw new AppError("Session not found", 404, "SESSION_NOT_FOUND");
   }

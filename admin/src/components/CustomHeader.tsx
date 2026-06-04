@@ -1,4 +1,4 @@
-import { Plus, RefreshCw } from "lucide-react";
+import { PlusCircle, RefreshCw } from "lucide-react";
 import type { ReactElement } from "react";
 
 interface CustomHeaderProps {
@@ -36,18 +36,17 @@ export default function CustomHeader({
         {!isLoading && (
           <button
             onClick={refresh}
-            className="flex items-center justify-center gap-2 px-4 py-2 border border-border bg-surface text-text-primary text-sm font-bold hover:bg-border transition-all active:scale-90"
+            className="flex rounded-full cursor-pointer items-center justify-center gap-2 p-2 border border-border bg-surface text-text-primary text-sm font-bold hover:bg-border transition-all active:scale-90"
           >
-            <RefreshCw size={14} />
-            Refresh
+            <RefreshCw className="text-text-secondary" size={14} />
           </button>
         )}
         {hasAction && (
           <button
             onClick={onClick}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-background text-sm font-bold hover:bg-primary-dark transition-all active:scale-90"
+            className="flex rounded-md cursor-pointer items-center justify-center gap-2 px-4 py-2 bg-primary text-background text-sm font-bold hover:bg-primary-dark transition-all active:scale-90"
           >
-            <Plus size={16} /> {buttonLabel}
+            <PlusCircle size={16} /> {buttonLabel}
           </button>
         )}
       </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { purchaseService } from "../services/purchase.service";
+import { getWsUrl } from "../utils/getWsUrl";
 
 export type TransactionProps = {
   transaction_id: number;
@@ -25,9 +26,6 @@ export const useTransactions = (userId?: number) => {
     setError(null);
     try {
       const result = await purchaseService.getAllTransactions(userId);
-
-      console.log(result)
-      // Following your pattern: assuming result.data is the array
       setTransactions(result.data || result);
     } catch (err) {
       setError("Failed to load transaction logs");
@@ -44,22 +42,12 @@ export const useTransactions = (userId?: number) => {
 
   useEffect(() => {
     const BASE_URL = import.meta.env.VITE_SERVER_URL;
-    const wsUrl = (() => {
-      try {
-        const parsed = new URL(BASE_URL);
-        const protocol = parsed.protocol === "https:" ? "wss:" : "ws:";
-        return `${protocol}//${parsed.host}/ws/admin`;
-      } catch {
-        return `ws://${BASE_URL.replace(/^https?:\/\//, "")}/ws/admin`;
-      }
-    })();
+    const wsUrl = getWsUrl(BASE_URL, "/ws/admin");
 
     const ws = new WebSocket(wsUrl);
 
-    console.log("Connecting to:", wsUrl);
-
     ws.onopen = () => {
-      console.log("🚀 Transaction WebSocket Connected");
+      // console.log("🚀 Transaction WebSocket Connected");
     };
 
     ws.onmessage = (event) => {
@@ -96,7 +84,6 @@ export const useTransactions = (userId?: number) => {
         ws.readyState === WebSocket.CONNECTING ||
         ws.readyState === WebSocket.OPEN
       ) {
-        console.log("Cleaning up WS connection...");
         ws.close();
       }
     };

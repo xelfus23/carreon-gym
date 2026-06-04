@@ -10,13 +10,14 @@ import cookieParser from "cookie-parser";
 import memberRoutes from "./features/members/members.route.ts";
 import statsRoutes from "./features/stats/stats.route.ts";
 import attendanceRoute from "./features/attendance/attendance.route.ts";
-import subscriptionRoutes from "./features/subscription/subscription.route.ts";
+import subscriptionRoutes from "./features/gymSubscription/subscription.route.ts";
 import { globalErrorHandler } from "./services/globalErrorHandler.ts";
 import { env } from "./config/env.ts";
 import productRoutes from "./features/products/product.route.ts";
 import purchaseRoutes from "./features/purchase/purchase.route.ts";
 import gymDetailsRoute from "./features/gymDetails/gymDetails.route.ts";
 import userSubscriptionRoutes from "./features/userSubscription/userSubscription.route.ts";
+import { uploadImage } from "./features/uploads/imageUpload.controller.ts";
 
 dotenv.config({ path: ".env" });
 
@@ -43,11 +44,12 @@ app.use("/api/workoutplan", workoutRoutes);
 app.use("/api/members", memberRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/attendance", attendanceRoute);
-app.use("/api/subscriptions", subscriptionRoutes);
-app.use("/api/users-subscriptions", userSubscriptionRoutes);
+app.use("/api/gym-subscriptions", subscriptionRoutes);
+app.use("/api/user-subscriptions", userSubscriptionRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchase", purchaseRoutes);
 app.use("/api/gym-details", gymDetailsRoute);
+app.use("/api/image-upload", uploadImage)
 
 app.use(globalErrorHandler);
 

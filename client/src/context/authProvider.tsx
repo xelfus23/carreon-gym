@@ -63,8 +63,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 } = await authStorage.load();
 
                 if (!accessToken || !refreshToken) {
-                    console.log("No Access or Refresh Token");
-                    return; // return if no tokens found. - cancel the whole function
+                    console.log("No access or refresh token — session not restored.");
+                    await authStorage.clear();
+                    tokenManager.clear();
+                    return;
                 }
 
                 tokenManager.set(accessToken, refreshToken); // there's token available - set token state

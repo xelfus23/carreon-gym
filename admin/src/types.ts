@@ -18,14 +18,6 @@ export type SubscriptionStatus = "active" | "expired" | "pending" | "cancelled";
 
 export type AccountStatus = "active" | "suspended" | "banned" | "deleted";
 
-export type AccountRegistrationProps = {
-  first_name: string;
-  last_name: string;
-  password: string;
-  email: string;
-  phone_number: string;
-};
-
 export interface UserAccountProps {
   id: number;
   role: "member" | "admin" | "trainer";
@@ -97,6 +89,8 @@ export interface ActionItemProps {
 }
 
 export type EquipmentProps = {
+  id: number;
+  icon_url: string;
   equipment_name: string;
   category: string;
   target_muscles: string;
@@ -126,7 +120,7 @@ export type gymDetailsProps = {
 export type ProductProps = {
   id: number;
   product_name: string;
-  image_urls: string[];
+  icon_url: string;
   price: number;
   last_restock: string;
   available: boolean;
@@ -150,12 +144,13 @@ export interface SubscriptionPlanProps {
   duration_days: number;
   category: "personal_training" | "class" | "membership" | "add_on";
   is_active: boolean;
+  icon_url: string
 }
 
 export interface FormField {
   name: string;
   label: string;
-  type: "text" | "number" | "textarea" | "checkbox" | "select" | "image";
+  type: "text" | "number" | "textarea" | "checkbox" | "select" | "image" | "password" | "phone" | "email";
   placeholder?: string;
   required?: boolean;
   options?: { label: string; value: string | number }[]; // For select fields

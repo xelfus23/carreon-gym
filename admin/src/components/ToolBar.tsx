@@ -32,15 +32,15 @@ export default function ToolBar<T>({ search, handleSearchChange, select, filtere
       />
 
       {select?.map((values) => (
-        <div className="space-x-2">
+        <div key={values.label} className="space-x-2">
           <label className="text-xs">{values.label}:</label>
           <select
             value={values.value}
             onChange={values.onChange}
-            className="px-2 py-1 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+            className="px-2 py-1 rounded-md bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
           >
             {values.options.map((v) => (
-              <option value={v.value}>{v.label}</option>
+              <option key={v.label} value={v.value}>{v.label}</option>
             ))}
           </select>
 

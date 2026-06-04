@@ -29,9 +29,9 @@ export const updateProductDomain = async (
     updates.push(`name = $${values.length}`);
   }
 
-  if (params.image_urls !== undefined) {
-    values.push(params.image_urls);
-    updates.push(`image_urls = $${values.length}`);
+  if (params.icon_url !== undefined) {
+    values.push(params.icon_url);
+    updates.push(`icon_url = $${values.length}`);
   }
 
   if (params.price !== undefined) {

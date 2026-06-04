@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { memberService } from "../services/member.service";
+import { getWsUrl } from "../utils/getWsUrl";
 
 export type AttendanceLogProps = {
   id: number;
@@ -78,8 +79,7 @@ export const useAttendanceLog = () => {
 
   useEffect(() => {
     const BASE_URL = import.meta.env.VITE_SERVER_URL;
-    const wsUrl = `ws://${BASE_URL}/ws/admin`;
-
+    const wsUrl = getWsUrl(BASE_URL, "/ws/admin");
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => console.log("✅ Attendance Socket Connected");
@@ -111,7 +111,7 @@ export const useAttendanceLog = () => {
             result: "failed",
             reason:
               message.data.reason != null &&
-              String(message.data.reason).trim() !== ""
+                String(message.data.reason).trim() !== ""
                 ? formatAttemptReason(String(message.data.reason))
                 : "Unknown error",
             metadata: null,

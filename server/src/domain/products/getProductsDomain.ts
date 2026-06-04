@@ -5,7 +5,7 @@ export const getProductsDomain = async (id?: number) => {
     SELECT
       p.id,
       p.name AS product_name,
-      p.image_urls,
+      p.icon_url,
       p.price,
       p.last_restock_at AS last_restock,
       p.is_active AS available,

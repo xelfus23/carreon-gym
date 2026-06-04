@@ -22,12 +22,12 @@ export const createProductDomain = async (params: ProductProps) => {
           : "available";
 
     const productRes = await client.query(
-      `INSERT INTO products (name, image_urls, category_id, price, stocks, status, is_active, last_restock_at) 
+      `INSERT INTO products (name, icon_url, category_id, price, stocks, status, is_active, last_restock_at) 
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-             RETURNING id, name, image_urls, price, stocks, status`,
+             RETURNING id, name, icon_url, price, stocks, status`,
       [
         params.product_name,
-        params.image_urls ?? [],
+        params.icon_url,
         catRes.rows[0].id,
         params.price,
         params.stocks,

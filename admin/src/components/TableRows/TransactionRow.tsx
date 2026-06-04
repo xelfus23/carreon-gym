@@ -73,10 +73,7 @@ export default function TransactionRow({
       ];
 
   return (
-    <tr
-      key={tx.transaction_id}
-      className={`transition-colors group hover:bg-border/40`}
-    >
+    <tr className={`transition-colors group hover:bg-border/40`}>
       <td className="p-4 whitespace-nowrap">
         <p className="text-text-secondary text-[10px]">{tx.reference_no}</p>
       </td>

@@ -17,6 +17,13 @@ type SortDir = "asc" | "desc";
 
 const fields: FormField[] = [
   {
+    name: "icon_url",
+    label: "Subscription Icon",
+    type: "image",
+    gridSpan: "full",
+    placeholder: "",
+  },
+  {
     name: "name",
     label: "Name",
     type: "text",
@@ -28,6 +35,7 @@ const fields: FormField[] = [
     label: "Description",
     type: "textarea",
     placeholder: "Enter the description of the subscription plan",
+    gridSpan: 'full'
   },
   {
     name: "category",
@@ -262,6 +270,7 @@ export default function GymSubscriptionsAdmin() {
         <CustomTable<SubscriptionPlanProps>
           renderRow={(sub) => (
             <SubscriptionsRow
+              key={sub.id}
               plan={sub}
               onEdit={handleEdit}
               onDelete={onDelete}
@@ -274,7 +283,8 @@ export default function GymSubscriptionsAdmin() {
           page={page}
           pageSize={PAGE_SIZE}
           columns={[
-            { label: "Plan ID", key: "id" },
+            { label: "ID", key: "id" },
+            { label: "Icon", key: "icon_url" },
             { label: "Name", key: "name" },
             { label: "Description", key: "description" },
             { label: "Category", key: "category" },

@@ -7,10 +7,13 @@ import { generateTokens } from "../utils/generateTokens.ts";
 
 export const refreshController = async (req: Request, res: Response) => {
   // 1. Extract the token from either Web cookies or Mobile request body
-  const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  const refreshToken =
+    req.cookies?.refreshToken ?? req.body?.refreshToken;
 
   // Determine client type based on request delivery style
-  const isMobileClient = req.headers["x-client-platform"] === "mobile" || !!req.body.refreshToken;
+  const isMobileClient =
+    req.headers["x-client-platform"] === "mobile" ||
+    !!req.body?.refreshToken;
 
   if (!refreshToken) {
     return res

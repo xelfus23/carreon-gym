@@ -1,13 +1,12 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
 import type {
-  AccountRegistrationProps,
   UserAccountProps,
   ConfirmDialogTypes,
+  FormField,
 } from "../types";
 import MemberRow from "../components/TableRows/MemberRow";
 import SubscriptionModal from "../components/SubscriptionModal";
-import { memberService } from "../services/member.service";
 import { CircleAlert, CircleCheck, Loader2, Star, Users } from "lucide-react";
 import CustomTable from "../components/CustomTable";
 import CustomHeader from "../components/CustomHeader";
@@ -16,6 +15,7 @@ import { COLORS } from "../constants";
 import type { SelectProps } from "../components/ToolBar";
 import ToolBar from "../components/ToolBar";
 import ConfirmDialog from "../components/Modals/ConfirmDialog";
+import AddModal from "../components/Modals/AddModal";
 
 export type SortKey = keyof UserAccountProps | null;
 export type SortDir = "asc" | "desc";
@@ -27,6 +27,48 @@ export type FilterStatus =
   | "deleted";
 export type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
+
+
+const fields: FormField[] = [
+  {
+    name: "first_name",
+    label: "First Name",
+    type: "text",
+    gridSpan: "half",
+    required: true
+  },
+  {
+    name: "last_name",
+    label: "Last Name",
+    type: "text",
+    gridSpan: "half",
+    required: true
+  },
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    gridSpan: "full",
+    required: true
+  },
+  {
+    name: "email",
+    label: "Email",
+    type: "text",
+    gridSpan: "half",
+    required: true
+  },
+  {
+    name: "phone_number",
+    label: "Phone Number",
+    type: "phone",
+    gridSpan: "half",
+    required: true
+  }
+];
+
+
+
 export default function Members() {
   const {
     members,
@@ -36,21 +78,11 @@ export default function Members() {
     deleteAccount,
     banAccount,
     suspendAccount,
+    createAccount
   } = useMember();
   const [subscriptionMember, setSubscriptionMember] =
     useState<UserAccountProps | null>(null);
-  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
-  const [isSubmittingMember, setIsSubmittingMember] = useState(false);
-  const [addMemberError, setAddMemberError] = useState<string | null>(null);
-  const [addMemberSuccess, setAddMemberSuccess] = useState<string | null>(null);
-
-  const [newMember, setNewMember] = useState<AccountRegistrationProps>({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone_number: "",
-    password: "",
-  });
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Table controls
   const [search, setSearch] = useState("");
@@ -111,35 +143,6 @@ export default function Members() {
     });
   };
 
-  const handleCreateMember = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setAddMemberError(null);
-    setAddMemberSuccess(null);
-
-    setIsSubmittingMember(true);
-    try {
-      await memberService.createMember(newMember);
-      setAddMemberSuccess("Member created successfully.");
-      setNewMember({
-        first_name: "",
-        last_name: "",
-        email: "",
-        phone_number: "",
-        password: "",
-      });
-      setIsAddMemberOpen(false);
-      refresh();
-    } catch (err) {
-      if (err instanceof Error) {
-        setAddMemberError(err.message);
-      } else {
-        setAddMemberError("Failed to create member.");
-      }
-    } finally {
-      setIsSubmittingMember(false);
-    }
-  };
-
   // ── Table logic ───────────────────────────────────────────────────────
 
   const filtered = useMemo(() => {
@@ -194,8 +197,8 @@ export default function Members() {
         .length,
       avgAttendance: members.length
         ? Math.round(
-            members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
-          )
+          members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
+        )
         : 0,
     }),
     [members],
@@ -207,9 +210,7 @@ export default function Members() {
   };
 
   const handleOnClick = () => {
-    setAddMemberError(null);
-    setAddMemberSuccess(null);
-    setIsAddMemberOpen((v) => !v);
+    setIsAddModalOpen((v) => !v);
   };
 
   if (isLoading)
@@ -298,83 +299,22 @@ export default function Members() {
         hasAction={true}
       />
 
-      {isAddMemberOpen && (
-        <form
-          onSubmit={handleCreateMember}
-          className="border border-border bg-surface p-4 grid grid-cols-1 md:grid-cols-5 gap-3"
-        >
-          <input
-            required
-            value={newMember.first_name}
-            onChange={(e) =>
-              setNewMember((prev) => ({ ...prev, firstName: e.target.value }))
-            }
-            placeholder="First name"
-            className="px-3 py-2 bg-surface border border-border text-sm focus:ring-2 focus:ring-primary outline-none"
-          />
-          <input
-            required
-            value={newMember.last_name}
-            onChange={(e) =>
-              setNewMember((prev) => ({ ...prev, lastName: e.target.value }))
-            }
-            placeholder="Last name"
-            className="px-3 py-2 bg-surface border border-border text-sm focus:ring-2 focus:ring-primary outline-none"
-          />
-          <input
-            required
-            type="email"
-            value={newMember.email}
-            onChange={(e) =>
-              setNewMember((prev) => ({ ...prev, email: e.target.value }))
-            }
-            placeholder="Email"
-            className="px-3 py-2 bg-surface border border-border text-sm focus:ring-2 focus:ring-primary outline-none"
-          />
-          <input
-            required
-            value={newMember.phone_number}
-            onChange={(e) =>
-              setNewMember((prev) => ({ ...prev, phoneNumber: e.target.value }))
-            }
-            placeholder="Contact number"
-            className="px-3 py-2 bg-surface border border-border text-sm focus:ring-2 focus:ring-primary outline-none"
-          />
-          <input
-            required
-            type="password"
-            minLength={8}
-            value={newMember.password}
-            onChange={(e) =>
-              setNewMember((prev) => ({ ...prev, password: e.target.value }))
-            }
-            placeholder="Password"
-            className="px-3 py-2 bg-surface border border-border text-sm focus:ring-2 focus:ring-primary outline-none"
-          />
-
-          <div className="md:col-span-5 flex items-center justify-between gap-3">
-            <div className="text-xs">
-              {addMemberError && (
-                <span className="text-rose-500">{addMemberError}</span>
-              )}
-              {!addMemberError && addMemberSuccess && (
-                <span className="text-emerald-500">{addMemberSuccess}</span>
-              )}
-            </div>
-            <button
-              type="submit"
-              disabled={isSubmittingMember}
-              className="px-4 py-2 bg-primary text-background text-sm font-semibold disabled:opacity-50"
-            >
-              {isSubmittingMember ? "Adding..." : "Create Member"}
-            </button>
-          </div>
-        </form>
+      {isAddModalOpen && (
+        <AddModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSuccess={() => refresh()}
+          title="Create Account"
+          subtitle="Create new member account"
+          fields={fields}
+          onSave={(data) => createAccount(data)}
+          submitButtonText="Create Account"
+        />
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map(({ label, value, color, icon }) => (
-          <StatsCard label={label} value={value} color={color} icon={icon} />
+          <StatsCard key={label} label={label} value={value} color={color} icon={icon} />
         ))}
       </div>
 

@@ -3,21 +3,6 @@ import type { ProductProps } from "../types";
 import { authService } from "./auth.service";
 
 export const productService = {
-  uploadProductImage: async (imageFile: File) => {
-    const formData = new FormData();
-    formData.append("image", imageFile);
-
-    const result = await authService.fetchWithRefresh(
-      `${API_URL}/api/products/upload`,
-      {
-        method: "POST",
-        body: formData,
-      },
-    );
-
-    const data = await result.json();
-    return data as { success: boolean; data?: { url: string } };
-  },
 
   getProduct: async () => {
     const result = await authService.fetchWithRefresh(

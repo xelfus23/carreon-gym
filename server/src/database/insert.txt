@@ -16,133 +16,133 @@ ON CONFLICT (name) DO NOTHING;
 -- INSERT EQUIPMENT WITH DESCRIPTIONS
 -- ============================================================================
 
-INSERT INTO equipment (name, category_id, type, quantity)
+INSERT INTO equipment (name, category_id, type, quantity, icon_url)
 VALUES
 -- FREE WEIGHTS
 ('Dumbbells',
  (SELECT id FROM equipment_category WHERE name='Free Weight'),
  'Free Weight',
- 20),
+ 20, ''),
 
 ('Barbells',
  (SELECT id FROM equipment_category WHERE name='Free Weight'),
  'Free Weight',
- 5),
+ 5, ''),
 
 ('Curve Barbells',
  (SELECT id FROM equipment_category WHERE name='Free Weight'),
  'Free Weight',
- 3),
+ 3, ''),
 
 ('Arm Bars',
  (SELECT id FROM equipment_category WHERE name='Free Weight'),
  'Free Weight',
- 2),
+ 2, ''),
 
 -- ACCESSORIES
 ('Yoga Ball',
  (SELECT id FROM equipment_category WHERE name='Accessory'),
  'Accessory',
- 10),
+ 10, ''),
 
 ('Resistance Bands',
  (SELECT id FROM equipment_category WHERE name='Accessory'),
  'Accessory',
- 15),
+ 15, ''),
 
 -- MACHINES (UPPER BODY)
 ('Bench Press',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 3),
+ 3, ''),
 
 ('Pec Deck',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 1),
+ 1, ''),
 
 ('Incline Press',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 1),
+ 1, ''),
 
 ('Cable Row',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 2),
+ 2, ''),
 
 ('Lat Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 2),
+ 2, ''),
 
 ('Lat Pulldown',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 2),
+ 2, ''),
 
 -- LOWER BODY MACHINES
 ('Leg Press',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 2),
+ 2, ''),
 
 ('Smith Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 1),
+ 1, ''),
 
 ('Calf Raise Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 1),
+ 1, ''),
 
 ('Leg Extension Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 1),
+ 1, ''),
 
 ('Leg Curl Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 1),
+ 1, ''),
 
 ('Hack Squat Machine',
  (SELECT id FROM equipment_category WHERE name='Machine'),
  'Machine',
- 1),
+ 1, ''),
 
 -- SPECIAL STATION
 ('Barbell Squat Rack',
  (SELECT id FROM equipment_category WHERE name='Free Weight'),
  'Station',
- 2),
+ 2, ''),
 
 -- CARDIO
 ('Cardio Bike',
  (SELECT id FROM equipment_category WHERE name='Cardio'),
  'Cardio',
- 10),
+ 10, ''),
 
 ('Treadmill',
  (SELECT id FROM equipment_category WHERE name='Cardio'),
  'Cardio',
- 8);
+ 8, '');
 
 -- ============================================================================
 -- SUBSCRIPTION PLANS (Daily / Weekly / Monthly)
 -- ============================================================================
 
-INSERT INTO subscription_plans (name, description, price, duration_days, is_active, icon, category) VALUES
-('Daily Pass', 'Full access to gym facilities for 24 hours', 50.00, 1, TRUE, 'clock', 'membership'),
-('Weekly Pass', 'Full access to gym facilities for 7 days', 200.00, 7, TRUE, NULL, 'membership'),
-('Monthly Membership', 'Our standard 30-day unlimited access plan', 600.00, 30, TRUE, NULL, 'membership'),
-('3 Months Pass', 'Full access to gym facilities for 3 months', 1500.00, 90, TRUE, NULL, 'membership'),
-('Boxing (Single Session)', 'One-time boxing class pass', 200.00, 1, TRUE, NULL, 'class'),
-('Boxing (Monthly)', 'Unlimited boxing for 30 days', 2000.00, 30, TRUE, NULL, 'class'),
-('Personal Trainer (Single Session)', '1-on-1 session with a trainer', 300.00, 1, TRUE, NULL, 'personal_training'),
-('Personal Trainer (Monthly)', 'Personal training package for 30 days', 3000.00, 30, TRUE, NULL, 'personal_training'),
-('Treadmill', 'Unlimited treadmill use', 100.00, 30, TRUE, NULL, 'add_on')
+INSERT INTO subscription_plans (name, description, price, duration_days, is_active, icon, category, icon_url) VALUES
+('Daily Pass', 'Full access to gym facilities for 24 hours', 50.00, 1, TRUE, 'clock', 'membership', ''),
+('Weekly Pass', 'Full access to gym facilities for 7 days', 200.00, 7, TRUE, NULL, 'membership', ''),
+('Monthly Membership', 'Our standard 30-day unlimited access plan', 600.00, 30, TRUE, NULL, 'membership', ''),
+('3 Months Pass', 'Full access to gym facilities for 3 months', 1500.00, 90, TRUE, NULL, 'membership', ''),
+('Boxing (Single Session)', 'One-time boxing class pass', 200.00, 1, TRUE, NULL, 'class', ''),
+('Boxing (Monthly)', 'Unlimited boxing for 30 days', 2000.00, 30, TRUE, NULL, 'class', ''),
+('Personal Trainer (Single Session)', '1-on-1 session with a trainer', 300.00, 1, TRUE, NULL, 'personal_training', ''),
+('Personal Trainer (Monthly)', 'Personal training package for 30 days', 3000.00, 30, TRUE, NULL, 'personal_training', ''),
+('Treadmill', 'Unlimited treadmill use', 100.00, 30, TRUE, NULL, 'add_on', '')
 ON CONFLICT (name) DO NOTHING;
 
 
@@ -162,29 +162,30 @@ INSERT INTO products (
     last_restock_at, 
     created_at, 
     updated_at, 
-    image_urls
+    icon_url
 ) VALUES 
-('Whey Protein (27g)', 100000, 55.00, 50, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:31:58.427633+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410718120-100.avif']),
+('Whey Protein (27g)', 100000, 55.00, 50, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:31:58.427633+08', 'https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410718120-100.avif'),
 
-('Creatine (5g)', 100000, 45.00, 50, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:20:30.19067+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406429958-cr.webp']),
+('Creatine (5g)', 100000, 45.00, 50, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:20:30.19067+08', 'https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406429958-cr.webp'),
 
-('Mineral Water', 100001, 20.00, 100, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:25:38.739737+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410328871-4800049720114_1024x.webp']),
+('Mineral Water', 100001, 20.00, 100, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:25:38.739737+08', 'https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410328871-4800049720114_1024x.webp'),
 
-('C2 Iced Tea', 100001, 30.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 20:41:05.092226+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780404064811-c2.jpg']),
+('C2 Iced Tea', 100001, 30.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 20:41:05.092226+08', 'https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780404064811-c2.jpg'),
 
-('Sting Energy Drink', 100001, 35.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:27:31.168209+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410437136-480392503342_800x.webp']),
+('Sting Energy Drink', 100001, 35.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:27:31.168209+08', 'https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410437136-480392503342_800x.webp'),
 
-('Cobra Energy Drink', 100001, 35.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:19:42.600722+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406382311-ced.jpg']),
+('Cobra Energy Drink', 100001, 35.00, 40, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:19:42.600722+08', 'https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406382311-ced.jpg'),
 
-('Vitamilk', 100001, 40.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:30:05.82817+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410605558-26_f7986cc4-bf72-4a23-ad72-a22ba425edf1_1200x1200.webp']),
+('Vitamilk', 100001, 40.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:30:05.82817+08', 'https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410605558-26_f7986cc4-bf72-4a23-ad72-a22ba425edf1_1200x1200.webp'),
 
-('Pocari Sweat', 100001, 50.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:26:10.339799+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410370038-Pocari_20Sweat_20Small_20Pet_20350ml_grande.webp']),
+('Pocari Sweat', 100001, 50.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:26:10.339799+08', 'https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410370038-Pocari_20Sweat_20Small_20Pet_20350ml_grande.webp'),
 
-('Hard Boiled Egg', 100002, 25.00, 20, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:24:00.922698+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410240674-a.webp']),
+('Hard Boiled Egg', 100002, 25.00, 20, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:24:00.922698+08', 'https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410240674-a.webp'),
 
-('Saba Banana (Saging Saba)', 100002, 20.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:26:54.468117+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410404129-Saba-Bananas-featured-image.jpg']),
+('Saba Banana (Saging Saba)', 100002, 20.00, 30, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 22:26:54.468117+08', 'https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780410404129-Saba-Bananas-featured-image.jpg'),
 
-('Barbell Foam Grip', 100003, 80.00, 10, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:17:27.372258+08', ARRAY['https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406247112-barbelfoamgrip.png']);
+('Barbell Foam Grip', 100003, 80.00, 10, 'available', TRUE, NULL, '2026-06-02 19:45:43.645306+08', '2026-06-02 21:17:27.372258+08', 'https://carreon-gym-storage.s3.ap-southeast-1.amazonaws.com/public/products/1780406247112-barbelfoamgrip.png');
+
 INSERT INTO gym_details (gym_name, contact_number, email, gcash_name, gcash_number) VALUES ('Careon Gym', '09123456789', 'carreon.gym@email.com', 'Carreon Gym', '09123234345');
 
 -- 1. Insert 10 Users
@@ -380,16 +381,14 @@ INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, paid_a
 -- ============================================================================
 
 -- Jordan Lee - Product (Pre-workout / Energy Drinks)
--- Fixed: 2 items at 60.00 each = 120.00 total
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), 
-  (SELECT id FROM products WHERE name ILIKE '%drink%' OR name ILIKE '%pre-workout%' LIMIT 1), 
+  (SELECT id FROM products WHERE name ILIKE '%C2%' OR name ILIKE '%Cobra%' OR name ILIKE '%Sting%' LIMIT 1), 
   'product', 120.00, 2, 'cash', 'Pre-workout drinks', NOW() - INTERVAL '4 months 10 days'
 );
 
 -- Quinn Fabray - Product (Hard Boiled Egg)
--- Fixed: 1 item at 25.00 total (Changed from 95.00 to match your actual asset price of 25.00)
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'q.fabray@example.com'), 
@@ -398,7 +397,6 @@ INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, m
 );
 
 -- Jules Winnfield - Product (Gym Merch / Barbell Foam Grip)
--- Fixed: Targeted 'Barbell Foam Grip' specifically instead of risky OFFSET 2
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'badmother@example.com'), 
@@ -407,16 +405,14 @@ INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, m
 );
 
 -- Casey Morgan - Product (Whey Protein)
--- Cleaned up subquery selection
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'casey.m@example.com'), 
-  (SELECT id FROM products WHERE name ILIKE '%protein%' LIMIT 1), 
+  (SELECT id FROM products WHERE name ILIKE '%Whey Protein%' LIMIT 1), 
   'product', 2400.00, 1, 'bank_transfer', 'Whey Protein 5lbs', NOW() - INTERVAL '5 months 2 days'
 );
 
 -- Skyler White - Multiple items (Saba Banana)
--- Fixed: 3 Saba Bananas at 20.00 each = 60.00 total (Changed from 180.00)
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'skyler.w@example.com'), 
@@ -425,10 +421,9 @@ INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, m
 );
 
 -- Morgan Freeman - Supplement Purchase
--- Cleaned up subquery selection
 INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'voice.god@example.com'), 
-  (SELECT id FROM products WHERE name ILIKE '%protein%' LIMIT 1), 
+  (SELECT id FROM products WHERE name ILIKE '%Whey Protein%' LIMIT 1), -- 🟢 Explicitly target name column
   'product', 2200.00, 1, 'bank_transfer', NOW() - INTERVAL '2 days'
 );

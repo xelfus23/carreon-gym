@@ -25,7 +25,7 @@ export default function EditModal<T extends Record<string, any>>({
 
     if (initialData) {
       setFormData({ ...initialData });
-      if (initialData.image_urls?.[0] || initialData.image_url || initialData.image) {
+      if (initialData.icon_url?.[0] || initialData.image_url || initialData.image) {
         setImagePreview(initialData.image_urls?.[0] || initialData.image_url || initialData.image);
       } else {
         setImagePreview(null);
@@ -52,19 +52,19 @@ export default function EditModal<T extends Record<string, any>>({
 
   if (!isOpen) return null;
 
-  const handleChange = (
+  const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
   ) => {
-    const { name, type } = e.target;
-    if (type === "checkbox") {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else {
-      const value = e.target.value;
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    const { name, value } = e.target;
+
+    const targetValue =
+      e.target instanceof HTMLInputElement && e.target.type === "checkbox"
+        ? e.target.checked
+        : value;
+
+    setFormData((prev) => ({ ...prev, [name]: targetValue }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,7 +91,7 @@ export default function EditModal<T extends Record<string, any>>({
 
   return (
     <div className="fixed inset-0 z-20 flex justify-center items-center bg-black/60 backdrop-blur-sm p-10">
-      <div className="w-full max-w-md bg-surface max-h-[70%] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="w-full rounded-lg max-w-md bg-surface max-h-[80%] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="p-6 border-b border-border flex items-center justify-between">
           <div>
@@ -102,7 +102,7 @@ export default function EditModal<T extends Record<string, any>>({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-border rounded-full transition-colors text-text-secondary"
+            className="p-2 hover:bg-border cursor-pointer rounded-full transition-colors text-text-secondary"
             disabled={loading}
           >
             <X size={20} />
@@ -113,7 +113,7 @@ export default function EditModal<T extends Record<string, any>>({
         <form
           id="universal-edit-form"
           onSubmit={handleSubmit}
-          className="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-4 content-start"
+          className="flex-1 overflow-y-auto p-6 grid grid-cols-2 gap-4 content-start"
         >
           {fields.map((field) => {
             const isFullWidth =
@@ -143,7 +143,7 @@ export default function EditModal<T extends Record<string, any>>({
                     </label>
                     <div
                       onClick={() => !loading && fileInputRef.current?.click()}
-                      className="relative aspect-square border-2 border-dashed border-border hover:border-primary cursor-pointer overflow-hidden flex flex-col items-center justify-center bg-background group transition-all w-60 p-4"
+                      className="relative aspect-square border-2 border-dashed border-border hover:border-primary cursor-pointer overflow-hidden flex flex-col items-center justify-center bg-background group transition-all w-60 p-4 rounded-xl"
                     >
                       {imagePreview ? (
                         <img
@@ -178,10 +178,10 @@ export default function EditModal<T extends Record<string, any>>({
                     rows={4}
                     name={field.name}
                     value={currentValue}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder={field.placeholder}
                     required={field.required}
-                    className="w-full p-2 text-sm bg-background border border-border focus:ring-2 focus:ring-primary outline-none resize-none text-text-primary"
+                    className="w-full p-2 text-sm rounded-md bg-background border border-border focus:ring-2 focus:ring-primary outline-none resize-none text-text-primary"
                   />
                 )}
 
@@ -197,9 +197,9 @@ export default function EditModal<T extends Record<string, any>>({
                     <select
                       name={field.name}
                       value={currentValue}
-                      onChange={handleChange}
+                      onChange={handleInputChange}
                       required={field.required}
-                      className={`w-full text-sm ${IconComponent ? "pl-2" : "px-2"} py-2  bg-background border border-border focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer text-text-primary`}
+                      className={`w-full rounded-md text-sm ${IconComponent ? "pl-2" : "px-2"} py-2  bg-background border border-border focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer text-text-primary`}
                     >
                       {field.options?.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -218,7 +218,7 @@ export default function EditModal<T extends Record<string, any>>({
                         type="checkbox"
                         name={field.name}
                         checked={!!currentValue}
-                        onChange={handleChange}
+                        onChange={handleInputChange}
                         className="peer sr-only" // Hidden safely for accessibility parsing
                       />
 
@@ -260,10 +260,10 @@ export default function EditModal<T extends Record<string, any>>({
                       type={field.type}
                       name={field.name}
                       value={currentValue}
-                      onChange={handleChange}
+                      onChange={handleInputChange}
                       placeholder={field.placeholder}
                       required={field.required}
-                      className={`w-full ${IconComponent ? "pl-10" : "px-2"} pr-2 py-2 bg-background border border-border focus:ring-2 focus:ring-primary text-sm outline-none text-text-primary`}
+                      className={`w-full rounded-md ${IconComponent ? "pl-10" : "px-2"} pr-2 py-2 bg-background border border-border focus:ring-2 focus:ring-primary text-sm outline-none text-text-primary`}
                     />
                   </div>
                 )}
@@ -273,12 +273,12 @@ export default function EditModal<T extends Record<string, any>>({
         </form>
 
         {/* Action Footers */}
-        <div className="p-4 border-t border-border bg-surface flex gap-3">
+        <div className="p-6 border-t border-border bg-surface flex gap-3 rounded-b-lg">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 p-2 border border-border font-bold text-text-secondary hover:bg-border transition-colors"
+            className="flex-1 p-2 border rounded-md border-border font-bold text-text-secondary hover:bg-border transition-colors"
           >
             Cancel
           </button>
@@ -286,7 +286,7 @@ export default function EditModal<T extends Record<string, any>>({
             form="universal-edit-form"
             type="submit"
             disabled={loading}
-            className="flex-2 p-2 bg-primary hover:bg-primary-dark text-background font-bold flex items-center justify-center transition-all disabled:opacity-70 text-sm"
+            className="flex-2 p-2 bg-primary rounded-md hover:bg-primary-dark text-background font-bold flex items-center justify-center transition-all disabled:opacity-70 text-sm"
           >
             {loading ? "Saving..." : "Save Changes"}
           </button>

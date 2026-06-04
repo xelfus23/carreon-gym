@@ -35,7 +35,10 @@ async function refreshAccessToken() {
   const res = await fetchWithTimeout(`${API_URL}/api/auth/refresh`, {
     // fetch refresh and return a refresh token
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-client-platform": "mobile",
+    },
     body: JSON.stringify({ refreshToken }),
   });
 

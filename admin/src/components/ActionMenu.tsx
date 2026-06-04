@@ -72,7 +72,7 @@ export function ActionMenu({
   return createPortal(
     <div
       ref={menuRef}
-      className="w-52 bg-surface border border-border shadow-2xl shadow-black/40 overflow-hidden"
+      className="w-52 bg-surface border border-border shadow-2xl shadow-black/40 overflow-hidden rounded-lg"
       style={{
         position: "fixed",
         top: pos.top,
@@ -96,7 +96,7 @@ export function ActionMenu({
               item.onClick();
               onClose();
             }}
-            className={`w-full flex items-center gap-3 px-3 py-3 text-xs transition-colors font-bold text-left tracking-tight
+            className={`w-full flex items-center gap-3 px-3 py-3 text-xs transition-colors text-left tracking-tight
               disabled:opacity-40 disabled:cursor-not-allowed ${variantCls[item.variant ?? "default"]}`}
           >
             <span className="flex w-4">{item.icon}</span>

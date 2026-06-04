@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { subscriptionService } from "../services/subscription.service";
 import type { SubscriptionPlanProps } from "../types";
+import { uploadImage } from "../utils/uploadImage";
 
 export const useGymSubs = () => {
   const [membership, setMembership] = useState<SubscriptionPlanProps[]>([]);
@@ -28,11 +29,18 @@ export const useGymSubs = () => {
     }
   }, []);
 
-  const createSub = async (data: SubscriptionPlanProps) => {
+  const createSub = async (data: SubscriptionPlanProps, imageFile: File) => {
     setIsLoading(true);
     setError(null);
     try {
-      await subscriptionService.createPlan(data);
+      let icon_url = data.icon_url || "";
+
+      if (imageFile) {
+        const upload = await uploadImage(imageFile, "product");
+        if (upload?.success && upload.data?.url) icon_url = upload.data.url;
+      }
+
+      await subscriptionService.createPlan({ ...(data as SubscriptionPlanProps), icon_url });
       refetch()
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to save edits"
@@ -42,11 +50,22 @@ export const useGymSubs = () => {
     }
   }
 
-  const updateSub = async (editingId: number, editForm: Partial<SubscriptionPlanProps>) => {
+  const updateSub = async (editingId: number, updates: Partial<SubscriptionPlanProps>, imageFile: File) => {
     setIsLoading(true);
     setError(null);
     try {
-      await subscriptionService.updatePlan(editingId!, editForm);
+
+      const patch: Partial<SubscriptionPlanProps> = { ...updates };
+
+      if (imageFile) {
+        const upload = await uploadImage(imageFile, "product");
+        if (upload?.success && upload.data?.url) {
+          patch.icon_url = upload.data.url;
+        }
+      }
+
+      await subscriptionService.updatePlan(editingId, patch);
+
       refetch()
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to save edits"

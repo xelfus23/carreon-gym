@@ -56,7 +56,6 @@ export const WSAuthentication = async (
       return { userId };
     }
 
-    // 📱 MEMBER FLOW
     const sessionId = url.searchParams.get("session_id");
     if (!sessionId) throw new Error("Missing session_id");
 

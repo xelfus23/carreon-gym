@@ -1,25 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { EquipmentService } from "../services/equipment.service";
-
-export type EquipmentTypes = {
-  id: number;
-  equipment_name: string;
-  category: string;
-  target_muscles: string | null;
-  description?: string;
-  quantity?: number;
-};
-
-export type EquipmentPayload = {
-  equipment_name: string;
-  category: string;
-  target_muscles: string;
-  description?: string;
-  quantity?: number;
-};
+import type { EquipmentProps } from "../types";
 
 export const useEquipments = () => {
-  const [equipments, setEquipments] = useState<EquipmentTypes[]>([]);
+  const [equipments, setEquipments] = useState<EquipmentProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +23,7 @@ export const useEquipments = () => {
     }
   }, []);
 
-  const createEquipment = async (payload: EquipmentPayload) => {
+  const createEquipment = async (payload: EquipmentProps) => {
     try {
       const data = await EquipmentService.createEquipment(payload);
       await initialize();
@@ -50,7 +34,7 @@ export const useEquipments = () => {
     }
   };
 
-  const updateEquipment = async (id: number, payload: Partial<EquipmentPayload>) => {
+  const updateEquipment = async (id: number, payload: Partial<EquipmentProps>) => {
     try {
       const response = await EquipmentService.updateEquipment(id, payload);
       await initialize();
@@ -64,7 +48,7 @@ export const useEquipments = () => {
   const deleteEquipment = async (id: number) => {
     try {
       const data = await EquipmentService.deleteEquipment(id);
-      await initialize(); 
+      await initialize();
       return data;
     } catch (err) {
       if (err instanceof Error) console.error("Delete error:", err.message);

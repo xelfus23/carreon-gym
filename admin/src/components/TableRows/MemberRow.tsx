@@ -3,7 +3,7 @@ import {
   useRef,
   useCallback,
 } from "react";
-import type { ActionItemProps, AdminMemberListItem, SubscriptionStatus } from "../../types";
+import type { ActionItemProps, UserAccountProps, SubscriptionStatus } from "../../types";
 import {
   Ban,
   Check,
@@ -39,8 +39,6 @@ const SUB_BADGE: Record<SubscriptionStatus, string> = {
   cancelled: "bg-rose-100 text-rose-600",
 };
 
-
-
 // ── MemberRow ─────────────────────────────────────────────────────────────────
 export default function MemberRow({
   m,
@@ -50,12 +48,12 @@ export default function MemberRow({
   onDelete,
   onVerify,
 }: {
-  m: AdminMemberListItem;
-  onSetPlan: (m: AdminMemberListItem) => void;
-  onSuspend: (m: AdminMemberListItem) => void;
-  onBan: (m: AdminMemberListItem) => void;
-  onDelete: (m: AdminMemberListItem) => void;
-  onVerify: (m: AdminMemberListItem) => void;
+  m: UserAccountProps;
+  onSetPlan: (m: UserAccountProps) => void;
+  onSuspend: (m: UserAccountProps) => void;
+  onBan: (m: UserAccountProps) => void;
+  onDelete: (m: UserAccountProps) => void;
+  onVerify: (m: UserAccountProps) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);

@@ -1,22 +1,29 @@
 import { useMemo, useState } from "react";
-import { useEquipments, type EquipmentPayload, type EquipmentTypes } from "../hooks/useEquipments";
+import { useEquipments } from "../hooks/useEquipments";
 import { Dumbbell, Loader2 } from "lucide-react";
 import CustomTable from "../components/CustomTable";
 import CustomHeader from "../components/CustomHeader";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import EquipmentRow from "../components/TableRows/EquipmentRow";
-import type { ConfirmDialogTypes, FormField } from "../types";
+import type { ConfirmDialogTypes, EquipmentProps, FormField } from "../types";
 
 // Import your universal dynamic modals
 import EditModal from "../components/Modals/EditModal";
 import AddModal from "../components/Modals/AddModal";
 import ConfirmDialog from "../components/Modals/ConfirmDialog";
 
-type SortKey = keyof EquipmentTypes | null;
+type SortKey = keyof EquipmentProps | null;
 type SortDir = "asc" | "desc";
 
 // Define the schema configuration outside the render cycle
 const EQUIPMENT_FIELDS: FormField[] = [
+  {
+    name: "icon_url",
+    label: "Equipment Image",
+    type: "image",
+    placeholder: "",
+    gridSpan: "full"
+  },
   {
     name: "equipment_name",
     label: "Equipment Name",
@@ -59,7 +66,7 @@ export default function Equipments() {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedEquipment, setSelectedEquipment] =
-    useState<EquipmentTypes | null>(null);
+    useState<EquipmentProps | null>(null);
 
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -115,11 +122,11 @@ export default function Equipments() {
     setSortDir("asc");
   };
 
-  const onEdit = (e: EquipmentTypes) => {
+  const onEdit = (e: EquipmentProps) => {
     setSelectedEquipment(e);
   };
 
-  const onDelete = (e: EquipmentTypes) => {
+  const onDelete = (e: EquipmentProps) => {
     setConfirmDialog({
       title: "Delete Equipment",
       message: `Permanently delete ${e.equipment_name}? This action cannot be undone.`,
@@ -192,10 +199,10 @@ export default function Equipments() {
           />
 
           <CustomTable
-            renderRow={(eq: EquipmentTypes) => (
+            renderRow={(eq: EquipmentProps) => (
               <EquipmentRow
                 key={eq.id}
-                item={eq}
+                equipment={eq}
                 onEdit={onEdit}
                 onDelete={onDelete}
               />
@@ -208,6 +215,7 @@ export default function Equipments() {
             onSort={handleSort}
             columns={[
               { label: "ID", key: "id", sortable: true },
+              { label: "Icon", key: "icon_url" },
               { label: "Equipment", key: "equipment_name", sortable: true },
               { label: "Category", key: "category", sortable: true },
               { label: "Qty", key: "quantity", sortable: true },
@@ -247,7 +255,7 @@ export default function Equipments() {
           title="Add New Equipment"
           subtitle="Register inventory logs inside management pipelines"
           fields={EQUIPMENT_FIELDS}
-          onSave={(data: EquipmentPayload) => createEquipment(data)}
+          onSave={(data: EquipmentProps) => createEquipment(data)}
           submitButtonText="Create Record"
         />
       )}
@@ -260,9 +268,9 @@ export default function Equipments() {
           onSuccess={refresh}
           title="Edit Equipment Properties"
           subtitle="Adjust technical specifications or quantity totals"
-          fields={EQUIPMENT_FIELDS} 
-          initialData={selectedEquipment as EquipmentPayload}
-          onSave={(data: Partial<EquipmentPayload>) => updateEquipment(selectedEquipment.id, data)}
+          fields={EQUIPMENT_FIELDS}
+          initialData={selectedEquipment as EquipmentProps}
+          onSave={(data: Partial<EquipmentProps>) => updateEquipment(selectedEquipment.id, data)}
         />
       )}
 

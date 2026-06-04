@@ -115,7 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
 
       <nav className="flex-1 p-4 mt-4 space-y-1">
         {menuItems.map((item) => (
-          <div>
+          <div key={item.id}>
             {item.dividerBefore && <div className="h-px bg-border mb-1" />}
             <button
               key={item.id}
@@ -134,7 +134,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
 
       {sideBarOn && (
         <div className="p-6">
-          <div className="bg-background p-4 border border-border">
+          <div className="bg-background p-4 border border-border rounded-lg">
             <p className="text-xs uppercase tracking-wider text-text-secondary font-bold mb-2">
               System Status
             </p>

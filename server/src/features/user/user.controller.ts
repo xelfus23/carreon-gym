@@ -77,10 +77,6 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const uploadPicture = catchAsync(async (_req: Request, res: Response) => {
-  return res.status(200).json({ success: true, message: "Upload Success" });
-});
-
 export const updateProfile = catchAsync(async (req: Request, res: Response) => {
   const updates = req.body;
   const userId = Number(req.user?.id);

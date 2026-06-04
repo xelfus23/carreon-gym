@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { memberService } from "../services/member.service";
-import type { AccountRegistrationProps, UserAccountProps } from "../types";
+import type { UserAccountProps } from "../types";
 
 export const useMember = () => {
   const [members, setMembers] = useState<UserAccountProps[]>([]);
@@ -25,7 +25,7 @@ export const useMember = () => {
     }
   }, []);
 
-  const createAccount = async (data: AccountRegistrationProps) => {
+  const createAccount = async (data: Partial<UserAccountProps>) => {
     try {
       await memberService.createMember(data);
       await refetch();

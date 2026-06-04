@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { uploadPaymentReceipt } from "../../services/multerUpload.ts";
 import {
   deleteTransaction,
   denyPurchase,
@@ -12,18 +11,7 @@ import { authorizeRoles } from "../../middleware/roleGuard.ts";
 
 const purchaseRoutes = Router();
 
-// --- Member Routes (Mobile) ---
-// Members can request a purchase and view their own transaction history
-purchaseRoutes.post(
-  "/request",
-  authMiddleware,
-  uploadPaymentReceipt.single("receipt"),
-  requestPurchase,
-);
-
 purchaseRoutes.get("/my-history", authMiddleware, getAllTransactions);
-
-// --- Admin Routes (Web/Electron) ---
 purchaseRoutes.get("", authMiddleware, getAllTransactions);
 
 purchaseRoutes.patch("/verify/:paymentId", authMiddleware, authorizeRoles("admin"), verifyPurchase);

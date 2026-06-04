@@ -36,7 +36,7 @@ export default function CustomTable<T>(props: TableProps<T>) {
     <>
       <div className=" overflow-y-auto h-[500px]">
         <table className="text-left text-sm w-full">
-          <thead className="sticky top-0 z-20">
+          <thead className="sticky top-0 z-10">
             <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
               {columns.map((col) => (
                 <th

@@ -216,7 +216,7 @@ export default function Transactions() {
       {/* ── Stats Grid ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {cards.map((props) => (
-          <StatsCard {...props} />
+          <StatsCard key={props.label} {...props} />
         ))}
       </div>
 
@@ -244,6 +244,7 @@ export default function Transactions() {
           pageSize={PAGE_SIZE}
           renderRow={(tr) => (
             <TransactionRow
+              key={tr.transaction_id}
               setSelectedReceipt={setSelectedReceipt}
               tx={tr}
               onAccept={onAccept}
