@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
-import { getEquipmentDomain } from "../../domain/equipments/getEquipments.ts";
+import { getEquipmentDomain } from "../../domain/equipments/getEquipmentsDomain.ts";
 import { catchAsync } from "../../utils/catchAsync.ts";
-import { createEquipmentDomain } from "../../domain/equipments/createEquipment.ts";
-import { updateEquipmentDomain } from "../../domain/equipments/editEquipment.ts";
-import { deleteEquipmentDomain } from "../../domain/equipments/deleteEquipment.ts";
+import { createEquipmentDomain } from "../../domain/equipments/createEquipmentDomain.ts";
+import { updateEquipmentDomain } from "../../domain/equipments/updateEquipmentDomain.ts";
+import { deleteEquipmentDomain } from "../../domain/equipments/deleteEquipmentDomain.ts";
 
 export const getEquipment = catchAsync(async (req: Request, res: Response) => {
     const data = await getEquipmentDomain();

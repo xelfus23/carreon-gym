@@ -16,8 +16,7 @@ const categoryMap: Record<string, string> = {
 export function CategoryBadge({ category }: { category: string }) {
 
   const color = categoryMap[category]
-  console.log(category)
-  console.log(color)
+  
   return (
     <span className={`shrink-0 text-[0.6rem] font-bold tracking-widest uppercase ${color} rounded px-2 py-0.5 whitespace-nowrap`}>
       {category}

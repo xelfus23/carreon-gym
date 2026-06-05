@@ -2,50 +2,78 @@ import { tokenManager } from "../utils/tokenManager";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-export type PendingPaymentPayload = {
+export type CreatePurchasePayload = {
   transactionType: "plan" | "product";
   planId?: number;
   planName?: string;
   productId?: number;
   quantity?: number;
   method?: string;
-  receiptUri: string;
 };
 
-export async function submitPendingPayment(payload: PendingPaymentPayload) {
-  const accessToken = tokenManager.getAccessToken();
-  if (!accessToken) throw new Error("Please login first.");
+export const purchaseService = {
+  // Phase 1: Initialize the tracking record in the DB
+  createPendingPurchase: async (payload: CreatePurchasePayload) => {
+    const accessToken = tokenManager.getAccessToken();
+    if (!accessToken) throw new Error("Please login first.");
 
-  const formData = new FormData();
-  formData.append("method", payload.method ?? "gcash");
-  formData.append("quantity", String(payload.quantity ?? 1));
+    const bodyPayload = {
+      method: payload.method ?? "gcash",
+      quantity: payload.quantity ?? 1,
+      transactionType: payload.transactionType,
+      status: "pending", // Starts as pending, awaiting proof
+      ...(payload.transactionType === "plan"
+        ? { planId: payload.planId, planName: payload.planName }
+        : { productId: payload.productId }),
+    };
 
-  if (payload.transactionType === "plan") {
-    if (payload.planId) formData.append("planId", String(payload.planId));
-    if (payload.planName) formData.append("planName", payload.planName);
-  } else if (payload.productId) {
-    formData.append("productId", String(payload.productId));
-  }
+    const res = await fetch(`${API_URL}/api/purchase/request`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(bodyPayload),
+    });
 
-  const fileName = payload.receiptUri.split("/").pop() ?? "receipt.jpg";
-  formData.append("receipt", {
-    uri: payload.receiptUri,
-    name: fileName,
-    type: "image/jpeg",
-  } as any);
+    const data = await res.json();
+    if (!res.ok || !data?.success) {
+      throw new Error(data?.message ?? "Failed to create purchase request.");
+    }
+    return data; // Should return { success: true, data: { id: 123, ... } }
+  },
 
-  const res = await fetch(`${API_URL}/api/purchase/request`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: formData,
-  });
+  // Phase 2: Link S3 asset link directly to the transaction row ID
+  uploadReceiptProof: async (purchaseId: number, receiptUrl: string) => {
+    const accessToken = tokenManager.getAccessToken();
+    if (!accessToken) throw new Error("Please login first.");
 
-  const data = await res.json();
-  if (!res.ok || !data?.success) {
-    throw new Error(data?.message ?? "Failed to submit payment");
-  }
+    const res = await fetch(`${API_URL}/api/purchase/${purchaseId}/proof`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ receiptUrl }),
+    });
 
-  return data;
-}
+    const data = await res.json();
+    if (!res.ok || !data?.success) {
+      throw new Error(data?.message ?? "Failed to link payment proof.");
+    }
+    return data;
+  },
+
+  getPaymentHistory: async () => {
+    const accessToken = tokenManager.getAccessToken();
+    if (!accessToken) throw new Error("Please login first.");
+
+    const res = await fetch(`${API_URL}/api/purchase/history`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message ?? "Failed to load payment records.");
+    return data;
+  },
+};

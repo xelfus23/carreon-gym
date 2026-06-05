@@ -9,7 +9,6 @@ import type { ConfirmDialogTypes, FormField, SubscriptionPlanProps } from "../ty
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import SubscriptionsRow from "../components/TableRows/SubscriptionsRow";
 import EditModal from "../components/Modals/EditModal";
-// import { subscriptionService } from "../services/subscription.service";
 import AddModal from "../components/Modals/AddModal";
 
 type SortKey = keyof SubscriptionPlanProps | null;
@@ -291,6 +290,7 @@ export default function GymSubscriptionsAdmin() {
             { label: "Duration", key: "duration_days" },
             { label: "Price", key: "price" },
             { label: "Status", key: "is_active" },
+            { label: "Is Popular", key: "is_popular" },
             { label: "", key: null },
           ]}
         />
@@ -317,7 +317,7 @@ export default function GymSubscriptionsAdmin() {
           subtitle="Edit the subscription plan"
           fields={fields}
           initialData={selectedSubscription}
-          onSave={(data) => updateSub(selectedSubscription?.id, data)}
+          onSave={(data: SubscriptionPlanProps, imageFile: File | null) => updateSub(selectedSubscription?.id, data, imageFile)}
         />
       )}
 
@@ -329,7 +329,7 @@ export default function GymSubscriptionsAdmin() {
           title="Add Subscription"
           subtitle="Add a subscription plan"
           fields={fields}
-          onSave={(data: SubscriptionPlanProps) => createSub(data)}
+          onSave={(data: SubscriptionPlanProps, imageFile: File | null) => createSub(data, imageFile)}
           submitButtonText="Add Subscription"
         />
       )}

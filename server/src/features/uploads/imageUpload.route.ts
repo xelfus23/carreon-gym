@@ -6,7 +6,7 @@ import { uploadImage } from "./imageUpload.controller.ts";
 const ImageRoutes = Router()
 
 ImageRoutes.post(
-  "/upload",
+  "",
   authMiddleware,
   uploader.single("image"),
   uploadImage,

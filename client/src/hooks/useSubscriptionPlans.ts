@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import { subscriptionService } from "../services/subscriptionService";
 
@@ -7,9 +6,11 @@ export type SubscriptionTypes = {
   name: string;
   price: number;
   duration_days: number;
-  savingsLabel?: string;
-  isPopular?: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
+  savings_label?: string;
+  is_popular?: boolean;
+  icon_url: string;
+  category: "membership" | "class" | "personal_training" | "add_on",
+  description: string;
 };
 
 export const useSubscriptionPlans = () => {
@@ -36,7 +37,7 @@ export const useSubscriptionPlans = () => {
 
   useEffect(() => {
     getPlans();
-  }, []);
+  }, [getPlans]);
 
   return {
     refresh: getPlans,

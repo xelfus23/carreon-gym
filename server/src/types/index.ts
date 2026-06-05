@@ -38,12 +38,14 @@ export interface ProductProps {
   last_restock?: string;
 }
 
-export type SubscriptionPlanProps = {
+export type SubscriptionTypes = {
+  id: number;
   name: string;
-  icon_url: string;
-  description: string | null;
   price: number;
   duration_days: number;
-  category: "personal_training" | "class" | "membership" | "add_on";
-  is_active: boolean;
-}
+  savings_label?: string;
+  is_popular?: boolean;
+  icon_url: string;
+  category: "membership" | "class" | "personal_training" | "add_on",
+  description: string;
+};

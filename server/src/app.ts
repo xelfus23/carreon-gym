@@ -18,6 +18,7 @@ import purchaseRoutes from "./features/purchase/purchase.route.ts";
 import gymDetailsRoute from "./features/gymDetails/gymDetails.route.ts";
 import userSubscriptionRoutes from "./features/userSubscription/userSubscription.route.ts";
 import { uploadImage } from "./features/uploads/imageUpload.controller.ts";
+import ImageRoutes from "./features/uploads/imageUpload.route.ts";
 
 dotenv.config({ path: ".env" });
 
@@ -29,8 +30,17 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [env.CORS_ORIGIN],
-    methods: ["GET", "POST", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: [
+      "GET",
+      "POST",
+      "PATCH",
+      "DELETE"
+    ],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-upload-type"
+    ],
     credentials: true,
   }),
 );
@@ -49,7 +59,7 @@ app.use("/api/user-subscriptions", userSubscriptionRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchase", purchaseRoutes);
 app.use("/api/gym-details", gymDetailsRoute);
-app.use("/api/image-upload", uploadImage)
+app.use("/api/image-uploads", ImageRoutes)
 
 app.use(globalErrorHandler);
 

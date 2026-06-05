@@ -14,6 +14,8 @@ export type TransactionProps = {
   paid_at: string;
   reference_no: string | null;
   receipt_image_url?: string | null;
+  origin: "mobile_online" | "walk_in_pos",
+  quantity: number;
 };
 
 export const useTransactions = (userId?: number) => {

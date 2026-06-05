@@ -1,4 +1,4 @@
-import { CheckCircle, Edit, Trash } from "lucide-react";
+import { CheckCircle, Edit, Trash, XCircle } from "lucide-react";
 import type { ActionItemProps, SubscriptionPlanProps } from "../../types";
 import { formatSlug } from "../../utils/formatSlug";
 import { formatCurrency } from "../../utils/formatCurrency";
@@ -50,6 +50,8 @@ export default function SubscriptionsRow({
     },
   ];
 
+  console.log(plan)
+
   return (
     <tr className={`transition-colors group hover:bg-border/40`}>
       <td className="p-4 text-xs text-text-secondary">{plan.id.toString()}</td>
@@ -89,9 +91,26 @@ export default function SubscriptionsRow({
         {formatCurrency(plan.price)}
       </td>
       <td className="p-4">
-        <span className="inline-flex items-center gap-1.5 text-emerald-500 text-[11px] font-black">
-          <CheckCircle size={14} /> Active
-        </span>
+        {plan.is_active ? (
+          <span className="inline-flex items-center gap-1.5 text-emerald-500 text-[11px] font-black">
+            <CheckCircle size={14} /> Active
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-rose-500 text-[11px] font-black">
+            <XCircle size={14} /> Inactive
+          </span>
+        )}
+      </td>
+      <td className="p-4">
+        {plan.is_popular ? (
+          <span className="inline-flex items-center gap-1.5 text-emerald-500 text-[11px] font-black">
+            <CheckCircle size={14} /> True
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-rose-500 text-[11px] font-black">
+            <XCircle size={14} /> False
+          </span>
+        )}
       </td>
       <td className="p-4">
         <div className="flex items-center justify-end">

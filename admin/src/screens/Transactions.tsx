@@ -129,13 +129,19 @@ export default function Transactions() {
       { label: "Date", key: "paid_at" },
       { label: "Member", key: "member_name" },
       { label: "Item", key: "item_name" },
+      { label: "Qty", key: "quantity" },
       { label: "Amount", key: "amount" },
       { label: "Status", key: "status" },
+      { label: "Origin", key: "origin" },
       { label: "Proof", key: "receipt_image_url" },
       { label: "", key: null },
     ],
     [],
   );
+
+  const onClick = () => {
+
+  }
 
   if (isLoading)
     return (
@@ -208,9 +214,11 @@ export default function Transactions() {
         title="Payment Log"
         description="Manage and verify carreon gym transactions"
         refresh={refresh}
-        hasAction={false}
+        hasAction={true}
+        buttonLabel="Log Transaction"
         icon={<Receipt className="text-primary" />}
         isLoading={isLoading}
+        onClick={onClick}
       />
 
       {/* ── Stats Grid ── */}
@@ -254,7 +262,6 @@ export default function Transactions() {
           )}
         />
       </div>
-
 
 
       {confirmDialog && (

@@ -1,4 +1,4 @@
-import { getEquipmentDomain } from "../../domain/equipments/getEquipments.ts";
+import { getEquipmentDomain } from "../../domain/equipments/getEquipmentsDomain.ts";
 import { summaryQuery } from "../../repositories/user.repository.ts";
 import { formatInventory } from "../utils/formatInventory.ts";
 import { BASE_SYSTEM_PROMPT } from "./baseSystemPrompt.ts";

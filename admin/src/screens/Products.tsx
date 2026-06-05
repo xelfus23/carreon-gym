@@ -237,7 +237,7 @@ export default function Products() {
           title="Add Product"
           subtitle="Add a new product to the inventory"
           fields={fields}
-          onSave={(data, imageFile) => createProduct(data, imageFile)}
+          onSave={(data: ProductProps, imageFile: File | null) => createProduct(data, imageFile)}
           submitButtonText="Add Product"
         />
       )}
@@ -251,7 +251,7 @@ export default function Products() {
           subtitle={`Modifying context details for ${selectedProduct?.product_name || "product"}`}
           fields={fields}
           initialData={selectedProduct}
-          onSave={(data, imageFile) => updateProduct(data.id, data, imageFile)}
+          onSave={(data: Partial<ProductProps>, imageFile: File | null) => updateProduct(selectedProduct.id, data, imageFile)}
         />
       )}
 

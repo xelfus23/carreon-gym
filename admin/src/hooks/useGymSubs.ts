@@ -29,14 +29,14 @@ export const useGymSubs = () => {
     }
   }, []);
 
-  const createSub = async (data: SubscriptionPlanProps, imageFile: File) => {
+  const createSub = async (data: SubscriptionPlanProps, imageFile: File | null) => {
     setIsLoading(true);
     setError(null);
     try {
       let icon_url = data.icon_url || "";
 
       if (imageFile) {
-        const upload = await uploadImage(imageFile, "product");
+        const upload = await uploadImage(imageFile, "subscriptions");
         if (upload?.success && upload.data?.url) icon_url = upload.data.url;
       }
 
@@ -50,7 +50,7 @@ export const useGymSubs = () => {
     }
   }
 
-  const updateSub = async (editingId: number, updates: Partial<SubscriptionPlanProps>, imageFile: File) => {
+  const updateSub = async (editingId: number, updates: Partial<SubscriptionPlanProps>, imageFile: File | null) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -58,7 +58,7 @@ export const useGymSubs = () => {
       const patch: Partial<SubscriptionPlanProps> = { ...updates };
 
       if (imageFile) {
-        const upload = await uploadImage(imageFile, "product");
+        const upload = await uploadImage(imageFile, "subscriptions");
         if (upload?.success && upload.data?.url) {
           patch.icon_url = upload.data.url;
         }

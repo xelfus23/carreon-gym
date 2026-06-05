@@ -30,7 +30,7 @@ export const EquipmentService = {
 
   updateEquipment: async (id: number, payload: Partial<EquipmentProps>) => {
     const response = await authService.fetchWithRefresh(
-      `${API_URL}/api/equipments/web/${id}`,
+      `${API_URL}/api/equipments/${id}`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -44,7 +44,7 @@ export const EquipmentService = {
 
   deleteEquipment: async (id: number) => {
     const response = await authService.fetchWithRefresh(
-      `${API_URL}/api/equipments/web/${id}`,
+      `${API_URL}/api/equipments/${id}`,
       { method: "DELETE" },
     );
     const data = await response.json();

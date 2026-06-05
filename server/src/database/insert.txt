@@ -133,16 +133,16 @@ VALUES
 -- SUBSCRIPTION PLANS (Daily / Weekly / Monthly)
 -- ============================================================================
 
-INSERT INTO subscription_plans (name, description, price, duration_days, is_active, icon, category, icon_url) VALUES
-('Daily Pass', 'Full access to gym facilities for 24 hours', 50.00, 1, TRUE, 'clock', 'membership', ''),
-('Weekly Pass', 'Full access to gym facilities for 7 days', 200.00, 7, TRUE, NULL, 'membership', ''),
-('Monthly Membership', 'Our standard 30-day unlimited access plan', 600.00, 30, TRUE, NULL, 'membership', ''),
-('3 Months Pass', 'Full access to gym facilities for 3 months', 1500.00, 90, TRUE, NULL, 'membership', ''),
-('Boxing (Single Session)', 'One-time boxing class pass', 200.00, 1, TRUE, NULL, 'class', ''),
-('Boxing (Monthly)', 'Unlimited boxing for 30 days', 2000.00, 30, TRUE, NULL, 'class', ''),
-('Personal Trainer (Single Session)', '1-on-1 session with a trainer', 300.00, 1, TRUE, NULL, 'personal_training', ''),
-('Personal Trainer (Monthly)', 'Personal training package for 30 days', 3000.00, 30, TRUE, NULL, 'personal_training', ''),
-('Treadmill', 'Unlimited treadmill use', 100.00, 30, TRUE, NULL, 'add_on', '')
+INSERT INTO subscription_plans (name, description, price, duration_days, is_active, icon, category, icon_url, is_popular, savings_label) VALUES
+('Daily Pass', 'Full access to gym facilities for 24 hours', 50.00, 1, TRUE, 'clock', 'membership', '', false, ''),
+('Weekly Pass', 'Full access to gym facilities for 7 days', 200.00, 7, TRUE, NULL, 'membership', '', false, ''),
+('Monthly Membership', 'Our standard 30-day unlimited access plan', 600.00, 30, TRUE, NULL, 'membership', '', false, ''),
+('3 Months Pass', 'Full access to gym facilities for 3 months', 1500.00, 90, TRUE, NULL, 'membership', '', false, ''),
+('Boxing (Single Session)', 'One-time boxing class pass', 200.00, 1, TRUE, NULL, 'class', '', false, ''),
+('Boxing (Monthly)', 'Unlimited boxing for 30 days', 2000.00, 30, TRUE, NULL, 'class', '', false, ''),
+('Personal Trainer (Single Session)', '1-on-1 session with a trainer', 300.00, 1, TRUE, NULL, 'personal_training', '', false, ''),
+('Personal Trainer (Monthly)', 'Personal training package for 30 days', 3000.00, 30, TRUE, NULL, 'personal_training', '', false, ''),
+('Treadmill', 'Unlimited treadmill use', 100.00, 30, TRUE, NULL, 'add_on', '', false, '')
 ON CONFLICT (name) DO NOTHING;
 
 
@@ -352,78 +352,107 @@ INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, crea
 -- PLAN PAYMENTS
 -- ============================================================================
 
--- Alex Rivers - Membership Renewal
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, reference_no, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'alex.rivers@example.com'), (SELECT id FROM subscription_plans WHERE category = 'membership' LIMIT 1), 'plan', 1500.00, 'gcash', 'GC-MEM-9921', NOW() - INTERVAL '2 months');
-
--- Jordan Lee - Personal Training Add-on
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, reference_no, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), (SELECT id FROM subscription_plans WHERE category = 'personal_training' LIMIT 1), 'plan', 3500.00, 'bank_transfer', 'BNK-PT-4412', NOW() - INTERVAL '1 month');
-
--- Charlie Day - Membership Payment (Cash)
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'wildcard@example.com'), (SELECT id FROM subscription_plans WHERE category = 'membership' LIMIT 1), 'plan', 1500.00, 'cash', NOW() - INTERVAL '12 days');
-
--- Casey Morgan - Plan Payment
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, reference_no, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'casey.m@example.com'), (SELECT id FROM subscription_plans LIMIT 1), 'plan', 1500.00, 'gcash', 'REF-2026-001', NOW() - INTERVAL '5 months');
-
--- Taylor Swift - Plan Payment
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, reference_no, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'taylor.s@example.com'), (SELECT id FROM subscription_plans OFFSET 1 LIMIT 1), 'plan', 3500.00, 'bank_transfer', 'BNK-99218', NOW() - INTERVAL '3 months 15 days');
-
--- Riley Reid - Plan Payment
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, paid_at) VALUES
-((SELECT id FROM users WHERE email = 'riley.r@example.com'), (SELECT id FROM subscription_plans LIMIT 1), 'plan', 1500.00, 'cash', NOW() - INTERVAL '3 months');
-
 -- ============================================================================
--- PRODUCT PAYMENTS
+-- SUBSCRIPTION PLAN PAYMENTS (PLAN FLOWS)
 -- ============================================================================
 
--- Jordan Lee - Product (Pre-workout / Energy Drinks)
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
+-- Alex Rivers - Membership Renewal (Mobile Flow Approved)
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, reference_no, paid_at) VALUES
+(
+  (SELECT id FROM users WHERE email = 'alex.rivers@example.com'), 
+  (SELECT id FROM subscription_plans WHERE category = 'membership' LIMIT 1), 
+  'plan', 1500.00, 1, 'gcash', 'mobile_online', 'paid', 'GC-MEM-9921', NOW() - INTERVAL '2 months'
+);
+
+-- Jordan Lee - Personal Training Add-on (Mobile Flow Approved)
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, reference_no, paid_at) VALUES
+(
+  (SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), 
+  (SELECT id FROM subscription_plans WHERE category = 'personal_training' LIMIT 1), 
+  'plan', 3500.00, 1, 'bank_transfer', 'mobile_online', 'paid', 'BNK-PT-4412', NOW() - INTERVAL '1 month'
+);
+
+-- Charlie Day - Membership Payment (Over-the-Counter Cash POS Flow)
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, paid_at) VALUES
+(
+  (SELECT id FROM users WHERE email = 'wildcard@example.com'), 
+  (SELECT id FROM subscription_plans WHERE category = 'membership' LIMIT 1), 
+  'plan', 1500.00, 1, 'cash', 'walk_in_pos', 'paid', NOW() - INTERVAL '12 days'
+);
+
+-- Casey Morgan - Plan Payment (Mobile Flow Approved)
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, reference_no, paid_at) VALUES
+(
+  (SELECT id FROM users WHERE email = 'casey.m@example.com'), 
+  (SELECT id FROM subscription_plans LIMIT 1), 
+  'plan', 1500.00, 1, 'gcash', 'mobile_online', 'paid', 'REF-2026-001', NOW() - INTERVAL '5 months'
+);
+
+-- Taylor Swift - Plan Payment (Mobile Flow Approved)
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, reference_no, paid_at) VALUES
+(
+  (SELECT id FROM users WHERE email = 'taylor.s@example.com'), 
+  (SELECT id FROM subscription_plans OFFSET 1 LIMIT 1), 
+  'plan', 3500.00, 1, 'bank_transfer', 'mobile_online', 'paid', 'BNK-99218', NOW() - INTERVAL '3 months 15 days'
+);
+
+-- Riley Reid - Plan Payment (Over-the-Counter Cash POS Flow)
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, paid_at) VALUES
+(
+  (SELECT id FROM users WHERE email = 'riley.r@example.com'), 
+  (SELECT id FROM subscription_plans LIMIT 1), 
+  'plan', 1500.00, 1, 'cash', 'walk_in_pos', 'paid', NOW() - INTERVAL '3 months'
+);
+
+
+-- ============================================================================
+-- PRODUCT INVENTORY PAYMENTS (PRODUCT FLOWS)
+-- ============================================================================
+
+-- Jordan Lee - Product (Pre-workout / Energy Drinks - Front Desk Cash Purchase)
+INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, notes, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), 
   (SELECT id FROM products WHERE name ILIKE '%C2%' OR name ILIKE '%Cobra%' OR name ILIKE '%Sting%' LIMIT 1), 
-  'product', 120.00, 2, 'cash', 'Pre-workout drinks', NOW() - INTERVAL '4 months 10 days'
+  'product', 120.00, 2, 'cash', 'walk_in_pos', 'paid', 'Pre-workout drinks', NOW() - INTERVAL '4 months 10 days'
 );
 
--- Quinn Fabray - Product (Hard Boiled Egg)
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
+-- Quinn Fabray - Product (Hard Boiled Egg - Front Desk Cash Purchase)
+INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'q.fabray@example.com'), 
   (SELECT id FROM products WHERE name = 'Hard Boiled Egg' LIMIT 1), 
-  'product', 25.00, 1, 'cash', NOW() - INTERVAL '2 months 5 days'
+  'product', 25.00, 1, 'cash', 'walk_in_pos', 'paid', NOW() - INTERVAL '2 months 5 days'
 );
 
--- Jules Winnfield - Product (Gym Merch / Barbell Foam Grip)
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
+-- Jules Winnfield - Product (Gym Merch / Barbell Foam Grip - Paid via Counter QR Scan)
+INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, notes, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'badmother@example.com'), 
   (SELECT id FROM products WHERE name = 'Barbell Foam Grip' LIMIT 1), 
-  'product', 80.00, 1, 'gcash', 'Barbell Foam Grip', NOW() - INTERVAL '5 days'
+  'product', 80.00, 1, 'gcash', 'walk_in_pos', 'paid', 'Barbell Foam Grip', NOW() - INTERVAL '5 days'
 );
 
--- Casey Morgan - Product (Whey Protein)
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
+-- Casey Morgan - Product (Whey Protein - Mobile Checkout Order)
+INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, notes, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'casey.m@example.com'), 
   (SELECT id FROM products WHERE name ILIKE '%Whey Protein%' LIMIT 1), 
-  'product', 2400.00, 1, 'bank_transfer', 'Whey Protein 5lbs', NOW() - INTERVAL '5 months 2 days'
+  'product', 2400.00, 1, 'bank_transfer', 'mobile_online', 'paid', 'Whey Protein 5lbs', NOW() - INTERVAL '5 months 2 days'
 );
 
--- Skyler White - Multiple items (Saba Banana)
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, notes, paid_at) VALUES
+-- Skyler White - Multiple items (Saba Banana - Front Desk Cash Purchase)
+INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, notes, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'skyler.w@example.com'), 
   (SELECT id FROM products WHERE name ILIKE '%Saba Banana%' LIMIT 1), 
-  'product', 60.00, 3, 'cash', 'Saba Banana Pack', NOW() - INTERVAL '20 days'
+  'product', 60.00, 3, 'cash', 'walk_in_pos', 'paid', 'Saba Banana Pack', NOW() - INTERVAL '20 days'
 );
 
--- Morgan Freeman - Supplement Purchase
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, paid_at) VALUES
+-- Morgan Freeman - Supplement Purchase (Mobile Checkout Order)
+INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'voice.god@example.com'), 
-  (SELECT id FROM products WHERE name ILIKE '%Whey Protein%' LIMIT 1), -- 🟢 Explicitly target name column
-  'product', 2200.00, 1, 'bank_transfer', NOW() - INTERVAL '2 days'
+  (SELECT id FROM products WHERE name ILIKE '%Whey Protein%' LIMIT 1), 
+  'product', 2200.00, 1, 'bank_transfer', 'mobile_online', 'paid', NOW() - INTERVAL '2 days'
 );

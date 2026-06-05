@@ -1,9 +1,18 @@
 import pool from "../../config/pool.ts";
 import type { SubscriptionPlanProps } from "../../types/index.ts";
 
+export const createSubscriptionDomain = async (params: SubscriptionPlanProps) => {
+  const columns = Object.keys(params);
+  const values = Object.values(params);
+  const placeholders = columns.map((_, idx) => `$${idx + 1}`);
 
-export const createSubscriptionDomain = async (data: SubscriptionPlanProps) => {
-  const query = `INSERT INTO subscription_plans (name,  description, price, duration_days, is_active, icon_url, category) VALUES ($1, $2, $3, $4, $5, $6, $7)`
-  const result = await pool.query(query, [data.name, data.description, data.price, data.duration_days, data.is_active, data.icon_url, data.category]);
-  return result.rows[0]
-}
+  const queryText = `
+    INSERT INTO subscription_plans (${columns.join(", ")})
+    VALUES (${placeholders.join(", ")})
+    RETURNING id;
+  `;
+
+  const subRes = await pool.query(queryText, values);
+
+  return { subscriptionId: subRes.rows[0].id };
+};

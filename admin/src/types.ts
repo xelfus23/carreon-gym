@@ -144,7 +144,9 @@ export interface SubscriptionPlanProps {
   duration_days: number;
   category: "personal_training" | "class" | "membership" | "add_on";
   is_active: boolean;
-  icon_url: string
+  icon_url: string;
+  is_popular: boolean;
+  savings_label: string
 }
 
 export interface FormField {

@@ -1,21 +1,17 @@
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-} from "react-native";
+import { View, Text, Image, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from "react-native";
 import React, { useMemo, useState } from "react";
 import { useGymDetails } from "@/src/hooks/useGymDetails";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
-import { submitPendingPayment } from "@/src/services/purchaseService";
+import { usePayments } from "@/src/hooks/usePayments";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "@/src/consts/colors";
 
 export default function PaymentInstructions() {
-  const { gymDetails, isLoading } = useGymDetails();
+  const { gymDetails, isLoading: gymLoading } = useGymDetails();
+  const { createPurchase } = usePayments();
   const router = useRouter();
+  
   const params = useLocalSearchParams<{
     transactionType?: "plan" | "product";
     itemName?: string;
@@ -26,239 +22,137 @@ export default function PaymentInstructions() {
     productId?: string;
   }>();
 
-  const [receiptUri, setReceiptUri] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [step, setStep] = useState<1 | 2>(1);
 
   const transactionType = params.transactionType ?? "plan";
   const quantity = Number(params.quantity ?? "1");
 
-  const itemSummary = useMemo(
-    () => ({
-      itemName:
-        params.itemName ??
-        params.planName ??
-        (transactionType === "plan" ? "Subscription Plan" : "Product"),
-      amount: Number(params.amount ?? "0"),
-    }),
-    [params.amount, params.itemName, params.planName, transactionType],
-  );
+  const itemSummary = useMemo(() => ({
+    itemName: params.itemName ?? params.planName ?? "Subscription Item",
+    amount: Number(params.amount ?? "0"),
+  }), [params]);
 
-  const pickReceipt = async () => {
-    const permission =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert(
-        "Permission Needed",
-        "Allow photo library access to upload your receipt screenshot.",
-      );
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]?.uri) {
-      setReceiptUri(result.assets[0].uri);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!receiptUri) {
-      Alert.alert("Missing Receipt", "Please upload your receipt first.");
-      return;
-    }
-
+  const handleConfirmOrder = async () => {
     try {
       setIsSubmitting(true);
 
-      await submitPendingPayment({
+      // Step 1: Create transaction record in backend database status: 'pending'
+      await createPurchase({
         transactionType,
-        planId: Number(params.planId),
+        planId: params.planId ? Number(params.planId) : undefined,
         planName: params.planName,
-        productId: params.productId
-          ? Number(params.productId)
-          : undefined,
+        productId: params.productId ? Number(params.productId) : undefined,
         quantity,
         method: "gcash",
-        receiptUri,
       });
-      
+
       Alert.alert(
-        "Submitted",
-        "Your payment is now pending verification. Admin will mark it as paid after review.",
+        "Order Initialized",
+        "Your order request has been generated! Please pay via GCash, keep your receipt screenshot, and upload it inside your Billing History tab.",
+        [
+          { 
+            text: "Go to History", 
+            onPress: () => router.replace("/(app)/(home)/(tabs)/profile") // Route to your history page path
+          }
+        ]
       );
-      router.back();
     } catch (error) {
       Alert.alert(
-        "Submission Failed",
-        error instanceof Error ? error.message : "Please try again.",
+        "Order Failed",
+        error instanceof Error ? error.message : "Please try again later."
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // 1. Handle the loading state so the app doesn't show empty fields
-  if (isLoading) {
+  if (gymLoading) {
     return (
       <SafeAreaView className="bg-background flex-1 justify-center items-center">
-        <Text>Loading Payment Info...</Text>
-      </SafeAreaView>
-    );
-  }
-
-  if (step === 1) {
-    return (
-      <SafeAreaView className="bg-background flex-1">
-        <ScrollView
-          contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-        >
-          <Text className="text-text-primary font-bold text-xl mb-2">
-            PAYMENT INSTRUCTIONS
-          </Text>
-
-          <View className="bg-surface p-4 rounded-lg shadow-sm border border-border">
-            <Text className="text-text-secondary">
-              1. Send payment to GCash:
-              <Text className="font-bold text-primary">
-                {" "}
-                {gymDetails?.gcash_number || "N/A"}
-              </Text>
-            </Text>
-
-            <Text className="text-text-secondary mb-4">
-              Account Name:
-              <Text className="font-bold text-primary">
-                {" "}
-                {gymDetails?.gcash_name || "Careon Gym"}
-              </Text>
-            </Text>
-
-            <View className="items-center justify-center p-4 rounded-md">
-              <Image
-                source={require("../../../assets/ui/gcash-qr.jpg")}
-                style={{ width: 250, height: 250 }}
-                resizeMode="contain"
-              />
-              <Text className="mt-2 text-xs text-text-secondary italic">
-                Scan to pay via GCash
-              </Text>
-            </View>
-          </View>
-
-          <Text className="text-text-secondary mt-6">
-            2. Take a screenshot of your receipt and continue to
-            upload.
-          </Text>
-
-          <View className="bg-surface p-4 rounded-lg border border-border mt-4">
-            <Text className="text-text-primary font-semibold">
-              Payment For: {itemSummary.itemName}
-            </Text>
-            <Text className="text-text-secondary mt-1">
-              Amount: PHP {itemSummary.amount.toFixed(2)}
-            </Text>
-            <Text className="text-text-secondary">
-              Quantity: {quantity}
-            </Text>
-          </View>
-        </ScrollView>
-
-        <View className="px-4 pb-6 gap-3">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="py-3 rounded-lg border bg-surface border-border items-center"
-          >
-            <Text className="text-red-400">Cancel</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setStep(2)}
-            className="bg-primary py-4 rounded-lg items-center"
-          >
-            <Text className="text-background font-bold">
-              Continue
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <ActivityIndicator size="large" color="#FF4500" />
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView className="bg-background flex-1">
-      <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-      >
-        <Text className="text-text-primary font-bold text-xl mb-2">
-          UPLOAD RECEIPT
-        </Text>
-        <Text className="text-text-secondary mb-4">
-          Upload your screenshot so admin can verify and mark this
-          payment as paid.
+      {/* Structural Header Wrapper */}
+      <View className="flex-row items-center justify-between px-5 pt-4 pb-2">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="w-10 h-10 bg-surface rounded-full items-center justify-center border border-border/40"
+        >
+          <Ionicons name="close" size={20} color={COLORS.textSecondary ?? "#6B7280"} />
+        </TouchableOpacity>
+        <Text className="text-text-primary font-bold text-xl">GCash Instructions</Text>
+        <View className="w-10" />
+      </View>
+
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, paddingTop: 8 }}>
+        <Text className="text-text-secondary text-sm mb-5">
+          Follow these directions to process your gym subscription tracking request.
         </Text>
 
-        <View className="bg-surface p-4 rounded-lg border border-border mb-4">
-          <Text className="text-text-primary font-semibold">
-            {itemSummary.itemName}
-          </Text>
-          <Text className="text-text-secondary mt-1">
-            Amount: PHP {itemSummary.amount.toFixed(2)}
+        {/* Merchant Card Information */}
+        <View className="bg-surface p-5 rounded-2xl border border-border mb-5 shadow-sm">
+          <View className="flex-row items-center gap-2 mb-4">
+            <Ionicons name="wallet" size={18} color="#FF4500" />
+            <Text className="text-text-primary font-bold text-xs tracking-wider uppercase">Official Receiver</Text>
+          </View>
+          
+          <View className="border-b border-border/60 pb-3 mb-3">
+            <Text className="text-xs text-text-secondary uppercase">GCash Number</Text>
+            <Text className="font-bold text-xl text-primary mt-0.5 select-all">
+              {gymDetails?.gcash_number || "N/A"}
+            </Text>
+          </View>
+
+          <View>
+            <Text className="text-xs text-text-secondary uppercase">Account Name</Text>
+            <Text className="font-semibold text-base text-text-primary mt-0.5">
+              {gymDetails?.gcash_name || "Careon Gym"}
+            </Text>
+          </View>
+        </View>
+
+        {/* QR Scan Container Component */}
+        <View className="bg-surface p-4 rounded-2xl border border-border items-center justify-center shadow-sm mb-5">
+          <Image
+            source={require("../../../assets/ui/gcash-qr.jpg")}
+            style={{ width: 220, height: 220 }}
+            resizeMode="contain"
+          />
+          <Text className="mt-3 text-xs text-text-secondary text-center italic px-4">
+            Take a screenshot of this QR code to scan directly inside your native GCash Application.
           </Text>
         </View>
 
-        <TouchableOpacity
-          onPress={pickReceipt}
-          className="py-3 rounded-lg border border-primary items-center mb-4"
-        >
-          <Text className="text-primary font-semibold">
-            {receiptUri
-              ? "Change Receipt Screenshot"
-              : "Upload Receipt Screenshot"}
-          </Text>
-        </TouchableOpacity>
-
-        <View className="bg-surface rounded-lg border border-border p-2 items-center justify-center">
-          {receiptUri ? (
-            <Image
-              source={{ uri: receiptUri }}
-              style={{
-                width: "100%",
-                height: 420,
-                borderRadius: 10,
-              }}
-              resizeMode="contain"
-            />
-          ) : (
-            <Text className="text-text-secondary py-20">
-              No receipt selected yet.
-            </Text>
-          )}
+        {/* Invoice Summary Card */}
+        <View className="bg-surface p-4 rounded-2xl border border-border shadow-sm">
+          <Text className="text-text-secondary text-xs font-bold uppercase tracking-wider mb-2">Checkout Details</Text>
+          <View className="flex-row justify-between items-center py-1">
+            <Text className="text-text-primary font-semibold text-sm">{itemSummary.itemName}</Text>
+            <Text className="text-text-secondary text-sm">x{quantity}</Text>
+          </View>
+          <View className="flex-row justify-between items-center border-t border-border/60 pt-2 mt-2">
+            <Text className="text-text-primary font-bold">Total Amount Due</Text>
+            <Text className="text-primary font-bold text-base">PHP {itemSummary.amount.toFixed(2)}</Text>
+          </View>
         </View>
       </ScrollView>
 
-      <View className="px-4 pb-6 gap-3">
+      {/* Primary Execution Confirmation Target */}
+      <View className="px-4 pb-8 pt-4 bg-background border-t border-surface">
         <TouchableOpacity
-          onPress={() => setStep(1)}
-          className="py-3 rounded-lg border bg-surface border-border items-center"
-        >
-          <Text className="text-text-primary">
-            Back to Instructions
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleSubmit}
+          onPress={handleConfirmOrder}
           disabled={isSubmitting}
-          className="bg-primary py-4 rounded-lg items-center"
+          className="bg-primary rounded-2xl py-4 items-center justify-center min-h-[56px]"
         >
-          <Text className="text-background font-bold">
-            {isSubmitting
-              ? "Submitting..."
-              : "Submit Payment Proof"}
-          </Text>
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text className="text-background font-bold text-base">I Have Paid — File Request</Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>

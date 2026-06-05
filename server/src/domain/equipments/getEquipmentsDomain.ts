@@ -5,6 +5,7 @@ export const getEquipmentDomain = async () => {
           SELECT 
               e.id, 
               e.name AS equipment_name, 
+              e.icon_url,
               e.quantity,
               ec.name AS category 
           FROM 

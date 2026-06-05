@@ -2,48 +2,39 @@ import pool from "../../config/pool.ts";
 import type { ProductProps } from "../../types/index.ts";
 
 export const createProductDomain = async (params: ProductProps) => {
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
+  const status =
+    params.stocks <= 0
+      ? "out_of_stock"
+      : params.is_active === false
+        ? "unavailable"
+        : "available";
 
-    const catRes = await client.query(
-      "SELECT id FROM product_categories WHERE name = $1",
-      [params.category],
-    );
+  const payload: Record<string, any> = {
+    name: params.product_name,
+    icon_url: params.icon_url,
+    price: params.price,
+    stocks: params.stocks,
+    status: status,
+    is_active: params.is_active ?? true,
+    last_restock_at: params.last_restock || new Date(),
+  };
 
-    if (catRes.rows.length === 0)
-      throw new Error(`Category ${params.category} not found`);
+  const columns = Object.keys(payload);
+  const values = Object.values(payload);
 
-    const status =
-      params.stocks <= 0
-        ? "out_of_stock"
-        : params.is_active === false
-          ? "unavailable"
-          : "available";
+  const placeholders = columns.map((_, idx) => `$${idx + 1}`);
 
-    const productRes = await client.query(
-      `INSERT INTO products (name, icon_url, category_id, price, stocks, status, is_active, last_restock_at) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-             RETURNING id, name, icon_url, price, stocks, status`,
-      [
-        params.product_name,
-        params.icon_url,
-        catRes.rows[0].id,
-        params.price,
-        params.stocks,
-        status,
-        params.is_active ?? true,
-        params.last_restock || new Date(),
-      ],
-    );
+  columns.push("category_id");
+  placeholders.push(`(SELECT id FROM product_categories WHERE name = $${columns.length})`);
+  values.push(params.category);
 
-    await client.query("COMMIT");
-    return productRes.rows[0];
-  } catch (err) {
-    await client.query("ROLLBACK");
-    throw err;
-  } finally {
-    client.release();
-  }
+  const queryText = `
+    INSERT INTO products (${columns.join(", ")})
+    VALUES (${placeholders.join(", ")})
+    RETURNING id, name, icon_url, price, stocks, status;
+  `;
+
+  const productRes = await pool.query(queryText, values);
+
+  return productRes.rows[0];
 };
-

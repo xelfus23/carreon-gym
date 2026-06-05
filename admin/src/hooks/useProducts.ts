@@ -30,7 +30,7 @@ export const useProducts = () => {
       let icon_url = product.icon_url || "";
 
       if (imageFile) {
-        const upload = await uploadImage(imageFile, "product");
+        const upload = await uploadImage(imageFile, "products");
         if (upload?.success && upload.data?.url) icon_url = upload.data.url;
       }
 
@@ -62,14 +62,14 @@ export const useProducts = () => {
       const patch: Partial<ProductProps> = { ...updates };
 
       if (imageFile) {
-        const upload = await uploadImage(imageFile, "product");
+        const upload = await uploadImage(imageFile, "products");
         if (upload?.success && upload.data?.url) {
           patch.icon_url = upload.data.url;
         }
       }
 
       if (patch.status === "unavailable") patch.is_active = false;
-      
+
       if (patch.status === "available" || patch.status === "out_of_stock")
         patch.is_active = true;
 

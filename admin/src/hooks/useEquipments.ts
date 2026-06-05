@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { EquipmentService } from "../services/equipment.service";
 import type { EquipmentProps } from "../types";
+import { uploadImage } from "../utils/uploadImage";
 
 export const useEquipments = () => {
   const [equipments, setEquipments] = useState<EquipmentProps[]>([]);
@@ -23,10 +24,25 @@ export const useEquipments = () => {
     }
   }, []);
 
-  const createEquipment = async (payload: EquipmentProps) => {
+  const createEquipment = async (equipment: EquipmentProps, imageFile: File | null) => {
     try {
-      const data = await EquipmentService.createEquipment(payload);
-      await initialize();
+
+      let icon_url = equipment.icon_url || "";
+
+      if (imageFile) {
+        const upload = await uploadImage(imageFile, "equipments");
+        if (upload?.success && upload.data?.url) icon_url = upload.data?.url;
+      }
+
+      const data = await EquipmentService.createEquipment({
+        ...(equipment as EquipmentProps),
+        icon_url
+      })
+
+      if (data.success) {
+        await initialize();
+      }
+
       return data;
     } catch (err) {
       if (err instanceof Error) console.error("Create error:", err.message);
@@ -34,11 +50,20 @@ export const useEquipments = () => {
     }
   };
 
-  const updateEquipment = async (id: number, payload: Partial<EquipmentProps>) => {
+  const updateEquipment = async (equipmentId: number, updates: Partial<EquipmentProps>, imageFile: File | null) => {
     try {
-      const response = await EquipmentService.updateEquipment(id, payload);
+
+      const patch: Partial<EquipmentProps> = { ...updates }
+
+      if (imageFile) {
+        const upload = await uploadImage(imageFile, "equipments");
+        if (upload.success && upload.data?.url) {
+          patch.icon_url = upload.data.url
+        };
+      }
+
+      await EquipmentService.updateEquipment(equipmentId, patch)
       await initialize();
-      return response;
     } catch (err) {
       if (err instanceof Error) console.error("Update error:", err.message);
       throw err;

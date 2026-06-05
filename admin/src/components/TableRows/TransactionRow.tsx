@@ -2,7 +2,7 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
-  Trash,
+  // Trash,
   XCircle,
 } from "lucide-react";
 import { type TransactionProps } from "../../hooks/useTransactions";
@@ -26,52 +26,52 @@ interface TransactionRowProps {
   onDelete: (t: TransactionProps) => void;
 }
 
+const mapOrigin = {
+  mobile_online: {
+    label: "Mobile online",
+    style: "text-sky-500"
+  },
+  walk_in_pos: {
+    label: "Counter Onsite",
+    style: "text-violet-500"
+  }
+}
+
 export default function TransactionRow({
   tx,
   setSelectedReceipt,
   onAccept,
   onDeny,
-  onDelete,
+  // onDelete,
 }: TransactionRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
 
-  const actions: ActionItemProps[] =
-    (tx.status === "paid" || tx.status === "cancelled")
-      ? [
-        {
-          label: "Delete",
-          icon: <Trash size={16} />,
-          onClick: () => {
-            onDelete(tx)
-            close();
-          },
-          variant: "danger" as const,
-          dividerBefore: true,
-        },
-      ]
-      : [
-        {
-          label: "Accept",
-          icon: <CheckCircle2 size={16} />,
-          onClick: () => {
-            onAccept(tx)
-            close();
-          },
-          variant: "success",
-        },
-        {
-          label: "Deny",
-          icon: <XCircle size={16} />,
-          onClick: () => {
-            onDeny(tx)
-            close();
-          },
-          variant: "warning",
-        },
-      ];
+  const hasAction = !(tx.status === "paid" || tx.status === "cancelled")
 
+  const actions: ActionItemProps[] = [
+    {
+      label: "Accept",
+      icon: <CheckCircle2 size={16} />,
+      onClick: () => {
+        onAccept(tx)
+        close();
+      },
+      variant: "success",
+    },
+    {
+      label: "Deny",
+      icon: <XCircle size={16} />,
+      onClick: () => {
+        onDeny(tx)
+        close();
+      },
+      variant: "warning",
+    },
+  ];
+
+  console.log(tx)
   return (
     <tr className={`transition-colors group hover:bg-border/40`}>
       <td className="p-4 whitespace-nowrap">
@@ -90,6 +90,9 @@ export default function TransactionRow({
           {tx.item_name}
         </p>
       </td>
+      <td className="p-4 text-xs">
+        {tx.quantity}
+      </td>
       <td className="p-4 text-xs">{formatCurrency(tx.amount)}</td>
       <td className="p-4">
         {tx.status === "paid" ? (
@@ -106,6 +109,9 @@ export default function TransactionRow({
           </span>
         )}
       </td>
+      <td className={`p-4 ${mapOrigin[tx.origin].style} text-[10px] uppercase`}>
+        {mapOrigin[tx.origin].label}
+      </td>
       <td className="p-4 whitespace-nowrap">
         {tx.receipt_image_url ? (
           <button
@@ -121,7 +127,7 @@ export default function TransactionRow({
         )}
       </td>
       <td className="p-4">
-        <div className="flex items-center justify-end">
+        {hasAction && <div className="flex items-center justify-end">
           <button
             ref={triggerRef}
             onClick={() => setMenuOpen((o) => !o)}
@@ -149,7 +155,7 @@ export default function TransactionRow({
               onClose={close}
             />
           )}
-        </div>
+        </div>}
       </td>
     </tr>
   );

@@ -8,6 +8,7 @@ CREATE TYPE subscription_status AS ENUM ('active', 'expired', 'pending', 'cancel
 CREATE TYPE attendance_status AS ENUM ('checked_in', 'checked_out');
 CREATE TYPE payment_status AS ENUM ('paid', 'pending', 'refunded', 'cancelled');
 CREATE TYPE payment_method AS ENUM ('cash', 'gcash', 'maya', 'bank_transfer', 'card', 'other');
+CREATE TYPE purchase_origin AS ENUM ('mobile_online', 'walk_in_pos');
 CREATE TYPE product_status AS ENUM ('available', 'out_of_stock', 'unavailable');
 CREATE TYPE trans_type AS ENUM ('plan', 'product');
 CREATE TYPE plan_category AS ENUM ('membership', 'class', 'personal_training', 'add_on');
@@ -79,6 +80,8 @@ CREATE TABLE subscription_plans (
     description TEXT,
     price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
     icon TEXT,
+    is_popular BOOLEAN DEFAULT FALSE,
+    savings_label TEXT DEFAULT '' NOT NULL,
     duration_days INT NOT NULL CHECK (duration_days > 0),
     category plan_category NOT NULL DEFAULT 'membership',
     is_active BOOLEAN DEFAULT TRUE,
@@ -148,29 +151,36 @@ CREATE TABLE payments (
     subscription_id BIGINT REFERENCES subscriptions(id) ON DELETE SET NULL,
     plan_id BIGINT REFERENCES subscription_plans(id) ON DELETE SET NULL,
     product_id BIGINT REFERENCES products(id) ON DELETE SET NULL,
-    transaction_type trans_type DEFAULT 'plan',
+    transaction_type trans_type NOT NULL DEFAULT 'plan',
+    
+    origin purchase_origin NOT NULL DEFAULT 'mobile_online',
+    
     amount NUMERIC(10,2) NOT NULL CHECK (amount >= 0),
-    quantity INT DEFAULT 1,
+    quantity INT DEFAULT 1 CHECK (quantity > 0),
     currency TEXT DEFAULT 'PHP',
-    status payment_status DEFAULT 'paid',
+    
+    status payment_status NOT NULL DEFAULT 'pending', 
     method payment_method DEFAULT 'cash',
     recorded_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
     reference_no TEXT,
-    receipt_image_url TEXT,
+    receipt_image_url TEXT, 
     notes TEXT,
-    paid_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    
+    paid_at TIMESTAMPTZ, 
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT valid_transaction CHECK (
-      (transaction_type = 'plan' AND plan_id IS NOT NULL AND product_id IS NULL)
-      OR
-      (transaction_type = 'product' AND product_id IS NOT NULL AND plan_id IS NULL AND subscription_id IS NULL)
-  )
+        (transaction_type = 'plan' AND plan_id IS NOT NULL AND product_id IS NULL AND quantity = 1)
+        OR
+        (transaction_type = 'product' AND product_id IS NOT NULL AND plan_id IS NULL AND subscription_id IS NULL)
+    )
 );
+
 CREATE INDEX idx_payments_user ON payments(user_id);
 CREATE INDEX idx_payments_status ON payments(status);
-CREATE INDEX idx_payments_paid_at ON payments(paid_at DESC);
+CREATE INDEX idx_payments_origin ON payments(origin);
+CREATE INDEX idx_payments_paid_at ON payments(paid_at DESC) WHERE paid_at IS NOT NULL;
 
 -- ============================================================================
 -- USER SESSIONS
@@ -472,6 +482,7 @@ SELECT
         WHEN p.transaction_type = 'plan' THEN sp.name 
         WHEN p.transaction_type = 'product' THEN prod.name
     END AS item_name,
+    p.origin,
     p.amount,
     p.quantity,
     p.method,

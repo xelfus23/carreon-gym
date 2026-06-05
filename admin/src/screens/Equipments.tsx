@@ -255,7 +255,7 @@ export default function Equipments() {
           title="Add New Equipment"
           subtitle="Register inventory logs inside management pipelines"
           fields={EQUIPMENT_FIELDS}
-          onSave={(data: EquipmentProps) => createEquipment(data)}
+          onSave={(data: EquipmentProps, imageFile: File | null) => createEquipment(data, imageFile)}
           submitButtonText="Create Record"
         />
       )}
@@ -270,7 +270,7 @@ export default function Equipments() {
           subtitle="Adjust technical specifications or quantity totals"
           fields={EQUIPMENT_FIELDS}
           initialData={selectedEquipment as EquipmentProps}
-          onSave={(data: Partial<EquipmentProps>) => updateEquipment(selectedEquipment.id, data)}
+          onSave={(data: Partial<EquipmentProps>, imageFile: File | null) => updateEquipment(selectedEquipment.id, data, imageFile)}
         />
       )}
 

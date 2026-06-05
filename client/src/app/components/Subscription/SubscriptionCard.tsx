@@ -1,7 +1,6 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Image } from "react-native";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "@/src/consts/colors";
 
 export interface SubscriptionCardProps {
   name: string;
@@ -9,7 +8,8 @@ export interface SubscriptionCardProps {
   duration_days: number;
   savingsLabel?: string;
   isPopular?: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
+  description: string;
+  icon_url: string;
   isSelected: boolean;
   onSelect: () => void;
 }
@@ -20,8 +20,9 @@ export default function SubscriptionCard({
   duration_days,
   savingsLabel,
   isPopular,
-  icon,
+  icon_url,
   isSelected,
+  description,
   onSelect,
 }: SubscriptionCardProps) {
   const perDayPrice = Math.round(price / duration_days);
@@ -31,11 +32,10 @@ export default function SubscriptionCard({
     <TouchableOpacity
       onPress={onSelect}
       activeOpacity={0.8}
-      className={`rounded-2xl p-5 border ${
-        isSelected
-          ? "border-primary bg-primary/10"
-          : "border-surface bg-surface"
-      }`}
+      className={`rounded-2xl p-5 border ${isSelected
+        ? "border-primary bg-primary/10"
+        : "border-surface bg-surface"
+        }`}
     >
       {isPopular && (
         <View className="absolute top-5 right-12 bg-primary/20 rounded-full px-3 py-1">
@@ -47,12 +47,11 @@ export default function SubscriptionCard({
 
       <View className="flex-row items-start justify-between mb-4">
         <View className="w-10 h-10 rounded-xl bg-background items-center justify-center">
-          <Ionicons name={icon} size={20} color={COLORS.primary} />
+          <Image source={{ uri: icon_url }} />
         </View>
         <View
-          className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
-            isSelected ? "border-primary bg-primary" : "border-text-secondary"
-          }`}
+          className={`w-5 h-5 rounded-full border-2 items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-text-secondary"
+            }`}
         >
           {isSelected && <View className="w-2 h-2 rounded-full bg-white" />}
         </View>

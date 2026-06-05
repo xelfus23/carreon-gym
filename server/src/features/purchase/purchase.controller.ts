@@ -1,12 +1,11 @@
 import { broadcastNotification } from "../../ai/websocketHandler.ts";
+import { createPaymentDomain } from "../../domain/purchase/createPaymentDomain.ts";
+import { deletePaymentDomain } from "../../domain/purchase/deletePaymentDomain.ts";
+import { denyPaymentDomain } from "../../domain/purchase/denyPaymentDomain.ts";
 import { getTransactionHistoryDomain } from "../../domain/purchase/getTransactionHistoryDomain.ts";
 import { getTransactionsDomain } from "../../domain/purchase/getTransactionsDomain.ts";
-import {
-  createPendingPurchaseDomain,
-  deleteTransactionDomain,
-  denyPendingPurchaseDomain,
-  verifyPendingPurchaseDomain,
-} from "../../domain/purchase/transactionsDomain.ts";
+import { verifyPaymentDomain } from "../../domain/purchase/verifyPaymentDomain.ts";
+
 import { catchAsync } from "../../utils/catchAsync.ts";
 import type { Request, Response } from "express";
 
@@ -25,7 +24,7 @@ export const requestPurchase = catchAsync(
       });
     }
 
-    const data = await createPendingPurchaseDomain(
+    const data = await createPaymentDomain(
       userId,
       productId ? Number(productId) : undefined,
       planId ? Number(planId) : undefined,
@@ -56,7 +55,7 @@ export const verifyPurchase = catchAsync(
 
     const adminId = Number(req.user?.id);
 
-    const data = await verifyPendingPurchaseDomain(Number(paymentId), adminId);
+    const data = await verifyPaymentDomain(Number(paymentId), adminId);
 
     broadcastNotification("PAYMENT_VERIFIED", {
       userId: data.user_id,
@@ -84,7 +83,7 @@ export const denyPurchase = catchAsync(async (req: Request, res: Response) => {
     });
   }
 
-  const data = await denyPendingPurchaseDomain(Number(paymentId), adminId);
+  const data = await denyPaymentDomain(Number(paymentId), adminId);
 
   broadcastNotification("PAYMENT_DENIED", {
     userId: data.user_id,
@@ -103,7 +102,7 @@ export const deleteTransaction = catchAsync(
   async (req: Request, res: Response) => {
     const { paymentId } = req.params;
 
-    const data = await deleteTransactionDomain(Number(paymentId));
+    const data = await deletePaymentDomain(Number(paymentId));
 
     broadcastNotification("TRANSACTION_DELETED", {
       transactionId: data.id,
