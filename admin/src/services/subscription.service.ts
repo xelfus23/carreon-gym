@@ -3,12 +3,14 @@ import type { SubscriptionPlanProps } from "../types";
 import { authService } from "./auth.service";
 
 export const subscriptionService = {
-
   createPlan: async (subsData: SubscriptionPlanProps) => {
-    const res = await authService.fetchWithRefresh(`${API_URL}/api/gym-subscriptions`, {
-      method: "POST",
-      body: JSON.stringify(subsData)
-    });
+    const res = await authService.fetchWithRefresh(
+      `${API_URL}/api/gym-subscriptions`,
+      {
+        method: "POST",
+        body: JSON.stringify(subsData),
+      },
+    );
 
     const data = await res.json();
 
@@ -16,10 +18,13 @@ export const subscriptionService = {
   },
 
   updatePlan: async (id: number, planData: Partial<SubscriptionPlanProps>) => {
-    const res = await authService.fetchWithRefresh(`${API_URL}/api/gym-subscriptions/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(planData)
-    });
+    const res = await authService.fetchWithRefresh(
+      `${API_URL}/api/gym-subscriptions/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(planData),
+      },
+    );
 
     const data = await res.json();
 
@@ -27,9 +32,12 @@ export const subscriptionService = {
   },
 
   deletePlan: async (id: number) => {
-    return await authService.fetchWithRefresh(`${API_URL}/api/gym-subscriptions/${id}`, {
-      method: "DELETE"
-    })
+    return await authService.fetchWithRefresh(
+      `${API_URL}/api/gym-subscriptions/${id}`,
+      {
+        method: "DELETE",
+      },
+    );
   },
 
   async getPlans(): Promise<SubscriptionPlanProps[]> {

@@ -5,7 +5,11 @@ import { Dumbbell, Zap, Users, Layers, Loader2 } from "lucide-react";
 import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
 import CustomTable from "../components/CustomTable";
-import type { ConfirmDialogTypes, FormField, SubscriptionPlanProps } from "../types";
+import type {
+  ConfirmDialogTypes,
+  FormField,
+  SubscriptionPlanProps,
+} from "../types";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import SubscriptionsRow from "../components/TableRows/SubscriptionsRow";
 import EditModal from "../components/Modals/EditModal";
@@ -28,18 +32,28 @@ const fields: FormField[] = [
     type: "text",
     placeholder: "Enter the name of the subscription plan",
     gridSpan: "full",
+    required: true,
   },
   {
     name: "description",
     label: "Description",
     type: "textarea",
     placeholder: "Enter the description of the subscription plan",
-    gridSpan: 'full'
+    gridSpan: "full",
+    required: true,
+  },
+  {
+    name: "savings_label",
+    label: "Savings Label",
+    type: "text",
+    placeholder: "Enter the savings label of the subscription plan",
+    gridSpan: "full",
   },
   {
     name: "category",
     label: "Category",
     type: "select",
+    gridSpan: "full",
     placeholder: "Select the category of the subscription plan",
     options: [
       { label: "Membership", value: "membership" },
@@ -47,30 +61,50 @@ const fields: FormField[] = [
       { label: "Personal Trainer", value: "personal_training" },
       { label: "Addon", value: "add_on" },
     ],
+    required: true,
   },
   {
     name: "duration_days",
     label: "Duration (Days)",
     type: "number",
     placeholder: "Enter the duration of the subscription plan in days",
+    required: true,
   },
   {
     name: "price",
     label: "Price",
     type: "number",
     placeholder: "Enter the price of the subscription plan",
+    required: true,
   },
   {
     name: "is_active",
     label: "Active",
     type: "checkbox",
     placeholder: "Is the subscription plan active?",
+    required: true,
+  },
+  {
+    name: "is_popular",
+    label: "Is Popular",
+    type: "checkbox",
+    placeholder: "Is the subscription plan popular?",
+    required: true,
   },
 ];
 
 export default function GymSubscriptionsAdmin() {
-  const { membership, classes, addOns, personalTrainer, isLoading, refresh, updateSub, deleteSub, createSub } =
-    useGymSubs();
+  const {
+    membership,
+    classes,
+    addOns,
+    personalTrainer,
+    isLoading,
+    refresh,
+    updateSub,
+    deleteSub,
+    createSub,
+  } = useGymSubs();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -153,17 +187,16 @@ export default function GymSubscriptionsAdmin() {
       variant: "danger",
       onConfirm: async () => {
         setConfirmDialog(null);
-        deleteSub(s.id)
+        deleteSub(s.id);
         refresh();
       },
       onClose: () => setConfirmDialog(null),
     });
-  }
+  };
 
   const handleEdit = (sub: SubscriptionPlanProps) => {
     setSelectedSubscription(sub);
-  }
-
+  };
 
   if (isLoading)
     return (
@@ -219,10 +252,9 @@ export default function GymSubscriptionsAdmin() {
         { label: "Personal Training", value: "personal_training" },
         { label: "Addon", value: "add_on" },
       ],
-      label: "Category"
+      label: "Category",
     },
   ];
-
 
   return (
     <div className="space-y-4">
@@ -286,11 +318,12 @@ export default function GymSubscriptionsAdmin() {
             { label: "Icon", key: "icon_url" },
             { label: "Name", key: "name" },
             { label: "Description", key: "description" },
+            { label: "Savings Label", key: "savings_label" },
             { label: "Category", key: "category" },
             { label: "Duration", key: "duration_days" },
             { label: "Price", key: "price" },
             { label: "Status", key: "is_active" },
-            { label: "Is Popular", key: "is_popular" },
+            { label: "", key: "is_popular" },
             { label: "", key: null },
           ]}
         />
@@ -317,7 +350,9 @@ export default function GymSubscriptionsAdmin() {
           subtitle="Edit the subscription plan"
           fields={fields}
           initialData={selectedSubscription}
-          onSave={(data: SubscriptionPlanProps, imageFile: File | null) => updateSub(selectedSubscription?.id, data, imageFile)}
+          onSave={(data: SubscriptionPlanProps, imageFile: File | null) =>
+            updateSub(selectedSubscription?.id, data, imageFile)
+          }
         />
       )}
 
@@ -329,7 +364,9 @@ export default function GymSubscriptionsAdmin() {
           title="Add Subscription"
           subtitle="Add a subscription plan"
           fields={fields}
-          onSave={(data: SubscriptionPlanProps, imageFile: File | null) => createSub(data, imageFile)}
+          onSave={(data: SubscriptionPlanProps, imageFile: File | null) =>
+            createSub(data, imageFile)
+          }
           submitButtonText="Add Subscription"
         />
       )}

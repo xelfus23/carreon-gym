@@ -34,13 +34,13 @@ export default function CustomTable<T>(props: TableProps<T>) {
 
   return (
     <>
-      <div className=" overflow-y-auto h-[500px]">
+      <div className=" overflow-y-auto h-125">
         <table className="text-left text-sm w-full">
           <thead className="sticky top-0 z-10">
             <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
-              {columns.map((col) => (
+              {columns.map((col, idx) => (
                 <th
-                  key={col.label}
+                  key={col.label + idx}
                   onClick={() => col.sortable && col.key && onSort?.(col.key)}
                   className="p-4 text-xs group cursor-pointer select-none hover:text-text-secondary w-fit whitespace-nowrap"
                 >

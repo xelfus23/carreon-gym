@@ -1,4 +1,4 @@
-import { CheckCircle, Edit, Trash, XCircle } from "lucide-react";
+import { CheckCircle, Edit, Star, Trash, XCircle } from "lucide-react";
 import type { ActionItemProps, SubscriptionPlanProps } from "../../types";
 import { formatSlug } from "../../utils/formatSlug";
 import { formatCurrency } from "../../utils/formatCurrency";
@@ -13,8 +13,7 @@ const CATEGORY_COLORS = {
 };
 
 interface SubscriptionsRowProps {
-
-  plan: SubscriptionPlanProps,
+  plan: SubscriptionPlanProps;
   onDelete: (s: SubscriptionPlanProps) => void;
   onEdit: (s: SubscriptionPlanProps) => void;
 }
@@ -34,23 +33,21 @@ export default function SubscriptionsRow({
       label: "Edit",
       onClick: () => {
         onEdit(plan);
-        close()
+        close();
       },
       icon: <Edit size={16} />,
     },
     {
       label: "Delete",
       onClick: () => {
-        onDelete(plan)
-        close()
+        onDelete(plan);
+        close();
       },
       icon: <Trash size={16} />,
       variant: "danger",
-      dividerBefore: true
+      dividerBefore: true,
     },
   ];
-
-  console.log(plan)
 
   return (
     <tr className={`transition-colors group hover:bg-border/40`}>
@@ -75,6 +72,12 @@ export default function SubscriptionsRow({
       <td className="p-4">
         <p className="text-xs text-text-secondary line-clamp-1">
           {plan.description}
+        </p>
+      </td>
+
+      <td className="p-4">
+        <p className="text-xs text-text-secondary line-clamp-1">
+          {plan.savings_label}
         </p>
       </td>
       <td className="p-4 whitespace-nowrap">
@@ -102,15 +105,7 @@ export default function SubscriptionsRow({
         )}
       </td>
       <td className="p-4">
-        {plan.is_popular ? (
-          <span className="inline-flex items-center gap-1.5 text-emerald-500 text-[11px] font-black">
-            <CheckCircle size={14} /> True
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 text-rose-500 text-[11px] font-black">
-            <XCircle size={14} /> False
-          </span>
-        )}
+        {plan.is_popular && <Star className="text-yellow-300" size={16} />}
       </td>
       <td className="p-4">
         <div className="flex items-center justify-end">
@@ -122,10 +117,11 @@ export default function SubscriptionsRow({
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                             opacity-0 group-hover:opacity-100 focus:opacity-100
-                            ${menuOpen
-                ? "opacity-100 bg-border text-text-primary"
-                : "text-text-secondary hover:bg-border hover:text-text-primary"
-              }`}
+                            ${
+                              menuOpen
+                                ? "opacity-100 bg-border text-text-primary"
+                                : "text-text-secondary hover:bg-border hover:text-text-primary"
+                            }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />

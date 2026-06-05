@@ -2,8 +2,21 @@ import { API_URL } from "../constants";
 import type { PurchaseRequestProps } from "../types";
 import { authService } from "./auth.service";
 
+// Define the payload structure for your POS items if not already in your types file
+export interface ManualTransactionPayload {
+  user_id: string | null;
+  items: {
+    product_id: number;
+    quantity: number;
+    price_at_purchase: number;
+  }[];
+  total_amount: number;
+  method: string;
+  reference_no?: string;
+  notes?: string;
+}
+
 export const purchaseService = {
-  // Member: Request a new product purchase (Status: Pending)
   requestPurchase: async (purchaseData: PurchaseRequestProps) => {
     const result = await authService.fetchWithRefresh(
       `${API_URL}/api/purchase/request`,
@@ -16,7 +29,20 @@ export const purchaseService = {
     return await result.json();
   },
 
-  // Admin: Verify a pending purchase (Status: Paid)
+  createManualTransaction: async (
+    transactionData: ManualTransactionPayload,
+  ) => {
+    const result = await authService.fetchWithRefresh(
+      `${API_URL}/api/purchase/manual-log`,
+      {
+        method: "POST",
+        body: JSON.stringify(transactionData),
+      },
+    );
+
+    return await result.json();
+  },
+
   verifyPurchase: async (paymentId: number) => {
     const result = await authService.fetchWithRefresh(
       `${API_URL}/api/purchase/verify/${paymentId}`,

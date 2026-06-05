@@ -13,9 +13,13 @@ import { formatCurrency } from "../utils/formatCurrency";
 import ToolBar from "../components/ToolBar";
 import ConfirmDialog from "../components/Modals/ConfirmDialog";
 import type { ConfirmDialogTypes } from "../types";
+import LogTransactionModal from "../components/Modals/LogTransactionModal";
+import { useMember } from "../hooks/useMember";
 
 export default function Transactions() {
-  const { transactions, isLoading, refresh } = useTransactions();
+  const { transactions, isLoading, refresh, logManualTransaction } =
+    useTransactions();
+  const { members } = useMember();
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -23,6 +27,7 @@ export default function Transactions() {
     string | null | undefined
   >();
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogTypes>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const menuWrapRef = useRef<HTMLDivElement | null>(null);
 
   const PAGE_SIZE = 50;
@@ -64,7 +69,6 @@ export default function Transactions() {
     return transactions.filter((tx) => {
       return (
         tx.member_name.toLowerCase().includes(q) ||
-        tx.item_name.toLowerCase().includes(q) ||
         tx.transaction_type.toLowerCase().includes(q)
       );
     });
@@ -75,7 +79,6 @@ export default function Transactions() {
     page * PAGE_SIZE,
   );
   const totalPages = Math.ceil(filteredTransactions.length / PAGE_SIZE) || 1;
-
 
   const onAccept = (t: TransactionProps) => {
     setConfirmDialog({
@@ -89,8 +92,8 @@ export default function Transactions() {
         refresh();
       },
       onClose: () => setConfirmDialog(null),
-    })
-  }
+    });
+  };
 
   const onDeny = (t: TransactionProps) => {
     setConfirmDialog({
@@ -104,8 +107,8 @@ export default function Transactions() {
         refresh();
       },
       onClose: () => setConfirmDialog(null),
-    })
-  }
+    });
+  };
 
   const onDelete = (t: TransactionProps) => {
     setConfirmDialog({
@@ -119,29 +122,23 @@ export default function Transactions() {
         refresh();
       },
       onClose: () => setConfirmDialog(null),
-    })
-  }
-
+    });
+  };
 
   const columns: ColumnDefinition<TransactionProps>[] = useMemo(
     () => [
       { label: "Ref. No.", key: "reference_no" },
       { label: "Date", key: "paid_at" },
       { label: "Member", key: "member_name" },
-      { label: "Item", key: "item_name" },
-      { label: "Qty", key: "quantity" },
+      { label: "Item", key: "items" },
       { label: "Amount", key: "amount" },
       { label: "Status", key: "status" },
-      { label: "Origin", key: "origin" },
+      { label: "Method", key: "method" },
       { label: "Proof", key: "receipt_image_url" },
       { label: "", key: null },
     ],
     [],
   );
-
-  const onClick = () => {
-
-  }
 
   if (isLoading)
     return (
@@ -218,7 +215,7 @@ export default function Transactions() {
         buttonLabel="Log Transaction"
         icon={<Receipt className="text-primary" />}
         isLoading={isLoading}
-        onClick={onClick}
+        onClick={() => setIsModalOpen(true)}
       />
 
       {/* ── Stats Grid ── */}
@@ -263,6 +260,13 @@ export default function Transactions() {
         />
       </div>
 
+      {isModalOpen && (
+        <LogTransactionModal
+          members={members}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={(data) => logManualTransaction(data)}
+        />
+      )}
 
       {confirmDialog && (
         <ConfirmDialog

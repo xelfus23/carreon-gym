@@ -10,100 +10,98 @@ export const createPaymentDomain = async (
   method: string,
   receiptImageUrl?: string,
 ) => {
-  const pendingRes = await pool.query(
-    `SELECT id FROM payments WHERE user_id = $1 AND status = 'pending' LIMIT 1`,
-    [userId],
-  );
+  const client = await pool.connect();
 
-  if (pendingRes.rowCount && pendingRes.rowCount > 0) {
-    throw new AppError(
-      "You already have a pending payment request. Please wait for approval or cancellation.",
-      409,
-      "PENDING_PAYMENT_EXISTS",
+  try {
+    await client.query("BEGIN");
+
+    // 1. Maintain blockades against concurrent pending operations per individual user
+    const pendingRes = await client.query(
+      `SELECT id FROM payments WHERE user_id = $1 AND status = 'pending' LIMIT 1`,
+      [userId],
     );
-  }
 
-  let res;
+    if (pendingRes.rowCount && pendingRes.rowCount > 0) {
+      throw new AppError(
+        "You already have a pending payment request. Please wait for approval or cancellation.",
+        409,
+        "PENDING_PAYMENT_EXISTS",
+      );
+    }
 
-  if (productId) {
-    res = await pool.query(
-      `WITH inserted_payment AS (
-              INSERT INTO payments (
-                user_id,
-                product_id,
-                quantity,
-                amount,
-                transaction_type,
-                method,
-                status,
-                receipt_image_url,
-                paid_at
-              )
-              SELECT
-                $1::INT,
-                $2::INT,
-                $3::INT,
-                (price * $3::INT),
-                'product',
-                $4,
-                'pending',
-                $5,
-                NULL
-              FROM products WHERE id = $2
-              RETURNING *
-          )
-          SELECT
-              p.*,
-              u.first_name || ' ' || u.last_name as member_name,
-              prod.name as item_name
-          FROM inserted_payment p
-          JOIN users u ON p.user_id = u.id
-          JOIN products prod ON p.product_id = prod.id`,
-      [userId, productId, qty, method, receiptImageUrl ?? null],
+    let masterPaymentId: number;
+    let finalAmount = 0;
+    let resolvedItemName = "";
+
+    // 2. Branch processing execution paths by target type selection
+    if (productId) {
+      // Look up target product specifications to fetch price and inventory verification data
+      const prodRes = await client.query(
+        "SELECT name, price FROM products WHERE id = $1",
+        [productId],
+      );
+      if (!prodRes.rows.length)
+        throw new AppError("Target product reference invalid.", 404);
+
+      const targetProduct = prodRes.rows[0];
+      finalAmount = Number(targetProduct.price) * qty;
+      resolvedItemName = targetProduct.name;
+
+      // Insert master entry header parameters
+      const masterRes = await client.query(
+        `INSERT INTO payments (user_id, transaction_type, origin, amount, status, method, receipt_image_url)
+         VALUES ($1, 'product', 'mobile_online', $2, 'pending', $3, $4) RETURNING id`,
+        [userId, finalAmount, method, receiptImageUrl ?? null],
+      );
+      masterPaymentId = masterRes.rows[0].id;
+
+      // Register product target configuration inside child collection table arrays
+      await client.query(
+        `INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase)
+         VALUES ($1, $2, $3, $4)`,
+        [masterPaymentId, productId, qty, targetProduct.price],
+      );
+    } else {
+      // Find target plan data constraints using fallback evaluation logic paths
+      const planRes = await client.query(
+        `SELECT id, name, price FROM subscription_plans 
+         WHERE (id = $1) OR ($1 IS NULL AND $2 IS NOT NULL AND LOWER(name) = LOWER($2))`,
+        [planId ?? null, planName ?? null],
+      );
+      if (!planRes.rows.length)
+        throw new AppError("Target subscription plan reference invalid.", 404);
+
+      const targetPlan = planRes.rows[0];
+      finalAmount = Number(targetPlan.price);
+      resolvedItemName = targetPlan.name;
+
+      const masterRes = await client.query(
+        `INSERT INTO payments (user_id, plan_id, transaction_type, origin, amount, status, method, receipt_image_url)
+         VALUES ($1, $2, 'plan', 'mobile_online', $3, 'pending', $4, $5) RETURNING id`,
+        [userId, targetPlan.id, finalAmount, method, receiptImageUrl ?? null],
+      );
+      masterPaymentId = masterRes.rows[0].id;
+    }
+
+    // Resolve structural payload username identity values safely
+    const userRes = await client.query(
+      "SELECT first_name || ' ' || last_name as full_name FROM users WHERE id = $1",
+      [userId],
     );
-  } else {
-    res = await pool.query(
-      `WITH inserted_payment AS (
-            INSERT INTO payments (
-              user_id,
-              plan_id,
-              quantity,
-              amount,
-              transaction_type,
-              method,
-              status,
-              receipt_image_url,
-              paid_at
-            )
-            SELECT
-              $1::INT,
-              sp.id,
-              1,
-              sp.price,
-              'plan',
-              $4,
-              'pending',
-              $5,
-              NULL
-            FROM subscription_plans sp
-            WHERE ($2::INT IS NOT NULL AND sp.id = $2)
-               OR ($2::INT IS NULL AND $3::TEXT IS NOT NULL AND LOWER(sp.name) = LOWER($3::TEXT))
-            RETURNING *
-        )
-        SELECT
-            p.*,
-            u.first_name || ' ' || u.last_name as member_name,
-            sp.name as item_name
-        FROM inserted_payment p
-        JOIN users u ON p.user_id = u.id
-        JOIN subscription_plans sp ON p.plan_id = sp.id`,
-      [userId, planId ?? null, planName ?? null, method, receiptImageUrl ?? null],
-    );
-  }
+    const memberName = userRes.rows[0]?.full_name || "Gym Member";
 
-  if (!res?.rows?.length) {
-    throw new Error("Failed to create pending payment. Invalid plan/product.");
-  }
+    await client.query("COMMIT");
 
-  return res.rows[0];
+    return {
+      id: masterPaymentId,
+      amount: finalAmount,
+      item_name: resolvedItemName,
+      member_name: memberName,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 };

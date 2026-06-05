@@ -1,20 +1,32 @@
 import { useState, useEffect, useCallback } from "react";
-import { purchaseService } from "../services/purchase.service";
+import {
+  purchaseService,
+  type ManualTransactionPayload,
+} from "../services/purchase.service";
 import { getWsUrl } from "../utils/getWsUrl";
+
+export interface ProductItemProps {
+  id: number;
+  name: string;
+  quantity: number;
+  price_at_purchase: number;
+  icon_url: string;
+}
 
 export type TransactionProps = {
   transaction_id: number;
   user_id: number;
   member_name: string;
   transaction_type: "plan" | "product";
-  item_name: string;
+  items: ProductItemProps[];
   amount: number;
   method: string;
-  status: "pending" | "paid" | "cancelled";
+  status: "pending" | "paid" | "cancelled" | "rejected";
   paid_at: string;
+  created_at: string;
   reference_no: string | null;
   receipt_image_url?: string | null;
-  origin: "mobile_online" | "walk_in_pos",
+  origin: "mobile_online" | "walk_in_pos";
   quantity: number;
 };
 
@@ -28,6 +40,7 @@ export const useTransactions = (userId?: number) => {
     setError(null);
     try {
       const result = await purchaseService.getAllTransactions(userId);
+      console.log(result.data);
       setTransactions(result.data || result);
     } catch (err) {
       setError("Failed to load transaction logs");
@@ -60,7 +73,8 @@ export const useTransactions = (userId?: number) => {
             message.event === "NEW_PENDING_PAYMENT" ||
             message.event === "PAYMENT_VERIFIED" ||
             message.event === "PAYMENT_DENIED" ||
-            message.event === "TRANSACTION_DELETED"
+            message.event === "TRANSACTION_DELETED" ||
+            message.event === "MANUAL_TRANSACTION_LOGGED" // Handles updates from separate admin terminals
           ) {
             getTransactions();
           }
@@ -74,14 +88,11 @@ export const useTransactions = (userId?: number) => {
       console.error("WS Error:", error);
     };
 
-    // This is the critical cleanup part
     return () => {
-      // 1. Remove listeners so they don't trigger during unmount
       ws.onopen = null;
       ws.onmessage = null;
       ws.onerror = null;
 
-      // 2. Only close if it's not already closed
       if (
         ws.readyState === WebSocket.CONNECTING ||
         ws.readyState === WebSocket.OPEN
@@ -91,6 +102,19 @@ export const useTransactions = (userId?: number) => {
     };
   }, [getTransactions]);
 
+  const logManualTransaction = async (payload: ManualTransactionPayload) => {
+    try {
+      const result = await purchaseService.createManualTransaction(payload);
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to log manual transaction");
+      }
+      getTransactions(); // Refresh the list locally
+      return result;
+    } catch (err) {
+      console.error(err);
+      throw err; // Forward error directly to the Modal UI error boundary banner
+    }
+  };
 
   const verifyTransaction = async (paymentId: number) => {
     try {
@@ -100,7 +124,7 @@ export const useTransactions = (userId?: number) => {
         throw new Error(result?.message || "Failed to verify payment");
       }
 
-      getTransactions()
+      getTransactions();
     } catch (err) {
       console.error(err);
     }
@@ -114,8 +138,7 @@ export const useTransactions = (userId?: number) => {
         throw new Error(result?.message || "Failed to deny payment");
       }
 
-      getTransactions()
-
+      getTransactions();
     } catch (err) {
       console.error(err);
     }
@@ -127,19 +150,20 @@ export const useTransactions = (userId?: number) => {
       if (!result?.success) {
         throw new Error(result?.message || "Failed to delete transaction");
       }
+      getTransactions();
     } catch (err) {
       console.error(err);
     }
   };
-
 
   return {
     transactions,
     isLoading,
     error,
     refresh: getTransactions,
+    logManualTransaction,
     verifyTransaction,
     denyTransaction,
-    deleteTransaction
+    deleteTransaction,
   };
 };

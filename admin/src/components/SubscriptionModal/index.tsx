@@ -8,7 +8,12 @@ import type {
 } from "../../types";
 import { PAYMENT_METHODS } from "../../constants";
 
-export type FilteredPlan = "all" | "membership" | "class" | "add_on" | "personal_training";
+export type FilteredPlan =
+  | "all"
+  | "membership"
+  | "class"
+  | "add_on"
+  | "personal_training";
 
 export default function SubscriptionModal({
   member,
@@ -20,7 +25,8 @@ export default function SubscriptionModal({
   const [plansError, setPlansError] = useState<string | null>(null);
 
   // ── New State Hooks ───────────────────────────────────────────
-  const [selectedCategory, setSelectedCategory] = useState<FilteredPlan>("membership");
+  const [selectedCategory, setSelectedCategory] =
+    useState<FilteredPlan>("membership");
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const [amountOverride, setAmountOverride] = useState<string>("");
   const [method, setMethod] = useState<string>("cash");
@@ -50,9 +56,7 @@ export default function SubscriptionModal({
         }
       })
       .catch((e) =>
-        setPlansError(
-          e instanceof Error ? e.message : "Failed to load plans",
-        ),
+        setPlansError(e instanceof Error ? e.message : "Failed to load plans"),
       )
       .finally(() => setPlansLoading(false));
   }, [member]);
@@ -61,12 +65,16 @@ export default function SubscriptionModal({
 
   // ── Derived Data States ─────────────────────────────────────────
   // Dynamically pull all unique categories existing inside your backend plans table
-  const categories = ["all", ...Array.from(new Set(plans.map((p) => p.category).filter(Boolean)))];
+  const categories = [
+    "all",
+    ...Array.from(new Set(plans.map((p) => p.category).filter(Boolean))),
+  ];
 
   // Filter down the array map to match user filter choice
-  const filteredPlans = selectedCategory === "all"
-    ? plans
-    : plans.filter((p) => p.category === selectedCategory);
+  const filteredPlans =
+    selectedCategory === "all"
+      ? plans
+      : plans.filter((p) => p.category === selectedCategory);
 
   const selectedPlan = plans.find((p) => p.id === selectedPlanId) ?? null;
   const parsedAmount = parseFloat(amountOverride);
@@ -88,7 +96,8 @@ export default function SubscriptionModal({
     setSelectedCategory(category);
 
     // Auto-select the first available plan within the target category to avoid floating selection anomalies
-    const targets = category === "all" ? plans : plans.filter((p) => p.category === category);
+    const targets =
+      category === "all" ? plans : plans.filter((p) => p.category === category);
     if (targets.length > 0) {
       setSelectedPlanId(targets[0].id);
       setAmountOverride(String(targets[0].price));
@@ -124,9 +133,7 @@ export default function SubscriptionModal({
       onClose();
     } catch (e) {
       setError(
-        e instanceof Error
-          ? e.message
-          : "Failed to update subscription",
+        e instanceof Error ? e.message : "Failed to update subscription",
       );
     } finally {
       setLoading(false);
@@ -148,9 +155,7 @@ export default function SubscriptionModal({
       onClose();
     } catch (e) {
       setError(
-        e instanceof Error
-          ? e.message
-          : "Failed to cancel subscription",
+        e instanceof Error ? e.message : "Failed to cancel subscription",
       );
     } finally {
       setLoading(false);
@@ -172,19 +177,19 @@ export default function SubscriptionModal({
       onSuccess();
       onClose();
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Failed to reset subscription",
-      );
+      setError(e instanceof Error ? e.message : "Failed to reset subscription");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-20 flex justify-center items-center bg-black/60 backdrop-blur-sm p-10"
+    <div
+      className="fixed inset-0 z-20 flex justify-center items-center bg-black/60 backdrop-blur-sm p-10"
       onClick={onClose}
     >
-      <div className="w-full rounded-lg max-w-md bg-surface max-h-[80%] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
+      <div
+        className="w-full rounded-lg max-w-md bg-surface max-h-[80%] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header ─────────────────────────────────────────────── */}
@@ -246,11 +251,14 @@ export default function SubscriptionModal({
                       <button
                         key={cat}
                         type="button"
-                        onClick={() => handleCategoryChange(cat as FilteredPlan)}
-                        className={`py-1 px-2 text-xs font-semibold rounded-full capitalize transition-all duration-150 ${isSelected
-                          ? "bg-primary/15 te xt-primary border border-primary/30"
-                          : "bg-background text-text-secondary border border-transparent hover:text-text-primary hover:bg-border/40"
-                          }`}
+                        onClick={() =>
+                          handleCategoryChange(cat as FilteredPlan)
+                        }
+                        className={`py-1 px-2 text-xs font-semibold rounded-full capitalize transition-all duration-150 ${
+                          isSelected
+                            ? "bg-primary/15 te xt-primary border border-primary/30"
+                            : "bg-background text-text-secondary border border-transparent hover:text-text-primary hover:bg-border/40"
+                        }`}
                       >
                         {cat.replace("_", " ")}
                       </button>
@@ -272,10 +280,11 @@ export default function SubscriptionModal({
                           key={plan.id}
                           type="button"
                           onClick={() => handlePlanChange(plan.id)}
-                          className={`relative px-4 py-3.5 rounded-lg text-left border transition-all duration-150 ${active
-                            ? "bg-primary text-background border-primary shadow-md"
-                            : "bg-background border-border hover:border-primary/40 hover:bg-primary/5"
-                            }`}
+                          className={`relative px-4 py-3.5 rounded-lg text-left border transition-all duration-150 ${
+                            active
+                              ? "bg-primary text-background border-primary shadow-md"
+                              : "bg-background border-border hover:border-primary/40 hover:bg-primary/5"
+                          }`}
                         >
                           {active && (
                             <span className="absolute top-2.5 right-2.5 w-4 h-4 bg-background/20 rounded-full flex items-center justify-center">
@@ -295,14 +304,18 @@ export default function SubscriptionModal({
                             </span>
                           )}
                           <p
-                            className={`text-sm font-bold leading-tight ${active ? "text-background" : "text-text-primary"
-                              }`}
+                            className={`text-sm font-bold leading-tight ${
+                              active ? "text-background" : "text-text-primary"
+                            }`}
                           >
                             {plan.name}
                           </p>
                           <p
-                            className={`text-xs mt-1 ${active ? "text-background/70" : "text-text-secondary"
-                              }`}
+                            className={`text-xs mt-1 ${
+                              active
+                                ? "text-background/70"
+                                : "text-text-secondary"
+                            }`}
                           >
                             {`₱${Number(plan.price).toLocaleString()} · ${plan.duration_days}d`}
                           </p>
@@ -320,7 +333,9 @@ export default function SubscriptionModal({
                   {selectedPlan && (
                     <button
                       type="button"
-                      onClick={() => setAmountOverride(String(selectedPlan.price))}
+                      onClick={() =>
+                        setAmountOverride(String(selectedPlan.price))
+                      }
                       className="text-[10px] font-semibold text-primary hover:text-primary-dark transition-colors mb-2"
                     >
                       Reset to ₱{Number(selectedPlan.price).toLocaleString()}
@@ -337,13 +352,20 @@ export default function SubscriptionModal({
                     step="0.01"
                     value={amountOverride}
                     onChange={(e) => setAmountOverride(e.target.value)}
-                    placeholder={selectedPlan ? String(selectedPlan.price) : "0.00"}
+                    placeholder={
+                      selectedPlan ? String(selectedPlan.price) : "0.00"
+                    }
                     className="w-full pl-8 pr-4 py-3 border border-border rounded-lg text-sm bg-background text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                   />
                 </div>
                 {hasDiscount && (
                   <p className="flex items-center gap-1.5 text-[11px] text-amber-400 mt-2">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="currentColor"
+                    >
                       <path
                         fillRule="evenodd"
                         d="M6 1a5 5 0 100 10A5 5 0 006 1zm0 3a.75.75 0 01.75.75v2a.75.75 0 01-1.5 0v-2A.75.75 0 016 4zm0 5.5a.75.75 0 100-1.5.75.75 0 000 1.5z"
@@ -365,10 +387,11 @@ export default function SubscriptionModal({
                         key={m.value}
                         type="button"
                         onClick={() => setMethod(m.value)}
-                        className={`flex flex-col items-center gap-1.5 py-3 rounded-lg border text-xs font-semibold transition-all duration-150 ${active
-                          ? "bg-primary border-primary text-background"
-                          : "bg-background border-border text-text-secondary hover:border-primary/40 hover:text-text-primary"
-                          }`}
+                        className={`flex flex-col items-center gap-1.5 py-3 rounded-lg border text-xs font-semibold transition-all duration-150 ${
+                          active
+                            ? "bg-primary border-primary text-background"
+                            : "bg-background border-border text-text-secondary hover:border-primary/40 hover:text-text-primary"
+                        }`}
                       >
                         <span className="text-base leading-none">{m.icon}</span>
                         <span>{m.label}</span>

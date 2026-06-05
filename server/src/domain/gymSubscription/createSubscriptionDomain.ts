@@ -1,7 +1,7 @@
 import pool from "../../config/pool.ts";
-import type { SubscriptionPlanProps } from "../../types/index.ts";
+import type { SubscriptionTypes } from "../../types/index.ts";
 
-export const createSubscriptionDomain = async (params: SubscriptionPlanProps) => {
+export const createSubscriptionDomain = async (params: SubscriptionTypes) => {
   const columns = Object.keys(params);
   const values = Object.values(params);
   const placeholders = columns.map((_, idx) => `$${idx + 1}`);

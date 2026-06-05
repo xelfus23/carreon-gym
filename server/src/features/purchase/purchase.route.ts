@@ -3,6 +3,7 @@ import {
   deleteTransaction,
   denyPurchase,
   getAllTransactions,
+  manualLogPurchase,
   requestPurchase,
   verifyPurchase,
 } from "./purchase.controller.ts";
@@ -14,8 +15,30 @@ const purchaseRoutes = Router();
 purchaseRoutes.get("/my-history", authMiddleware, getAllTransactions);
 purchaseRoutes.get("", authMiddleware, getAllTransactions);
 
-purchaseRoutes.patch("/verify/:paymentId", authMiddleware, authorizeRoles("admin"), verifyPurchase);
-purchaseRoutes.patch("/deny/:paymentId", authMiddleware, authorizeRoles("admin"), denyPurchase);
-purchaseRoutes.delete("/:paymentId", authMiddleware, authorizeRoles("admin"), deleteTransaction);
+purchaseRoutes.post(
+  "/manual-log",
+  authMiddleware,
+  authorizeRoles("admin"),
+  manualLogPurchase,
+);
+
+purchaseRoutes.patch(
+  "/verify/:paymentId",
+  authMiddleware,
+  authorizeRoles("admin"),
+  verifyPurchase,
+);
+purchaseRoutes.patch(
+  "/deny/:paymentId",
+  authMiddleware,
+  authorizeRoles("admin"),
+  denyPurchase,
+);
+purchaseRoutes.delete(
+  "/:paymentId",
+  authMiddleware,
+  authorizeRoles("admin"),
+  deleteTransaction,
+);
 
 export default purchaseRoutes;

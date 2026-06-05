@@ -13,7 +13,12 @@ import ConfirmDialog from "../components/Modals/ConfirmDialog";
 type SortKey = keyof ProductProps;
 type SortDir = "asc" | "desc";
 type FilterStatus = "all" | "available" | "unavailable" | "out_of_stock";
-type FilterCategory = "All" | "Food & Snacks" | "Drinks" | "Supplement" | "Gear & Accessories";
+type FilterCategory =
+  | "All"
+  | "Food & Snacks"
+  | "Drinks"
+  | "Supplement"
+  | "Gear & Accessories";
 
 const fields: FormField[] = [
   {
@@ -55,15 +60,24 @@ const fields: FormField[] = [
 ];
 
 export default function Products() {
-  const { products, isLoading, refresh, createProduct, deleteProduct, updateProduct } = useProducts();
+  const {
+    products,
+    isLoading,
+    refresh,
+    createProduct,
+    deleteProduct,
+    updateProduct,
+  } = useProducts();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("available");
-  const [filterCategory, setFilterCategory] = useState<FilterCategory>("All")
+  const [filterCategory, setFilterCategory] = useState<FilterCategory>("All");
   const [sortKey, setSortKey] = useState<SortKey>("product_name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [page, setPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogTypes | null>(null)
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogTypes | null>(
+    null,
+  );
 
   // Track selected product object configuration for updates
   const [selectedProduct, setSelectedProduct] = useState<ProductProps | null>(
@@ -136,23 +150,23 @@ export default function Products() {
         { label: "Unavailable", value: "unavailable" },
         { label: "Out of Stock", value: "out_of_stock" },
       ],
-      label: "Status"
+      label: "Status",
     },
     {
       value: filterCategory,
       onChange: (e) => {
         setFilterCategory(e.target.value as FilterCategory);
-        setPage(1)
+        setPage(1);
       },
       options: [
         { label: "All", value: "All" },
         { label: "Food & Snacks", value: "Food & Snacks" },
         { label: "Drinks", value: "Drinks" },
         { label: "Supplements", value: "Supplements" },
-        { label: "Gear & Accessories", value: "Gear & Accessories" }
+        { label: "Gear & Accessories", value: "Gear & Accessories" },
       ],
-      label: "Category"
-    }
+      label: "Category",
+    },
   ];
 
   const onEdit = (p: ProductProps) => {
@@ -167,12 +181,11 @@ export default function Products() {
       variant: "danger",
       onConfirm: async () => {
         setConfirmDialog(null);
-        deleteProduct(p.id)
+        deleteProduct(p.id);
         refresh();
       },
-      onClose: () => setConfirmDialog(null)
-    }
-    );
+      onClose: () => setConfirmDialog(null),
+    });
   };
 
   return (
@@ -190,7 +203,6 @@ export default function Products() {
         />
 
         <div className="bg-surface border border-border shadow-sm overflow-hidden flex flex-col">
-
           <ToolBar
             placeholder="Search product"
             filtered={paginatedData}
@@ -237,7 +249,9 @@ export default function Products() {
           title="Add Product"
           subtitle="Add a new product to the inventory"
           fields={fields}
-          onSave={(data: ProductProps, imageFile: File | null) => createProduct(data, imageFile)}
+          onSave={(data: ProductProps, imageFile: File | null) =>
+            createProduct(data, imageFile)
+          }
           submitButtonText="Add Product"
         />
       )}
@@ -251,12 +265,13 @@ export default function Products() {
           subtitle={`Modifying context details for ${selectedProduct?.product_name || "product"}`}
           fields={fields}
           initialData={selectedProduct}
-          onSave={(data: Partial<ProductProps>, imageFile: File | null) => updateProduct(selectedProduct.id, data, imageFile)}
+          onSave={(data: Partial<ProductProps>, imageFile: File | null) =>
+            updateProduct(selectedProduct.id, data, imageFile)
+          }
         />
       )}
 
-      {
-        confirmDialog &&
+      {confirmDialog && (
         <ConfirmDialog
           isOpen={!!confirmDialog}
           onClose={confirmDialog.onClose}
@@ -266,7 +281,7 @@ export default function Products() {
           message={confirmDialog.message}
           confirmLabel={confirmDialog.confirmLabel}
         />
-      }
+      )}
     </>
   );
 }

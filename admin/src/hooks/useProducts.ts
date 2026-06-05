@@ -24,9 +24,11 @@ export const useProducts = () => {
     }
   }, []);
 
-  const createProduct = async (product: Partial<ProductProps>, imageFile: File | null) => {
+  const createProduct = async (
+    product: Partial<ProductProps>,
+    imageFile: File | null,
+  ) => {
     try {
-
       let icon_url = product.icon_url || "";
 
       if (imageFile) {
@@ -34,7 +36,8 @@ export const useProducts = () => {
         if (upload?.success && upload.data?.url) icon_url = upload.data.url;
       }
 
-      const is_active = product.status === "unavailable" ? false : product.is_active ?? true;
+      const is_active =
+        product.status === "unavailable" ? false : (product.is_active ?? true);
 
       const data = await productService.createProduct({
         ...(product as ProductProps),
@@ -84,7 +87,7 @@ export const useProducts = () => {
   const deleteProduct = async (productId: number) => {
     try {
       await productService.deleteProduct(productId);
-      getProducts()
+      getProducts();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to fetch products";

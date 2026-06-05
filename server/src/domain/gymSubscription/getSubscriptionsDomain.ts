@@ -20,4 +20,4 @@ export const getSubscriptionsDomain = async () => {
       duration_days ASC`,
   );
   return result.rows;
-}
+};

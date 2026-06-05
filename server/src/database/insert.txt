@@ -405,54 +405,217 @@ INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, meth
 );
 
 
--- ============================================================================
--- PRODUCT INVENTORY PAYMENTS (PRODUCT FLOWS)
--- ============================================================================
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, notes, paid_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), 
+    'product', 120.00, 'cash', 'walk_in_pos', 'paid', 'Pre-workout drinks', NOW() - INTERVAL '4 months 10 days'
+  ) RETURNING id INTO v_pay_id;
 
--- Jordan Lee - Product (Pre-workout / Energy Drinks - Front Desk Cash Purchase)
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, notes, paid_at) VALUES
-(
-  (SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), 
-  (SELECT id FROM products WHERE name ILIKE '%C2%' OR name ILIKE '%Cobra%' OR name ILIKE '%Sting%' LIMIT 1), 
-  'product', 120.00, 2, 'cash', 'walk_in_pos', 'paid', 'Pre-workout drinks', NOW() - INTERVAL '4 months 10 days'
-);
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase)
+  VALUES (
+    v_pay_id,
+    (SELECT id FROM products WHERE name ILIKE '%C2%' OR name ILIKE '%Cobra%' OR name ILIKE '%Sting%' LIMIT 1),
+    2,
+    60.00
+  );
+END $$;
 
--- Quinn Fabray - Product (Hard Boiled Egg - Front Desk Cash Purchase)
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, paid_at) VALUES
-(
-  (SELECT id FROM users WHERE email = 'q.fabray@example.com'), 
-  (SELECT id FROM products WHERE name = 'Hard Boiled Egg' LIMIT 1), 
-  'product', 25.00, 1, 'cash', 'walk_in_pos', 'paid', NOW() - INTERVAL '2 months 5 days'
-);
 
--- Jules Winnfield - Product (Gym Merch / Barbell Foam Grip - Paid via Counter QR Scan)
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, notes, paid_at) VALUES
-(
-  (SELECT id FROM users WHERE email = 'badmother@example.com'), 
-  (SELECT id FROM products WHERE name = 'Barbell Foam Grip' LIMIT 1), 
-  'product', 80.00, 1, 'gcash', 'walk_in_pos', 'paid', 'Barbell Foam Grip', NOW() - INTERVAL '5 days'
-);
+-- 2. Quinn Fabray - Product (Hard Boiled Egg - Front Desk Cash Purchase)
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, paid_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'q.fabray@example.com'), 
+    'product', 25.00, 'cash', 'walk_in_pos', 'paid', NOW() - INTERVAL '2 months 5 days'
+  ) RETURNING id INTO v_pay_id;
 
--- Casey Morgan - Product (Whey Protein - Mobile Checkout Order)
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, notes, paid_at) VALUES
-(
-  (SELECT id FROM users WHERE email = 'casey.m@example.com'), 
-  (SELECT id FROM products WHERE name ILIKE '%Whey Protein%' LIMIT 1), 
-  'product', 2400.00, 1, 'bank_transfer', 'mobile_online', 'paid', 'Whey Protein 5lbs', NOW() - INTERVAL '5 months 2 days'
-);
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase)
+  VALUES (
+    v_pay_id,
+    (SELECT id FROM products WHERE name = 'Hard Boiled Egg' LIMIT 1),
+    1,
+    25.00
+  );
+END $$;
 
--- Skyler White - Multiple items (Saba Banana - Front Desk Cash Purchase)
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, notes, paid_at) VALUES
-(
-  (SELECT id FROM users WHERE email = 'skyler.w@example.com'), 
-  (SELECT id FROM products WHERE name ILIKE '%Saba Banana%' LIMIT 1), 
-  'product', 60.00, 3, 'cash', 'walk_in_pos', 'paid', 'Saba Banana Pack', NOW() - INTERVAL '20 days'
-);
 
--- Morgan Freeman - Supplement Purchase (Mobile Checkout Order)
-INSERT INTO payments (user_id, product_id, transaction_type, amount, quantity, method, origin, status, paid_at) VALUES
-(
-  (SELECT id FROM users WHERE email = 'voice.god@example.com'), 
-  (SELECT id FROM products WHERE name ILIKE '%Whey Protein%' LIMIT 1), 
-  'product', 2200.00, 1, 'bank_transfer', 'mobile_online', 'paid', NOW() - INTERVAL '2 days'
-);
+-- 3. Jules Winnfield - Product (Gym Merch / Barbell Foam Grip - Paid via Counter QR Scan)
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, notes, paid_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'badmother@example.com'), 
+    'product', 80.00, 'gcash', 'walk_in_pos', 'paid', 'Barbell Foam Grip', NOW() - INTERVAL '5 days'
+  ) RETURNING id INTO v_pay_id;
+
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase)
+  VALUES (
+    v_pay_id,
+    (SELECT id FROM products WHERE name = 'Barbell Foam Grip' LIMIT 1),
+    1,
+    80.00
+  );
+END $$;
+
+
+-- 4. Casey Morgan - Product (Whey Protein - Mobile Checkout Order)
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, notes, paid_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'casey.m@example.com'), 
+    'product', 2400.00, 'bank_transfer', 'mobile_online', 'paid', 'Whey Protein 5lbs', NOW() - INTERVAL '5 months 2 days'
+  ) RETURNING id INTO v_pay_id;
+
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase)
+  VALUES (
+    v_pay_id,
+    (SELECT id FROM products WHERE name ILIKE '%Whey Protein%' LIMIT 1),
+    1,
+    2400.00
+  );
+END $$;
+
+
+-- 5. Skyler White - Multiple items (Saba Banana - Front Desk Cash Purchase)
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, notes, paid_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'skyler.w@example.com'), 
+    'product', 60.00, 'cash', 'walk_in_pos', 'paid', 'Saba Banana Pack', NOW() - INTERVAL '20 days'
+  ) RETURNING id INTO v_pay_id;
+
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase)
+  VALUES (
+    v_pay_id,
+    (SELECT id FROM products WHERE name ILIKE '%Saba Banana%' LIMIT 1),
+    3,
+    20.00
+  );
+END $$;
+
+
+-- 6. Morgan Freeman - Supplement Purchase (Mobile Checkout Order)
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, paid_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'voice.god@example.com'), 
+    'product', 2200.00, 'bank_transfer', 'mobile_online', 'paid', NOW() - INTERVAL '2 days'
+  ) RETURNING id INTO v_pay_id;
+
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase)
+  VALUES (
+    v_pay_id,
+    (SELECT id FROM products WHERE name ILIKE '%Whey Protein%' LIMIT 1),
+    1,
+    2200.00
+  );
+END $$;
+
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, notes, paid_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'alex.rivers@example.com'), 
+    'product', 105.00, 'cash', 'walk_in_pos', 'paid', 'Protein shake and quick rehydration', NOW() - INTERVAL '3 days 4 hours'
+  ) RETURNING id INTO v_pay_id;
+
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase) VALUES 
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Whey Protein (27g)'), 1, 55.00),
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Pocari Sweat'), 1, 50.00);
+END $$;
+
+
+-- Transaction F: Skyler White buys snack packs for training partners (Paid, POS)
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, notes, paid_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'skyler.w@example.com'), 
+    'product', 190.00, 'cash', 'walk_in_pos', 'paid', 'Saba Bananas and Boiled Eggs collection', NOW() - INTERVAL '1 day 6 hours'
+  ) RETURNING id INTO v_pay_id;
+
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase) VALUES 
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Hard Boiled Egg'), 4, 25.00),
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Saba Banana (Saging Saba)'), 3, 20.00),
+  (v_pay_id, (SELECT id FROM products WHERE name = 'C2 Iced Tea'), 1, 30.00);
+END $$;
+
+
+-- Transaction G: Jordan Lee buys heavy gear and supplements via mobile (Paid, Online App Checkout)
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, reference_no, paid_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), 
+    'product', 435.00, 'gcash', 'mobile_online', 'paid', 'GC-APP-77215', NOW() - INTERVAL '12 hours'
+  ) RETURNING id INTO v_pay_id;
+
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase) VALUES 
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Barbell Foam Grip'), 2, 80.00),
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Whey Protein (27g)'), 3, 55.00),
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Creatine (5g)'), 2, 45.00),
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Sting Energy Drink'), 2, 35.00);
+END $$;
+
+
+-- Transaction H: Quinn Fabray submits an online checkout order (PENDING Admin Verification)
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, reference_no, receipt_image_url, created_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'q.fabray@example.com'), 
+    'product', 145.00, 'gcash', 'mobile_online', 'pending', 'GC-VERIFY-X223', 'https://s3.amazonaws.com/gym-receipts/rec_x223.png', NOW() - INTERVAL '30 minutes'
+  ) RETURNING id INTO v_pay_id;
+
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase) VALUES 
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Whey Protein (27g)'), 1, 55.00),
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Creatine (5g)'), 2, 45.00);
+END $$;
+
+
+-- Transaction I: Charlie Day tries to buy water online with bad reference number (DENIED / REJECTED)
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, reference_no, notes, created_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'wildcard@example.com'), 
+    'product', 40.00, 'bank_transfer', 'mobile_online', 'rejected', 'INVALID-REF-000', 'Rejected by admin: Uploaded picture was blank, not a valid bank receipt.', NOW() - INTERVAL '1 day'
+  ) RETURNING id INTO v_pay_id;
+
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase) VALUES 
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Mineral Water'), 2, 20.00);
+END $$;
+
+
+-- Transaction J: Bulk Hydration Order for an ongoing Boxing Event (Paid, POS)
+DO $$
+DECLARE v_pay_id INT;
+BEGIN
+  INSERT INTO payments (user_id, transaction_type, amount, method, origin, status, notes, paid_at) 
+  VALUES (
+    (SELECT id FROM users WHERE email = 'badmother@example.com'), 
+    'product', 850.00, 'gcash', 'walk_in_pos', 'paid', 'Bulk hydration order for afternoon boxing sparring class group', NOW() - INTERVAL '4 hours'
+  ) RETURNING id INTO v_pay_id;
+
+  INSERT INTO payment_items (payment_id, product_id, quantity, price_at_purchase) VALUES 
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Mineral Water'), 15, 20.00),
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Pocari Sweat'), 7, 50.00),
+  (v_pay_id, (SELECT id FROM products WHERE name = 'Cobra Energy Drink'), 6, 35.00);
+END $$;

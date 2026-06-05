@@ -6,7 +6,9 @@ import { uploadImage } from "../utils/uploadImage";
 export const useGymSubs = () => {
   const [membership, setMembership] = useState<SubscriptionPlanProps[]>([]);
   const [classes, setClasses] = useState<SubscriptionPlanProps[]>([]);
-  const [personalTrainer, setPersonalTrainer] = useState<SubscriptionPlanProps[]>([]);
+  const [personalTrainer, setPersonalTrainer] = useState<
+    SubscriptionPlanProps[]
+  >([]);
   const [addOns, setAddOns] = useState<SubscriptionPlanProps[]>([]);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -17,19 +19,25 @@ export const useGymSubs = () => {
     setError(null);
     try {
       const data = await subscriptionService.getPlans();
-      setMembership(data.filter(v => v.category === 'membership'));
-      setClasses(data.filter(v => v.category === 'class'));
-      setPersonalTrainer(data.filter(v => v.category === 'personal_training'));
-      setAddOns(data.filter(v => v.category === 'add_on'));
+      setMembership(data.filter((v) => v.category === "membership"));
+      setClasses(data.filter((v) => v.category === "class"));
+      setPersonalTrainer(
+        data.filter((v) => v.category === "personal_training"),
+      );
+      setAddOns(data.filter((v) => v.category === "add_on"));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to get subscriptions";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to get subscriptions";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const createSub = async (data: SubscriptionPlanProps, imageFile: File | null) => {
+  const createSub = async (
+    data: SubscriptionPlanProps,
+    imageFile: File | null,
+  ) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -40,21 +48,28 @@ export const useGymSubs = () => {
         if (upload?.success && upload.data?.url) icon_url = upload.data.url;
       }
 
-      await subscriptionService.createPlan({ ...(data as SubscriptionPlanProps), icon_url });
-      refetch()
+      await subscriptionService.createPlan({
+        ...(data as SubscriptionPlanProps),
+        icon_url,
+      });
+      refetch();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to save edits"
-      setError(errorMessage)
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to save edits";
+      setError(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const updateSub = async (editingId: number, updates: Partial<SubscriptionPlanProps>, imageFile: File | null) => {
+  const updateSub = async (
+    editingId: number,
+    updates: Partial<SubscriptionPlanProps>,
+    imageFile: File | null,
+  ) => {
     setIsLoading(true);
     setError(null);
     try {
-
       const patch: Partial<SubscriptionPlanProps> = { ...updates };
 
       if (imageFile) {
@@ -66,12 +81,13 @@ export const useGymSubs = () => {
 
       await subscriptionService.updatePlan(editingId, patch);
 
-      refetch()
+      refetch();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to save edits"
-      setError(errorMessage)
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to save edits";
+      setError(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   };
 
@@ -80,19 +96,18 @@ export const useGymSubs = () => {
     setError(null);
     try {
       await subscriptionService.deletePlan(planId);
-      refetch()
+      refetch();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to save edits"
-      setError(errorMessage)
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to save edits";
+      setError(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-
-
+  };
 
   useEffect(() => {
-    refetch()
+    refetch();
   }, [refetch]);
 
   return {

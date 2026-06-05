@@ -10,7 +10,7 @@ interface EquipmentProps {
 }
 
 export const updateEquipmentDomain = async (
-  id: string,
+  id: number,
   params: Partial<EquipmentProps>,
 ) => {
   const payload: Record<string, any> = {};
