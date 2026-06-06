@@ -11,7 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { COLORS } from "@/src/consts/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { workoutService } from "@/src/services/workoutService";
+import { workoutService } from "@/src/services/workout.service";
 
 type SessionMode = "reps" | "timer";
 

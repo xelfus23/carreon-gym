@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { gymDetailService } from "../services/gymDetailService";
+import { gymDetailService } from "../services/gymDetail.service";
 
 export type gymDetailsType = {
   id: number;

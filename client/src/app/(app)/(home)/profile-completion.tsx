@@ -21,6 +21,7 @@ import StepStart from "../../components/ProfileCompletion/StepStart";
 import StepBirthdate from "../../components/ProfileCompletion/StepBirthdate";
 import StepGoals from "../../components/ProfileCompletion/StepGoals";
 import StepBodyType from "../../components/ProfileCompletion/StepBodyType";
+
 import { router } from "expo-router";
 
 export interface ProfileCompletionScreenProps {

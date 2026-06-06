@@ -7,7 +7,7 @@ import {
 } from "react";
 import { UserProfile } from "../types/users";
 import { useAuth } from "./authProvider";
-import { authService } from "../services/authService";
+import { authService } from "../services/auth.service";
 import {
     SessionData,
     UpdateProfileProps,
@@ -15,7 +15,7 @@ import {
     UpdateUserProps,
     UserProfileContextType,
 } from "../types/context";
-import { CheckInService } from "../services/checkInService";
+import { CheckInService } from "../services/checkIn.service";
 import { checkUserProfile } from "../utils/checkProfileComplete";
 import { router } from "expo-router";
 

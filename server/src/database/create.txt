@@ -520,6 +520,7 @@ SELECT
     p.method,
     p.status,
     p.paid_at,
+    p.created_at,
     p.reference_no,
     p.receipt_image_url
 FROM payments p

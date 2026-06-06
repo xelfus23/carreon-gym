@@ -8,3 +8,7 @@ export type RootStackParamList = {
 };
 
 export type StackNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+export type CustomScreenOptions = {
+  headerIcon?: () => React.ReactNode;
+};

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { subscriptionService } from "../services/subscriptionService";
+import { subscriptionService } from "../services/subscription.service";
 
 export type SubscriptionTypes = {
   id: number;

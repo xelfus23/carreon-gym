@@ -47,8 +47,8 @@ export function MyTabBar({
             >
               <View
                 className={`items-center overflow-hidden justify-center ${isChat
-                    ? `${isFocused ? "bg-primary-dark" : "bg-primary"} rounded-full w-12 h-12 -top-1`
-                    : ""
+                  ? `${isFocused ? "bg-primary-dark" : "bg-primary"} rounded-full w-12 h-12 -top-1`
+                  : ""
                   }`}
               >
                 {options.tabBarIcon &&
@@ -81,7 +81,7 @@ export default function ProtectedRouteLayout() {
     <Tabs
       tabBar={(props) => <MyTabBar {...props} />}
       screenOptions={{
-        header: ({route, options}) => <CustomHeader title={options.title ?? route.name} />,
+        header: ({ route, options }) => <CustomHeader title={options.title ?? route.name} />,
         tabBarHideOnKeyboard: true,
         sceneStyle: {
           backgroundColor: COLORS.background,

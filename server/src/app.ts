@@ -17,7 +17,6 @@ import productRoutes from "./features/products/product.route.ts";
 import purchaseRoutes from "./features/purchase/purchase.route.ts";
 import gymDetailsRoute from "./features/gymDetails/gymDetails.route.ts";
 import userSubscriptionRoutes from "./features/userSubscription/userSubscription.route.ts";
-import { uploadImage } from "./features/uploads/imageUpload.controller.ts";
 import ImageRoutes from "./features/uploads/imageUpload.route.ts";
 
 dotenv.config({ path: ".env" });
@@ -27,9 +26,21 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map(origin => origin.trim()).filter(Boolean)
+  : ["http://localhost:5173"]; // Fallback safe default for Vite dev server
+
 app.use(
   cors({
-    origin: [env.CORS_ORIGIN],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes("*")) {
+        callback(null, true);
+      } else {
+        callback(new Error("Blocked by Carreon Gym CORS policy security check."));
+      }
+    },
     methods: [
       "GET",
       "POST",

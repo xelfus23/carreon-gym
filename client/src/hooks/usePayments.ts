@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { purchaseService, CreatePurchasePayload } from "../services/purchaseService";
+import { useCallback, useEffect, useState } from "react";
+import { purchaseService, CreatePurchasePayload } from "../services/purchase.service";
 
 export const usePayments = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
 
-  const createPurchase = async (payload: CreatePurchasePayload) => {
+  const createPurchase = useCallback(async (payload: CreatePurchasePayload) => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
@@ -18,9 +18,9 @@ export const usePayments = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const submitProof = async (purchaseId: number, receiptUrl: string) => {
+  const submitProof = useCallback(async (purchaseId: number, receiptUrl: string) => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
@@ -32,22 +32,26 @@ export const usePayments = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const getPurchaseHistory = async () => {
+  const getPurchaseHistory = useCallback(async () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const res = await purchaseService.getPaymentHistory();
-      if (res?.success) setPaymentHistory(res.data ?? []);
-      return res;
+      const data = await purchaseService.getPaymentHistory();
+      setPaymentHistory(data);
+      return data
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Failed to fetch history");
       throw err;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    getPurchaseHistory()
+  }, [getPurchaseHistory])
 
   return {
     createPurchase,
@@ -56,5 +60,6 @@ export const usePayments = () => {
     paymentHistory,
     isLoading,
     errorMsg,
+    refresh: getPurchaseHistory
   };
 };

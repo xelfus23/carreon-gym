@@ -21,7 +21,7 @@
             },
             "edgeToEdgeEnabled": true,
             "predictiveBackGestureEnabled": false,
-            "package": "com.xelfus.careon_mobile_app"
+            "package": "com.xelfus.carreon_gym_mobile_app"
         },
         "web": {
             "output": "static",
@@ -62,6 +62,6 @@
                 "projectId": "167e5982-f530-4030-97d3-c83cc461711a"
             }
         },
-        "owner": "suflex"
+        "owner": "xelfus"
     }
 }

@@ -3,8 +3,8 @@ import { createManualTransactionDomain } from "../../domain/purchase/createManua
 import { createPaymentDomain } from "../../domain/purchase/createPaymentDomain.ts";
 import { deletePaymentDomain } from "../../domain/purchase/deletePaymentDomain.ts";
 import { denyPaymentDomain } from "../../domain/purchase/denyPaymentDomain.ts";
-import { getTransactionHistoryDomain } from "../../domain/purchase/getTransactionHistoryDomain.ts";
 import { getTransactionsDomain } from "../../domain/purchase/getTransactionsDomain.ts";
+import { updateReceiptProofDomain } from "../../domain/purchase/updateReceiptProofDomain.ts";
 import { verifyPaymentDomain } from "../../domain/purchase/verifyPaymentDomain.ts";
 
 import { catchAsync } from "../../utils/catchAsync.ts";
@@ -50,7 +50,7 @@ export const manualLogPurchase = catchAsync(
 
 export const requestPurchase = catchAsync(
   async (req: Request, res: Response) => {
-    const { productId, planId, planName, quantity, method } = req.body;
+    const { planId, planName, method } = req.body;
     const userId = req.user?.id;
     const file = req.file as any;
 
@@ -63,10 +63,8 @@ export const requestPurchase = catchAsync(
 
     const data = await createPaymentDomain(
       userId,
-      productId ? Number(productId) : undefined,
       planId ? Number(planId) : undefined,
       planName ? String(planName) : undefined,
-      quantity ? Number(quantity) : 1,
       method ?? "gcash",
       file?.location,
     );
@@ -75,12 +73,55 @@ export const requestPurchase = catchAsync(
       userId: userId,
       member: data.member_name,
       amount: data.amount,
-      item: data.item_name, // Returns singular item name dynamically resolved by domain
+      item: data.item_name,
     });
 
     res.status(201).json({
       success: true,
       message: "Payment submitted for verification successfully.",
+      data,
+    });
+  },
+);
+
+
+export const updateReceiptProof = catchAsync(
+  async (req: Request, res: Response) => {
+    const { paymentId } = req.params;
+    const { receiptUrl } = req.body; // Sent from purchaseService.uploadReceiptProof
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (!receiptUrl) {
+      return res.status(400).json({
+        success: false,
+        message: "Receipt image URL reference is required.",
+      });
+    }
+
+    // Run database mutation domain
+    const data = await updateReceiptProofDomain(
+      Number(paymentId),
+      Number(userId),
+      receiptUrl
+    );
+
+    broadcastNotification("PAYMENT_PROOF_SUBMITTED", {
+      paymentId: data.id,
+      member: data.member_name,
+      amount: data.amount,
+      type: data.transaction_type,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Payment receipt uploaded successfully. Awaiting administrator approval.",
       data,
     });
   },
@@ -155,39 +196,20 @@ export const deleteTransaction = catchAsync(
 
 export const getAllTransactions = catchAsync(
   async (req: Request, res: Response) => {
-    const { userId } = req.query;
     const requesterId = req.user?.id;
     const requesterRole = req.user?.role;
+    const { userId } = req.query;
 
-    const resolvedUserId =
-      requesterRole === "member"
-        ? requesterId
-        : userId
-          ? Number(userId)
-          : undefined;
+    const targetUserId = requesterRole === "member"
+      ? Number(requesterId)
+      : (userId ? Number(userId) : undefined);
 
-    const transactions = await getTransactionsDomain(resolvedUserId);
+    const transactions = await getTransactionsDomain(targetUserId);
 
     res.status(200).json({
       success: true,
       results: transactions.length,
       data: transactions,
     });
-  },
-);
-
-export const getPaymentHistory = catchAsync(
-  async (req: Request, res: Response) => {
-    const userId = Number(req.params.userId);
-
-    if (!Number.isInteger(userId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid user id." });
-    }
-
-    const payments = await getTransactionHistoryDomain(userId);
-
-    return res.status(200).json({ success: true, data: payments });
   },
 );

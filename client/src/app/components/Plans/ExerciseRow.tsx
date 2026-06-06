@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import type { WorkoutLog } from "@/src/services/workoutService";
+import type { WorkoutLog } from "@/src/services/workout.service";
 
 /** Supports both API shapes: exercise_name/equipment_name (client types) and name/equipment (server) */
 type Exercise = {

@@ -6,7 +6,7 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
-import { chatService } from "@/src/services/chatService";
+import { chatService } from "@/src/services/chat.service";
 import { ChatMessage } from "../types/chats";
 import { UserProfile } from "../types/users";
 import { tokenManager } from "../utils/tokenManager";

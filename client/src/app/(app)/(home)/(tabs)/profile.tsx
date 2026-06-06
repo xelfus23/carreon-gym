@@ -8,35 +8,35 @@ import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 
 export default function Profile() {
-    const { refreshProfile } = useUserProfile();
+  const { refreshProfile } = useUserProfile();
 
-    useFocusEffect(
-        useCallback(() => {
-            refreshProfile();
-        }, [refreshProfile]),
-    );
+  useFocusEffect(
+    useCallback(() => {
+      refreshProfile();
+    }, [refreshProfile]),
+  );
 
-    return (
-        <ScrollView
-            className="bg-background flex-1"
-            contentContainerClassName="pb-14"
+  return (
+    <ScrollView
+      className="bg-background flex-1"
+      contentContainerClassName="pb-14"
+    >
+      <View className="p-4 pb-8">
+        <ProfileHeader />
+        <SubscriptionCard />
+        <BasicInfoCard />
+        <CurrentStatCard />
+        <TouchableOpacity
+          className="bg-primary rounded-xl p-4 items-center"
+          onPress={() => {
+            /* Navigate to edit screen */
+          }}
         >
-            <View className="p-4 pb-8">
-                <ProfileHeader />
-                <SubscriptionCard />
-                <BasicInfoCard />
-                <CurrentStatCard />
-                <TouchableOpacity
-                    className="bg-primary rounded-xl p-4 items-center"
-                    onPress={() => {
-                        /* Navigate to edit screen */
-                    }}
-                >
-                    <Text className="text-background font-bold text-base">
-                        Edit Profile
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        </ScrollView>
-    );
+          <Text className="text-background font-bold text-base">
+            Edit Profile
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
 }

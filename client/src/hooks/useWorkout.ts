@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { WorkoutLog, workoutService } from "@/src/services/workoutService";
+import { WorkoutLog, workoutService } from "@/src/services/workout.service";
 import type { WorkoutPlanProps } from "@/src/types/workout";
 
 export type LogModalState = {

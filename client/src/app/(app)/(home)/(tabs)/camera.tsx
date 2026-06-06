@@ -9,7 +9,7 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import React, { useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import { CheckInService } from "@/src/services/checkInService";
+import { CheckInService } from "@/src/services/checkIn.service";
 import { useUserProfile } from "@/src/context/profileProvider";
 
 export default function Camera() {

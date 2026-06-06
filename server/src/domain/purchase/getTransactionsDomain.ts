@@ -9,7 +9,7 @@ export const getTransactionsDomain = async (userId?: number) => {
     params.push(userId);
   }
 
-  query += ` ORDER BY paid_at DESC`;
+  query += ` ORDER BY created_at DESC`;
 
   const res = await pool.query(query, params);
   return res.rows;

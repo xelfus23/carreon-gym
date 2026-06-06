@@ -8,7 +8,7 @@ import ExerciseDetailModal, {
 } from "../../components/Plans/ExerciseDetailModal";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/consts/colors";
-import type { WorkoutLog } from "@/src/services/workoutService";
+import type { WorkoutLog } from "@/src/services/workout.service";
 import CustomLoader from "@/src/app/components/Plans/PlansLoading";
 import PlansEmpty from "@/src/app/components/Plans/PlansEmpty";
 import LogExerciseModal from "@/src/app/components/Plans/LogExerciseModal";

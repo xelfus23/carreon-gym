@@ -129,7 +129,7 @@ export default function MemberRow({
       {/* Account status */}
       <td className="p-4">
         <span
-          className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-text-secondary"
+          className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wide ${ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-text-secondary"
             }`}
         >
           {m.account_status}

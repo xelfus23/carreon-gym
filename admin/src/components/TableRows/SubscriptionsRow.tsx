@@ -61,8 +61,11 @@ export default function SubscriptionsRow({
             loading="lazy"
           />
         ) : (
-          <div className="h-10 w-10 rounded-md border border-border bg-background" />
-        )}
+          <div className="h-10 w-10 rounded-md border text border-border bg-background items-center p-2 justify-center flex">
+            <p className="text-[8px] text-center text-text-secondary">
+              No Image
+            </p>
+          </div>)}
       </td>
       <td className="p-4">
         <p className="font-bold text-sm tracking-tight text-text-primary">
@@ -117,11 +120,10 @@ export default function SubscriptionsRow({
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                             opacity-0 group-hover:opacity-100 focus:opacity-100
-                            ${
-                              menuOpen
-                                ? "opacity-100 bg-border text-text-primary"
-                                : "text-text-secondary hover:bg-border hover:text-text-primary"
-                            }`}
+                            ${menuOpen
+                ? "opacity-100 bg-border text-text-primary"
+                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />

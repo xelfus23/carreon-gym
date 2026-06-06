@@ -5,7 +5,7 @@ import {
     useEffect,
     useState,
 } from "react";
-import { authService } from "../services/authService";
+import { authService } from "../services/auth.service";
 import { AuthUser } from "../types/users";
 import { AuthContextType } from "../types/context";
 import { authStorage } from "../utils/authStorage";

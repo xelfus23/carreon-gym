@@ -1,7 +1,7 @@
 import { Drawer } from "expo-router/drawer";
 import CustomDrawerContent from "../components/CustomDrawer";
 import { COLORS } from "@/src/consts/colors";
-import { Home, Settings, ShoppingCart } from "lucide-react-native";
+import { History, Home, Settings, ShoppingBasket } from "lucide-react-native";
 
 export default function DrawerLayout() {
   return (
@@ -37,9 +37,24 @@ export default function DrawerLayout() {
       <Drawer.Screen
         name="(store)"
         options={{
-          drawerLabel: "Store",
+          drawerLabel: "Store Menu",
           drawerIcon: ({ focused }) => (
-            <ShoppingCart
+            <ShoppingBasket
+              color={
+                focused
+                  ? COLORS.textPrimary
+                  : COLORS.textSecondary
+              }
+            />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="(purchase-history)"
+        options={{
+          drawerLabel: "Purchase History",
+          drawerIcon: ({ focused }) => (
+            <History
               color={
                 focused
                   ? COLORS.textPrimary

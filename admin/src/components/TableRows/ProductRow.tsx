@@ -50,8 +50,11 @@ export default function ProductRow({ product, onEdit, onDelete }: ProductRow) {
             loading="lazy"
           />
         ) : (
-          <div className="h-10 w-10 rounded-md border border-border bg-background" />
-        )}
+          <div className="h-10 w-10 rounded-md border text border-border bg-background items-center p-2 justify-center flex">
+            <p className="text-[8px] text-center text-text-secondary">
+              No Image
+            </p>
+          </div>)}
       </td>
       <td className="p-4 font-medium">{product.product_name}</td>
       <td className="p-4 text-text-secondary">{product.category}</td>
