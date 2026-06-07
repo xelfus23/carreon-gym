@@ -152,6 +152,7 @@ export const updateProfileQuery = async (
     birthDate?: Date;
     goal?: string;
     activityLevel?: string;
+    experienceLevel?: string
   },
 ) => {
   const keys = Object.keys(updates);
