@@ -1,4 +1,4 @@
-export const buildContext = ({ inventory, summary }: { inventory: string; summary: string }) => {
+export const buildContext = ({ inventory, summary, userProfile }: { inventory: string; summary: string, userProfile: {} }) => {
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
   });
@@ -7,7 +7,12 @@ export const buildContext = ({ inventory, summary }: { inventory: string; summar
 ## TODAY
 ${today}
 
+## USER PROFILE
+${JSON.stringify(userProfile)}  // AI reads this, never needs to call get_user_details
+
+## GYM INVENTORY
 ${inventory ? `## INVENTORY (ID:NAME)\n${inventory}\n` : ""}
+
 ## USER CONTEXT
 ${summary?.trim() || "No previous context"}
 

@@ -6,17 +6,17 @@ import {
   Dimensions,
 } from "react-native";
 import React, { useRef, useState } from "react";
-import CustomKeyboardAvoidingView from "./components/CustomKeyboardAvoidingView";
 import CustomTextInput from "./components/CustomTextInput";
 import { useNavigation } from "expo-router";
 import { COLORS } from "@/src/consts/colors";
-import { ChevronLeft } from "lucide-react-native";
+import { ArrowLeft, ChevronLeft } from "lucide-react-native";
 import Loader from "./components/Loader";
 import { useAuth } from "../context/authProvider";
 import { StackNavigationProp } from "../types/stackParam";
 import { UserInfoErrorProps, UserInfoProps } from "../types/auth";
 import { defaultBooleanValue, defaultStringValue } from "../consts/defaults";
 import { stepRequirements } from "../consts/maps";
+import KeyboardScreen from "./components/KeyboardScreen";
 
 export default function Register() {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -105,16 +105,15 @@ export default function Register() {
   };
 
   return (
-    <CustomKeyboardAvoidingView>
-      <View className="bg-background flex-1 justify-center items-center gap-4">
+    <KeyboardScreen>
+      <View className="bg-background flex-1 justify-center items-center">
         <View className="max-w-sm w-full flex flex-row gap-4 pb-4 border-b border-border items-center">
           <TouchableOpacity
             onPress={() =>
               currentIndex === 1 ? navigation.navigate("login") : handleBack()
             }
-            className="bg-border flex aspect-square items-center justify-center rounded-xl"
           >
-            <ChevronLeft color={COLORS.textSecondary} size={30} />
+            <ArrowLeft color={COLORS.textSecondary} size={24} />
           </TouchableOpacity>
           <Text className="text-primary text-4xl font-interBold h-14 align-middle">
             Register
@@ -213,7 +212,7 @@ export default function Register() {
           </View>
         </ScrollView>
         {errMsg && (
-          <Text className="text-danger text-center text-sm">{errMsg}</Text>
+          <Text className="text-danger text-center text-sm pb-4">{errMsg}</Text>
         )}
         <View className="flex flex-row w-full gap-4 max-w-sm justify-between">
           <TouchableOpacity
@@ -227,6 +226,6 @@ export default function Register() {
           </TouchableOpacity>
         </View>
       </View>
-    </CustomKeyboardAvoidingView>
+    </KeyboardScreen>
   );
 }

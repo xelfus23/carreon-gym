@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { WorkoutLog, workoutService } from "@/src/services/workout.service";
+import { WorkoutLog, WorkoutLogPayload, workoutService } from "@/src/services/workout.service";
 import type { WorkoutPlanProps } from "@/src/types/workout";
 
 export type LogModalState = {
@@ -35,7 +35,7 @@ export function useWorkout() {
   const [checkedExercises, setCheckedExercises] = useState<
     Record<string, WorkoutLog>
   >({});
-  
+
   const [loadingDays, setLoadingDays] = useState<Record<number, boolean>>({});
   const [modal, setModal] = useState<LogModalState>(EMPTY_MODAL);
   const [formSets, setFormSets] = useState("");
@@ -120,7 +120,7 @@ export function useWorkout() {
   const togglePlanStatus = async (planId: number, isActive: boolean) => {
     try {
       await workoutService.updatePlanStatus(planId, isActive);
-      refreshWorkoutPlan(); // Re-fetch to update the UI
+      refreshWorkoutPlan();
     } catch (err) {
       console.error(err);
     }
@@ -221,42 +221,150 @@ export function useWorkout() {
     [],
   );
 
-  const saveLog = useCallback(async () => {
-    if (!modal.exerciseId || !modal.dayId) return;
-    setIsSaving(true);
-    try {
-      const durationSeconds = formDuration
-        ? parseInt(formDuration)
-        : null;
+  // when called without args, falls back to modal form state (used by ExerciseDetailModal)
+  const saveLog = useCallback(
+    async (directPayload?: WorkoutLogPayload) => {
+      if (directPayload) {
+        // Called directly from WorkoutSession — no modal state involved
+        setIsSaving(true);
+        try {
+          const data = await workoutService.logExercise(directPayload);
+          // We don't have a dayId here, so we can't update checkedExercises.
+          // WorkoutSession navigates away after this, so no stale UI to worry about.
+          return data;
+        } finally {
+          setIsSaving(false);
+        }
+      }
 
-      const data = await workoutService.logExercise({
-        workout_exercise_id: modal.exerciseId,
-        completed_sets: formSets ? parseInt(formSets) : null,
-        completed_reps: formReps ? parseInt(formReps) : null,
-        duration_seconds: durationSeconds,
-        weight_used_kg: formWeight ? parseFloat(formWeight) : null,
-        difficulty_rating: formDifficulty
-          ? parseInt(formDifficulty)
-          : null,
-      });
-      setCheckedExercises((prev) => ({
-        ...prev,
-        [logKey(modal.dayId!, modal.exerciseId!)]: data!,
-      }));
-      closeModal();
-    } finally {
-      setIsSaving(false);
+      // Called from modal form
+      if (!modal.exerciseId || !modal.dayId) return;
+      setIsSaving(true);
+      try {
+        const durationSeconds = formDuration ? parseInt(formDuration) : null;
+
+        const data = await workoutService.logExercise({
+          workout_exercise_id: modal.exerciseId,
+          completed_sets: formSets ? parseInt(formSets) : null,
+          completed_reps: formReps ? parseInt(formReps) : null,
+          duration_seconds: durationSeconds,
+          weight_used_kg: formWeight ? parseFloat(formWeight) : null,
+          difficulty_rating: formDifficulty ? parseInt(formDifficulty) : null,
+        });
+
+        setCheckedExercises((prev) => ({
+          ...prev,
+          [logKey(modal.dayId!, modal.exerciseId!)]: data,
+        }));
+        closeModal();
+        return data;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [
+      modal,
+      formSets,
+      formReps,
+      formDuration,
+      formWeight,
+      formDifficulty,
+      closeModal,
+    ],
+  );
+
+  function calculateStreak(logs: { logged_at: string | Date }[]): number {
+    if (!logs || logs.length === 0) return 0;
+
+    // 1. Extract unique dates (YYYY-MM-DD format) and sort them descending (newest first)
+    const uniqueDates = Array.from(
+      new Set(
+        logs.map(log => {
+          const date = new Date(log.logged_at);
+          return date.toISOString().split('T')[0];
+        })
+      )
+    ).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+    if (uniqueDates.length === 0) return 0;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Calculate yesterday's date string safely
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    const mostRecentLogDate = uniqueDates[0];
+
+    // 2. If the user hasn't logged anything today AND hasn't logged anything yesterday, 
+    // then their active streak has officially broken/cooled down to 0.
+    if (mostRecentLogDate !== todayStr && mostRecentLogDate !== yesterdayStr) {
+      return 0;
     }
-  }, [
-    modal.exerciseId,
-    modal.dayId,
-    formSets,
-    formReps,
-    formDuration,
-    formWeight,
-    formDifficulty,
-    closeModal,
-  ]);
+
+    let streak = 0;
+    let currentCheckDate = new Date(mostRecentLogDate);
+
+    // 3. Loop through our unique dates array and count how many consecutive days exist
+    for (const dateStr of uniqueDates) {
+      const expectedStr = currentCheckDate.toISOString().split('T')[0];
+
+      if (dateStr === expectedStr) {
+        streak++;
+        // Move our target comparison date back exactly 1 day
+        currentCheckDate.setDate(currentCheckDate.getDate() - 1);
+      } else {
+        // The chain is broken! Stop counting.
+        break;
+      }
+    }
+
+    return streak;
+  }
+
+
+  const getTodayStats = useCallback(() => {
+    const logs = Object.values(checkedExercises);
+
+    const workoutsCompleted = logs.length;
+    const totalSeconds = logs.reduce((sum, log) => sum + (log.duration_seconds ?? 0), 0);
+    const activeMinutes = Math.round(totalSeconds / 60);
+    const caloriesBurned = logs.reduce((sum, log) => sum + (log.calories_burned ?? 0), 0);
+
+    const streak = calculateStreak(allLogs);
+
+    // 💡 DYNAMIC UX DATA GENERATOR BASED ON PERFORMANCE VARIANCE
+    let streakSubtext = "Keep up the momentum! 🔥";
+    if (streak === 0) {
+      streakSubtext = "Start a new workout streak today! Let's go!";
+    } else if (streak >= 3 && streak < 7) {
+      streakSubtext = "You're building an unstoppable habit! 🚀";
+    } else if (streak >= 7) {
+      streakSubtext = "Elite consistency! You are an inspiration! 👑";
+    }
+
+    let activityBadge = "Starting Out";
+    let activityColor = "text-text-secondary";
+    if (caloriesBurned > 400 || activeMinutes > 45) {
+      activityBadge = "Beast Mode";
+      activityColor = "text-accent"; // Assumed your design system accommodates emphasis colors
+    } else if (caloriesBurned > 150 || activeMinutes > 15) {
+      activityBadge = "Solid Session";
+      activityColor = "text-primary";
+    }
+
+    return {
+      workoutsCompleted,
+      activeMinutes,
+      caloriesBurned,
+      streak,
+      streakSubtext,
+      activityBadge,
+      activityColor
+    };
+  }, [checkedExercises, allLogs]);
+
 
   return {
     workoutPlans,
@@ -293,5 +401,6 @@ export function useWorkout() {
     logKey,
     fetchHistory,
     allLogs,
+    todayStats: getTodayStats(),
   };
 }

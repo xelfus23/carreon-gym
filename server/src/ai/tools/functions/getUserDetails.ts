@@ -19,11 +19,7 @@ function getAge(birthdateStr: string) {
   return age;
 }
 
-export const getUserDetails = async (
-  ws: WebSocket,
-  args: any,
-  userId: number,
-) => {
+export const getUserDetails = async (userId: number) => {
   const result = await meDomain({ userId });
 
   const UserData = {
@@ -33,6 +29,7 @@ export const getUserDetails = async (
     height: `${result.profile?.heightCm} cm`,
     gender: result.profile?.gender,
     fitness_goal: result.profile?.goal,
+    experience_level: result.profile?.activityLevel,
     activity_level: result.profile?.activityLevel,
     current_status: {
       weight: `${result.currentStats?.weightKg}`,

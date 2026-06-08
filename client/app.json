@@ -12,16 +12,16 @@
             "supportsTablet": true
         },
         "android": {
+            "softwareKeyboardLayoutMode": "resize",
+            "edgeToEdgeEnabled": true,
+            "predictiveBackGestureEnabled": false,
+            "package": "com.xelfus.carreon_gym_mobile_app",
             "adaptiveIcon": {
-                "softwareKeyboardLayoutMode": "resize",
                 "backgroundColor": "#000102",
                 "foregroundImage": "./src/assets/images/android-icon-foreground.png",
                 "backgroundImage": "./src/assets/images/android-icon-background.png",
                 "monochromeImage": "./src/assets/images/android-icon-monochrome.png"
-            },
-            "edgeToEdgeEnabled": true,
-            "predictiveBackGestureEnabled": false,
-            "package": "com.xelfus.carreon_gym_mobile_app"
+            }
         },
         "web": {
             "output": "static",
@@ -62,6 +62,6 @@
                 "projectId": "167e5982-f530-4030-97d3-c83cc461711a"
             }
         },
-        "owner": "xelfus"
+        "owner": "suflex"
     }
 }

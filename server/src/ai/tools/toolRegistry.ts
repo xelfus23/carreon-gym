@@ -119,18 +119,6 @@ export const tools = [
   {
     type: "function",
     function: {
-      name: "get_user_details",
-      description: "Get the user's current personal details.",
-      parameters: {
-        type: "object",
-        properties: {},
-        required: [],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
       name: "get_user_workout_plans",
       description: "A full list of all the user's workout plans with their associated days and exercises.",
       parameters: { type: "object", properties: {}, required: [] },

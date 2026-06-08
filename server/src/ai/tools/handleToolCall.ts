@@ -6,7 +6,6 @@ import { getUserWorkoutPlan } from "./functions/getUserWorkoutPlan.ts";
 import { deleteWorkoutPlan } from "./functions/deleteWorkoutPlan.ts";
 import { createWorkoutPlan } from "./functions/createWorkoutPlan.ts";
 import { addExercise } from "./functions/addExercise.ts";
-import { getUserDetails } from "./functions/getUserDetails.ts";
 
 type ToolHandler = (ws: WebSocket, args: any, userId: number) => Promise<any>;
 
@@ -17,7 +16,6 @@ const toolHandlers: Record<string, ToolHandler> = {
   delete_workout_plan: deleteWorkoutPlan,
   delete_workout_day: deleteWorkoutDay,
   get_user_workout_plans: getUserWorkoutPlan,
-  get_user_details: getUserDetails,
 };
 
 export async function handleToolCall(

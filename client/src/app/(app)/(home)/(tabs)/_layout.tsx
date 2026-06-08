@@ -3,6 +3,7 @@ import { Tabs } from "expo-router";
 import { TouchableOpacity, View } from "react-native";
 import {
   CameraIcon,
+  ClipboardCheck,
   LayoutGrid,
   LucideDumbbell,
   MessagesSquare,
@@ -99,9 +100,9 @@ export default function ProtectedRouteLayout() {
         }}
       />
       <Tabs.Screen
-        name="(workout-plans)"
+        name="todayExercise"
         options={{
-          title: "Workout",
+          title: "My Workout",
           tabBarIcon: (props) => (
             <View style={{ transform: [{ rotate: "45deg" }] }}>
               <LucideDumbbell {...props} />
@@ -119,14 +120,14 @@ export default function ProtectedRouteLayout() {
       <Tabs.Screen
         name="camera"
         options={{
-          title: "Scan",
+          title: "QR Scanner",
           tabBarIcon: (props) => <CameraIcon {...props} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: "My Profile",
           tabBarIcon: (props) => <User2 {...props} />,
         }}
       />

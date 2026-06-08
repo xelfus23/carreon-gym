@@ -9,7 +9,6 @@ import {
 import { chatService } from "@/src/services/chat.service";
 import { ChatMessage } from "../types/chats";
 import { UserProfile } from "../types/users";
-import { tokenManager } from "../utils/tokenManager";
 
 let tempIdCounter = 0;
 const newTempId = () => `__streaming_${tempIdCounter++}__`;
@@ -49,10 +48,6 @@ export function useChat(params?: {
   const activeAssistantIdRef = useRef<string | null>(null);
 
   const sessionResolvedRef = useRef(!!params?.initialSessionId);
-
-  useEffect(() => {
-    console.log(tokenManager.getAccessToken())
-  }, [])
 
   useEffect(() => {
     mountedRef.current = true;

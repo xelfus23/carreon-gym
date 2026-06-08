@@ -13,8 +13,10 @@ export type WorkoutLogPayload = {
 export type WorkoutLog = WorkoutLogPayload & {
   id: number;
   user_id: number;
+  workout_day_id: number;
   logged_at: string;
   duration_seconds?: number | null;
+  calories_burned: number | null
 };
 
 export const workoutService = {
@@ -26,7 +28,7 @@ export const workoutService = {
     ).data;
   },
 
-  logExercise: async (payload: WorkoutLogPayload) => {
+  logExercise: async (payload: WorkoutLogPayload): Promise<WorkoutLog> => {
     return (
       await request(`/workoutplan/logs`, {
         method: "POST",
@@ -35,12 +37,12 @@ export const workoutService = {
     ).data;
   },
 
-  getDayLogs: async (workoutDayId: number) => {
+  getDayLogs: async (workoutDayId: number): Promise<WorkoutLog[]> => {
     const res = await request(
       `/workoutplan/logs?workout_day_id=${workoutDayId}`,
       { method: "GET" },
     );
-    return res.data ?? [];
+    return (res.data ?? []) as WorkoutLog[];
   },
 
   getTodayLogs: async (): Promise<WorkoutLog[]> => {
@@ -50,11 +52,12 @@ export const workoutService = {
     return (res.data ?? []) as WorkoutLog[];
   },
 
+  // FIX: was /workoutplan/${id}, missing /logs/ segment
   removeLog: async (
     workoutExerciseId: number,
   ): Promise<{ success: boolean; message?: string }> => {
     return (
-      await request(`/workoutplan/${workoutExerciseId}`, {
+      await request(`/workoutplan/logs/${workoutExerciseId}`, {
         method: "DELETE",
       })
     ).data;
