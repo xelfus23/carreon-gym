@@ -11,14 +11,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { COLORS } from "@/src/consts/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { workoutService } from "@/src/services/workout.service";
 import { useWorkout } from "@/src/hooks/useWorkout";
+import { useAudioPlayer } from "expo-audio";
 
 type SessionMode = "reps" | "timer";
 
 export default function WorkoutSession() {
   const router = useRouter();
-  const { saveLog } = useWorkout()
+  const { saveLog } = useWorkout();
 
   const params = useLocalSearchParams<{
     exerciseId: string;
@@ -33,18 +33,15 @@ export default function WorkoutSession() {
   const exerciseName = params.exerciseName ?? "Exercise";
   const totalSets = Number(params.sets) || 1;
   const repsPerSet = params.reps ? Number(params.reps) : null;
-  const durationSeconds = params.durationSeconds
-    ? Number(params.durationSeconds)
-    : null;
+  const durationSeconds = params.durationSeconds ? Number(params.durationSeconds) : null;
 
-  const mode: SessionMode =
-    durationSeconds !== null && repsPerSet === null ? "timer" : "reps";
+  const mode: SessionMode = durationSeconds !== null && repsPerSet === null ? "timer" : "reps";
 
   // ── Reps Mode State ──────────────────────────────────────────────
   const [currentSet, setCurrentSet] = useState(1);
   const [completedSets, setCompletedSets] = useState(0);
   const [isResting, setIsResting] = useState(false);
-  const [restTimer, setRestTimer] = useState(60); // 60s rest between sets
+  const [restTimer, setRestTimer] = useState(60);
 
   // ── Timer Mode State ──────────────────────────────────────────────
   const [timeLeft, setTimeLeft] = useState(durationSeconds ?? 0);
@@ -57,6 +54,17 @@ export default function WorkoutSession() {
   const progressAnim = useRef(new Animated.Value(0)).current;
   const celebrationAnim = useRef(new Animated.Value(0)).current;
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ── Audio Engine Setup ────────────────────────────────────────────
+  // Hooks handle native allocations, memory clean-ups, and preloading instantly
+  const tickSound = useAudioPlayer(require("@/src/assets/sounds/tick.mp3"));
+
+  const playTick = useCallback(() => {
+    if (tickSound) {
+      tickSound.seekTo(0);
+      tickSound.play();
+    }
+  }, [tickSound]);
 
   // Pulse animation for active timer
   useEffect(() => {
@@ -80,17 +88,20 @@ export default function WorkoutSession() {
     }
   }, [isRunning, mode, pulseAnim]);
 
-  // Timer countdown logic
+  // Timer countdown logic + Sound tick integration
   useEffect(() => {
     if (mode === "timer" && isRunning && timeLeft > 0) {
       timerRef.current = setInterval(() => {
+        // 🎵 Fire the sound effect accurately on the second change boundary
+        playTick();
+
         setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(timerRef.current!);
             setIsRunning(false);
             setTimerDone(true);
             Vibration.vibrate([0, 200, 100, 200]);
-            // Celebration animation
+
             Animated.spring(celebrationAnim, {
               toValue: 1,
               useNativeDriver: true,
@@ -104,12 +115,15 @@ export default function WorkoutSession() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isRunning, mode, timeLeft, celebrationAnim]);
+  }, [isRunning, mode, timeLeft, celebrationAnim, playTick]);
 
-  // Rest timer between sets
+  // Rest timer countdown + Sound tick integration
   useEffect(() => {
     if (!isResting) return;
     const interval = setInterval(() => {
+      // 🎵 Play tick sound during rest periods to keep athletes focused
+      playTick();
+
       setRestTimer((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
@@ -121,7 +135,7 @@ export default function WorkoutSession() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [isResting]);
+  }, [isResting, playTick]);
 
   // Progress bar animation (reps mode: by sets)
   useEffect(() => {
@@ -154,10 +168,7 @@ export default function WorkoutSession() {
           workout_exercise_id: exerciseId,
           completed_sets: mode === "reps" ? setsCompleted : totalSets,
           completed_reps: mode === "reps" ? repsPerSet : null,
-          duration_seconds:
-            mode === "timer" && durationSeconds != null
-              ? durationSeconds
-              : null,
+          duration_seconds: mode === "timer" && durationSeconds != null ? durationSeconds : null,
         });
         router.back();
       } catch (err) {
@@ -166,17 +177,7 @@ export default function WorkoutSession() {
         setIsSaving(false);
       }
     },
-    [
-      completedSets,
-      exerciseId,
-      isSaving,
-      mode,
-      repsPerSet,
-      router,
-      totalSets,
-      durationSeconds,
-      saveLog
-    ],
+    [completedSets, exerciseId, isSaving, mode, repsPerSet, router, totalSets, durationSeconds, saveLog],
   );
 
   const handleCompleteSet = useCallback(() => {
@@ -185,7 +186,6 @@ export default function WorkoutSession() {
     setCompletedSets(newCompleted);
 
     if (newCompleted >= totalSets) {
-      // All sets done → navigate back with result
       Animated.spring(celebrationAnim, {
         toValue: 1,
         useNativeDriver: true,
@@ -204,6 +204,11 @@ export default function WorkoutSession() {
     setRestTimer(60);
   };
 
+  // ➕ Extends the current resting window by an additional 30 seconds
+  const handleAddRestTime = () => {
+    setRestTimer((prev) => prev + 30);
+  };
+
   const handleQuit = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     router.back();
@@ -220,9 +225,7 @@ export default function WorkoutSession() {
     outputRange: ["0%", "100%"],
   });
 
-  const isComplete =
-    (mode === "reps" && completedSets >= totalSets) ||
-    (mode === "timer" && timerDone);
+  const isComplete = (mode === "reps" && completedSets >= totalSets) || (mode === "timer" && timerDone);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -234,36 +237,23 @@ export default function WorkoutSession() {
           onPress={handleQuit}
           className="w-10 h-10 bg-surface rounded-full items-center justify-center"
         >
-          <Ionicons
-            name="close"
-            size={20}
-            color={COLORS.textSecondary}
-          />
+          <Ionicons name="close" size={20} color={COLORS.textSecondary} />
         </TouchableOpacity>
         <Text className="text-text-secondary text-sm font-medium">
-          {mode === "reps"
-            ? `Set ${Math.min(currentSet, totalSets)} of ${totalSets}`
-            : "Timed Exercise"}
+          {mode === "reps" ? `Set ${Math.min(currentSet, totalSets)} of ${totalSets}` : "Timed Exercise"}
         </Text>
         <View className="w-10" />
       </View>
 
       {/* Progress Bar */}
       <View className="mx-5 h-1.5 bg-surface rounded-full overflow-hidden mb-6">
-        <Animated.View
-          className="h-full bg-primary rounded-full"
-          style={{ width: progressWidth }}
-        />
+        <Animated.View className="h-full bg-primary rounded-full" style={{ width: progressWidth }} />
       </View>
 
       {/* Exercise Name */}
       <View className="px-5 mb-8">
-        <Text className="text-text-secondary text-xs uppercase tracking-widest mb-1">
-          Now Working
-        </Text>
-        <Text className="text-text-primary font-bold text-3xl leading-tight">
-          {exerciseName}
-        </Text>
+        <Text className="text-text-secondary text-xs uppercase tracking-widest mb-1">Now Working</Text>
+        <Text className="text-text-primary font-bold text-3xl leading-tight">{exerciseName}</Text>
       </View>
 
       {/* ── REPS MODE ─────────────────────────────────────────────── */}
@@ -272,103 +262,71 @@ export default function WorkoutSession() {
           {isResting ? (
             /* Rest Screen */
             <View className="items-center">
-              <Text className="text-text-secondary text-base mb-4 uppercase tracking-widest">
-                Rest
-              </Text>
+              <Text className="text-text-secondary text-base mb-4 uppercase tracking-widest">Rest</Text>
               <View className="w-48 h-48 rounded-full border-4 border-primary/30 items-center justify-center mb-8 bg-primary/5">
-                <Text className="text-primary font-bold text-6xl">
-                  {restTimer}
-                </Text>
-                <Text className="text-text-secondary text-sm mt-1">
-                  seconds
-                </Text>
+                <Text className="text-primary font-bold text-6xl">{restTimer}</Text>
+                <Text className="text-text-secondary text-sm mt-1">seconds</Text>
               </View>
               <Text className="text-text-secondary text-center mb-8">
                 Great set! Recover and prepare for the next.
               </Text>
-              <TouchableOpacity
-                onPress={handleSkipRest}
-                className="border border-border rounded-2xl px-8 py-3"
-              >
-                <Text className="text-text-secondary font-semibold">
-                  Skip Rest
-                </Text>
-              </TouchableOpacity>
+
+              {/* Action Buttons Row */}
+              <View className="flex-row gap-4 items-center justify-center">
+                <TouchableOpacity
+                  onPress={handleSkipRest}
+                  className="border border-border rounded-2xl px-6 py-3"
+                >
+                  <Text className="text-text-secondary font-semibold">Skip Rest</Text>
+                </TouchableOpacity>
+
+                {/* 🆕 Add Rest Button */}
+                <TouchableOpacity
+                  onPress={handleAddRestTime}
+                  className="bg-surface border border-primary/20 rounded-2xl px-6 py-3 flex-row items-center gap-1.5"
+                >
+                  <Ionicons name="add" size={16} color={COLORS.primary} />
+                  <Text className="text-primary font-semibold">+30s Rest</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ) : isComplete ? (
             /* Completion State */
-            <Animated.View
-              className="items-center"
-              style={{ transform: [{ scale: celebrationAnim }] }}
-            >
+            <Animated.View className="items-center" style={{ transform: [{ scale: celebrationAnim }] }}>
               <View className="w-32 h-32 rounded-full bg-primary-dark/10 items-center justify-center mb-6">
-                <Ionicons
-                  name="trophy"
-                  size={60}
-                  color={COLORS.primary}
-                />
+                <Ionicons name="trophy" size={60} color={COLORS.primary} />
               </View>
-              <Text className="text-primary font-bold text-2xl mb-2">
-                Exercise Complete!
-              </Text>
-              <Text className="text-text-secondary text-center">
-                {totalSets} sets completed 💪
-              </Text>
+              <Text className="text-primary font-bold text-2xl mb-2">Exercise Complete!</Text>
+              <Text className="text-text-secondary text-center">{totalSets} sets completed 💪</Text>
             </Animated.View>
           ) : (
             /* Active Set Screen */
             <View className="items-center w-full">
               <View className="items-center mb-10">
-                <Text className="text-text-secondary text-sm mb-2 uppercase tracking-widest">
-                  Target Reps
-                </Text>
-                <Text className="text-text-primary font-bold text-8xl leading-none">
-                  {repsPerSet ?? "—"}
-                </Text>
+                <Text className="text-text-secondary text-sm mb-2 uppercase tracking-widest">Target Reps</Text>
+                <Text className="text-text-primary font-bold text-8xl leading-none">{repsPerSet ?? "—"}</Text>
               </View>
 
               {/* Set dots */}
               <View className="flex-row gap-2 mb-12">
-                {Array.from({ length: totalSets }).map(
-                  (_, i) => (
-                    <View
-                      key={i}
-                      className={`w-3 h-3 rounded-full ${i < completedSets
-                        ? "bg-primary"
-                        : i === completedSets
-                          ? "bg-primary"
-                          : "bg-surface"
-                        }`}
-                    />
-                  ),
-                )}
+                {Array.from({ length: totalSets }).map((_, i) => (
+                  <View
+                    key={i}
+                    className={`w-3 h-3 rounded-full ${i < completedSets ? "bg-primary" : i === completedSets ? "bg-primary" : "bg-surface"
+                      }`}
+                  />
+                ))}
               </View>
 
               <TouchableOpacity
                 onPress={handleCompleteSet}
-                className="bg-primary rounded-3xl px-16 py-5 items-center"
+                className="bg-primary gap-4 rounded-3xl flex flex-row px-4 py-2 items-center justify-center active:bg-primary-dark"
                 activeOpacity={0.85}
-                style={{
-                  shadowColor: COLORS.primary,
-                  shadowOffset: { width: 0, height: 8 },
-                  shadowOpacity: 0.4,
-                  shadowRadius: 16,
-                  elevation: 8,
-                }}
               >
-                <Ionicons
-                  name="checkmark-circle"
-                  size={24}
-                  color={COLORS.background}
-                  style={{ marginBottom: 4 }}
-                />
-                <Text className="text-background font-bold text-lg">
-                  Set Done
-                </Text>
-                <Text className="text-background text-xs mt-0.5">
-                  Tap when finished
-                </Text>
+                <Text className="text-background font-bold text-xl">Set Done</Text>
+                <Ionicons name="checkmark-circle" size={18} color={COLORS.background} />
               </TouchableOpacity>
+              <Text className="text-text-primary text-xs mt-2">Tap when finished</Text>
             </View>
           )}
         </View>
@@ -379,23 +337,12 @@ export default function WorkoutSession() {
         <View className="flex-1 items-center justify-center px-5">
           {timerDone ? (
             /* Completion State */
-            <Animated.View
-              className="items-center"
-              style={{ transform: [{ scale: celebrationAnim }] }}
-            >
+            <Animated.View className="items-center" style={{ transform: [{ scale: celebrationAnim }] }}>
               <View className="w-32 h-32 rounded-full bg-primary-dark/10 items-center justify-center mb-6">
-                <Ionicons
-                  name="trophy"
-                  size={60}
-                  color={COLORS.primary}
-                />
+                <Ionicons name="trophy" size={60} color={COLORS.primary} />
               </View>
-              <Text className="text-primary font-bold text-2xl mb-2">
-                Time&apos;s Up!
-              </Text>
-              <Text className="text-text-secondary text-center mb-8">
-                Great work! Exercise complete 💪
-              </Text>
+              <Text className="text-primary font-bold text-2xl mb-2">Time&apos;s Up!</Text>
+              <Text className="text-text-secondary text-center mb-8">Great work! Exercise complete 💪</Text>
               <TouchableOpacity
                 onPress={() => {
                   void handleFinish();
@@ -414,21 +361,13 @@ export default function WorkoutSession() {
               <Animated.View
                 className="w-56 h-56 rounded-full border-4 items-center justify-center mb-12"
                 style={{
-                  borderColor: isRunning
-                    ? COLORS.primary
-                    : "#374151",
+                  borderColor: isRunning ? COLORS.primary : "#374151",
                   transform: [{ scale: pulseAnim }],
-                  backgroundColor: isRunning
-                    ? `${COLORS.primary}10`
-                    : "#1F2937",
+                  backgroundColor: isRunning ? `${COLORS.primary}10` : "#1F2937",
                 }}
               >
-                <Text className="text-text-primary font-bold text-6xl">
-                  {formatTime(timeLeft)}
-                </Text>
-                <Text className="text-text-secondary text-sm mt-1">
-                  {isRunning ? "remaining" : "ready"}
-                </Text>
+                <Text className="text-text-primary font-bold text-6xl">{formatTime(timeLeft)}</Text>
+                <Text className="text-text-secondary text-sm mt-1">{isRunning ? "remaining" : "ready"}</Text>
               </Animated.View>
 
               <View className="flex-row gap-4">
@@ -437,33 +376,18 @@ export default function WorkoutSession() {
                   className="bg-primary rounded-2xl px-10 py-4 flex-row items-center gap-2"
                   activeOpacity={0.85}
                 >
-                  <Ionicons
-                    name={isRunning ? "pause" : "play"}
-                    size={20}
-                    color={COLORS.background}
-                  />
-                  <Text className="text-background font-bold text-base">
-                    {isRunning ? "Pause" : "Start"}
-                  </Text>
+                  <Ionicons name={isRunning ? "pause" : "play"} size={20} color={COLORS.background} />
+                  <Text className="text-background font-bold text-base">{isRunning ? "Pause" : "Start"}</Text>
                 </TouchableOpacity>
 
-                {!isRunning &&
-                  timeLeft < (durationSeconds ?? 0) && (
-                    <TouchableOpacity
-                      onPress={() =>
-                        setTimeLeft(
-                          durationSeconds ?? 0,
-                        )
-                      }
-                      className="bg-surface rounded-2xl px-5 py-4 items-center justify-center"
-                    >
-                      <Ionicons
-                        name="refresh"
-                        size={20}
-                        color={COLORS.textSecondary}
-                      />
-                    </TouchableOpacity>
-                  )}
+                {!isRunning && timeLeft < (durationSeconds ?? 0) && (
+                  <TouchableOpacity
+                    onPress={() => setTimeLeft(durationSeconds ?? 0)}
+                    className="bg-surface rounded-2xl px-5 py-4 items-center justify-center"
+                  >
+                    <Ionicons name="refresh" size={20} color={COLORS.textSecondary} />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           )}

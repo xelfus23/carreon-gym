@@ -24,27 +24,27 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"; // 👈 1. I
 const PROMPT_SUGGESTIONS = [
   {
     id: "1",
-    emoji: "💪",
-    label: "Build a workout plan",
-    prompt: "Create a 4-day workout plan for building muscle at home with no equipment.",
+    emoji: "🏋️",
+    label: "Build a gym program",
+    prompt: "Create a gym workout program for me at Carreon Gym.",
   },
   {
     id: "2",
-    emoji: "🔥",
-    label: "Quick HIIT session",
-    prompt: "Give me a 20-minute HIIT workout I can do right now.",
+    emoji: "📈",
+    label: "Track my progress",
+    prompt: "How do I track my strength progress effectively at the gym?",
   },
   {
     id: "3",
-    emoji: "🥗",
-    label: "Nutrition advice",
-    prompt: "What should I eat before and after a workout to maximize gains?",
+    emoji: "🥩",
+    label: "Gym diet advice",
+    prompt: "What should I eat to fuel my gym sessions and build muscle?",
   },
   {
     id: "4",
-    emoji: "😴",
-    label: "Recovery tips",
-    prompt: "How can I improve my recovery between workout sessions?",
+    emoji: "🤝",
+    label: "Personal training tips",
+    prompt: "What should I focus on as a beginner starting at Carreon Gym?",
   },
 ];
 

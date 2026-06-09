@@ -22,7 +22,7 @@ export function MyTabBar({
 }: BottomTabBarProps) {
   return (
     <View className="bg-background">
-      <View className="flex-row bg-surface bottom-16 self-center w-[92%] rounded-full border border-border px-2 py-2">
+      <View className="flex-row bg-surface bottom-16 self-center w-[92%] rounded-3xl border border-border px-2 py-2">
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
