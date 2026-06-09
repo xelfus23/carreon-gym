@@ -54,6 +54,8 @@ export default function EquipmentRow({
   const close = useCallback(() => setMenuOpen(false), []);
   const previewUrl = equipment.icon_url ?? null;
 
+  console.log(equipment);
+
   const actions: ActionItemProps[] = [
     {
       label: "Edit",

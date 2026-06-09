@@ -24,15 +24,12 @@ VALUES
  'Free Weight',
  20, ''),
 
-('Barbells',
- (SELECT id FROM equipment_category WHERE name='Free Weight'),
- 'Free Weight',
- 5, ''),
 
-('Curve Barbells',
- (SELECT id FROM equipment_category WHERE name='Free Weight'),
- 'Free Weight',
- 3, ''),
+('Barbell Rod (Stainless)',  (SELECT id FROM equipment_category WHERE name='Free Weight'), 'Free Weight', 2, ''),
+('Barbell Rod (Normal)',     (SELECT id FROM equipment_category WHERE name='Free Weight'), 'Free Weight', 3, ''),
+('Curve Barbell Rod',        (SELECT id FROM equipment_category WHERE name='Free Weight'), 'Free Weight', 2, ''),
+('Olympic Barbell Rod',      (SELECT id FROM equipment_category WHERE name='Free Weight'), 'Free Weight', 1, ''),
+('Deadlift Barbell Rod',     (SELECT id FROM equipment_category WHERE name='Free Weight'), 'Free Weight', 1, ''),
 
 ('Arm Bars',
  (SELECT id FROM equipment_category WHERE name='Free Weight'),
@@ -129,6 +126,23 @@ VALUES
  'Cardio',
  8, '');
 
+INSERT INTO equipment_weight_variants (equipment_id, weight_lb, quantity) VALUES 
+((SELECT id FROM equipment WHERE name = 'Barbells'), 5, 10),
+((SELECT id FROM equipment WHERE name = 'Barbells'), 10, 30),
+((SELECT id FROM equipment WHERE name = 'Barbells'), 15, 30),
+((SELECT id FROM equipment WHERE name = 'Barbells'), 20, 35),
+((SELECT id FROM equipment WHERE name = 'Barbells'), 40, 25),
+((SELECT id FROM equipment WHERE name = 'Barbells'), 50, 20);
+
+INSERT INTO equipment_weight_variants (equipment_id, weight_lb, quantity) VALUES 
+((SELECT id FROM equipment WHERE name = 'Dumbbells' LIMIT 1), 5, 1),  -- 1 pair of 5lb
+((SELECT id FROM equipment WHERE name = 'Dumbbells' LIMIT 1), 10, 1), -- 1 pair of 10lb
+((SELECT id FROM equipment WHERE name = 'Dumbbells' LIMIT 1), 15, 1), -- 1 pair of 15lb
+((SELECT id FROM equipment WHERE name = 'Dumbbells' LIMIT 1), 20, 1), -- 1 pair of 20lb
+((SELECT id FROM equipment WHERE name = 'Dumbbells' LIMIT 1), 25, 1), -- 1 pair of 25lb
+((SELECT id FROM equipment WHERE name = 'Dumbbells' LIMIT 1), 30, 1); -- 1 pair of 30lb
+
+
 -- ============================================================================
 -- SUBSCRIPTION PLANS (Daily / Weekly / Monthly)
 -- ============================================================================
@@ -206,10 +220,9 @@ INSERT INTO users (first_name, last_name, phone_number, email, hashed_password, 
 INSERT INTO user_profiles (user_id, height_cm, gender, birth_date, goal, activity_level)
 SELECT 
     id, 
-    -- Subtract 100000 to keep height realistic (e.g., 170 + 5)
     170 + ((id - 100000) % 20), 
     CASE WHEN (id - 100000) % 2 = 0 THEN 'male' ELSE 'female' END,
-    '1990-01-01'::DATE + ((id - 100000) * 10), -- Adjusted multiplier for birth date
+    '1990-01-01'::DATE + ((id - 100000) * 10)::INT,  -- cast to INT
     'General fitness and health improvement',
     'moderate'
 FROM users 
@@ -357,53 +370,53 @@ INSERT INTO attendance_attempts (user_id, action, result, reason, metadata, crea
 -- ============================================================================
 
 -- Alex Rivers - Membership Renewal (Mobile Flow Approved)
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, reference_no, paid_at) VALUES
+-- Alex Rivers - Membership Payment (Mobile Flow Approved)
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, origin, status, reference_no, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'alex.rivers@example.com'), 
   (SELECT id FROM subscription_plans WHERE category = 'membership' LIMIT 1), 
-  'plan', 1500.00, 1, 'gcash', 'mobile_online', 'paid', 'GC-MEM-9921', NOW() - INTERVAL '2 months'
+  'plan', 1500.00, 'gcash', 'mobile_online', 'paid', 'GC-MEM-9921', NOW() - INTERVAL '2 months'
 );
 
 -- Jordan Lee - Personal Training Add-on (Mobile Flow Approved)
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, reference_no, paid_at) VALUES
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, origin, status, reference_no, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'jlee_fitness@example.com'), 
   (SELECT id FROM subscription_plans WHERE category = 'personal_training' LIMIT 1), 
-  'plan', 3500.00, 1, 'bank_transfer', 'mobile_online', 'paid', 'BNK-PT-4412', NOW() - INTERVAL '1 month'
+  'plan', 3500.00, 'bank_transfer', 'mobile_online', 'paid', 'BNK-PT-4412', NOW() - INTERVAL '1 month'
 );
 
 -- Charlie Day - Membership Payment (Over-the-Counter Cash POS Flow)
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, paid_at) VALUES
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, origin, status, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'wildcard@example.com'), 
   (SELECT id FROM subscription_plans WHERE category = 'membership' LIMIT 1), 
-  'plan', 1500.00, 1, 'cash', 'walk_in_pos', 'paid', NOW() - INTERVAL '12 days'
+  'plan', 1500.00, 'cash', 'walk_in_pos', 'paid', NOW() - INTERVAL '12 days'
 );
 
 -- Casey Morgan - Plan Payment (Mobile Flow Approved)
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, reference_no, paid_at) VALUES
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, origin, status, reference_no, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'casey.m@example.com'), 
   (SELECT id FROM subscription_plans LIMIT 1), 
-  'plan', 1500.00, 1, 'gcash', 'mobile_online', 'paid', 'REF-2026-001', NOW() - INTERVAL '5 months'
+  'plan', 1500.00, 'gcash', 'mobile_online', 'paid', 'REF-2026-001', NOW() - INTERVAL '5 months'
 );
 
 -- Taylor Swift - Plan Payment (Mobile Flow Approved)
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, reference_no, paid_at) VALUES
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, origin, status, reference_no, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'taylor.s@example.com'), 
   (SELECT id FROM subscription_plans OFFSET 1 LIMIT 1), 
-  'plan', 3500.00, 1, 'bank_transfer', 'mobile_online', 'paid', 'BNK-99218', NOW() - INTERVAL '3 months 15 days'
+  'plan', 3500.00, 'bank_transfer', 'mobile_online', 'paid', 'BNK-99218', NOW() - INTERVAL '3 months 15 days'
 );
 
 -- Riley Reid - Plan Payment (Over-the-Counter Cash POS Flow)
-INSERT INTO payments (user_id, plan_id, transaction_type, amount, quantity, method, origin, status, paid_at) VALUES
+INSERT INTO payments (user_id, plan_id, transaction_type, amount, method, origin, status, paid_at) VALUES
 (
   (SELECT id FROM users WHERE email = 'riley.r@example.com'), 
   (SELECT id FROM subscription_plans LIMIT 1), 
-  'plan', 1500.00, 1, 'cash', 'walk_in_pos', 'paid', NOW() - INTERVAL '3 months'
+  'plan', 1500.00, 'cash', 'walk_in_pos', 'paid', NOW() - INTERVAL '3 months'
 );
-
 
 DO $$
 DECLARE v_pay_id INT;
