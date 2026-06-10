@@ -1,17 +1,37 @@
-export const formatInventory = (equipments: any[]) => {
-  if (!equipments?.length) return "None";
+export const formatInventory = (equipmentData: {
+  equipment: any[];
+  dumbbells: any[];
+  barbell_plates: any[];
+  barbell_rods: any[];
+}) => {
+  const { equipment, dumbbells, barbell_plates, barbell_rods } = equipmentData;
+  let inventoryStr = "";
 
-  return equipments
-    .map((e) => {
-      let variantStr = "";
-      if (e.weight_variants && e.weight_variants.length > 0) {
-        // Formats variants cleanly like: (Plates: 5lb x10, 10lb x30)
-        const variants = e.weight_variants
-          .map((v: any) => `${v.weight_lb}lb x${v.quantity}`)
-          .join(", ");
-        variantStr = ` (Variants: ${variants})`;
-      }
-      return `${e.id}:${e.equipment_name}${variantStr}`;
-    })
-    .join("\n"); // Using newline (\n) makes it much easier for the AI to read list-style items
+  if (equipment?.length) {
+    inventoryStr += "### General Gym Equipment & Machines (ID:NAME)\n";
+    inventoryStr += equipment
+      .map((e) => `${e.id}: ${e.equipment_name} (Qty: ${e.quantity}, Type: ${e.type}, Available: ${e.is_available})`)
+      .join("\n");
+  }
+
+  if (dumbbells?.length) {
+    inventoryStr += "\n\n### Available Fixed-Weight Dumbbells Pairs\n";
+    inventoryStr += dumbbells
+      .map((d) => `- ${d.equipment_name}: ${d.quantity} pair(s) (Available: ${d.is_available})`)
+      .join("\n");
+  }
+
+  if (barbell_rods?.length) {
+    inventoryStr += "\n\n### Barbell Rods\n";
+    inventoryStr += barbell_rods
+      .map((r) => `${r.name} x${r.quantity}${r.is_available ? "" : " [OUT OF SERVICE]"}`)
+      .join(", ");
+  }
+
+  if (barbell_plates?.length) {
+    inventoryStr += "\n\n### Shared Loose Barbell Plates (Rack for all adjustable Barbells & plate-loaded machines)\n";
+    inventoryStr += barbell_plates.map((p) => `${Number(p.weight_lb)}lb plate x${p.quantity}`).join(", ");
+  }
+
+  return inventoryStr;
 };

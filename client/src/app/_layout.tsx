@@ -4,37 +4,35 @@ import { useFonts } from "expo-font";
 import { Slot } from "expo-router";
 
 import {
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_700Bold,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_700Bold,
 } from "@expo-google-fonts/inter";
 
 import {
-    Montserrat_700Bold,
-    Montserrat_800ExtraBold,
+  Montserrat_700Bold,
+  Montserrat_800ExtraBold,
 } from "@expo-google-fonts/montserrat";
 
 import { UserProfileProvider } from "../context/profileProvider";
 
 export default function RootLayout() {
-    const [fontsLoaded] = useFonts({
-        Inter_400Regular,
-        Inter_500Medium,
-        Inter_700Bold,
-        Montserrat_700Bold,
-        Montserrat_800ExtraBold,
-    });
 
-    // This is the start
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_700Bold,
+    Montserrat_700Bold,
+    Montserrat_800ExtraBold,
+  });
 
-    // if the font is not loaded do not render the screens yet.
-    if (!fontsLoaded) return null;
+  if (!fontsLoaded) return null;
 
-    return (
-        <AuthProvider>
-            <UserProfileProvider>
-                <Slot />
-            </UserProfileProvider>
-        </AuthProvider>
-    );
+  return (
+    <AuthProvider>
+      <UserProfileProvider>
+        <Slot />
+      </UserProfileProvider>
+    </AuthProvider>
+  );
 }

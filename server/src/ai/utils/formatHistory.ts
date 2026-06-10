@@ -5,6 +5,8 @@ export const formatChatHistory = async (
 ) => {
     const messages: any[] = [];
 
+    console.log("SYSTEM INSTRUCTIONS: ",instructions)
+
     messages.push({
         role: "system",
         content: instructions,

@@ -91,6 +91,7 @@ export interface ActionItemProps {
 export type EquipmentProps = {
   id: number;
   icon_url: string;
+  type: string;
   equipment_name: string;
   category: string;
   target_muscles: string;

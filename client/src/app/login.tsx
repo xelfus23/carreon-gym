@@ -62,7 +62,7 @@ export default function Login() {
             />
           </View>
           {errMsg !== "" && (
-            <Text className="text-danger text-center text-sm">
+            <Text className="text-danger text-center text-sm">a
               {errMsg}
             </Text>
           )}
