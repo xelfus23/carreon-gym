@@ -1,25 +1,26 @@
 import { UserProfile } from "../types/users";
 
 export const checkUserProfile = (profile: UserProfile) => {
-    if (!profile) return false;
+  if (!profile) return false;
 
-    let completed = false;
+  let completed = false;
 
-    const userProfile = [
-        profile.profile?.heightCm,
-        profile.profile?.gender,
-        profile.profile?.birthDate,
-        profile.profile?.goal,
-        profile.profile?.activityLevel,
-    ];
+  const userProfile = [
+    profile.profile?.heightCm,
+    profile.profile?.gender,
+    // profile.profile?.experienceLevel,
+    profile.profile?.birthDate,
+    profile.profile?.goal,
+    profile.profile?.activityLevel,
+  ];
 
-    const currentStats = [profile.currentStats?.weightKg];
+  const currentStats = [profile.currentStats?.weightKg];
 
-    const requiredFields = [...userProfile, ...currentStats];
+  const requiredFields = [...userProfile, ...currentStats];
 
-    completed = requiredFields.every(
-        (field) => field !== undefined && field !== null,
-    );
+  completed = requiredFields.every(
+    (field) => field !== undefined && field !== null,
+  );
 
-    return completed;
+  return completed;
 };

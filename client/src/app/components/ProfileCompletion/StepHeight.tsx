@@ -8,13 +8,15 @@ import {
   NativeScrollEvent,
   Animated,
   TextInput,
+  PixelRatio,
 } from "react-native";
 import { ChevronRight } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { COLORS } from "@/src/consts/colors";
 import { ProfileCompletionScreenProps } from "../../(app)/(home)/profile-completion";
 
-const ITEM_HEIGHT = 50;
+const VISIBLE_HEIGHT = 500;
+const ITEM_HEIGHT = PixelRatio.roundToNearestPixel(48);
 const HEIGHT_DATA = Array.from({ length: 151 }, (_, i) => (250 - i).toString());
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
@@ -94,16 +96,28 @@ export default function StepHeight({
 
       return (
         <View
-          style={{ height: ITEM_HEIGHT }}
           className="flex-row items-center justify-start px-4"
+          style={{
+            height: ITEM_HEIGHT,
+            minHeight: ITEM_HEIGHT,
+            maxHeight: ITEM_HEIGHT,
+            justifyContent: "flex-start",
+          }}
         >
           <View
-            className={`h-[2px] rounded-full ${isMajor ? "w-12 bg-primary" : "w-6 bg-border"
-              }`}
+            className={`h-[2px] rounded-full ${
+              isMajor ? "w-12 bg-primary" : "w-6 bg-border"
+            }`}
           />
           <View className="ml-4">
             <Text
-              className={`text-text-secondary font-medium text-xs opacity-40`}
+              className="text-text-secondary font-medium text-xs opacity-40"
+              style={{
+                fontSize: 12,
+                lineHeight: 12,
+                includeFontPadding: false,
+                color: COLORS.textPrimary,
+              }}
             >
               {val}
             </Text>
@@ -150,7 +164,15 @@ export default function StepHeight({
 
         {/* Right Side: The Ruler Picker */}
         <View className="w-1/3 h-full justify-center">
-          <View className="absolute left-[-20] self-center z-10 pointer-events-none">
+          <View
+            style={{
+              position: "absolute",
+              left: -20,
+              top: "50%",
+              marginTop: -16,
+              zIndex: 10,
+            }}
+          >
             <ChevronRight size={32} color={COLORS.primary} />
           </View>
 
@@ -163,17 +185,16 @@ export default function StepHeight({
               showsVerticalScrollIndicator={false}
               snapToInterval={ITEM_HEIGHT}
               decelerationRate="fast"
-
               scrollEventThrottle={16}
               onScroll={Animated.event(
                 [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: true }
+                { useNativeDriver: true },
               )}
-
               onMomentumScrollEnd={handleScrollEnd}
               onScrollEndDrag={handleScrollEnd}
-
-              contentContainerStyle={{ paddingVertical: 225 }}
+              contentContainerStyle={{
+                paddingVertical: (VISIBLE_HEIGHT - ITEM_HEIGHT) / 2,
+              }}
               getItemLayout={(_, index) => ({
                 length: ITEM_HEIGHT,
                 offset: ITEM_HEIGHT * index,
@@ -191,17 +212,13 @@ export default function StepHeight({
           onPress={onBack}
           className="flex-1 p-4 rounded-2xl bg-surface border border-border items-center"
         >
-          <Text className="text-text-secondary font-bold text-lg">
-            Back
-          </Text>
+          <Text className="text-text-secondary font-bold text-lg">Back</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onNext}
           className="flex-[2] p-4 rounded-2xl bg-primary items-center shadow-lg shadow-primary/30"
         >
-          <Text className="text-background font-black text-lg">
-            Next
-          </Text>
+          <Text className="text-background font-black text-lg">Next</Text>
         </TouchableOpacity>
       </View>
     </View>

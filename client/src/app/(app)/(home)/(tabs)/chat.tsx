@@ -20,6 +20,7 @@ import { useUserProfile } from "@/src/context/profileProvider";
 import CustomLoader from "@/src/app/components/Plans/PlansLoading";
 import WelcomeScreen from "@/src/app/components/ChatWelcome";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { RefreshControl } from "react-native-gesture-handler";
 
 const PROMPT_SUGGESTIONS = [
   {
@@ -93,7 +94,6 @@ export default function Chats() {
 
   if (!profile) return null;
 
-
   if (!sessionId) {
     return (
       <ScreenWrapper>
@@ -151,55 +151,67 @@ export default function Chats() {
           setReminderOpen={setReminderOpen}
         />
       )}
-      {initializing ? <CustomLoader text="Loading your chat history..." /> : <FlatList
-        ref={scrollRef}
-        data={messages}
-        scrollEnabled={true}
-        keyExtractor={(item, index) => JSON.stringify(item.id) + index}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        onContentSizeChange={handleContentSizeChange}
-        onLayout={handleContentSizeChange}
-        keyboardShouldPersistTaps="handled"
-        contentContainerClassName="p-4"
-        className="flex-1"
-        ListEmptyComponent={
-          !isKeyboardVisible ? (
-            <View className="flex-1 justify-center items-center mt-10 px-4">
-              <Text className="text-text-secondary text-center text-lg">
-                👋 Ready to train?
-              </Text>
-              <Text className="text-text-secondary text-center mt-2">
-                Ask me anything about fitness or request a workout!
-              </Text>
-              <View className="mt-6 w-full gap-3">
-                {PROMPT_SUGGESTIONS.map((suggestion) => (
-                  <TouchableOpacity
-                    key={suggestion.id}
-                    onPress={() => setText(suggestion.prompt)}
-                    className="bg-surface border border-border rounded-2xl px-4 py-3 flex-row items-center gap-3"
-                  >
-                    <Text className="text-xl">{suggestion.emoji}</Text>
-                    <View className="flex-1">
-                      <Text className="text-white text-sm font-medium">
-                        {suggestion.label}
-                      </Text>
-                      <Text
-                        className="text-text-secondary text-xs mt-0.5"
-                        numberOfLines={1}
-                      >
-                        {suggestion.prompt}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+      {initializing ? (
+        <CustomLoader text="Loading your chat history..." />
+      ) : (
+        <FlatList
+          ref={scrollRef}
+          data={messages}
+          scrollEnabled={true}
+          keyExtractor={(item, index) => JSON.stringify(item.id) + index}
+          onScroll={handleScroll}
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={refreshMessages}
+              colors={[COLORS.primary, COLORS.primaryDark]} // Android spinner color
+              tintColor={COLORS.primary} // iOS spinner color
+              progressBackgroundColor={COLORS.background}
+            />
+          }
+          scrollEventThrottle={16}
+          onContentSizeChange={handleContentSizeChange}
+          onLayout={handleContentSizeChange}
+          keyboardShouldPersistTaps="handled"
+          contentContainerClassName="p-4"
+          className="flex-1"
+          ListEmptyComponent={
+            !isKeyboardVisible ? (
+              <View className="flex-1 justify-center items-center mt-10 px-4">
+                <Text className="text-text-secondary text-center text-lg">
+                  👋 Ready to train?
+                </Text>
+                <Text className="text-text-secondary text-center mt-2">
+                  Ask me anything about fitness or request a workout!
+                </Text>
+                <View className="mt-6 w-full gap-3">
+                  {PROMPT_SUGGESTIONS.map((suggestion) => (
+                    <TouchableOpacity
+                      key={suggestion.id}
+                      onPress={() => setText(suggestion.prompt)}
+                      className="bg-surface border border-border rounded-2xl px-4 py-3 flex-row items-center gap-3"
+                    >
+                      <Text className="text-xl">{suggestion.emoji}</Text>
+                      <View className="flex-1">
+                        <Text className="text-white text-sm font-medium">
+                          {suggestion.label}
+                        </Text>
+                        <Text
+                          className="text-text-secondary text-xs mt-0.5"
+                          numberOfLines={1}
+                        >
+                          {suggestion.prompt}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
-          ) : null
-        }
-        renderItem={renderMessageItem}
-      />}
-
+            ) : null
+          }
+          renderItem={renderMessageItem}
+        />
+      )}
 
       {showScrollButton && (
         <TouchableOpacity
@@ -212,7 +224,6 @@ export default function Chats() {
           <ArrowDown size={20} color={COLORS.textPrimary} />
         </TouchableOpacity>
       )}
-
 
       <View className="flex-row gap-2 p-4 items-center bg-background border-t border-border">
         <TextInput

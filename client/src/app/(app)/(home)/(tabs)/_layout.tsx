@@ -6,6 +6,8 @@ import {
   LayoutGrid,
   LucideDumbbell,
   MessagesSquare,
+  Plus,
+  PlusCircle,
   User2,
 } from "lucide-react-native";
 
@@ -21,7 +23,10 @@ export function MyTabBar({
   navigation,
 }: BottomTabBarProps) {
   return (
-    <SafeAreaView edges={["bottom"]} className="bg-background pb-2 border border-border">
+    <SafeAreaView
+      edges={["bottom"]}
+      className="bg-background pb-2 border border-border"
+    >
       <View className="flex-row  self-center w-[92%]">
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
@@ -51,13 +56,10 @@ export function MyTabBar({
                 {options.tabBarIcon &&
                   options.tabBarIcon({
                     focused: isFocused,
-                    color: isFocused
-                      ? COLORS.primary
-                      : COLORS.textSecondary,
+                    color: isFocused ? COLORS.primary : COLORS.textSecondary,
                     size: isFocused ? 28 : 24,
                   })}
               </View>
-
             </TouchableOpacity>
           );
         })}
@@ -71,7 +73,9 @@ export default function ProtectedRouteLayout() {
     <Tabs
       tabBar={(props) => <MyTabBar {...props} />}
       screenOptions={{
-        header: ({ route, options }) => <CustomHeader title={options.title ?? route.name} />,
+        header: ({ route, options }) => (
+          <CustomHeader title={options.title ?? route.name} />
+        ),
         tabBarHideOnKeyboard: true,
         sceneStyle: {
           backgroundColor: COLORS.background,
@@ -103,7 +107,9 @@ export default function ProtectedRouteLayout() {
         name="chat"
         options={{
           title: "AI Trainer",
-          tabBarIcon: (props) => <MessagesSquare {...props} />,
+          tabBarIcon: (props) => (
+            <PlusCircle {...props} size={48} strokeWidth={1} />
+          ),
         }}
       />
       <Tabs.Screen

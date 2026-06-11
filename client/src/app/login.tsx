@@ -38,13 +38,15 @@ export default function Login() {
       <KeyboardAwareScrollView
         keyboardShouldPersistTaps="handled"
         bottomOffset={24}
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
       >
         <View className="container max-w-sm gap-4 w-full">
           <View className="flex-row gap-4 pb-4 border-border border-b items-center">
-            <TouchableOpacity
-              onPress={() => navigation.navigate("index")}
-            >
+            <TouchableOpacity onPress={() => navigation.navigate("index")}>
               <ArrowLeft color={COLORS.textSecondary} size={24} />
             </TouchableOpacity>
 
@@ -67,9 +69,7 @@ export default function Login() {
             />
           </View>
           {errMsg !== "" && (
-            <Text className="text-danger text-center text-sm">a
-              {errMsg}
-            </Text>
+            <Text className="text-danger text-center text-sm">{errMsg}</Text>
           )}
           <TouchableOpacity
             onPress={handleLogin}

@@ -1,16 +1,40 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
 import { useUserProfile } from "@/src/context/profileProvider";
 import { Check, PlayIcon } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import { useWorkout } from "@/src/hooks/useWorkout";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 
 export default function Dashboard() {
-  const { profile } = useUserProfile();
-  const { workoutPlans, todayStats, isLoading } = useWorkout();
+  const { profile, refreshProfile } = useUserProfile();
+  const { workoutPlans, todayStats, refreshWorkoutPlan } = useWorkout();
+
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+
   const router = useRouter();
 
   if (!profile) return null;
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      await Promise.all([refreshProfile(), refreshWorkoutPlan()]);
+    } catch (err) {
+      console.log(
+        err instanceof Error ? err.message : "Unknown error occurred.",
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // 1. Contextual Time-of-Day Profile Greetings
   const getGreeting = () => {
@@ -22,20 +46,30 @@ export default function Dashboard() {
   };
 
   // 2. Compute dynamic weekly goals from the active workout plan structure
-  const activePlan = workoutPlans.find(p => p.is_active);
+  const activePlan = workoutPlans.find((p) => p.is_active);
   const totalPlanDays = activePlan?.days?.length || 5;
 
   const weeklyProgress = {
     workoutsThisWeek: todayStats.workoutsCompleted > 0 ? 1 : 0,
     workoutsGoal: 7,
-    percentage: activePlan ? Math.min(Math.round(((todayStats.workoutsCompleted > 0 ? 1 : 0) / totalPlanDays) * 100), 100) : 0,
+    percentage: activePlan
+      ? Math.min(
+          Math.round(
+            ((todayStats.workoutsCompleted > 0 ? 1 : 0) / totalPlanDays) * 100,
+          ),
+          100,
+        )
+      : 0,
   };
 
   // 3. Smart Semantic Feedback for Weekly Goals Summary Text
   const getWeeklyProgressMessage = () => {
-    if (!activePlan) return "Activate a training routine program to track your week.";
-    if (weeklyProgress.workoutsThisWeek === 0) return "Kick off your weekly schedule with a session today! 💪";
-    if (weeklyProgress.workoutsThisWeek >= weeklyProgress.workoutsGoal) return "Weekly objective accomplished! Exceptional effort! 🎉";
+    if (!activePlan)
+      return "Activate a training routine program to track your week.";
+    if (weeklyProgress.workoutsThisWeek === 0)
+      return "Kick off your weekly schedule with a session today! 💪";
+    if (weeklyProgress.workoutsThisWeek >= weeklyProgress.workoutsGoal)
+      return "Weekly objective accomplished! Exceptional effort! 🎉";
     return `You're on track! Only ${weeklyProgress.workoutsGoal - weeklyProgress.workoutsThisWeek} more training slots scheduled this week.`;
   };
 
@@ -49,15 +83,22 @@ export default function Dashboard() {
   return (
     <ScrollView
       className="flex-1 bg-background"
-      contentContainerStyle={{ paddingBottom: 56 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          colors={[COLORS.primary, COLORS.primaryDark]} // Android spinner color
+          tintColor={COLORS.primary} // iOS spinner color
+          progressBackgroundColor={COLORS.background}
+        />
+      }
     >
       {/* Header/Greeting Section */}
       <View className="p-4 pt-6">
-        <Text className="text-text-secondary text-base">
-          {getGreeting()},
-        </Text>
+        <Text className="text-text-secondary text-base">{getGreeting()},</Text>
         <Text className="text-text-primary text-3xl font-bold mt-1">
-          {profile.firstName.charAt(0).toUpperCase() + profile.firstName.slice(1)}
+          {profile.firstName.charAt(0).toUpperCase() +
+            profile.firstName.slice(1)}
         </Text>
 
         {/* Subscription status badges */}
@@ -72,14 +113,6 @@ export default function Dashboard() {
           </View>
         )}
       </View>
-
-      {/* Loading Overlay Indicators */}
-      {isLoading && (
-        <View className="py-2 flex-row justify-center items-center gap-2">
-          <ActivityIndicator color={COLORS.primary} size="small" />
-          <Text className="text-text-secondary text-xs">Syncing logs...</Text>
-        </View>
-      )}
 
       {/* Streak Card */}
       <View className="px-4 mb-4">
@@ -152,7 +185,8 @@ export default function Dashboard() {
               Weekly Progress
             </Text>
             <Text className="text-primary text-sm font-bold">
-              {weeklyProgress.workoutsThisWeek}/{weeklyProgress.workoutsGoal} Completed
+              {weeklyProgress.workoutsThisWeek}/{weeklyProgress.workoutsGoal}{" "}
+              Completed
             </Text>
           </View>
 
