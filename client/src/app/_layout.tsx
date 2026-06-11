@@ -15,6 +15,7 @@ import {
 } from "@expo-google-fonts/montserrat";
 
 import { UserProfileProvider } from "../context/profileProvider";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
 export default function RootLayout() {
 
@@ -29,10 +30,12 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <AuthProvider>
-      <UserProfileProvider>
-        <Slot />
-      </UserProfileProvider>
-    </AuthProvider>
+    <KeyboardProvider>
+      <AuthProvider>
+        <UserProfileProvider>
+          <Slot />
+        </UserProfileProvider>
+      </AuthProvider>
+    </KeyboardProvider>
   );
 }

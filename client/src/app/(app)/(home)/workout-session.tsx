@@ -6,6 +6,7 @@ import {
   Animated,
   Vibration,
   StatusBar,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -56,15 +57,31 @@ export default function WorkoutSession() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Audio Engine Setup ────────────────────────────────────────────
-  // Hooks handle native allocations, memory clean-ups, and preloading instantly
-  const tickSound = useAudioPlayer(require("@/src/assets/sounds/tick.mp3"));
+  const tickSound1 = useAudioPlayer(require("@/src/assets/sounds/tick1.mp3"));
+  const tickSound2 = useAudioPlayer(require("@/src/assets/sounds/tick2.mp3"));
+  const tickSoundFinal = useAudioPlayer(require("@/src/assets/sounds/tick3.mp3"));
 
-  const playTick = useCallback(() => {
-    if (tickSound) {
-      tickSound.seekTo(0);
-      tickSound.play();
+  // Track alternating track layers without causing re-renders
+  const useFirstTickTrack = useRef(true);
+
+  const playTick = useCallback((currentTime: number) => {
+    // 1. Always play the regular alternating rhythm (tick1 or tick2)
+    const basePlayer = useFirstTickTrack.current ? tickSound1 : tickSound2;
+    if (basePlayer) {
+      basePlayer.seekTo(0);
+      basePlayer.play();
     }
-  }, [tickSound]);
+    // Toggle the rhythm flag for next second boundary
+    useFirstTickTrack.current = !useFirstTickTrack.current;
+
+    // 2. Overlay tick3 layered on top during the final 5 seconds (5, 4, 3, 2, 1)
+    if (currentTime <= 5 && currentTime > 0) {
+      if (tickSoundFinal) {
+        tickSoundFinal.seekTo(0);
+        tickSoundFinal.play();
+      }
+    }
+  }, [tickSound1, tickSound2, tickSoundFinal]);
 
   // Pulse animation for active timer
   useEffect(() => {
@@ -92,8 +109,8 @@ export default function WorkoutSession() {
   useEffect(() => {
     if (mode === "timer" && isRunning && timeLeft > 0) {
       timerRef.current = setInterval(() => {
-        // 🎵 Fire the sound effect accurately on the second change boundary
-        playTick();
+        // 🎵 Fires alternating rhythm + optional countdown overlay simultaneously
+        playTick(timeLeft);
 
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -121,8 +138,8 @@ export default function WorkoutSession() {
   useEffect(() => {
     if (!isResting) return;
     const interval = setInterval(() => {
-      // 🎵 Play tick sound during rest periods to keep athletes focused
-      playTick();
+      // 🎵 Play sounds during rest periods
+      playTick(restTimer);
 
       setRestTimer((prev) => {
         if (prev <= 1) {
@@ -135,7 +152,7 @@ export default function WorkoutSession() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [isResting, playTick]);
+  }, [isResting, restTimer, playTick]);
 
   // Progress bar animation (reps mode: by sets)
   useEffect(() => {
@@ -204,14 +221,29 @@ export default function WorkoutSession() {
     setRestTimer(60);
   };
 
-  // ➕ Extends the current resting window by an additional 30 seconds
   const handleAddRestTime = () => {
     setRestTimer((prev) => prev + 30);
   };
 
   const handleQuit = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    router.back();
+    Alert.alert(
+      "Quit Workout?",
+      "Your progress for this exercise won't be saved.",
+      [
+        {
+          text: "Keep Going",
+          style: "cancel",
+        },
+        {
+          text: "Quit",
+          style: "destructive",
+          onPress: () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+            router.back();
+          },
+        },
+      ]
+    );
   };
 
   const formatTime = (secs: number) => {
@@ -280,7 +312,6 @@ export default function WorkoutSession() {
                   <Text className="text-text-secondary font-semibold">Skip Rest</Text>
                 </TouchableOpacity>
 
-                {/* 🆕 Add Rest Button */}
                 <TouchableOpacity
                   onPress={handleAddRestTime}
                   className="bg-surface border border-primary/20 rounded-2xl px-6 py-3 flex-row items-center gap-1.5"
@@ -393,9 +424,6 @@ export default function WorkoutSession() {
           )}
         </View>
       )}
-
-      {/* Bottom safe area */}
-      <View className="h-8" />
     </SafeAreaView>
   );
 }

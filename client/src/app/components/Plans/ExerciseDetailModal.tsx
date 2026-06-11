@@ -6,8 +6,6 @@ import {
   ScrollView,
   Animated,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRef, useEffect, useState } from "react";

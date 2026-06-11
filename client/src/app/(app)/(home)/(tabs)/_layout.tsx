@@ -3,7 +3,6 @@ import { Tabs } from "expo-router";
 import { TouchableOpacity, View } from "react-native";
 import {
   CameraIcon,
-  ClipboardCheck,
   LayoutGrid,
   LucideDumbbell,
   MessagesSquare,
@@ -14,6 +13,7 @@ import { COLORS } from "@/src/consts/colors";
 import CustomHeader from "@/src/app/components/CustomHeader";
 
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export function MyTabBar({
   state,
@@ -21,12 +21,11 @@ export function MyTabBar({
   navigation,
 }: BottomTabBarProps) {
   return (
-    <View className="bg-background">
-      <View className="flex-row bg-surface bottom-16 self-center w-[92%] rounded-3xl border border-border px-2 py-2">
+    <SafeAreaView edges={["bottom"]} className="bg-background pb-2 border border-border">
+      <View className="flex-row  self-center w-[92%]">
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
-          const isChat = route.name === "chat";
 
           const onPress = () => {
             const event = navigation.emit({
@@ -44,36 +43,26 @@ export function MyTabBar({
               key={route.name}
               onPress={onPress}
               activeOpacity={0.7}
-              className="flex-1 items-center justify-center"
+              className="flex-1 items-center justify-center py-2"
             >
               <View
-                className={`items-center overflow-hidden justify-center ${isChat
-                  ? `${isFocused ? "bg-primary-dark" : "bg-primary"} rounded-full w-12 h-12 -top-1`
-                  : ""
-                  }`}
+                className={`items-center overflow-hidden justify-center rounded-full w-12 h-12`}
               >
                 {options.tabBarIcon &&
                   options.tabBarIcon({
                     focused: isFocused,
-                    color: isChat
-                      ? isFocused
-                        ? COLORS.textPrimary
-                        : COLORS.background
-                      : isFocused
-                        ? COLORS.textPrimary
-                        : COLORS.textSecondary,
-                    size: isChat ? 28 : 24,
+                    color: isFocused
+                      ? COLORS.primary
+                      : COLORS.textSecondary,
+                    size: isFocused ? 28 : 24,
                   })}
               </View>
 
-              {isFocused && !isChat && (
-                <View className="h-1 w-1 bg-text-primary rounded-full mt-1" />
-              )}
             </TouchableOpacity>
           );
         })}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

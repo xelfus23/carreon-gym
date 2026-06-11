@@ -1,13 +1,14 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
-import { ArrowLeft, ChevronLeft } from "lucide-react-native";
+import { ArrowLeft } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import { useNavigation } from "expo-router";
 import CustomTextInput from "./components/CustomTextInput";
 import Loader from "./components/Loader";
 import { useAuth } from "../context/authProvider";
 import { StackNavigationProp } from "../types/stackParam";
-import KeyboardScreen from "./components/KeyboardScreen";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 export default function Login() {
   const navigation: StackNavigationProp = useNavigation();
@@ -33,9 +34,13 @@ export default function Login() {
   };
 
   return (
-    <KeyboardScreen scrollable={true}>
-      <View className="bg-background flex-1 justify-center items-center">
-        <View className="container max-w-sm gap-4">
+    <SafeAreaView className="flex-1 bg-background">
+      <KeyboardAwareScrollView
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={24}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}
+      >
+        <View className="container max-w-sm gap-4 w-full">
           <View className="flex-row gap-4 pb-4 border-border border-b items-center">
             <TouchableOpacity
               onPress={() => navigation.navigate("index")}
@@ -84,7 +89,7 @@ export default function Login() {
             </Text>
           </Text>
         </View>
-      </View>
-    </KeyboardScreen>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
   );
 }

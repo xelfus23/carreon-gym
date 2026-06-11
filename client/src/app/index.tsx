@@ -12,10 +12,11 @@ export default function Start() {
     <View className="bg-background flex-1 items-center justify-center">
       <View className="container max-w-sm flex items-center justify-center gap-4">
         <Image
-          className="h-32"
+          className="h-44"
           resizeMode="contain"
           source={require("../assets/ui/brand-logo.png")}
         />
+        <Text className="text-text-primary text-sm uppercase text-center font-inter">Fitness Gym Mobile App</Text>
         <TouchableOpacity
           onPress={() => navigation.navigate("login")}
           className="bg-primary rounded-full"

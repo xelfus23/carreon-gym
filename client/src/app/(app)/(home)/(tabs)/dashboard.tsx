@@ -27,7 +27,7 @@ export default function Dashboard() {
 
   const weeklyProgress = {
     workoutsThisWeek: todayStats.workoutsCompleted > 0 ? 1 : 0,
-    workoutsGoal: totalPlanDays,
+    workoutsGoal: 7,
     percentage: activePlan ? Math.min(Math.round(((todayStats.workoutsCompleted > 0 ? 1 : 0) / totalPlanDays) * 100), 100) : 0,
   };
 

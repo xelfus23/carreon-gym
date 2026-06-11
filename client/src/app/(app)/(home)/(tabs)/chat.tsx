@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Keyboard,
 } from "react-native";
+
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Send, ArrowDown } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
@@ -18,8 +19,7 @@ import SubscriptionReminder from "@/src/app/components/SubscriptionReminder";
 import { useUserProfile } from "@/src/context/profileProvider";
 import CustomLoader from "@/src/app/components/Plans/PlansLoading";
 import WelcomeScreen from "@/src/app/components/ChatWelcome";
-import KeyboardScreen from "@/src/app/components/KeyboardScreen";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // 👈 1. IMPORT SAFE AREA UTILS
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 
 const PROMPT_SUGGESTIONS = [
   {
@@ -50,7 +50,6 @@ const PROMPT_SUGGESTIONS = [
 
 export default function Chats() {
   const { profile } = useUserProfile();
-  const insets = useSafeAreaInsets(); // 👈 2. READ VIEWPORT BOUNDARIES
 
   const [reminderOpen, setReminderOpen] = useState(
     profile?.subscription?.status !== "active",
@@ -94,9 +93,6 @@ export default function Chats() {
 
   if (!profile) return null;
 
-  if (initializing) {
-    return <CustomLoader text="Loading your chat history..." />;
-  }
 
   if (!sessionId) {
     return (
@@ -143,106 +139,100 @@ export default function Chats() {
   };
 
   return (
-    <KeyboardScreen scrollable={false}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior="padding"
+      keyboardVerticalOffset={100} // adjust based on your header height
+      className="bg-background"
+    >
       {reminderOpen && (
         <SubscriptionReminder
           text="Subscribe to continue"
           setReminderOpen={setReminderOpen}
         />
       )}
-      <View className="flex-1 bg-background">
-        <FlatList
-          ref={scrollRef}
-          data={messages}
-          scrollEnabled
-          keyExtractor={(item, index) => JSON.stringify(item.id) + index}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          onContentSizeChange={handleContentSizeChange}
-          onLayout={handleContentSizeChange}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{
-            paddingVertical: 12,
-            paddingBottom: 80, // 🔥 space for input
-          }} ListEmptyComponent={
-            !isKeyboardVisible ? (
-              <View className="flex-1 justify-center items-center mt-10 px-4">
-                <Text className="text-text-secondary text-center text-lg">
-                  👋 Ready to train?
-                </Text>
-                <Text className="text-text-secondary text-center mt-2">
-                  Ask me anything about fitness or request a workout!
-                </Text>
-                <View className="mt-6 w-full gap-3">
-                  {PROMPT_SUGGESTIONS.map((suggestion) => (
-                    <TouchableOpacity
-                      key={suggestion.id}
-                      onPress={() => setText(suggestion.prompt)}
-                      className="bg-surface border border-white/10 rounded-2xl px-4 py-3 flex-row items-center gap-3"
-                    >
-                      <Text className="text-xl">{suggestion.emoji}</Text>
-                      <View className="flex-1">
-                        <Text className="text-white text-sm font-medium">
-                          {suggestion.label}
-                        </Text>
-                        <Text
-                          className="text-text-secondary text-xs mt-0.5"
-                          numberOfLines={1}
-                        >
-                          {suggestion.prompt}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+      {initializing ? <CustomLoader text="Loading your chat history..." /> : <FlatList
+        ref={scrollRef}
+        data={messages}
+        scrollEnabled={true}
+        keyExtractor={(item, index) => JSON.stringify(item.id) + index}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        onContentSizeChange={handleContentSizeChange}
+        onLayout={handleContentSizeChange}
+        keyboardShouldPersistTaps="handled"
+        contentContainerClassName="p-4"
+        className="flex-1"
+        ListEmptyComponent={
+          !isKeyboardVisible ? (
+            <View className="flex-1 justify-center items-center mt-10 px-4">
+              <Text className="text-text-secondary text-center text-lg">
+                👋 Ready to train?
+              </Text>
+              <Text className="text-text-secondary text-center mt-2">
+                Ask me anything about fitness or request a workout!
+              </Text>
+              <View className="mt-6 w-full gap-3">
+                {PROMPT_SUGGESTIONS.map((suggestion) => (
+                  <TouchableOpacity
+                    key={suggestion.id}
+                    onPress={() => setText(suggestion.prompt)}
+                    className="bg-surface border border-border rounded-2xl px-4 py-3 flex-row items-center gap-3"
+                  >
+                    <Text className="text-xl">{suggestion.emoji}</Text>
+                    <View className="flex-1">
+                      <Text className="text-white text-sm font-medium">
+                        {suggestion.label}
+                      </Text>
+                      <Text
+                        className="text-text-secondary text-xs mt-0.5"
+                        numberOfLines={1}
+                      >
+                        {suggestion.prompt}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
               </View>
-            ) : null
-          }
-          renderItem={renderMessageItem}
-        />
+            </View>
+          ) : null
+        }
+        renderItem={renderMessageItem}
+      />}
 
-        {showScrollButton && (
-          <TouchableOpacity
-            onPress={() => {
-              isAtBottom.current = true;
-              scrollToBottom();
-            }}
-            className="absolute bottom-24 right-4 bg-surface p-2 rounded-full border border-white/10 shadow-lg z-50"
-          >
-            <ArrowDown size={20} color={COLORS.textPrimary} />
-          </TouchableOpacity>
-        )}
 
-        <View
-          className="flex-row gap-2 p-4 items-center bg-background border-t border-white/10"
-          style={{
-            marginBottom: isKeyboardVisible ? -20 : 60,
-            paddingBottom: isKeyboardVisible ? -20 : 16
+      {showScrollButton && (
+        <TouchableOpacity
+          onPress={() => {
+            isAtBottom.current = true;
+            scrollToBottom();
           }}
+          className="absolute bottom-24 right-4 bg-surface p-2 rounded-full border border-white/10 shadow-lg z-50"
         >
-          <TextInput
-            value={text}
-            onChangeText={setText}
-            className="flex-1 text-lg bg-surface rounded-xl text-white px-4 py-3 min-h-[50px] max-h-[100px]"
-            placeholder="Message..."
-            placeholderTextColor={COLORS.textSecondary}
-            returnKeyType="send"
-            multiline
-            onSubmitEditing={handleSend}
-          />
+          <ArrowDown size={20} color={COLORS.textPrimary} />
+        </TouchableOpacity>
+      )}
 
-          <TouchableOpacity
-            onPress={handleSend}
-            disabled={loading}
-            className={`p-3 ${loading || !text.trim()
-              ? "bg-surface opacity-50"
-              : "bg-primary"
-              } rounded-full items-center justify-center`}
-          >
-            <Send color="white" size={24} />
-          </TouchableOpacity>
-        </View>
+
+      <View className="flex-row gap-2 p-4 items-center bg-background border-t border-border">
+        <TextInput
+          value={text}
+          onChangeText={setText}
+          className="flex-1 text-lg bg-surface rounded-xl text-white px-4 py-3 min-h-[50px] max-h-[100px]"
+          placeholder="Message..."
+          placeholderTextColor={COLORS.textSecondary}
+          returnKeyType="send"
+          multiline
+          onSubmitEditing={handleSend}
+        />
+        <TouchableOpacity
+          onPress={handleSend}
+          disabled={loading}
+          className={`p-3 ${loading || !text.trim() ? "bg-surface opacity-50" : "bg-primary"} rounded-full items-center justify-center`}
+        >
+          <Send color="white" size={24} />
+        </TouchableOpacity>
       </View>
-    </KeyboardScreen>
+    </KeyboardAvoidingView>
   );
 }

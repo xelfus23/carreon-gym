@@ -138,7 +138,7 @@ function SessionProgressBar({ done, total }: SessionProgressBarProps) {
       {/* Label row */}
       <View className="flex-row items-center justify-between mb-2">
         <Text className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-          {isComplete ? "Session complete 🎉" : "Session progress"}
+          {isComplete ? "Session complete 🎉" : "Today's Progress"}
         </Text>
         <Text className="text-xs font-bold" style={{ color: barColor }}>
           {done}/{total}
@@ -314,7 +314,11 @@ export default function TodayWorkoutScreen() {
           {/* Title row */}
           <View className="flex-row items-center justify-between px-4 mb-3">
             <Text className="text-2xl font-bold text-text-primary">
-              {isToday ? "Today's Session" : selectedDate}
+              {isToday ? "Today's Session" : new Date(selectedDate).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
             </Text>
 
           </View>
@@ -356,7 +360,7 @@ export default function TodayWorkoutScreen() {
             <SectionHeader title="To Do" count={incomplete.length} accent={COLORS.primary} />
             <ScrollView
               className="flex-1"
-              contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+              contentContainerClassName="px-4"
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}

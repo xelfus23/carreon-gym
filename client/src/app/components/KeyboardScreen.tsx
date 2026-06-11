@@ -1,14 +1,11 @@
-// components/layout/KeyboardScreen.tsx
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView, KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 interface KeyboardScreenProps {
   children: React.ReactNode;
@@ -17,76 +14,30 @@ interface KeyboardScreenProps {
 
 export default function KeyboardScreen({
   children,
-  scrollable = true
+  scrollable = true,
 }: KeyboardScreenProps) {
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-
-  useEffect(() => {
-    if (Platform.OS !== 'android') return;
-
-    // Listeners to capture exactly what the keyboard is doing on Android
-    const showSubscription = Keyboard.addListener('keyboardDidShow', (e) => {
-      setKeyboardHeight(e.endCoordinates.height);
-    });
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardHeight(0); // FORCES padding back to absolute 0
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
-
-  // If iOS, let standard KeyboardAvoidingView handle it (since it works cleanly there)
-  if (Platform.OS === 'ios') {
+  if (!scrollable) {
+    // For chat screens — no scroll, keyboard pushes content up
     return (
-      <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']}>
-        <KeyboardAvoidingView behavior="padding" className="flex-1" keyboardVerticalOffset={90}>
-          {scrollable ? (
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" className="flex-1">
-              <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View className="flex-1">{children}</View>
-              </TouchableWithoutFeedback>
-            </ScrollView>
-          ) : (
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View className="flex-1">{children}</View>
-            </TouchableWithoutFeedback>
-          )}
+      <SafeAreaView style={{ flex: 1 }} edges={['left', 'right']}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={90}>
+          <View style={{ flex: 1 }}>{children}</View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']}>
-      <View
-        className="flex-1"
-        style={{
-          paddingBottom: keyboardHeight,
-          flex: 1,
-        }}      >
-        {scrollable ? (
-          <ScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
-            keyboardShouldPersistTaps="handled"
-            className="flex-1"
-          >
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View className="flex-1">
-                {children}
-              </View>
-            </TouchableWithoutFeedback>
-          </ScrollView>
-        ) : (
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View className="flex-1">
-              {children}
-            </View>
-          </TouchableWithoutFeedback>
-        )}
-      </View>
+    <SafeAreaView style={{ flex: 1 }} edges={['left', 'right']}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={20} // extra breathing room below the focused input
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={{ flex: 1 }}>{children}</View>
+        </TouchableWithoutFeedback>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

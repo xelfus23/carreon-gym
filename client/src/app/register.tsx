@@ -17,6 +17,8 @@ import { UserInfoErrorProps, UserInfoProps } from "../types/auth";
 import { defaultBooleanValue, defaultStringValue } from "../consts/defaults";
 import { stepRequirements } from "../consts/maps";
 import KeyboardScreen from "./components/KeyboardScreen";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 export default function Register() {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -105,8 +107,13 @@ export default function Register() {
   };
 
   return (
-    <KeyboardScreen>
-      <View className="bg-background flex-1 justify-center items-center">
+    <SafeAreaView className="flex-1 bg-background">
+      <KeyboardAwareScrollView
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={24}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}
+      >
+
         <View className="max-w-sm w-full flex flex-row gap-4 pb-4 border-b border-border items-center">
           <TouchableOpacity
             onPress={() =>
@@ -119,6 +126,7 @@ export default function Register() {
             Register
           </Text>
         </View>
+
         <ScrollView
           ref={scrollRef}
           scrollEnabled={false}
@@ -225,7 +233,7 @@ export default function Register() {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </KeyboardScreen>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
   );
 }
