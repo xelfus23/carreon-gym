@@ -1,24 +1,25 @@
 import { Router } from "express";
 import {
-    deleteLog,
-    deleteWorkoutPlan,
-    getCompleted,
-    getTodayLogs,
-    getWorkoutPlan,
-    logComplete,
-    toggleActivation,
+  deleteWorkoutSession,
+  getAllLogs,
+  getSessionLogs,
+  getTodayLogs,
+  getWorkoutSessions,
+  logComplete,
+  removeLog,
 } from "./workout.controller.ts";
+
 import { authMiddleware } from "../../middleware/authenticate.ts";
 
 const workoutRoutes = Router();
 
-workoutRoutes.get("/", authMiddleware, getWorkoutPlan);
+workoutRoutes.get("/", authMiddleware, getWorkoutSessions);
+workoutRoutes.delete("/:id", authMiddleware, deleteWorkoutSession);
 
 workoutRoutes.post("/logs", authMiddleware, logComplete);
 workoutRoutes.get("/logs/today", authMiddleware, getTodayLogs);
-workoutRoutes.get("/logs", authMiddleware, getCompleted);
-workoutRoutes.delete("/:workout_exercise_id", authMiddleware, deleteLog);
-workoutRoutes.patch("/plan/:id", authMiddleware, toggleActivation);
-workoutRoutes.delete("/plan/:id", authMiddleware, deleteWorkoutPlan);
+workoutRoutes.get("/logs/all", authMiddleware, getAllLogs);
+workoutRoutes.get("/logs", authMiddleware, getSessionLogs);
+workoutRoutes.delete("/logs/:workoutExerciseId", authMiddleware, removeLog);
 
 export default workoutRoutes;

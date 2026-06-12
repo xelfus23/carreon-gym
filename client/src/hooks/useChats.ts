@@ -117,7 +117,7 @@ export function useChat(params?: {
 
       setMessages(formatted);
     } catch (err) {
-      console.error("Failed to load messages:", err);
+      console.error("Failed to load messages:", err instanceof Error ? err.message : "Unknown Error Occurred");
       if (mountedRef.current) setError("Could not load chat history");
     } finally {
       if (mountedRef.current) setInitializing(false);

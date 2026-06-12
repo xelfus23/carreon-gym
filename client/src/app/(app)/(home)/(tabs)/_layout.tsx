@@ -5,8 +5,6 @@ import {
   CameraIcon,
   LayoutGrid,
   LucideDumbbell,
-  MessagesSquare,
-  Plus,
   PlusCircle,
   User2,
 } from "lucide-react-native";

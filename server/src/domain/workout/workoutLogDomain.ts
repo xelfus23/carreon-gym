@@ -2,7 +2,7 @@ import pool from "../../config/pool.ts";
 
 export type WorkoutLogPayload = {
   userId: number;
-  workout_exercise_id: number;
+  session_exercise_id: number;
   completed_sets?: number | null;
   completed_reps?: number | null;
   duration_seconds?: number | null;
@@ -14,8 +14,8 @@ export type WorkoutLogPayload = {
 export type WorkoutLogRow = {
   id: number;
   user_id: number;
-  workout_exercise_id: number;
-  workout_day_id: number;
+  session_exercise_id: number;
+  workout_session_id: number;
   exercise_name: string;
   planned_sets: number | null;
   planned_reps: number | null;
@@ -49,7 +49,7 @@ export async function upsertWorkoutLogDomain(
 ): Promise<WorkoutLogRow> {
   const {
     userId,
-    workout_exercise_id,
+    session_exercise_id,
     completed_sets = null,
     completed_reps = null,
     duration_seconds = null,
@@ -58,6 +58,8 @@ export async function upsertWorkoutLogDomain(
     notes = null,
   } = payload;
 
+
+  console.log(payload)
   // 1. Fetch exercise configuration template
   const exerciseRes = await pool.query<{
     exercise_name: string;
@@ -66,13 +68,13 @@ export async function upsertWorkoutLogDomain(
     duration_seconds: number | null;
   }>(
     `SELECT exercise_name, sets, reps, duration_seconds
-     FROM workout_exercises
+     FROM session_exercises
      WHERE id = $1`,
-    [workout_exercise_id],
+    [session_exercise_id],
   );
 
   if (exerciseRes.rows.length === 0) {
-    throw new Error(`workout_exercise id ${workout_exercise_id} not found`);
+    throw new Error(`Exercise id (${session_exercise_id}) not found`);
   }
   const exercise = exerciseRes.rows[0]!;
 
@@ -99,9 +101,9 @@ export async function upsertWorkoutLogDomain(
   const existing = await pool.query<{ id: number }>(
     `SELECT id FROM workout_logs
      WHERE user_id = $1
-       AND workout_exercise_id = $2
+       AND session_exercises_id = $2
        AND logged_at::date = CURRENT_DATE`,
-    [userId, workout_exercise_id],
+    [userId, session_exercise_id],
   );
 
   if (existing.rows.length > 0 && existing.rows[0]) {
@@ -138,7 +140,7 @@ export async function upsertWorkoutLogDomain(
   // 4. If no record was found for today, append it into the table as a fresh insertion
   const result = await pool.query<WorkoutLogRow>(
     `INSERT INTO workout_logs
-           (user_id, workout_exercise_id, exercise_name,
+           (user_id, session_exercises_id, exercise_name,
             planned_sets, planned_reps, planned_duration_seconds,
             completed_sets, completed_reps,
             duration_seconds, weight_used_kg, difficulty_rating, notes, calories_burned, logged_at)
@@ -146,7 +148,7 @@ export async function upsertWorkoutLogDomain(
      RETURNING *`,
     [
       userId,
-      workout_exercise_id,
+      session_exercise_id,
       exercise.exercise_name,
       exercise.sets,
       exercise.reps,
@@ -169,12 +171,11 @@ export async function upsertWorkoutLogDomain(
 }
 
 
-/** Fetch today's logs for a user, joined with workout_day_id. */
 export async function getTodayLogsDomain(userId: number): Promise<WorkoutLogRow[]> {
   const result = await pool.query<WorkoutLogRow>(
-    `SELECT wl.*, we.workout_day_id
+    `SELECT wl.*, we.workout_session_id
      FROM workout_logs wl
-     JOIN workout_exercises we ON we.id = wl.workout_exercise_id
+     JOIN session_exercises we ON we.id = wl.session_exercise_id
      WHERE wl.user_id = $1
        AND wl.logged_at::date = CURRENT_DATE`,
     [userId],
@@ -182,28 +183,26 @@ export async function getTodayLogsDomain(userId: number): Promise<WorkoutLogRow[
   return result.rows;
 }
 
-/** Fetch logs for a specific workout day, joined with workout_day_id. */
-export async function getDayLogsDomain(
+export async function getSessionLogsDomain(
   userId: number,
-  workoutDayId: number,
+  workoutSessionId: number,
 ): Promise<WorkoutLogRow[]> {
   const result = await pool.query<WorkoutLogRow>(
-    `SELECT wl.*, we.workout_day_id
+    `SELECT wl.*, we.workout_session_id
      FROM workout_logs wl
-     JOIN workout_exercises we ON we.id = wl.workout_exercise_id
+     JOIN session_exercises we ON we.id = wl.session_exercises_id
      WHERE wl.user_id = $1
-       AND we.workout_day_id = $2`,
-    [userId, workoutDayId],
+       AND we.workout_session_id = $2`,
+    [userId, workoutSessionId],
   );
   return result.rows;
 }
 
-/** Fetch all logs for a user, joined with workout_day_id. */
 export async function getAllLogsDomain(userId: number): Promise<WorkoutLogRow[]> {
   const result = await pool.query<WorkoutLogRow>(
-    `SELECT wl.*, we.workout_day_id
+    `SELECT wl.*, we.workout_session_id
      FROM workout_logs wl
-     JOIN workout_exercises we ON we.id = wl.workout_exercise_id
+     JOIN session_exercises we ON we.id = wl.session_exercises_id
      WHERE wl.user_id = $1
      ORDER BY wl.logged_at DESC`,
     [userId],
@@ -211,7 +210,8 @@ export async function getAllLogsDomain(userId: number): Promise<WorkoutLogRow[]>
   return result.rows;
 }
 
-/** Delete today's log for a given workout_exercise_id. */
+
+/** Delete today's log for a given session_exercises_id. */
 export async function removeLogDomain(
   userId: number,
   workoutExerciseId: number,
@@ -219,7 +219,7 @@ export async function removeLogDomain(
   const result = await pool.query(
     `DELETE FROM workout_logs
      WHERE user_id = $1
-       AND workout_exercise_id = $2
+       AND session_exercises_id = $2
        AND logged_at::date = CURRENT_DATE`,
     [userId, workoutExerciseId],
   );

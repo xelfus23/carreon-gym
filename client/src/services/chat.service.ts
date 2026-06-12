@@ -11,6 +11,7 @@ const errorMsg: Record<string, string> = {
   SUBSCRIPTION_REQUIRED: "You don't have active subscriptions.",
   SUBSCRIPTION_EXPIRED: "Your subscription has expired.",
   AUTHENTICATION_FAILED: "You're unauthorized to use chats.",
+  SESSION_MISSING: "Chat session does not exist."
 };
 
 export const chatService = {

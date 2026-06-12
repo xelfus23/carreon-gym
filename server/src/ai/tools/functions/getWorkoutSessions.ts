@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import type { ToolCall } from "../../../types/index.ts";
-import { getWorkoutPlansDomain } from "../../../domain/workout/getWorkoutPlan.ts";
+import { getWorkoutSessionDomain } from "../../../domain/workout/getWorkoutSessionDomain.ts";
 
 export const getUserWorkoutPlan = async (
   ws: WebSocket,
@@ -8,7 +8,7 @@ export const getUserWorkoutPlan = async (
   userId: number,
 ) => {
 
-  const data = await getWorkoutPlansDomain({ userId })
-  console.log(data)
+  const data = await getWorkoutSessionDomain({ userId })
+
   return data;
 };

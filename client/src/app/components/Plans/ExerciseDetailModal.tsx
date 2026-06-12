@@ -31,7 +31,7 @@ export type ExerciseDetail = {
 
 type Props = {
   visible: boolean;
-  dayId: number | null;
+  sessionId: number | null; // was sessionId
   exercise: ExerciseDetail | null;
   onClose: () => void;
 };
@@ -46,7 +46,7 @@ const isDurationBased = (ex: ExerciseDetail) =>
 
 export default function ExerciseDetailModal({
   visible,
-  dayId,
+  sessionId,
   exercise,
   onClose,
 }: Props) {
@@ -105,7 +105,7 @@ export default function ExerciseDetailModal({
       params: {
         exerciseId: String(exercise.id),
         exerciseName: exerciseName(exercise),
-        dayId: String(dayId ?? 0),
+        sessionId: String(sessionId ?? 0),
         sets: String(finalSets),
         reps: finalReps != null ? String(finalReps) : "",
         durationSeconds: finalDuration != null ? String(finalDuration) : "",

@@ -13,7 +13,7 @@ export default function ExerciseLogsScreen() {
                     className="bg-surface p-4 rounded-xl mb-2 border border-border"
                 >
                     <Text className="font-bold text-text-primary">
-                        {log.workout_exercise_id}
+                        {log.session_exercise_id}
                     </Text>
                     <View className="flex-row justify-between mt-1">
                         <Text className="text-xs text-text-secondary">

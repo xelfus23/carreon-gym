@@ -15,7 +15,7 @@ import { useState } from "react";
 
 export default function Dashboard() {
   const { profile, refreshProfile } = useUserProfile();
-  const { workoutPlans, todayStats, refreshWorkoutPlan } = useWorkout();
+  const { workoutSessions, todayStats, refreshWorkoutSessions } = useWorkout();
 
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
@@ -26,7 +26,7 @@ export default function Dashboard() {
   const handleRefresh = async () => {
     try {
       setIsRefreshing(true);
-      await Promise.all([refreshProfile(), refreshWorkoutPlan()]);
+      await Promise.all([refreshProfile(), refreshWorkoutSessions()]);
     } catch (err) {
       console.log(
         err instanceof Error ? err.message : "Unknown error occurred.",
@@ -46,26 +46,21 @@ export default function Dashboard() {
   };
 
   // 2. Compute dynamic weekly goals from the active workout plan structure
-  const activePlan = workoutPlans.find((p) => p.is_active);
-  const totalPlanDays = activePlan?.days?.length || 5;
 
   const weeklyProgress = {
     workoutsThisWeek: todayStats.workoutsCompleted > 0 ? 1 : 0,
     workoutsGoal: 7,
-    percentage: activePlan
-      ? Math.min(
-          Math.round(
-            ((todayStats.workoutsCompleted > 0 ? 1 : 0) / totalPlanDays) * 100,
-          ),
-          100,
-        )
-      : 0,
+    percentage: Math.min(
+      Math.round(
+        ((todayStats.workoutsCompleted > 0 ? 1 : 0) / 7) * 100,
+      ),
+      100,
+    )
+
   };
 
   // 3. Smart Semantic Feedback for Weekly Goals Summary Text
   const getWeeklyProgressMessage = () => {
-    if (!activePlan)
-      return "Activate a training routine program to track your week.";
     if (weeklyProgress.workoutsThisWeek === 0)
       return "Kick off your weekly schedule with a session today! 💪";
     if (weeklyProgress.workoutsThisWeek >= weeklyProgress.workoutsGoal)
@@ -73,12 +68,12 @@ export default function Dashboard() {
     return `You're on track! Only ${weeklyProgress.workoutsGoal - weeklyProgress.workoutsThisWeek} more training slots scheduled this week.`;
   };
 
-  // 4. Extract next training plan array row
-  const upcomingWorkout = {
-    name: activePlan?.days?.[0]?.title || "General Strength Circuit",
-    time: "Flexible",
-    duration: "45 min",
-  };
+  // // 4. Extract next training plan array row
+  // const upcomingWorkout = {
+  //   name: workoutSessions[0].session_date || "General Strength Circuit",
+  //   time: "Flexible",
+  //   duration: "45 min",
+  // };
 
   return (
     <ScrollView
@@ -230,7 +225,7 @@ export default function Dashboard() {
       )}
 
       {/* Upcoming Workout Navigation Quick-Link */}
-      <View className="px-4 mb-4">
+      {/* <View className="px-4 mb-4">
         <Text className="text-text-primary text-lg font-bold mb-3">
           Next Workout
         </Text>
@@ -257,7 +252,7 @@ export default function Dashboard() {
             </View>
           </View>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </ScrollView>
   );
 }

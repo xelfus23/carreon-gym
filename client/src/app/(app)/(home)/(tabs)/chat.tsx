@@ -4,17 +4,15 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
-  Keyboard,
 } from "react-native";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Send, ArrowDown } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import ScreenWrapper from "../../../components/ScreenWrapper";
 import { useChat } from "@/src/hooks/useChats";
 import renderMessageItem from "../../../components/Chat/RenderMessage";
 import { ChatMessage } from "@/src/types/chats";
-import { useFocusEffect } from "expo-router";
 import SubscriptionReminder from "@/src/app/components/SubscriptionReminder";
 import { useUserProfile } from "@/src/context/profileProvider";
 import CustomLoader from "@/src/app/components/Plans/PlansLoading";
@@ -26,8 +24,8 @@ const PROMPT_SUGGESTIONS = [
   {
     id: "1",
     emoji: "🏋️",
-    label: "Build a gym program",
-    prompt: "Create a gym workout program for me at Carreon Gym.",
+    label: "Create exercise for me",
+    prompt: "Create a gym workout for me today at Carreon Gym.",
   },
   {
     id: "2",
@@ -70,27 +68,10 @@ export default function Chats() {
   const scrollRef = useRef<FlatList<ChatMessage>>(null);
   const isAtBottom = useRef(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      refreshMessages();
-    }, [refreshMessages]),
-  );
 
   useEffect(() => {
-    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
-      setKeyboardVisible(true);
-    });
-    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
-      setKeyboardVisible(false);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
+    refreshMessages();
+  }, [refreshMessages])
 
   if (!profile) return null;
 
@@ -107,6 +88,10 @@ export default function Chats() {
     const prompt = text;
     setText("");
     try {
+      if (profile?.subscription?.status !== "active") {
+        setReminderOpen(true)
+        return
+      }
       await sendMessage(prompt);
     } catch (err) {
       if (err instanceof Error) {
@@ -147,7 +132,8 @@ export default function Chats() {
     >
       {reminderOpen && (
         <SubscriptionReminder
-          text="Subscribe to continue"
+          title="Subscription Required"
+          text="You need membership to continue"
           setReminderOpen={setReminderOpen}
         />
       )}
@@ -162,7 +148,7 @@ export default function Chats() {
           onScroll={handleScroll}
           refreshControl={
             <RefreshControl
-              refreshing={loading}
+              refreshing={initializing}
               onRefresh={refreshMessages}
               colors={[COLORS.primary, COLORS.primaryDark]} // Android spinner color
               tintColor={COLORS.primary} // iOS spinner color
@@ -176,12 +162,12 @@ export default function Chats() {
           contentContainerClassName="p-4"
           className="flex-1"
           ListEmptyComponent={
-            !isKeyboardVisible ? (
+            (
               <View className="flex-1 justify-center items-center mt-10 px-4">
-                <Text className="text-text-secondary text-center text-lg">
+                <Text className="text-text-secondary text-center text-lg font-inter">
                   👋 Ready to train?
                 </Text>
-                <Text className="text-text-secondary text-center mt-2">
+                <Text className="text-text-secondary font-inter text-center mt-2">
                   Ask me anything about fitness or request a workout!
                 </Text>
                 <View className="mt-6 w-full gap-3">
@@ -193,11 +179,11 @@ export default function Chats() {
                     >
                       <Text className="text-xl">{suggestion.emoji}</Text>
                       <View className="flex-1">
-                        <Text className="text-white text-sm font-medium">
+                        <Text className="text-white text-sm font-interMedium">
                           {suggestion.label}
                         </Text>
                         <Text
-                          className="text-text-secondary text-xs mt-0.5"
+                          className="text-text-secondary text-xs mt-0.5 font-inter"
                           numberOfLines={1}
                         >
                           {suggestion.prompt}
@@ -207,7 +193,7 @@ export default function Chats() {
                   ))}
                 </View>
               </View>
-            ) : null
+            )
           }
           renderItem={renderMessageItem}
         />
@@ -229,7 +215,7 @@ export default function Chats() {
         <TextInput
           value={text}
           onChangeText={setText}
-          className="flex-1 text-lg bg-surface rounded-xl text-white px-4 py-3 min-h-[50px] max-h-[100px]"
+          className="flex-1 text-lg bg-surface rounded-xl text-white px-4 py-3 min-h-[50px] max-h-[100px] font-inter"
           placeholder="Message..."
           placeholderTextColor={COLORS.textSecondary}
           returnKeyType="send"

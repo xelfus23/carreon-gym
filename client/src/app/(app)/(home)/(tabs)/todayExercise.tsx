@@ -250,86 +250,72 @@ function CalendarStrip({ selectedDate, activeDates, onSelectDate }: CalendarStri
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function TodayWorkoutScreen() {
-  const { workoutPlans, isExerciseChecked, refreshWorkoutPlan, isLoading } = useWorkout();
+  const { workoutSessions, isExerciseChecked, refreshWorkoutSessions, isLoading } = useWorkout();
 
   const todayStr = formatLocalDate(new Date());
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [refreshing, setRefreshing] = useState(false);
 
-  const activePlan = workoutPlans.find((p) => p.is_active);
-
+  // Sessions that have exercises on the selected date
   const activeDates = useMemo(() => {
     const set = new Set<string>();
-    activePlan?.days?.forEach((day) => {
-      if (day.exercises?.length > 0) {
-        set.add(formatLocalDate(new Date(day.day_date)));
+    workoutSessions.forEach((session) => {
+      if (session.exercises?.length > 0) {
+        set.add(formatLocalDate(new Date(session.session_date)));
       }
     });
     return set;
-  }, [activePlan]);
+  }, [workoutSessions]);
 
   const selectedExercises = useMemo(() => {
-    return (
-      activePlan?.days
-        ?.filter((day) => formatLocalDate(new Date(day.day_date)) === selectedDate)
-        .flatMap((day) =>
-          day.exercises.map((ex) => ({ ...ex, dayId: day.id, dayTitle: day.title })),
-        ) || []
-    );
-  }, [activePlan, selectedDate]);
+    return workoutSessions
+      .filter((s) => formatLocalDate(new Date(s.session_date)) === selectedDate)
+      .flatMap((s) =>
+        s.exercises.map((ex) => ({ ...ex, sessionId: s.id, sessionTitle: s.title }))
+      );
+  }, [workoutSessions, selectedDate]);
 
-  const incomplete = selectedExercises.filter((ex) => !isExerciseChecked(ex.dayId, ex.id));
-  const completed = selectedExercises.filter((ex) => isExerciseChecked(ex.dayId, ex.id));
+  const incomplete = selectedExercises.filter((ex) => !isExerciseChecked(ex.sessionId, ex.id));
+  const completed = selectedExercises.filter((ex) => isExerciseChecked(ex.sessionId, ex.id));
 
   const [detailModal, setDetailModal] = useState<{
     visible: boolean;
     exercise: ExerciseDetail | null;
-    dayId: number | null;
-  }>({ visible: false, exercise: null, dayId: null });
+    sessionId: number | null;
+  }>({ visible: false, exercise: null, sessionId: null });
 
   const openDetail = useCallback((ex: (typeof selectedExercises)[number]) => {
-    setDetailModal({ visible: true, exercise: ex, dayId: ex.dayId });
+    setDetailModal({ visible: true, exercise: ex, sessionId: ex.sessionId });
   }, []);
 
   const closeDetail = useCallback(() => {
-    setDetailModal({ visible: false, exercise: null, dayId: null });
+    setDetailModal({ visible: false, exercise: null, sessionId: null });
   }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await refreshWorkoutPlan();
+      await refreshWorkoutSessions();
     } finally {
       setRefreshing(false);
     }
-  }, [refreshWorkoutPlan]);
+  }, [refreshWorkoutSessions]);
 
   const isToday = selectedDate === todayStr;
 
   return (
     <>
       <View className="flex-1 bg-background">
-        {/* Sticky Header: title + progress bar + calendar */}
         <View className="bg-background pt-4 border-b border-border/40">
-          {/* Title row */}
           <View className="flex-row items-center justify-between px-4 mb-3">
             <Text className="text-2xl font-bold text-text-primary">
               {isToday ? "Today's Session" : new Date(selectedDate).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
+                year: "numeric", month: "long", day: "numeric",
               })}
             </Text>
-
           </View>
 
-          {/* Progress bar — hidden when the selected day has no exercises */}
-          <SessionProgressBar
-            done={completed.length}
-            total={selectedExercises.length}
-          />
-
-          {/* Calendar strip */}
+          <SessionProgressBar done={completed.length} total={selectedExercises.length} />
           <CalendarStrip
             selectedDate={selectedDate}
             activeDates={activeDates}
@@ -337,22 +323,17 @@ export default function TodayWorkoutScreen() {
           />
         </View>
 
-        {/* Exercise List */}
         {isLoading && !refreshing ? (
           <View className="items-center justify-center py-16">
             <Ionicons name="barbell-outline" size={48} color={COLORS.textSecondary} />
-            <Text className="text-text-secondary text-base mt-3 font-medium">
-              Loading workouts...
-            </Text>
+            <Text className="text-text-secondary text-base mt-3 font-medium">Loading workouts...</Text>
           </View>
         ) : selectedExercises.length === 0 ? (
           <View className="items-center justify-center py-16">
             <Ionicons name="calendar-outline" size={48} color={COLORS.textSecondary} />
-            <Text className="text-text-secondary text-base mt-3 font-medium">
-              No exercises scheduled
-            </Text>
+            <Text className="text-text-secondary text-base mt-3 font-medium">No exercises scheduled</Text>
             <Text className="text-text-secondary/60 text-sm mt-1">
-              {isToday ? "Enjoy your rest day!" : "No plan for this day."}
+              {isToday ? "Enjoy your rest day!" : "No session for this day."}
             </Text>
           </View>
         ) : (
@@ -362,12 +343,8 @@ export default function TodayWorkoutScreen() {
               className="flex-1"
               contentContainerClassName="px-4"
               refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  tintColor={COLORS.primary}
-                  colors={[COLORS.primary]}
-                />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh}
+                  tintColor={COLORS.primary} colors={[COLORS.primary]} />
               }
             >
               {incomplete.length === 0 ? (
@@ -377,22 +354,13 @@ export default function TodayWorkoutScreen() {
                 </View>
               ) : (
                 incomplete.map((ex) => (
-                  <ExerciseCard
-                    key={ex.id}
-                    ex={ex}
-                    checked={false}
-                    onPress={() => openDetail(ex)}
-                  />
+                  <ExerciseCard key={ex.id} ex={ex} checked={false} onPress={() => openDetail(ex)} />
                 ))
               )}
 
               {completed.length > 0 && (
                 <View className="mt-6 opacity-60">
-                  <SectionHeader
-                    title="Completed"
-                    count={completed.length}
-                    accent={COLORS.success}
-                  />
+                  <SectionHeader title="Completed" count={completed.length} accent={COLORS.success} />
                   {completed.map((ex) => (
                     <ExerciseCard key={ex.id} ex={ex} checked={true} />
                   ))}
@@ -405,7 +373,7 @@ export default function TodayWorkoutScreen() {
 
       <ExerciseDetailModal
         visible={detailModal.visible}
-        dayId={detailModal.dayId}
+        sessionId={detailModal.sessionId}
         exercise={detailModal.exercise}
         onClose={closeDetail}
       />
