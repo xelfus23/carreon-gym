@@ -225,7 +225,7 @@ export default function Chats() {
         <TouchableOpacity
           onPress={handleSend}
           disabled={loading}
-          className={`p-3 ${loading || !text.trim() ? "bg-surface opacity-50" : "bg-primary"} rounded-full items-center justify-center`}
+          className={`p-3 ${loading || !text.trim() ? "bg-surface opacity-50" : "bg-primary"} rounded-full self-end justify-center`}
         >
           <Send color="white" size={24} />
         </TouchableOpacity>

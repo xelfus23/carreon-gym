@@ -1,7 +1,10 @@
 import { WebSocket } from "ws";
 import type { ChatMessage } from "../../types/index.ts";
 import { handleToolCall } from "../tools/handleToolCall.ts";
+import { TOOL_NAMES } from "../tools/toolRegistry.ts";
 import { streamModel } from "./streamModel.ts";
+
+const VALID_TOOLS = new Set(TOOL_NAMES);
 
 export async function handleModelStreamWithTools(
   messages: ChatMessage[],
@@ -80,6 +83,22 @@ export async function handleModelStreamWithTools(
         safeSend({ type: "state", state: "Finalizing response" });
 
         if (!assistantContent) {
+          const exercisesAdded = messages.filter(
+            (m) => m.role === "tool" && m.name === "create_session_exercise",
+          ).length;
+
+          if (exercisesAdded > 0 && iteration < MAX_TOOL_ITERATIONS) {
+            log(
+              `⚠️ Empty response after ${exercisesAdded} exercise(s) — requesting summary`,
+            );
+            messages.push({
+              role: "user",
+              content:
+                "All exercises have been saved. Provide a clean summary for the user with exercise names, sets, reps, and instructions. Do not call any more tools.",
+            } as ChatMessage);
+            continue;
+          }
+
           log("⚠️ No assistant content and no tool calls — empty response");
           safeSend({ type: "error", message: "Empty assistant response" });
           return undefined;
@@ -89,9 +108,30 @@ export async function handleModelStreamWithTools(
         return { role: "assistant", content: assistantContent } as ChatMessage;
       }
 
+      const invalidCalls = toolCalls.filter((tc) => !VALID_TOOLS.has(tc.name));
+      const validCalls = toolCalls.filter((tc) => VALID_TOOLS.has(tc.name));
+
+      if (invalidCalls.length > 0) {
+        log(
+          `⚠️ Hallucinated tool name(s): ${invalidCalls.map((c) => `"${c.name}"`).join(", ")} — injecting correction`,
+        );
+        safeSend({ type: "state", state: "Correcting exercise format" });
+        messages.push({
+          role: "user",
+          content:
+            `You called tool(s) named ${invalidCalls.map((c) => `"${c.name}"`).join(", ")} which do not exist. ` +
+            `Valid tools are: ${TOOL_NAMES.join(", ")}. ` +
+            `Do not use exercise names or equipment names as tool names. ` +
+            `To add those exercises, call create_session_exercise with the name in the exercise_name parameter. ` +
+            `Continue the workout using the session_id from earlier tool results.`,
+        } as ChatMessage);
+        log("➡️ Looping back after hallucination correction");
+        continue;
+      }
+
       // ── Tool call cap check ──────────────────────────────────────
-      toolCallCount += toolCalls.length;
-      log(`🔧 Tool calls this round: ${toolCalls.length} (total so far: ${toolCallCount})`);
+      toolCallCount += validCalls.length;
+      log(`🔧 Tool calls this round: ${validCalls.length} (total so far: ${toolCallCount})`);
 
       if (toolCallCount > MAX_TOOL_ITERATIONS) {
         log(`⚠️ Tool call limit hit — forcing final response`);
@@ -148,7 +188,7 @@ export async function handleModelStreamWithTools(
       const assistantMessageWithTools: ChatMessage = {
         role: "assistant",
         content: assistantContent || "",
-        tool_calls: toolCalls.map((tc) => ({
+        tool_calls: validCalls.map((tc) => ({
           id: tc.id,
           type: "function",
           function: { name: tc.name, arguments: tc.arguments },
@@ -157,7 +197,7 @@ export async function handleModelStreamWithTools(
 
       messages.push(assistantMessageWithTools);
 
-      for (const toolCall of toolCalls) {
+      for (const toolCall of validCalls) {
         safeSend({
           type: "state",
           state: toReadableToolState(toolCall.name),

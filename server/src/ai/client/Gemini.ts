@@ -137,11 +137,14 @@ export const Gemini = async (
         ? undefined
         : toGeminiTools(toolRegistry);
 
+    const config: Record<string, unknown> = {};
+    if (systemInstruction) config.systemInstruction = systemInstruction;
+    if (geminiTools) config.tools = geminiTools;
+
     const responseStream = await ai.models.generateContentStream({
         model: model.gemini_2_5_flash,
         contents,
-        ...(systemInstruction && { config: { systemInstruction } }),
-        ...(geminiTools && { config: { tools: geminiTools } }),
+        ...(Object.keys(config).length > 0 && { config }),
     });
 
     // Wrap Gemini's async iterable into a ReadableStream that emits SSE chunks,

@@ -335,12 +335,9 @@ CREATE TABLE session_exercises (
     duration_seconds INT CHECK (duration_seconds > 0),
     rest_seconds INT DEFAULT 0 CHECK (rest_seconds >= 0),
     weight_guidance TEXT,
-    tempo TEXT DEFAULT '2-0-2-0',
     description TEXT,
     notes TEXT,
     is_warmup BOOLEAN DEFAULT FALSE,
-    is_superset BOOLEAN DEFAULT FALSE,
-    superset_group INT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (workout_session_id, exercise_order),
     CONSTRAINT chk_reps_or_duration

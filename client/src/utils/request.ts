@@ -4,6 +4,7 @@ import { tokenManager } from "./tokenManager";
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const REQUEST_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_REQUEST_TIMEOUT_MS) || 10000;
+
 type RequestOptions = RequestInit & {
   skipAuthRefresh?: boolean;
   skipAuthHeader?: boolean;
@@ -27,13 +28,11 @@ function rejectAllSubscribers(err: Error) {
 }
 
 async function refreshAccessToken() {
-  // main function that gets new access token
   const refreshToken = tokenManager.getRefreshToken();
 
-  if (!refreshToken) throw new Error("Session expired. Please log in again."); // If refresh token is not available.
+  if (!refreshToken) throw new Error("Session expired. Please log in again.");
 
   const res = await fetchWithTimeout(`${API_URL}/api/auth/refresh`, {
-    // fetch refresh and return a refresh token
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -42,7 +41,7 @@ async function refreshAccessToken() {
     body: JSON.stringify({ refreshToken }),
   });
 
-  if (!res.ok) throw new Error("Session expired. Please log in again."); // if response not OK then throw error
+  if (!res.ok) throw new Error("Session expired. Please log in again.");
 
   const json = await res.json();
 
@@ -63,7 +62,7 @@ async function parseAndThrowIfError(res: Response) {
   const json = await res.json(); // the response json
 
   if (!res.ok) {
-    throw new Error(json?.message ?? `Request failed: ${res.status}`); // if the response status is not OK, throw an Error message coming from the backend.
+    throw new Error(json?.message ?? `Request failed: ${res.status}`);
   }
 
   return json; // if response is ok then return the data

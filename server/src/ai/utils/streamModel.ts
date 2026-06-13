@@ -120,7 +120,8 @@ export async function streamModel(
     }
   }
 
-  const toolCalls = Object.values(toolCallBuffer);
+  const toolCalls = Object.values(toolCallBuffer).filter((tc) => tc.name);
+
   const cleanedResponse = sanitizeAssistantContent(visibleContent).trim();
 
   return {

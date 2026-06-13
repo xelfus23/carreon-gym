@@ -84,8 +84,6 @@ export const logComplete = catchAsync(async (req: Request, res: Response) => {
     notes,
   } = req.body;
 
-  console.log(req.body)
-
   if (!session_exercise_id) {
     return res.status(400).json({
       success: false,

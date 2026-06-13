@@ -20,6 +20,7 @@ export const createWorkoutSessionDomain = async (params: {
       session_id: Number(existing.rows[0].id),
       created: false,
       message: `Session already exists for ${session_date}. Use session_id ${Number(existing.rows[0].id)} to add exercises.`,
+      reminder: `Use session_id ${Number(existing.rows[0].id)} for ALL subsequent create_session_exercise calls.`,
     };
   }
 
@@ -43,5 +44,6 @@ export const createWorkoutSessionDomain = async (params: {
     session_id: result.rows[0].id,
     created: true,
     message: `Created session: ${title || "Workout"} for ${session_date}`,
+    reminder: `Use session_id ${result.rows[0].id} for ALL subsequent create_session_exercise calls.`,
   };
 };

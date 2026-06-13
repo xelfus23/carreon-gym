@@ -26,24 +26,38 @@ export type WorkoutLogRow = {
   weight_used_kg: number | null;
   difficulty_rating: number | null;
   notes: string | null;
-  calories_burned: number; // Added
+  calories_burned: number;
   logged_at: string;
 };
 
-/** Dynamic Metabolic Equivalent Calculation */
-function calculateCalories(durationSeconds: number | null, difficulty: number | null, weightKg: number): number {
-  if (!durationSeconds || durationSeconds <= 0) return 0;
+function calculateCalories(
+  durationSeconds: number | null,
+  completedSets: number | null,
+  completedReps: number | null,
+  difficulty: number | null,
+  weightKg: number
+): number {
+  let activeSeconds = 0;
+
+  if (durationSeconds && durationSeconds > 0) {
+    activeSeconds = durationSeconds;
+  }
+  else if (completedSets && completedSets > 0 && completedReps && completedReps > 0) {
+    const SECONDS_PER_REP = 4;
+    activeSeconds = completedSets * completedReps * SECONDS_PER_REP;
+  }
+
+  if (activeSeconds <= 0) return 0;
 
   let met = 4.5;
-  if (difficulty && difficulty <= 3) met = 3.0;
-  if (difficulty && difficulty >= 8) met = 6.0;
+  if (difficulty === 1) met = 3.0;
+  if (difficulty === 3) met = 7.5;
 
-  return Math.round(met * weightKg * (durationSeconds / 3600));
+  const totalBurn = (met * weightKg * activeSeconds) / 3600;
+
+  return totalBurn > 0 && totalBurn < 1 ? 1 : Math.round(totalBurn);
 }
 
-/**
- * Upsert a workout log for today.
- */
 export async function upsertWorkoutLogDomain(
   payload: WorkoutLogPayload,
 ): Promise<WorkoutLogRow> {
@@ -58,9 +72,6 @@ export async function upsertWorkoutLogDomain(
     notes = null,
   } = payload;
 
-
-  console.log(payload)
-  // 1. Fetch exercise configuration template
   const exerciseRes = await pool.query<{
     exercise_name: string;
     sets: number | null;
@@ -91,17 +102,20 @@ export async function upsertWorkoutLogDomain(
     ? Number(metricsRes.rows[0].weight_kg)
     : 70.0;
 
-  // 👇 FIX: Fall back to the workout template's duration if no custom duration was sent from the client
   const trackingDuration = duration_seconds ?? exercise.duration_seconds;
 
-  // 2. Run the Calorie Calculation Engine using our verified tracking timeframe
-  const calculatedCalories = calculateCalories(trackingDuration, difficulty_rating, userWeight);
+  const calculatedCalories = calculateCalories(
+    trackingDuration,
+    completed_sets,
+    completed_reps,
+    difficulty_rating,
+    userWeight
+  );
 
-  // 3. Check for an existing submission matching today's calendar window
   const existing = await pool.query<{ id: number }>(
     `SELECT id FROM workout_logs
      WHERE user_id = $1
-       AND session_exercises_id = $2
+       AND session_exercise_id = $2
        AND logged_at::date = CURRENT_DATE`,
     [userId, session_exercise_id],
   );
@@ -122,11 +136,11 @@ export async function upsertWorkoutLogDomain(
       [
         completed_sets,
         completed_reps,
-        duration_seconds, // Kept raw to preserve user input in history
+        duration_seconds,
         weight_used_kg,
         difficulty_rating,
         notes,
-        calculatedCalories, // Correctly updated calorie metric
+        calculatedCalories,
         existing.rows[0].id,
       ],
     );
@@ -137,10 +151,9 @@ export async function upsertWorkoutLogDomain(
     return result.rows[0] as WorkoutLogRow;
   }
 
-  // 4. If no record was found for today, append it into the table as a fresh insertion
   const result = await pool.query<WorkoutLogRow>(
     `INSERT INTO workout_logs
-           (user_id, session_exercises_id, exercise_name,
+           (user_id, session_exercise_id, exercise_name,
             planned_sets, planned_reps, planned_duration_seconds,
             completed_sets, completed_reps,
             duration_seconds, weight_used_kg, difficulty_rating, notes, calories_burned, logged_at)
@@ -183,6 +196,7 @@ export async function getTodayLogsDomain(userId: number): Promise<WorkoutLogRow[
   return result.rows;
 }
 
+
 export async function getSessionLogsDomain(
   userId: number,
   workoutSessionId: number,
@@ -190,7 +204,7 @@ export async function getSessionLogsDomain(
   const result = await pool.query<WorkoutLogRow>(
     `SELECT wl.*, we.workout_session_id
      FROM workout_logs wl
-     JOIN session_exercises we ON we.id = wl.session_exercises_id
+     JOIN session_exercises we ON we.id = wl.session_exercise_id
      WHERE wl.user_id = $1
        AND we.workout_session_id = $2`,
     [userId, workoutSessionId],
@@ -198,11 +212,12 @@ export async function getSessionLogsDomain(
   return result.rows;
 }
 
+
 export async function getAllLogsDomain(userId: number): Promise<WorkoutLogRow[]> {
   const result = await pool.query<WorkoutLogRow>(
     `SELECT wl.*, we.workout_session_id
      FROM workout_logs wl
-     JOIN session_exercises we ON we.id = wl.session_exercises_id
+     JOIN session_exercises we ON we.id = wl.session_exercise_id
      WHERE wl.user_id = $1
      ORDER BY wl.logged_at DESC`,
     [userId],
@@ -210,8 +225,6 @@ export async function getAllLogsDomain(userId: number): Promise<WorkoutLogRow[]>
   return result.rows;
 }
 
-
-/** Delete today's log for a given session_exercises_id. */
 export async function removeLogDomain(
   userId: number,
   workoutExerciseId: number,
@@ -219,7 +232,7 @@ export async function removeLogDomain(
   const result = await pool.query(
     `DELETE FROM workout_logs
      WHERE user_id = $1
-       AND session_exercises_id = $2
+       AND session_exercise_id = $2
        AND logged_at::date = CURRENT_DATE`,
     [userId, workoutExerciseId],
   );

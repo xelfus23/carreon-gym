@@ -30,51 +30,52 @@ export const tools = [
     function: {
       name: "create_session_exercise",
       description:
-        "Add exercises one by one using a valid session_id. DO NOT include units (e.g., '60s') in numeric fields.",
+        "Create an exercise entry using a valid session_id. Do not include units (e.g., '60s') in numeric fields.",
       parameters: {
         type: "object",
         properties: {
           session_id: {
             type: "integer",
-            description: "The ID returned from create_workout_session",
+            description: "The ID returned from create_workout_session or get_session_by_date",
           },
           exercise_order: {
             type: "integer",
-            description: "Position in workout (e.g., 1, 2, 3...)",
+            description: "Sequential position in workout starting from 1 (e.g., 1, 2, 3...)",
           },
-          exercise_name: { type: "string" },
+          exercise_name: {
+            type: "string",
+            description: "e.g., 'Dumbbell Bicep Curl', 'Barbell Bench Press'"
+          },
           equipment_id: {
             type: "integer",
-            description: "The numeric ID from the inventory list provided in system prompt",
+            description: "The numeric ID from the inventory list provided in the system prompt",
           },
           sets: {
             type: "integer",
-            description: "Whole numbers only. No text.",
+            description: "Total number of sets. Whole numbers only.",
           },
           reps: {
             type: "integer",
-            description: "Number of reps for strength exercises. OMIT this field when using duration_seconds.",
+            description: "Number of reps per set for strength exercises. Leave out or set null for cardio.",
           },
           duration_seconds: {
             type: "integer",
-            description: "Time in seconds for cardio or holds. OMIT this field when using reps.",
+            description: "Time in seconds for cardio or timed holds. Leave out or set null for strength.",
           },
           rest_seconds: {
             type: "integer",
-            description: "Rest in seconds (Integer).",
+            description: "Rest period between sets in seconds.",
           },
           weight_guidance: {
             type: "string",
-            description: "Text based guidance (e.g., '70% 1RM' or 'Hold for 30-60s')",
+            description: "Target weight specification in pounds (lbs) or type. E.g., '25 lbs', '40 lbs dumbbells', '135 lbs barbell', or 'Bodyweight'. Do not leave blank if equipment is used.",
           },
-          tempo: { type: "string" },
-          description: { type: "string" },
-          notes: { type: "string" },
-          is_warmup: { type: "boolean" },
-          is_superset: { type: "boolean" },
-          superset_group: { type: "integer" },
+          description: {
+            type: "string",
+            description: "Brief execution details or setup instructions for the user."
+          }
         },
-        required: ["session_id", "exercise_order", "exercise_name", "equipment_id"],
+        required: ["session_id", "exercise_order", "exercise_name", "equipment_id", "sets", "weight_guidance", "description"],
       },
     },
   },
@@ -91,7 +92,7 @@ export const tools = [
     function: {
       name: "get_session_by_date",
       description:
-        "Look up an existing workout session by date. Use this before adding exercises to check if a session already exists for that date. Returns the session_id if found, or a message to create one if not.",
+        "Look up an existing workout session by date. CRITICAL: If you do not have a session_id in the current conversation state, you MUST call this tool first using the target date to retrieve the valid session_id before adding exercises.",
       parameters: {
         type: "object",
         properties: {
@@ -104,4 +105,34 @@ export const tools = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "get_workout_logs",
+      description:
+        "Get the user's workout logs to track progress and performance. " +
+        "Use scope 'today' for current session progress, 'session' for a specific past session, " +
+        "'all' for full history and progress trends.",
+      parameters: {
+        type: "object",
+        properties: {
+          scope: {
+            type: "string",
+            enum: ["today", "session", "all"],
+            description:
+              "'today' = logs from today only. " +
+              "'session' = logs for a specific session (requires session_id). " +
+              "'all' = full history for progress tracking.",
+          },
+          session_id: {
+            type: "integer",
+            description: "Required when scope is 'session'. The workout session ID to retrieve logs for.",
+          },
+        },
+        required: ["scope"],
+      },
+    },
+  },
 ];
+
+export const TOOL_NAMES = tools.map((t) => t.function.name);

@@ -18,13 +18,12 @@ export const createSessionExerciseDomain = async (params: {
     duration_seconds,
     rest_seconds,
     weight_guidance,
-    tempo,
     description,
     notes,
     is_warmup,
-    is_superset,
-    superset_group,
   } = args;
+
+  console.log("EXERCISE_ARGS: ", args)
 
   const finalReps = reps && reps > 0 ? reps : null;
   const finalDuration =
@@ -39,16 +38,27 @@ export const createSessionExerciseDomain = async (params: {
   );
   if (ownership.rows.length === 0) throw new Error("Session access denied");
 
+  const maxOrderResult = await pool.query(
+    `SELECT COALESCE(MAX(exercise_order), 0) AS max_order
+     FROM session_exercises
+     WHERE workout_session_id = $1`,
+    [session_id],
+  );
+
+  const maxOrder = maxOrderResult.rows[0].max_order;
+  const safeOrder = Math.max(exercise_order, maxOrder + 1);
+
+
   const result = await pool.query(
     `INSERT INTO session_exercises 
      (workout_session_id, exercise_order, exercise_name, equipment_id, sets, reps, 
-      duration_seconds, rest_seconds, weight_guidance, tempo, description, 
-      notes, is_warmup, is_superset, superset_group)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      duration_seconds, rest_seconds, weight_guidance, description, 
+      notes, is_warmup)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
      RETURNING id`,
     [
       session_id,
-      exercise_order,
+      safeOrder,
       exercise_name,
       equipment_id || null,
       sets || null,
@@ -56,12 +66,9 @@ export const createSessionExerciseDomain = async (params: {
       finalDuration,
       rest_seconds || 0,
       weight_guidance || null,
-      tempo || "2-0-2-0",
       description || null,
       notes || null,
       !!is_warmup,
-      !!is_superset,
-      superset_group || null,
     ],
   );
 

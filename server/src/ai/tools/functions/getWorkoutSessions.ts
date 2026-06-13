@@ -1,5 +1,4 @@
 import { WebSocket } from "ws";
-import type { ToolCall } from "../../../types/index.ts";
 import { getWorkoutSessionDomain } from "../../../domain/workout/getWorkoutSessionDomain.ts";
 
 export const getUserWorkoutPlan = async (
@@ -9,6 +8,6 @@ export const getUserWorkoutPlan = async (
 ) => {
 
   const data = await getWorkoutSessionDomain({ userId })
-
+  
   return data;
 };
