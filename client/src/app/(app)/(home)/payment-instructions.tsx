@@ -96,7 +96,7 @@ export default function PaymentInstructions() {
       });
 
       // Redirect to purchase history to submit proof
-      router.replace("/(app)/(purchase-history)/purchases");
+      router.replace("/(app)/(purchase-history)/purchases")
     } catch (error) {
       Alert.alert(
         "Order Failed",
@@ -171,9 +171,8 @@ export default function PaymentInstructions() {
                 <TouchableOpacity
                   key={method}
                   onPress={() => setSelectedMethod(method)}
-                  className={`flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-2xl border-2 ${
-                    isActive ? activeColor : "border-border bg-surface"
-                  }`}
+                  className={`flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-2xl border-2 ${isActive ? activeColor : "border-border bg-surface"
+                    }`}
                 >
                   <Ionicons
                     name={icon as any}
@@ -185,9 +184,8 @@ export default function PaymentInstructions() {
                     }
                   />
                   <Text
-                    className={`font-bold text-sm ${
-                      isActive ? activeText : "text-text-secondary"
-                    }`}
+                    className={`font-bold text-sm ${isActive ? activeText : "text-text-secondary"
+                      }`}
                   >
                     {label}
                   </Text>

@@ -15,6 +15,63 @@ const newTempId = () => `__streaming_${tempIdCounter++}__`;
 const GENERIC_ASSISTANT_ERROR =
   "I ran into an issue while processing your request. Please try again.";
 
+const isDoneStatus = (status: string) =>
+  status === "Complete" ||
+  status === "Done" ||
+  status.startsWith("Done ");
+
+const matchesInProgressDonePair = (
+  inProgress: string,
+  done: string,
+): boolean => {
+  if (!isDoneStatus(done)) return false;
+
+  const pairs: [string, string][] = [
+    ["Creating exercise", "Done creating exercise"],
+    ["Creating workout session", "Done creating workout session"],
+    ["Removing workout session", "Done removing workout session"],
+    ["Looking up your session", "Done looking up your session"],
+    ["Getting your workout sessions", "Done getting your workout sessions"],
+    ["Getting your workout logs", "Done getting your workout logs"],
+  ];
+
+  if (pairs.some(([start, end]) => inProgress === start && done === end)) {
+    return true;
+  }
+
+  const creatingMatch = inProgress.match(/^Creating (.+)$/);
+  if (creatingMatch && done === `Done creating ${creatingMatch[1]}`) {
+    return true;
+  }
+
+  const gettingMatch = inProgress.match(/^Getting (.+)$/);
+  if (gettingMatch && done === `Done getting ${gettingMatch[1]}`) {
+    return true;
+  }
+
+  return false;
+};
+
+const updateAiStatus = (msg: ChatMessage, nextStatus: string): ChatMessage => {
+  if (msg.aiStatus === nextStatus) return msg;
+
+  const aiStatusHistory = [...(msg.aiStatusHistory ?? [])];
+  const currentStatus = msg.aiStatus;
+
+  if (
+    currentStatus &&
+    matchesInProgressDonePair(currentStatus, nextStatus)
+  ) {
+    return { ...msg, aiStatus: nextStatus, aiStatusHistory };
+  }
+
+  if (currentStatus) {
+    aiStatusHistory.push(currentStatus);
+  }
+
+  return { ...msg, aiStatus: nextStatus, aiStatusHistory };
+};
+
 export function useChat(params?: {
   initialSessionId?: number;
   profile?: UserProfile | null;
@@ -211,22 +268,14 @@ export function useChat(params?: {
           },
           (state) => {
             const targetAssistantId = activeAssistantIdRef.current;
-            setMessages((prev) => {
-              if (state === "Done") {
-                return prev.map((msg) =>
-                  msg.role === "assistant" &&
-                    String(msg.id).startsWith("__streaming_")
-                    ? { ...msg, aiStatus: "Done" }
-                    : msg,
-                );
-              }
+            if (!targetAssistantId) return;
 
-              return prev.map((msg) =>
-                msg.id === targetAssistantId
-                  ? { ...msg, aiStatus: state }
-                  : msg,
-              );
-            });
+            setMessages((prev) =>
+              prev.map((msg) => {
+                if (msg.id !== targetAssistantId) return msg;
+                return updateAiStatus(msg, state);
+              }),
+            );
           },
           () => {
             setMessages((prev) => {
@@ -235,10 +284,7 @@ export function useChat(params?: {
 
               const activeMessage = prev.find((msg) => msg.id === activeId);
               const shouldStartNewAssistantMessage =
-                !!activeMessage &&
-                (activeMessage.content.trim().length > 0 ||
-                  (!!activeMessage.aiStatus &&
-                    activeMessage.aiStatus !== "Preparing assistant"));
+                !!activeMessage && activeMessage.content.trim().length > 0;
 
               if (!shouldStartNewAssistantMessage) {
                 return prev;
@@ -249,13 +295,15 @@ export function useChat(params?: {
 
               return [
                 ...prev.map((msg) =>
-                  msg.id === activeId ? { ...msg, aiStatus: "Done" } : msg,
+                  msg.id === activeId
+                    ? updateAiStatus(msg, "Complete")
+                    : msg,
                 ),
                 {
                   id: nextAssistantId,
                   role: "assistant",
                   content: "",
-                  aiStatus: "Processing...",
+                  aiStatus: "Writing response",
                 },
               ];
             });

@@ -14,8 +14,8 @@ export interface SessionRow {
   exercise_name: string | null;
   exercise_order: number | null;
   description: string;
-  sets: number | null;
-  reps: number | null;
+  set_count: number | null;
+  rep_count: number | null;
   duration_seconds: number | null;
   rest_seconds: number | null;
   weight_guidance: string | null;
@@ -41,8 +41,8 @@ export async function getWorkoutSessionDomain(params: { userId: number }) {
       we.exercise_name,
       we.exercise_order,
       we.description,
-      we.sets,
-      we.reps,
+      we.set_count,
+      we.rep_count,
       we.duration_seconds,
       we.rest_seconds,
       we.weight_guidance,
@@ -88,8 +88,8 @@ export async function getWorkoutSessionDomain(params: { userId: number }) {
         name: row.exercise_name,
         order: row.exercise_order,
         equipment: row.equipment_name ?? "Bodyweight",
-        sets: row.sets,
-        reps: row.reps,
+        sets: row.set_count,
+        reps: row.rep_count,
         description: row.description,
         duration_seconds: row.duration_seconds,
         rest_seconds: row.rest_seconds,

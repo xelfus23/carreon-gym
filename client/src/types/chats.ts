@@ -4,6 +4,7 @@ export type ChatMessage = {
     content: string;
     timestamp?: number | string;
     aiStatus?: string;
+    aiStatusHistory?: string[];
     // tool_calls?: ToolCall[];
     // tool_call_id?: string;
     // name?: string;

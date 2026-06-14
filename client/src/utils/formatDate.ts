@@ -1,10 +1,12 @@
-export const formatDate = (date: Date | null | undefined) => {
+type FormatOptions = Intl.DateTimeFormatOptions;
+
+export const formatDate = (
+  date: Date | string | null | undefined,
+  options?: FormatOptions
+) => {
   if (!date) return "N/A";
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+
+  const parsedDate = date instanceof Date ? date : new Date(date);
+
+  return parsedDate.toLocaleDateString("en-US", options);
 };

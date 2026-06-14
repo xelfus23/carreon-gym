@@ -131,9 +131,9 @@ export const chatService = {
                 );
               }
               socket.close();
-            } else if (data.type === "done") {
+            }             else if (data.type === "done") {
               receivedDone = true;
-              onState("Done");
+              onState("Complete");
               cleanup();
               settle(() => resolve());
               socket.close(1000, "Done");

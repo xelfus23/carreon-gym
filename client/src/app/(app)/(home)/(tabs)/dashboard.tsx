@@ -5,21 +5,39 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Image,
 } from "react-native";
 import { useUserProfile } from "@/src/context/profileProvider";
 import { Check, PlayIcon } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import { useWorkout } from "@/src/hooks/useWorkout";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { formatDate } from "@/src/utils/formatDate";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Dashboard() {
   const { profile, refreshProfile } = useUserProfile();
-  const { workoutSessions, todayStats, refreshWorkoutSessions } = useWorkout();
+  const { workoutSessions, todayStats, refreshWorkoutSessions, isExerciseChecked,
+  } = useWorkout();
 
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const router = useRouter();
+
+
+  const selectedExercises = useMemo(() => {
+    return workoutSessions
+      .filter((s) => formatDate(new Date(s.session_date)) === formatDate(new Date()))
+      .flatMap((s) =>
+        s.exercises.map((ex) => ({
+          ...ex,
+          sessionId: s.id,
+          sessionTitle: s.title,
+        })),
+      );
+  }, [workoutSessions]);
+
 
   if (!profile) return null;
 
@@ -65,12 +83,17 @@ export default function Dashboard() {
     return `You're on track! Only ${weeklyProgress.workoutsGoal - weeklyProgress.workoutsThisWeek} more training slots scheduled this week.`;
   };
 
-  // // 4. Extract next training plan array row
-  // const upcomingWorkout = {
-  //   name: workoutSessions[0].session_date || "General Strength Circuit",
-  //   time: "Flexible",
-  //   duration: "45 min",
-  // };
+  const upcomming = selectedExercises.filter(
+    (ex) => !isExerciseChecked(ex.sessionId, ex.id)
+  )[0] || null;
+
+
+  const isStreakHigh = todayStats.streak >= 7;
+
+  const mainIcon = isStreakHigh
+    ? require("@/src/assets/ui/crown-icon.png")
+    : require("@/src/assets/ui/fire-icon.png");
+
 
   return (
     <ScrollView
@@ -127,9 +150,18 @@ export default function Dashboard() {
                 {todayStats.streakSubtext}
               </Text>
             </View>
-            <Text className="text-6xl">
-              {todayStats.streak >= 7 ? "👑" : "🔥"}
-            </Text>
+
+            <View className="w-16 h-16 relative items-center justify-center">
+              <Image
+                source={mainIcon}
+                className="absolute w-full h-full object-contain z-10"
+              />
+
+              <Image
+                source={require("@/src/assets/ui/shine-icon.png")}
+                className="w-full h-full object-contain"
+              />
+            </View>
           </View>
         </View>
       </View>
@@ -222,34 +254,59 @@ export default function Dashboard() {
       )}
 
       {/* Upcoming Workout Navigation Quick-Link */}
-      {/* <View className="px-4 mb-4">
+      <View className="px-4 mb-4">
         <Text className="text-text-primary text-lg font-bold mb-3">
           Next Workout
         </Text>
-        <TouchableOpacity
-          className="bg-surface rounded-2xl p-4 border-l-4 border-primary"
-          onPress={() => router.navigate("/(app)/(home)/workout-session")}
-        >
-          <View className="flex-row justify-between items-center">
-            <View className="flex-1">
-              <Text className="text-text-primary text-base font-bold">
-                {upcomingWorkout.name}
-              </Text>
-              <View className="flex-row gap-4 mt-2">
-                <Text className="text-text-secondary text-sm">
-                  ⏰ {upcomingWorkout.time}
+        {upcomming ?
+          <TouchableOpacity
+            className="bg-surface rounded-2xl p-4 border-l-4 border-primary"
+            onPress={() => router.navigate("/(app)/(home)/workout-session")}
+          >
+            <View className="flex-row justify-between items-center">
+              <View className="flex-1">
+                <Text className="text-text-primary text-base font-bold font-inter">
+                  {upcomming.name}
                 </Text>
-                <Text className="text-text-secondary text-sm">
-                  ⏱️ {upcomingWorkout.duration}
-                </Text>
+                <View className="flex-row gap-4 mt-2">
+                  {upcomming.reps ?
+                    <Text className="text-text-secondary text-sm font-inter">
+                      <Ionicons
+                        name="infinite"
+                        size={12}
+                        color={COLORS.primary}
+                      />
+                      {" " + upcomming.reps} reps
+                    </Text>
+                    :
+                    <Text className="text-text-secondary text-sm font-inter">
+                      <Ionicons
+                        name="time-outline"
+                        size={12}
+                        color={COLORS.primary}
+                      />
+                      {" " + upcomming.duration_seconds}
+                    </Text>
+                  }
+                  <Text className="text-text-secondary text-sm font-inter">
+                    <Ionicons
+                      name="repeat-outline"
+                      size={12}
+                      color={COLORS.primary}
+                    />
+                    {" " + upcomming.sets} sets
+                  </Text>
+                </View>
+              </View>
+              <View className="bg-primary rounded-full p-3">
+                <PlayIcon color={COLORS.border} fill={COLORS.surface} size={20} />
               </View>
             </View>
-            <View className="bg-primary rounded-full p-3">
-              <PlayIcon color={COLORS.border} fill={COLORS.surface} size={20} />
-            </View>
-          </View>
-        </TouchableOpacity>
-      </View> */}
+          </TouchableOpacity>
+          :
+          <Text className="text-primary font-inter text-center">You done all workout for today!</Text>
+        }
+      </View>
     </ScrollView>
   );
 }
@@ -267,14 +324,14 @@ const StatCard = ({
 }) => (
   <View className={`flex-1 ${bgColor} rounded-xl p-4 border border-border`}>
     <Text className="text-2xl mb-2">{icon}</Text>
-    <Text className="text-text-primary text-2xl font-bold">{value}</Text>
-    <Text className="text-text-secondary text-xs mt-1">{label}</Text>
+    <Text className="text-text-primary text-2xl font-interBold">{value}</Text>
+    <Text className="text-text-secondary text-xs mt-1 font-inter">{label}</Text>
   </View>
 );
 
 const MetricItem = ({ label, value }: { label: string; value: string }) => (
   <View className="items-center flex-1">
-    <Text className="text-text-secondary text-xs mb-1">{label}</Text>
-    <Text className="text-text-primary text-lg font-bold">{value}</Text>
+    <Text className="text-text-secondary text-xs mb-1 font-inter">{label}</Text>
+    <Text className="text-text-primary text-lg font-interBold">{value}</Text>
   </View>
 );

@@ -70,11 +70,11 @@ export const tools = [
             description:
               "The numeric ID from the inventory list provided in the system prompt",
           },
-          sets: {
+          set_count: {
             type: "integer",
             description: "Total number of sets. Whole numbers only.",
           },
-          reps: {
+          rep_count: {
             type: "integer",
             description:
               "Number of reps per set for strength exercises. Leave out or set null for cardio.",
@@ -103,8 +103,10 @@ export const tools = [
           "session_id",
           "exercise_order",
           "exercise_name",
+          "exercise_type",
+          "met_value",
           "equipment_id",
-          "sets",
+          "set_count",
           "weight_guidance",
           "description",
         ],

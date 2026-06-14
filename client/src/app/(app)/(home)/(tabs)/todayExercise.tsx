@@ -14,6 +14,7 @@ import {
   View,
   FlatList,
 } from "react-native";
+import { formatDate } from "@/src/utils/formatDate";
 
 // ─── Section Header ───────────────────────────────────────────────────────────
 
@@ -63,16 +64,14 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
       onPress={onPress}
       disabled={checked}
       activeOpacity={0.7}
-      className={`mb-3 rounded-2xl border p-4 flex-row items-center gap-4 ${
-        checked
-          ? "bg-surface/50 border-green-500/20"
-          : "bg-surface border-border"
-      }`}
+      className={`mb-3 rounded-2xl border p-4 flex-row items-center gap-4 ${checked
+        ? "bg-surface/50 border-green-500/20"
+        : "bg-surface border-border"
+        }`}
     >
       <View
-        className={`w-12 h-12 rounded-2xl items-center justify-center ${
-          checked ? "bg-green-500/10" : "bg-primary/10"
-        }`}
+        className={`w-12 h-12 rounded-2xl items-center justify-center ${checked ? "bg-green-500/10" : "bg-primary/10"
+          }`}
       >
         {checked ? (
           <Ionicons name="checkmark-done" size={24} color={COLORS.primary} />
@@ -87,9 +86,8 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
 
       <View className="flex-1">
         <Text
-          className={`text-base font-semibold ${
-            checked ? "text-text-secondary line-through" : "text-text-primary"
-          }`}
+          className={`text-base font-semibold ${checked ? "text-text-secondary line-through" : "text-text-primary"
+            }`}
           numberOfLines={1}
         >
           {ex.name || "Unknown Exercise"}
@@ -127,9 +125,11 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
 type SessionProgressBarProps = {
   done: number;
   total: number;
+  todayDate: string;
+  selectedDate: string
 };
 
-function SessionProgressBar({ done, total }: SessionProgressBarProps) {
+function SessionProgressBar({ done, total, todayDate, selectedDate }: SessionProgressBarProps) {
   const progressAnim = React.useRef(new Animated.Value(0)).current;
   const percent = total > 0 ? done / total : 0;
   const isComplete = total > 0 && done === total;
@@ -150,14 +150,15 @@ function SessionProgressBar({ done, total }: SessionProgressBarProps) {
     outputRange: ["0%", "100%"],
   });
 
-  if (total === 0) return null;
-
   return (
     <View className="px-4 pb-3">
       {/* Label row */}
       <View className="flex-row items-center justify-between mb-2">
         <Text className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-          {isComplete ? "Session complete 🎉" : "Today's Progress"}
+          {isComplete ? "Session complete 🎉" : `${todayDate === selectedDate ? "Today's" : formatDate(selectedDate, {
+            month: "short",
+            day: "2-digit"
+          })} Progress`}
         </Text>
         <Text className="text-xs font-bold" style={{ color: barColor }}>
           {done}/{total}
@@ -224,7 +225,7 @@ function CalendarStrip({
       keyExtractor={(item) => item.dateStr}
       initialScrollIndex={todayIndex > 2 ? todayIndex - 2 : 0}
       getItemLayout={(_, index) => ({ length: 60, offset: 60 * index, index })}
-      contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8 }}
+      contentContainerClassName="gap-2 px-4 pb-4"
       renderItem={({ item }) => {
         const isSelected = item.dateStr === selectedDate;
         const isToday = item.dateStr === todayStr;
@@ -234,14 +235,12 @@ function CalendarStrip({
           <TouchableOpacity
             onPress={() => onSelectDate(item.dateStr)}
             activeOpacity={0.7}
-            style={{ width: 52, marginRight: 8 }}
-            className={`items-center py-2 rounded-2xl ${
-              isSelected
-                ? "bg-primary"
-                : isToday
-                  ? "bg-primary/10"
-                  : "bg-surface"
-            }`}
+            className={`items-center w-16 py-2 rounded-2xl ${isSelected
+              ? "bg-primary-dark"
+              : isToday
+                ? "bg-primary/10"
+                : "bg-surface"
+              }`}
           >
             <Text
               className="text-xs font-semibold mb-1"
@@ -256,11 +255,8 @@ function CalendarStrip({
               {item.dayNum}
             </Text>
             <View
+              className="rounded-full mt-1 h-1.5 aspect-square"
               style={{
-                width: 5,
-                height: 5,
-                borderRadius: 3,
-                marginTop: 4,
                 backgroundColor: hasExercises
                   ? isSelected
                     ? "rgba(255,255,255,0.8)"
@@ -315,6 +311,7 @@ export default function TodayWorkoutScreen() {
   const incomplete = selectedExercises.filter(
     (ex) => !isExerciseChecked(ex.sessionId, ex.id),
   );
+  
   const completed = selectedExercises.filter((ex) =>
     isExerciseChecked(ex.sessionId, ex.id),
   );
@@ -353,16 +350,18 @@ export default function TodayWorkoutScreen() {
               {isToday
                 ? "Today's Session"
                 : new Date(selectedDate).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
             </Text>
           </View>
 
           <SessionProgressBar
             done={completed.length}
             total={selectedExercises.length}
+            selectedDate={selectedDate}
+            todayDate={todayStr}
           />
           <CalendarStrip
             selectedDate={selectedDate}

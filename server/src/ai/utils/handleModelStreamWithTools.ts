@@ -33,16 +33,91 @@ export async function handleModelStreamWithTools(
     }
   };
 
+  const parseToolArgs = (argumentsJson: string): Record<string, unknown> => {
+    try {
+      return JSON.parse(argumentsJson) as Record<string, unknown>;
+    } catch {
+      return {};
+    }
+  };
+
   const toReadableToolState = (toolName: string) =>
     toolName
-      .replace(/^get_/, "getting ")
-      .replace(/^create_/, "creating ")
-      .replace(/^add_/, "updating ")
-      .replace(/^delete_/, "updating ")
+      .replace(/^get_/, "Getting ")
+      .replace(/^create_/, "Creating ")
+      .replace(/^add_/, "Updating ")
+      .replace(/^delete_/, "Updating ")
       .replace(/_/g, " ")
       .replace(/\s+/g, " ")
-      .trim()
-      .replace(/^./, (c) => c.toUpperCase());
+      .trim();
+
+  const getToolStartState = (toolName: string, args: Record<string, unknown>) => {
+    switch (toolName) {
+      case "create_session_exercise": {
+        const exerciseName =
+          typeof args.exercise_name === "string" ? args.exercise_name.trim() : "";
+        return exerciseName ? `Creating ${exerciseName}` : "Creating exercise";
+      }
+      case "create_workout_session": {
+        const title = typeof args.title === "string" ? args.title.trim() : "";
+        return title ? `Creating ${title} session` : "Creating workout session";
+      }
+      case "delete_workout_session":
+        return "Removing workout session";
+      case "get_session_by_date":
+        return "Looking up your session";
+      case "get_user_workout_sessions":
+        return "Getting your workout sessions";
+      case "get_workout_logs":
+        return "Getting your workout logs";
+      default:
+        return toReadableToolState(toolName);
+    }
+  };
+
+  const getToolDoneState = (
+    toolName: string,
+    args: Record<string, unknown>,
+    result: unknown,
+  ) => {
+    const parsedResult =
+      result && typeof result === "object"
+        ? (result as Record<string, unknown>)
+        : {};
+
+    switch (toolName) {
+      case "create_session_exercise": {
+        const exerciseName =
+          (typeof args.exercise_name === "string" && args.exercise_name.trim()) ||
+          (typeof parsedResult.message === "string"
+            ? parsedResult.message.replace(/^Added\s+/i, "").trim()
+            : "");
+        return exerciseName
+          ? `Done creating ${exerciseName}`
+          : "Done creating exercise";
+      }
+      case "create_workout_session": {
+        const title =
+          (typeof args.title === "string" && args.title.trim()) ||
+          (typeof parsedResult.title === "string" ? parsedResult.title.trim() : "");
+        return title
+          ? `Done creating ${title} session`
+          : "Done creating workout session";
+      }
+      case "delete_workout_session":
+        return "Done removing workout session";
+      case "get_session_by_date":
+        return "Done looking up your session";
+      case "get_user_workout_sessions":
+        return "Done getting your workout sessions";
+      case "get_workout_logs":
+        return "Done getting your workout logs";
+      default: {
+        const label = toReadableToolState(toolName);
+        return `Done ${label.charAt(0).toLowerCase()}${label.slice(1)}`;
+      }
+    }
+  };
 
   log("▶️ Starting stream loop");
 
@@ -198,9 +273,11 @@ export async function handleModelStreamWithTools(
       messages.push(assistantMessageWithTools);
 
       for (const toolCall of validCalls) {
+        const toolArgs = parseToolArgs(toolCall.arguments);
+
         safeSend({
           type: "state",
-          state: toReadableToolState(toolCall.name),
+          state: getToolStartState(toolCall.name, toolArgs),
         });
 
         let toolContent: string;
@@ -208,6 +285,10 @@ export async function handleModelStreamWithTools(
         try {
           const result = await handleToolCall(ws, toolCall, userId);
           log(`✅ Tool "${toolCall.name}" succeeded`, result);
+          safeSend({
+            type: "state",
+            state: getToolDoneState(toolCall.name, toolArgs, result),
+          });
           toolContent = JSON.stringify(result);
         } catch (err) {
           console.error(

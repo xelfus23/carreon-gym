@@ -15,8 +15,8 @@ export const createSessionExerciseDomain = async (params: {
     exercise_type,
     met_value,
     equipment_id,
-    sets,
-    reps,
+    set_count,
+    rep_count,
     duration_seconds,
     rest_seconds,
     weight_guidance,
@@ -25,9 +25,8 @@ export const createSessionExerciseDomain = async (params: {
     is_warmup,
   } = args;
 
-  console.log("EXERCISE_ARGS: ", args);
+  const finalReps = rep_count && rep_count > 0 ? rep_count : null;
 
-  const finalReps = reps && reps > 0 ? reps : null;
   const finalDuration =
     !finalReps && duration_seconds && duration_seconds > 0
       ? duration_seconds
@@ -52,7 +51,7 @@ export const createSessionExerciseDomain = async (params: {
 
   const result = await pool.query(
     `INSERT INTO session_exercises 
-     (workout_session_id, exercise_order, exercise_name, exercise_type, met_value equipment_id, sets, reps, 
+     (workout_session_id, exercise_order, exercise_name, exercise_type, met_value, equipment_id, set_count, rep_count, 
       duration_seconds, rest_seconds, weight_guidance, description, 
       notes, is_warmup)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
@@ -64,7 +63,7 @@ export const createSessionExerciseDomain = async (params: {
       exercise_type,
       met_value,
       equipment_id || null,
-      sets || null,
+      set_count || null,
       finalReps,
       finalDuration,
       rest_seconds || 0,

@@ -5,219 +5,196 @@ import { tools as toolRegistry } from "../tools/toolRegistry.ts";
 import type { ChatMessage } from "../../types/index.ts";
 
 const model = {
-    gemini_2_flash: "gemini-2.0-flash-",
-    gemini_2_5_flash_lite: "gemini-2.5-flash-lite",
-    gemini_2_flash_lite: "gemini-2.0-flash-lite",
-    gemini_2_5_flash: "gemini-2.5-flash",
+  gemini_2_flash: "gemini-2.0-flash",
+  gemini_2_5_flash_lite: "gemini-2.5-flash-lite",
+  gemini_2_flash_lite: "gemini-2.0-flash-lite",
+  gemini_2_5_flash: "gemini-2.5-flash",
 };
 
-/**
- * Converts internal ChatMessage[] format to Gemini's `contents` format.
- * Handles: user, assistant (model), tool (function response), system
- */
 function toGeminiContents(messages: ChatMessage[]) {
-    const contents: any[] = [];
+  const contents: any[] = [];
 
-    for (const msg of messages) {
-        if (msg.role === "system") continue; // handled separately as systemInstruction
+  for (const msg of messages) {
+    if (msg.role === "system") continue;
 
-        if (msg.role === "user") {
-            contents.push({
-                role: "user",
-                parts: [
-                    {
-                        text:
-                            typeof msg.content === "string"
-                                ? msg.content
-                                : JSON.stringify(msg.content),
-                    },
-                ],
-            });
-        } else if (msg.role === "assistant") {
-            const parts: any[] = [];
+    if (msg.role === "user") {
+      contents.push({
+        role: "user",
+        parts: [
+          {
+            text:
+              typeof msg.content === "string"
+                ? msg.content
+                : JSON.stringify(msg.content),
+          },
+        ],
+      });
+    } else if (msg.role === "assistant") {
+      const parts: any[] = [];
 
-            if (msg.content) {
-                parts.push({ text: msg.content });
-            }
+      if (msg.content) {
+        parts.push({ text: msg.content });
+      }
 
-            if ((msg as any).tool_calls) {
-                for (const tc of (msg as any).tool_calls) {
-                    let finalArgs = tc.function.arguments;
+      if ((msg as any).tool_calls) {
+        for (const tc of (msg as any).tool_calls) {
+          let finalArgs = tc.function.arguments;
 
-                    // If it's a string, parse it. If it's already an object, use it.
-                    if (typeof finalArgs === "string") {
-                        try {
-                            finalArgs = JSON.parse(finalArgs);
-                        } catch (e) {
-                            console.error(
-                                "Failed to parse tool args:",
-                                finalArgs,
-                            );
-                            finalArgs = {};
-                        }
-                    }
-
-                    parts.push({
-                        functionCall: {
-                            name: tc.function.name,
-                            args: finalArgs,
-                        },
-                    });
-                }
-            }
-
-            contents.push({ role: "model", parts });
-        } else if (msg.role === "tool") {
-            // Gemini expects tool results as role: "user" with functionResponse parts
-            contents.push({
-                role: "user",
-                parts: [
-                    {
-                        functionResponse: {
-                            name: msg.name,
-                            response: {
-                                content: (() => {
-                                    try {
-                                        return JSON.parse(
-                                            msg.content as string,
-                                        );
-                                    } catch {
-                                        return { result: msg.content };
-                                    }
-                                })(),
-                            },
-                        },
-                    },
-                ],
-            });
-        }
-    }
-
-    return contents;
-}
-
-/**
- * Converts internal tool registry to Gemini's FunctionDeclaration format.
- * Assumes toolRegistry uses OpenAI-style tool definitions.
- */
-function toGeminiTools(tools: any[]) {
-    return [
-        {
-            functionDeclarations: tools.map((t) => ({
-                name: t.function.name,
-                description: t.function.description,
-                parameters: t.function.parameters,
-            })),
-        },
-    ];
-}
-
-/**
- * Extracts system prompt from messages (first system message).
- */
-function extractSystemInstruction(messages: ChatMessage[]): string | undefined {
-    const sys = messages.find((m) => m.role === "system");
-    return sys ? (sys.content as string) : undefined;
-}
-
-/**
- * Drop-in replacement for LMstudio().
- * Returns a ReadableStream<Uint8Array> in SSE format (data: ...\n\n)
- * so that streamModel.ts works without modification.
- */
-export const Gemini = async (
-    messages: ChatMessage[],
-    options?: { disableTools: boolean },
-): Promise<ReadableStream<Uint8Array> | null> => {
-    const ai = new GoogleGenAI({ apiKey: env.GOOGLE_API_KEY });
-
-    const contents = toGeminiContents(messages);
-    const systemInstruction = extractSystemInstruction(messages);
-    const geminiTools = options?.disableTools
-        ? undefined
-        : toGeminiTools(toolRegistry);
-
-    const config: Record<string, unknown> = {};
-    if (systemInstruction) config.systemInstruction = systemInstruction;
-    if (geminiTools) config.tools = geminiTools;
-
-    const responseStream = await ai.models.generateContentStream({
-        model: model.gemini_2_5_flash,
-        contents,
-        ...(Object.keys(config).length > 0 && { config }),
-    });
-
-    // Wrap Gemini's async iterable into a ReadableStream that emits SSE chunks,
-    // so streamModel.ts (which calls response.getReader()) works unchanged.
-    return new ReadableStream<Uint8Array>({
-        async start(controller) {
-            const encoder = new TextEncoder();
-
+          if (typeof finalArgs === "string") {
             try {
-                for await (const chunk of responseStream) {
-                    const candidate = chunk.candidates?.[0];
-                    if (!candidate) continue;
-
-                    const parts = candidate.content?.parts ?? [];
-
-                    for (const part of parts) {
-                        let sseData: object | null = null;
-
-                        if (part.text) {
-                            // Regular text token
-                            sseData = {
-                                choices: [
-                                    {
-                                        delta: { content: part.text },
-                                        finish_reason: null,
-                                    },
-                                ],
-                            };
-                        } else if (part.functionCall) {
-                            // Tool call — emit as OpenAI-style tool_calls delta
-                            sseData = {
-                                choices: [
-                                    {
-                                        delta: {
-                                            tool_calls: [
-                                                {
-                                                    index: 0,
-                                                    id: `call_${part.functionCall.name}_${Date.now()}`,
-                                                    function: {
-                                                        name: part.functionCall
-                                                            .name,
-                                                        arguments:
-                                                            JSON.stringify(
-                                                                part
-                                                                    .functionCall
-                                                                    .args ?? {},
-                                                            ),
-                                                    },
-                                                },
-                                            ],
-                                        },
-                                        finish_reason: null,
-                                    },
-                                ],
-                            };
-                        }
-
-                        if (sseData) {
-                            controller.enqueue(
-                                encoder.encode(
-                                    `data: ${JSON.stringify(sseData)}\n\n`,
-                                ),
-                            );
-                        }
-                    }
-                }
-
-                // Signal end-of-stream
-                controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-                controller.close();
-            } catch (err) {
-                controller.error(err);
+              finalArgs = JSON.parse(finalArgs);
+            } catch (e) {
+              console.error(
+                "Failed to parse tool args:",
+                finalArgs,
+              );
+              finalArgs = {};
             }
-        },
-    });
+          }
+
+          parts.push({
+            functionCall: {
+              name: tc.function.name,
+              args: finalArgs,
+            },
+          });
+        }
+      }
+
+      contents.push({ role: "model", parts });
+    } else if (msg.role === "tool") {
+      contents.push({
+        role: "user",
+        parts: [
+          {
+            functionResponse: {
+              name: msg.name,
+              response: {
+                content: (() => {
+                  try {
+                    return JSON.parse(
+                      msg.content as string,
+                    );
+                  } catch {
+                    return { result: msg.content };
+                  }
+                })(),
+              },
+            },
+          },
+        ],
+      });
+    }
+  }
+
+  return contents;
+}
+
+function toGeminiTools(tools: any[]) {
+  return [
+    {
+      functionDeclarations: tools.map((t) => ({
+        name: t.function.name,
+        description: t.function.description,
+        parameters: t.function.parameters,
+      })),
+    },
+  ];
+}
+
+function extractSystemInstruction(messages: ChatMessage[]): string | undefined {
+  const sys = messages.find((m) => m.role === "system");
+  return sys ? (sys.content as string) : undefined;
+}
+
+export const Gemini = async (
+  messages: ChatMessage[],
+  options?: { disableTools: boolean },
+): Promise<ReadableStream<Uint8Array> | null> => {
+  const ai = new GoogleGenAI({ apiKey: env.GOOGLE_API_KEY });
+
+  const contents = toGeminiContents(messages);
+  const systemInstruction = extractSystemInstruction(messages);
+  const geminiTools = options?.disableTools
+    ? undefined
+    : toGeminiTools(toolRegistry);
+
+  const config: Record<string, unknown> = {};
+  if (systemInstruction) config.systemInstruction = systemInstruction;
+  if (geminiTools) config.tools = geminiTools;
+
+  const responseStream = await ai.models.generateContentStream({
+    model: model.gemini_2_5_flash,
+    contents,
+    ...(Object.keys(config).length > 0 && { config }),
+  });
+
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const encoder = new TextEncoder();
+
+      try {
+        for await (const chunk of responseStream) {
+          const candidate = chunk.candidates?.[0];
+          if (!candidate) continue;
+
+          const parts = candidate.content?.parts ?? [];
+
+          for (const part of parts) {
+            let sseData: object | null = null;
+
+            if (part.text) {
+              sseData = {
+                choices: [
+                  {
+                    delta: { content: part.text },
+                    finish_reason: null,
+                  },
+                ],
+              };
+            } else if (part.functionCall) {
+              sseData = {
+                choices: [
+                  {
+                    delta: {
+                      tool_calls: [
+                        {
+                          index: 0,
+                          id: `call_${part.functionCall.name}_${Date.now()}`,
+                          function: {
+                            name: part.functionCall
+                              .name,
+                            arguments:
+                              JSON.stringify(
+                                part
+                                  .functionCall
+                                  .args ?? {},
+                              ),
+                          },
+                        },
+                      ],
+                    },
+                    finish_reason: null,
+                  },
+                ],
+              };
+            }
+
+            if (sseData) {
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify(sseData)}\n\n`,
+                ),
+              );
+            }
+          }
+        }
+
+        controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+        controller.close();
+      } catch (err) {
+        controller.error(err);
+      }
+    },
+  });
 };
