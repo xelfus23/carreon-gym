@@ -12,6 +12,8 @@ export const createSessionExerciseDomain = async (params: {
     session_id,
     exercise_order,
     exercise_name,
+    exercise_type,
+    met_value,
     equipment_id,
     sets,
     reps,
@@ -23,7 +25,7 @@ export const createSessionExerciseDomain = async (params: {
     is_warmup,
   } = args;
 
-  console.log("EXERCISE_ARGS: ", args)
+  console.log("EXERCISE_ARGS: ", args);
 
   const finalReps = reps && reps > 0 ? reps : null;
   const finalDuration =
@@ -48,18 +50,19 @@ export const createSessionExerciseDomain = async (params: {
   const maxOrder = maxOrderResult.rows[0].max_order;
   const safeOrder = Math.max(exercise_order, maxOrder + 1);
 
-
   const result = await pool.query(
     `INSERT INTO session_exercises 
-     (workout_session_id, exercise_order, exercise_name, equipment_id, sets, reps, 
+     (workout_session_id, exercise_order, exercise_name, exercise_type, met_value equipment_id, sets, reps, 
       duration_seconds, rest_seconds, weight_guidance, description, 
       notes, is_warmup)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
      RETURNING id`,
     [
       session_id,
       safeOrder,
       exercise_name,
+      exercise_type,
+      met_value,
       equipment_id || null,
       sets || null,
       finalReps,

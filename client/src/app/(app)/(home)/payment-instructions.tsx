@@ -65,7 +65,7 @@ export default function PaymentInstructions() {
       itemName: params.itemName ?? params.planName ?? "Subscription Item",
       amount: Number(params.amount ?? "0"),
     }),
-    [params]
+    [params],
   );
 
   const handleConfirmOrder = async () => {
@@ -83,7 +83,7 @@ export default function PaymentInstructions() {
       //     });
       //   }
       // } else {
-        
+
       // }
 
       await createPurchase({
@@ -96,11 +96,11 @@ export default function PaymentInstructions() {
       });
 
       // Redirect to purchase history to submit proof
-      router.replace("/(app)/(home)/(tabs)/profile");
+      router.replace("/(app)/(purchase-history)/purchases");
     } catch (error) {
       Alert.alert(
         "Order Failed",
-        error instanceof Error ? error.message : "Please try again later."
+        error instanceof Error ? error.message : "Please try again later.",
       );
     } finally {
       setIsSubmitting(false);
@@ -125,14 +125,24 @@ export default function PaymentInstructions() {
           onPress={() => router.back()}
           className="w-10 h-10 bg-surface rounded-full items-center justify-center border border-border/40"
         >
-          <Ionicons name="close" size={20} color={COLORS.textSecondary ?? "#6B7280"} />
+          <Ionicons
+            name="close"
+            size={20}
+            color={COLORS.textSecondary ?? "#6B7280"}
+          />
         </TouchableOpacity>
-        <Text className="text-text-primary font-bold text-xl">Online Payment Instructions</Text>
+        <Text className="text-text-primary font-bold text-xl">
+          Online Payment Instructions
+        </Text>
         <View className="w-10" />
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, paddingTop: 8 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 24,
+          paddingTop: 8,
+        }}
       >
         <Text className="text-text-secondary text-sm mb-5">
           Choose your payment method and complete the steps below.
@@ -144,29 +154,40 @@ export default function PaymentInstructions() {
             Payment Method
           </Text>
           <View className="flex-row gap-3">
-            {(["gcash",] as PaymentMethod[]).map((method) => {
+            {(["gcash"] as PaymentMethod[]).map((method) => {
               const isActive = selectedMethod === method;
-              const icon = method === "gcash" ? "phone-portrait-outline" : "cash-outline";
+              const icon =
+                method === "gcash" ? "phone-portrait-outline" : "cash-outline";
               const label = method === "gcash" ? "GCash" : "Cash";
-              const activeColor = method === "gcash" ? "border-sky-500 bg-sky-500/10" : "border-emerald-500 bg-emerald-500/10";
-              const activeText = method === "gcash" ? "text-sky-400" : "text-emerald-400";
+              const activeColor =
+                method === "gcash"
+                  ? "border-sky-500 bg-sky-500/10"
+                  : "border-emerald-500 bg-emerald-500/10";
+              const activeText =
+                method === "gcash" ? "text-sky-400" : "text-emerald-400";
               const activeIcon = method === "gcash" ? "#38bdf8" : "#34d399";
 
               return (
                 <TouchableOpacity
                   key={method}
                   onPress={() => setSelectedMethod(method)}
-                  className={`flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-2xl border-2 ${isActive ? activeColor : "border-border bg-surface"
-                    }`}
+                  className={`flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-2xl border-2 ${
+                    isActive ? activeColor : "border-border bg-surface"
+                  }`}
                 >
                   <Ionicons
                     name={icon as any}
                     size={18}
-                    color={isActive ? activeIcon : (COLORS.textSecondary ?? "#6B7280")}
+                    color={
+                      isActive
+                        ? activeIcon
+                        : (COLORS.textSecondary ?? "#6B7280")
+                    }
                   />
                   <Text
-                    className={`font-bold text-sm ${isActive ? activeText : "text-text-secondary"
-                      }`}
+                    className={`font-bold text-sm ${
+                      isActive ? activeText : "text-text-secondary"
+                    }`}
                   >
                     {label}
                   </Text>
@@ -188,14 +209,18 @@ export default function PaymentInstructions() {
               </View>
 
               <View className="border-b border-border/60 pb-3 mb-3">
-                <Text className="text-xs text-text-secondary uppercase">GCash Number</Text>
+                <Text className="text-xs text-text-secondary uppercase">
+                  GCash Number
+                </Text>
                 <Text className="font-bold text-xl text-primary-dark mt-0.5 select-all">
                   {gymDetails?.gcash_number || "N/A"}
                 </Text>
               </View>
 
               <View>
-                <Text className="text-xs text-text-secondary uppercase">Account Name</Text>
+                <Text className="text-xs text-text-secondary uppercase">
+                  Account Name
+                </Text>
                 <Text className="font-semibold text-base text-text-primary mt-0.5">
                   {gymDetails?.gcash_name || "Careon Gym"}
                 </Text>
@@ -219,14 +244,19 @@ export default function PaymentInstructions() {
         {!showGCashDetails && (
           <View className="bg-surface p-5 rounded-2xl border border-border mb-5 shadow-sm">
             <View className="flex-row items-center gap-2 mb-3">
-              <Ionicons name="information-circle-outline" size={18} color={COLORS.primary} />
+              <Ionicons
+                name="information-circle-outline"
+                size={18}
+                color={COLORS.primary}
+              />
               <Text className="text-text-primary font-bold text-xs tracking-wider uppercase">
                 Cash Payment Instructions
               </Text>
             </View>
             <Text className="text-text-secondary text-sm leading-relaxed">
-              Please pay the exact amount at the front desk. Our staff will issue a physical receipt.
-              Upload a photo of that receipt in the next step to confirm your order.
+              Please pay the exact amount at the front desk. Our staff will
+              issue a physical receipt. Upload a photo of that receipt in the
+              next step to confirm your order.
             </Text>
           </View>
         )}
@@ -265,7 +295,9 @@ export default function PaymentInstructions() {
                     </Text>
                   </View>
                   <View className="items-end">
-                    <Text className="text-text-secondary text-xs">x{ci.quantity}</Text>
+                    <Text className="text-text-secondary text-xs">
+                      x{ci.quantity}
+                    </Text>
                     <Text className="text-text-primary text-xs font-bold">
                       ₱{(ci.price * ci.quantity).toFixed(2)}
                     </Text>
@@ -284,7 +316,9 @@ export default function PaymentInstructions() {
           )}
 
           <View className="flex-row justify-between items-center border-t border-border/60 pt-3 mt-2">
-            <Text className="text-text-primary font-bold">Total Amount Due</Text>
+            <Text className="text-text-primary font-bold">
+              Total Amount Due
+            </Text>
             <Text className="text-primary font-bold text-base">
               ₱{itemSummary.amount.toFixed(2)}
             </Text>
@@ -303,7 +337,9 @@ export default function PaymentInstructions() {
             <ActivityIndicator color="#FFFFFF" />
           ) : (
             <View className="flex-row items-center gap-2">
-              <Text className="text-background font-bold text-base">Submit Payment Request</Text>
+              <Text className="text-background font-bold text-base">
+                Submit Payment Request
+              </Text>
             </View>
           )}
         </TouchableOpacity>

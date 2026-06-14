@@ -71,7 +71,7 @@ export default function Chats() {
 
   useEffect(() => {
     refreshMessages();
-  }, [refreshMessages])
+  }, [refreshMessages]);
 
   if (!profile) return null;
 
@@ -89,8 +89,8 @@ export default function Chats() {
     setText("");
     try {
       if (profile?.subscription?.status !== "active") {
-        setReminderOpen(true)
-        return
+        setReminderOpen(true);
+        return;
       }
       await sendMessage(prompt);
     } catch (err) {
@@ -150,9 +150,9 @@ export default function Chats() {
             <RefreshControl
               refreshing={initializing}
               onRefresh={refreshMessages}
-              colors={[COLORS.primary, COLORS.primaryDark]} // Android spinner color
-              tintColor={COLORS.primary} // iOS spinner color
-              progressBackgroundColor={COLORS.background}
+              colors={[COLORS.primary, COLORS.primaryDark]}
+              tintColor={COLORS.primary}
+              progressBackgroundColor={"transparent"}
             />
           }
           scrollEventThrottle={16}
@@ -162,38 +162,36 @@ export default function Chats() {
           contentContainerClassName="p-4"
           className="flex-1"
           ListEmptyComponent={
-            (
-              <View className="flex-1 justify-center items-center mt-10 px-4">
-                <Text className="text-text-secondary text-center text-lg font-inter">
-                  👋 Ready to train?
-                </Text>
-                <Text className="text-text-secondary font-inter text-center mt-2">
-                  Ask me anything about fitness or request a workout!
-                </Text>
-                <View className="mt-6 w-full gap-3">
-                  {PROMPT_SUGGESTIONS.map((suggestion) => (
-                    <TouchableOpacity
-                      key={suggestion.id}
-                      onPress={() => setText(suggestion.prompt)}
-                      className="bg-surface border border-border rounded-2xl px-4 py-3 flex-row items-center gap-3"
-                    >
-                      <Text className="text-xl">{suggestion.emoji}</Text>
-                      <View className="flex-1">
-                        <Text className="text-white text-sm font-interMedium">
-                          {suggestion.label}
-                        </Text>
-                        <Text
-                          className="text-text-secondary text-xs mt-0.5 font-inter"
-                          numberOfLines={1}
-                        >
-                          {suggestion.prompt}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+            <View className="flex-1 justify-center items-center mt-10 px-4">
+              <Text className="text-text-secondary text-center text-lg font-inter">
+                👋 Ready to train?
+              </Text>
+              <Text className="text-text-secondary font-inter text-center mt-2">
+                Ask me anything about fitness or request a workout!
+              </Text>
+              <View className="mt-6 w-full gap-3">
+                {PROMPT_SUGGESTIONS.map((suggestion) => (
+                  <TouchableOpacity
+                    key={suggestion.id}
+                    onPress={() => setText(suggestion.prompt)}
+                    className="bg-surface border border-border rounded-2xl px-4 py-3 flex-row items-center gap-3"
+                  >
+                    <Text className="text-xl">{suggestion.emoji}</Text>
+                    <View className="flex-1">
+                      <Text className="text-white text-sm font-interMedium">
+                        {suggestion.label}
+                      </Text>
+                      <Text
+                        className="text-text-secondary text-xs mt-0.5 font-inter"
+                        numberOfLines={1}
+                      >
+                        {suggestion.prompt}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
               </View>
-            )
+            </View>
           }
           renderItem={renderMessageItem}
         />

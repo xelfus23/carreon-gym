@@ -89,7 +89,8 @@ export default function ExerciseDetailModal({
     const parsedReps = Number.parseInt(repsInput, 10);
     const parsedDuration = Number.parseInt(durationInput, 10);
 
-    const finalSets = Number.isFinite(parsedSets) && parsedSets > 0 ? parsedSets : 1;
+    const finalSets =
+      Number.isFinite(parsedSets) && parsedSets > 0 ? parsedSets : 1;
     const finalReps =
       !timedMode && Number.isFinite(parsedReps) && parsedReps > 0
         ? parsedReps
@@ -97,7 +98,7 @@ export default function ExerciseDetailModal({
     const finalDuration =
       timedMode && Number.isFinite(parsedDuration) && parsedDuration > 0
         ? parsedDuration
-        : exercise.duration_seconds ?? null;
+        : (exercise.duration_seconds ?? null);
 
     onClose();
     router.push({
@@ -122,6 +123,7 @@ export default function ExerciseDetailModal({
     return `${secs}s`;
   };
 
+  console.log("EXERCISE: ", exercise);
   return (
     <Modal
       visible={visible}
@@ -152,16 +154,14 @@ export default function ExerciseDetailModal({
                 {/* Exercise type badge */}
                 <View className="flex-row gap-2 mb-3">
                   <View
-                    className={`px-3 py-1 rounded-full ${timedMode
-                      ? "bg-blue-500/20"
-                      : "bg-primary/20"
-                      }`}
+                    className={`px-3 py-1 rounded-full ${
+                      timedMode ? "bg-blue-500/20" : "bg-primary/20"
+                    }`}
                   >
                     <Text
-                      className={`text-xs font-semibold ${timedMode
-                        ? "text-blue-400"
-                        : "text-primary"
-                        }`}
+                      className={`text-xs font-semibold ${
+                        timedMode ? "text-blue-400" : "text-primary"
+                      }`}
                     >
                       {timedMode ? "⏱ Timed" : "🔁 Reps"}
                     </Text>
@@ -189,8 +189,7 @@ export default function ExerciseDetailModal({
                   />
                   <Text className="text-text-secondary text-sm">
                     {equipmentLabel(
-                      exercise.equipment_name ??
-                      exercise.equipment,
+                      exercise.equipment_name ?? exercise.equipment,
                     )}
                   </Text>
                 </View>
@@ -207,9 +206,7 @@ export default function ExerciseDetailModal({
                       <Text className="text-text-primary font-bold text-xl mt-1">
                         {exercise.sets}
                       </Text>
-                      <Text className="text-text-secondary text-xs">
-                        Sets
-                      </Text>
+                      <Text className="text-text-secondary text-xs">Sets</Text>
                     </View>
                   )}
                   {!timedMode && exercise.reps != null && (
@@ -222,29 +219,20 @@ export default function ExerciseDetailModal({
                       <Text className="text-text-primary font-bold text-xl mt-1">
                         {exercise.reps}
                       </Text>
+                      <Text className="text-text-secondary text-xs">Reps</Text>
+                    </View>
+                  )}
+                  {timedMode && exercise.duration_seconds != null && (
+                    <View className="flex-1 bg-background rounded-2xl p-4 items-center">
+                      <Ionicons name="time-outline" size={20} color="#3B82F6" />
+                      <Text className="text-text-primary font-bold text-xl mt-1">
+                        {formatDuration(exercise.duration_seconds)}
+                      </Text>
                       <Text className="text-text-secondary text-xs">
-                        Reps
+                        Duration
                       </Text>
                     </View>
                   )}
-                  {timedMode &&
-                    exercise.duration_seconds != null && (
-                      <View className="flex-1 bg-background rounded-2xl p-4 items-center">
-                        <Ionicons
-                          name="time-outline"
-                          size={20}
-                          color="#3B82F6"
-                        />
-                        <Text className="text-text-primary font-bold text-xl mt-1">
-                          {formatDuration(
-                            exercise.duration_seconds,
-                          )}
-                        </Text>
-                        <Text className="text-text-secondary text-xs">
-                          Duration
-                        </Text>
-                      </View>
-                    )}
                 </View>
 
                 {/* Editable targets before starting */}
@@ -299,42 +287,37 @@ export default function ExerciseDetailModal({
                 </View>
 
                 {/* Muscle Groups */}
-                {(exercise.muscle_group ||
-                  exercise.secondary_muscles) && (
-                    <View className="bg-background rounded-2xl p-4 mb-4">
-                      <Text className="text-text-secondary text-xs uppercase tracking-widest mb-3">
-                        Muscles
-                      </Text>
-                      {exercise.muscle_group && (
-                        <View className="flex-row items-center gap-2 mb-2">
-                          <View className="w-2 h-2 rounded-full bg-primary" />
-                          <Text className="text-text-secondary text-xs">
-                            Primary:
-                          </Text>
-                          <Text className="text-text-primary text-sm font-medium capitalize">
-                            {exercise.muscle_group}
-                          </Text>
-                        </View>
-                      )}
-                      {exercise.secondary_muscles && (
-                        <View className="flex-row items-center gap-2">
-                          <View className="w-2 h-2 rounded-full bg-border" />
-                          <Text className="text-text-secondary text-xs">
-                            Secondary:
-                          </Text>
-                          <Text className="text-text-primary text-sm font-medium capitalize">
-                            {Array.isArray(
-                              exercise.secondary_muscles,
-                            )
-                              ? exercise.secondary_muscles.join(
-                                ", ",
-                              )
-                              : exercise.secondary_muscles}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  )}
+                {(exercise.muscle_group || exercise.secondary_muscles) && (
+                  <View className="bg-background rounded-2xl p-4 mb-4">
+                    <Text className="text-text-secondary text-xs uppercase tracking-widest mb-3">
+                      Muscles
+                    </Text>
+                    {exercise.muscle_group && (
+                      <View className="flex-row items-center gap-2 mb-2">
+                        <View className="w-2 h-2 rounded-full bg-primary" />
+                        <Text className="text-text-secondary text-xs">
+                          Primary:
+                        </Text>
+                        <Text className="text-text-primary text-sm font-medium capitalize">
+                          {exercise.muscle_group}
+                        </Text>
+                      </View>
+                    )}
+                    {exercise.secondary_muscles && (
+                      <View className="flex-row items-center gap-2">
+                        <View className="w-2 h-2 rounded-full bg-border" />
+                        <Text className="text-text-secondary text-xs">
+                          Secondary:
+                        </Text>
+                        <Text className="text-text-primary text-sm font-medium capitalize">
+                          {Array.isArray(exercise.secondary_muscles)
+                            ? exercise.secondary_muscles.join(", ")
+                            : exercise.secondary_muscles}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
 
                 {/* Description */}
                 {exercise.description && (
@@ -367,8 +350,8 @@ export default function ExerciseDetailModal({
                       color="#3B82F6"
                     />
                     <Text className="text-blue-400 text-sm flex-1">
-                      This is a timed exercise. The session
-                      will auto-complete when the timer ends.
+                      This is a timed exercise. The session will auto-complete
+                      when the timer ends.
                     </Text>
                   </View>
                 )}
@@ -376,17 +359,13 @@ export default function ExerciseDetailModal({
             </ScrollView>
 
             {/* Action Buttons */}
-            <View className="px-6 pb-10 pt-3 border-t border-border flex-row gap-3">
+            <View className="px-6 pb-14 pt-3 border-t border-border flex-row gap-3">
               <TouchableOpacity
                 onPress={onClose}
                 className="border border-border rounded-2xl py-4 px-5 items-center justify-center"
                 activeOpacity={0.7}
               >
-                <Ionicons
-                  name="close"
-                  size={20}
-                  color={COLORS.textSecondary}
-                />
+                <Ionicons name="close" size={20} color={COLORS.textSecondary} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -414,7 +393,6 @@ export default function ExerciseDetailModal({
           </Animated.View>
         </View>
       </KeyboardScreen>
-
     </Modal>
   );
 }

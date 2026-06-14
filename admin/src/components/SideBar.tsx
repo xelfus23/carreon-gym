@@ -29,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       id: NavItem.ANALYTICS,
       label: "Analytics",
       icon: <ChartColumnBig className="h-4 stroke-2" />,
-      dividerBefore: true
+      dividerBefore: true,
     },
     {
       id: NavItem.QR_CODE,
@@ -50,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       id: NavItem.ADMIN,
       label: "Admin",
       icon: <UserRoundKey className="h-4 stroke-2" />,
-      dividerBefore: true
+      dividerBefore: true,
     },
     {
       id: NavItem.MEMBERS,
@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       id: NavItem.GYM_PRODUCTS,
       label: "Products",
       icon: <ShoppingBasket className="h-4 stroke-2" />,
-      dividerBefore: true
+      dividerBefore: true,
     },
     {
       id: NavItem.SUBSCRIPTIONS,
@@ -78,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       id: NavItem.GYM_EQUIPMENTS,
       label: "Gym Equipments",
       icon: <Dumbbell className="h-4 stroke-2" />,
-      dividerBefore: true
+      dividerBefore: true,
     },
     {
       id: NavItem.GYM_SETTINGS,
@@ -89,7 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
 
   return (
     <aside
-      className={`${sideBarOn ? "w-64" : "w-20"} min-w-20 max-w-64 transition-all bg-surface h-screen flex flex-col text-text-secondary`}
+      className={`${sideBarOn ? "w-[15vw]" : "w-[5vw]"} transition-all bg-surface h-screen flex flex-col text-text-secondary`}
     >
       <div
         className={`p-4 flex ${sideBarOn ? "justify-between" : "justify-center"}`}
@@ -120,10 +120,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
             <button
               key={item.id}
               onClick={() => setTab(item.id)}
-              className={`w-full flex items-center ${sideBarOn ? "justify-normal aspect-auto rounded-none p-3" : "rounded-lg aspect-square justify-center h-10"} gap-3 transition-all duration-200 ${currentTab === item.id
-                ? "text-primary"
-                : " hover:text-text-primary"
-                }`}
+              className={`w-full flex items-center ${sideBarOn ? "justify-normal aspect-auto rounded-none p-3" : "rounded-lg aspect-square justify-center h-10"} gap-3 transition-all duration-200 ${
+                currentTab === item.id
+                  ? "text-primary"
+                  : " hover:text-text-primary"
+              }`}
             >
               {item.icon}
               {sideBarOn && <span className={`text-sm`}>{item.label}</span>}

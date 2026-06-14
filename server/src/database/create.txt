@@ -329,6 +329,8 @@ CREATE TABLE session_exercises (
     workout_session_id BIGINT NOT NULL REFERENCES workout_sessions(id),
     exercise_order INT NOT NULL,
     exercise_name TEXT NOT NULL,
+    exercise_type TEXT NOT NULL,
+    met_value INT NOT NULL,
     equipment_id BIGINT REFERENCES equipment(id) ON DELETE SET NULL,
     sets INT CHECK (sets > 0),
     reps INT CHECK (reps > 0),

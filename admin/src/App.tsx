@@ -114,8 +114,10 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="p-10 mx-auto h-[calc(100vh-80px)] w-full overflow-y-auto">
-          {renderContent()}
+        <div className="">
+          <div className="p-10 mx-auto flex-1 overflow-y-auto  h-[calc(100vh-80px)]">
+            {renderContent()}
+          </div>
         </div>
       </main>
     </div>

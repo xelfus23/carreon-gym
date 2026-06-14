@@ -38,9 +38,12 @@ export default function WorkoutSession() {
   const exerciseName = params.exerciseName ?? "Exercise";
   const totalSets = Number(params.sets) || 1;
   const repsPerSet = params.reps ? Number(params.reps) : null;
-  const durationSeconds = params.durationSeconds ? Number(params.durationSeconds) : null;
+  const durationSeconds = params.durationSeconds
+    ? Number(params.durationSeconds)
+    : null;
 
-  const mode: SessionMode = durationSeconds !== null && repsPerSet === null ? "timer" : "reps";
+  const mode: SessionMode =
+    durationSeconds !== null && repsPerSet === null ? "timer" : "reps";
 
   // Shared structural tracking counters
   const [currentSet, setCurrentSet] = useState(1);
@@ -65,25 +68,27 @@ export default function WorkoutSession() {
 
   const tickSound1 = useAudioPlayer(require("@/src/assets/sounds/tick1.mp3"));
   const tickSound2 = useAudioPlayer(require("@/src/assets/sounds/tick2.mp3"));
-  const tickSoundFinal = useAudioPlayer(require("@/src/assets/sounds/tick3.mp3"));
+  const tickSoundFinal = useAudioPlayer(
+    require("@/src/assets/sounds/tick3.mp3"),
+  );
 
   const useFirstTickTrack = useRef(true);
 
-  const playTick = useCallback((currentTime: number) => {
-    const basePlayer = useFirstTickTrack.current ? tickSound1 : tickSound2;
-    if (basePlayer) {
-      basePlayer.seekTo(0);
-      basePlayer.play();
-    }
-    useFirstTickTrack.current = !useFirstTickTrack.current;
+  // const playTick = useCallback((currentTime: number) => {
+  //   const basePlayer = useFirstTickTrack.current ? tickSound1 : tickSound2;
+  //   if (basePlayer) {
+  //     basePlayer.seekTo(0);
+  //     basePlayer.play();
+  //   }
+  //   useFirstTickTrack.current = !useFirstTickTrack.current;
 
-    if (currentTime <= 5 && currentTime > 0) {
-      if (tickSoundFinal) {
-        tickSoundFinal.seekTo(0);
-        tickSoundFinal.play();
-      }
-    }
-  }, [tickSound1, tickSound2, tickSoundFinal]);
+  //   if (currentTime <= 5 && currentTime > 0) {
+  //     if (tickSoundFinal) {
+  //       tickSoundFinal.seekTo(0);
+  //       tickSoundFinal.play();
+  //     }
+  //   }
+  // }, [tickSound1, tickSound2, tickSoundFinal]);
 
   // Pulse animation effect loop
   useEffect(() => {
@@ -123,19 +128,15 @@ export default function WorkoutSession() {
       setShowSummary(true);
     } else {
       setCurrentSet(newCompleted + 1);
-      // Reset countdown value back to initial target window parameter
-      if (mode === "timer" && durationSeconds) {
-        setTimeLeft(durationSeconds);
-      }
       setIsResting(true);
     }
-  }, [completedSets, totalSets, celebrationAnim, mode, durationSeconds]);
+  }, [completedSets, totalSets, celebrationAnim]);
 
   useEffect(() => {
     if (mode === "timer" && isRunning && timeLeft > 0) {
       timerRef.current = setInterval(() => {
         // Pass the current state value to play the audio tick safely
-        playTick(timeLeft);
+        // playTick(timeLeft);
 
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -146,7 +147,11 @@ export default function WorkoutSession() {
 
             setIsRunning(false);
             Vibration.vibrate([0, 200, 100, 200]);
+            const hasMoreSets = completedSets + 1 < totalSets;
             handleCompleteSet();
+            if (hasMoreSets && mode === "timer" && durationSeconds) {
+              return durationSeconds;
+            }
             return 0;
           }
           return prev - 1;
@@ -160,28 +165,44 @@ export default function WorkoutSession() {
         timerRef.current = null;
       }
     };
-  }, [isRunning, mode, playTick, handleCompleteSet, timeLeft]);
+    // }, [isRunning, mode, playTick, handleCompleteSet]);
+  }, [
+    isRunning,
+    mode,
+    handleCompleteSet,
+    completedSets,
+    totalSets,
+    durationSeconds,
+  ]);
+
+  const finishRest = useCallback(() => {
+    setIsResting(false);
+    setRestTimer(60);
+    if (mode === "timer" && durationSeconds) {
+      setTimeLeft(durationSeconds);
+    }
+  }, [mode, durationSeconds]);
 
   // Resting period timer loop execution
   useEffect(() => {
     if (!isResting) return;
     const interval = setInterval(() => {
-      playTick(restTimer);
+      // playTick(restTimer);
 
       setRestTimer((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          setIsResting(false);
-          setRestTimer(60);
+          finishRest();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [isResting, restTimer, playTick]);
+    // }, [isResting, playTick]);
+  }, [isResting, finishRest]);
 
-  // Universal visual loading meter logic 
+  // Universal visual loading meter logic
   useEffect(() => {
     let targetValue = 0;
     if (mode === "reps") {
@@ -189,7 +210,8 @@ export default function WorkoutSession() {
     } else if (mode === "timer" && durationSeconds) {
       // Combines total set counts plus active single-set bar tracking resolution
       const baseProgress = completedSets / totalSets;
-      const currentSetContribution = ((durationSeconds - timeLeft) / durationSeconds) * (1 / totalSets);
+      const currentSetContribution =
+        ((durationSeconds - timeLeft) / durationSeconds) * (1 / totalSets);
       targetValue = baseProgress + currentSetContribution;
     }
 
@@ -221,12 +243,11 @@ export default function WorkoutSession() {
   };
 
   const handleSkipRest = () => {
-    setIsResting(false);
-    setRestTimer(60);
+    finishRest();
   };
 
   const handleAddRestTime = () => {
-    setRestTimer((prev) => prev + 30);
+    setRestTimer((prev) => prev + 10);
   };
 
   const handleQuit = () => {
@@ -243,7 +264,7 @@ export default function WorkoutSession() {
             router.back();
           },
         },
-      ]
+      ],
     );
   };
 
@@ -274,18 +295,26 @@ export default function WorkoutSession() {
             <Ionicons name="close" size={20} color={COLORS.textSecondary} />
           </TouchableOpacity>
           <Text className="text-text-secondary text-sm font-medium">
-            {!showSummary ? `Set ${Math.min(completedSets + 1, totalSets)} of ${totalSets}` : "Review & Submit"}
+            {!showSummary
+              ? `Set ${Math.min(completedSets + 1, totalSets)} of ${totalSets}`
+              : "Review & Submit"}
           </Text>
           <View className="w-10" />
         </View>
 
         {/* Progress Bar Track */}
         <View className="mx-5 h-1.5 bg-surface rounded-full overflow-hidden mb-6">
-          <Animated.View className="h-full bg-primary rounded-full" style={{ width: progressWidth }} />
+          <Animated.View
+            className="h-full bg-primary rounded-full"
+            style={{ width: progressWidth }}
+          />
         </View>
 
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="flex-1" keyboardShouldPersistTaps="handled">
-
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          className="flex-1"
+          keyboardShouldPersistTaps="handled"
+        >
           {/* ── SUMMARY FEEDBACK CARD SCREEN ─────────────────────────────── */}
           {showSummary ? (
             <Animated.View
@@ -296,7 +325,9 @@ export default function WorkoutSession() {
                 <View className="w-24 h-24 rounded-full bg-primary/10 items-center justify-center mb-4">
                   <Ionicons name="trophy" size={48} color={COLORS.primary} />
                 </View>
-                <Text className="text-text-primary font-bold text-2xl text-center">Exercise Finished!</Text>
+                <Text className="text-text-primary font-bold text-2xl text-center">
+                  Exercise Finished!
+                </Text>
                 <Text className="text-text-secondary text-center mt-1">
                   Logged {totalSets} sets for {exerciseName}
                 </Text>
@@ -304,20 +335,40 @@ export default function WorkoutSession() {
 
               {/* Difficulty Intensity Selectors */}
               <View className="bg-surface rounded-3xl p-5 mb-5 border border-border/40">
-                <Text className="text-text-primary font-semibold text-base mb-3">How was the difficulty?</Text>
+                <Text className="text-text-primary font-semibold text-base mb-3">
+                  How was the difficulty?
+                </Text>
                 <View className="flex-row gap-2">
                   {[
-                    { id: 1, label: "Too Easy", color: "border-green-500/30 text-green-500 bg-green-500/5" },
-                    { id: 2, label: "Perfect", color: "border-primary/30 text-primary bg-primary/5" },
-                    { id: 3, label: "Too Hard", color: "border-red-500/30 text-red-500 bg-red-500/5" }
+                    {
+                      id: 1,
+                      label: "Too Easy",
+                      color:
+                        "border-green-500/30 text-green-500 bg-green-500/5",
+                    },
+                    {
+                      id: 2,
+                      label: "Perfect",
+                      color: "border-primary/30 text-primary bg-primary/5",
+                    },
+                    {
+                      id: 3,
+                      label: "Too Hard",
+                      color: "border-red-500/30 text-red-500 bg-red-500/5",
+                    },
                   ].map((item) => (
                     <TouchableOpacity
                       key={item.id}
                       onPress={() => setDifficulty(item.id)}
-                      className={`flex-1 py-3 border rounded-2xl items-center justify-center ${difficulty === item.id ? "bg-primary border-primary" : "bg-transparent border-border"
-                        }`}
+                      className={`flex-1 py-3 border rounded-2xl items-center justify-center ${
+                        difficulty === item.id
+                          ? "bg-primary border-primary"
+                          : "bg-transparent border-border"
+                      }`}
                     >
-                      <Text className={`font-semibold text-sm ${difficulty === item.id ? "text-background" : "text-text-secondary"}`}>
+                      <Text
+                        className={`font-semibold text-sm ${difficulty === item.id ? "text-background" : "text-text-secondary"}`}
+                      >
                         {item.label}
                       </Text>
                     </TouchableOpacity>
@@ -327,7 +378,12 @@ export default function WorkoutSession() {
 
               {/* Optional Comments Input Area */}
               <View className="bg-surface rounded-3xl p-5 mb-8 border border-border/40">
-                <Text className="text-text-primary font-semibold text-base mb-2">Notes <Text className="text-text-secondary text-xs font-normal">(Optional)</Text></Text>
+                <Text className="text-text-primary font-semibold text-base mb-2">
+                  Notes{" "}
+                  <Text className="text-text-secondary text-xs font-normal">
+                    (Optional)
+                  </Text>
+                </Text>
                 <TextInput
                   placeholder="Form variations, pain, or changes in mechanical weight feeling..."
                   placeholderTextColor="#6B7280"
@@ -353,29 +409,49 @@ export default function WorkoutSession() {
             /* ACTIVE LIFTCYCLE SECTIONS */
             <View className="flex-1">
               <View className="px-5 mb-8">
-                <Text className="text-text-secondary text-xs uppercase tracking-widest mb-1">Now Working</Text>
-                <Text className="text-text-primary font-bold text-3xl leading-tight">{exerciseName}</Text>
+                <Text className="text-text-secondary text-xs uppercase tracking-widest mb-1">
+                  Now Working
+                </Text>
+                <Text className="text-text-primary font-bold text-3xl leading-tight">
+                  {exerciseName}
+                </Text>
               </View>
 
               {isResting ? (
                 /* Rest Interface Screen Overlay */
                 <View className="flex-1 items-center justify-center px-5 py-8">
-                  <Text className="text-text-secondary text-base mb-4 uppercase tracking-widest">Rest Interval</Text>
+                  <Text className="text-text-secondary text-base mb-4 uppercase tracking-widest">
+                    Rest Interval
+                  </Text>
                   <View className="w-48 h-48 rounded-full border-4 border-primary/30 items-center justify-center mb-8 bg-primary/5">
-                    <Text className="text-primary font-bold text-6xl">{restTimer}</Text>
-                    <Text className="text-text-secondary text-sm mt-1">seconds</Text>
+                    <Text className="text-primary font-bold text-6xl">
+                      {restTimer}
+                    </Text>
+                    <Text className="text-text-secondary text-sm mt-1">
+                      seconds
+                    </Text>
                   </View>
                   <Text className="text-text-secondary text-center mb-8 px-4">
                     Great effort! Recover breathing patterns and step back up.
                   </Text>
 
                   <View className="flex-row gap-4 items-center justify-center">
-                    <TouchableOpacity onPress={handleSkipRest} className="border border-border rounded-2xl px-6 py-3">
-                      <Text className="text-text-secondary font-semibold">Skip Rest</Text>
+                    <TouchableOpacity
+                      onPress={handleSkipRest}
+                      className="border border-border rounded-2xl px-6 py-3"
+                    >
+                      <Text className="text-text-secondary font-semibold">
+                        Skip Rest
+                      </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={handleAddRestTime} className="bg-surface border border-primary/20 rounded-2xl px-6 py-3 flex-row items-center gap-1.5">
+                    <TouchableOpacity
+                      onPress={handleAddRestTime}
+                      className="bg-surface border border-primary/20 rounded-2xl px-6 py-3 flex-row items-center gap-1.5"
+                    >
                       <Ionicons name="add" size={16} color={COLORS.primary} />
-                      <Text className="text-primary font-semibold">+30s Rest</Text>
+                      <Text className="text-primary font-semibold">
+                        +10s Rest
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -385,8 +461,12 @@ export default function WorkoutSession() {
                   {mode === "reps" ? (
                     <View className="items-center w-full">
                       <View className="items-center mb-10">
-                        <Text className="text-text-secondary text-sm mb-2 uppercase tracking-widest">Target Reps</Text>
-                        <Text className="text-text-primary font-bold text-8xl leading-none">{repsPerSet ?? "—"}</Text>
+                        <Text className="text-text-secondary text-sm mb-2 uppercase tracking-widest">
+                          Target Reps
+                        </Text>
+                        <Text className="text-text-primary font-bold text-8xl leading-none">
+                          {repsPerSet ?? "—"}
+                        </Text>
                       </View>
 
                       <View className="flex-row gap-2 mb-12">
@@ -403,8 +483,14 @@ export default function WorkoutSession() {
                         className="bg-primary gap-4 rounded-3xl flex flex-row px-6 py-3 items-center justify-center"
                         activeOpacity={0.85}
                       >
-                        <Text className="text-background font-bold text-xl">Set Done</Text>
-                        <Ionicons name="checkmark-circle" size={18} color={COLORS.background} />
+                        <Text className="text-background font-bold text-xl">
+                          Set Done
+                        </Text>
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={18}
+                          color={COLORS.background}
+                        />
                       </TouchableOpacity>
                     </View>
                   ) : (
@@ -415,11 +501,17 @@ export default function WorkoutSession() {
                         style={{
                           borderColor: isRunning ? COLORS.primary : "#374151",
                           transform: [{ scale: pulseAnim }],
-                          backgroundColor: isRunning ? `${COLORS.primary}10` : "#1F2937",
+                          backgroundColor: isRunning
+                            ? `${COLORS.primary}10`
+                            : "#1F2937",
                         }}
                       >
-                        <Text className="text-text-primary font-bold text-6xl">{formatTime(timeLeft)}</Text>
-                        <Text className="text-text-secondary text-sm mt-1">{isRunning ? "remaining" : "ready"}</Text>
+                        <Text className="text-text-primary font-bold text-6xl">
+                          {formatTime(timeLeft)}
+                        </Text>
+                        <Text className="text-text-secondary text-sm mt-1">
+                          {isRunning ? "remaining" : "ready"}
+                        </Text>
                       </Animated.View>
 
                       <View className="flex-row gap-2 mb-8">
@@ -436,8 +528,14 @@ export default function WorkoutSession() {
                           onPress={() => setIsRunning((v) => !v)}
                           className="bg-primary rounded-2xl px-10 py-4 flex-row items-center gap-2"
                         >
-                          <Ionicons name={isRunning ? "pause" : "play"} size={20} color={COLORS.background} />
-                          <Text className="text-background font-bold text-base">{isRunning ? "Pause" : "Start"}</Text>
+                          <Ionicons
+                            name={isRunning ? "pause" : "play"}
+                            size={20}
+                            color={COLORS.background}
+                          />
+                          <Text className="text-background font-bold text-base">
+                            {isRunning ? "Pause" : "Start"}
+                          </Text>
                         </TouchableOpacity>
 
                         {!isRunning && timeLeft < (durationSeconds ?? 0) && (
@@ -445,7 +543,11 @@ export default function WorkoutSession() {
                             onPress={() => setTimeLeft(durationSeconds ?? 0)}
                             className="bg-surface rounded-2xl px-5 py-4 items-center justify-center"
                           >
-                            <Ionicons name="refresh" size={20} color={COLORS.textSecondary} />
+                            <Ionicons
+                              name="refresh"
+                              size={20}
+                              color={COLORS.textSecondary}
+                            />
                           </TouchableOpacity>
                         )}
                       </View>

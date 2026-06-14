@@ -27,11 +27,21 @@ export function SectionHeader({ title, count, accent }: SectionHeaderProps) {
   return (
     <View className="flex-row items-center justify-between mb-4 mt-2 px-4">
       <View className="flex-row items-center gap-2">
-        <View className="w-1.5 h-6 rounded-full" style={{ backgroundColor: accent }} />
-        <Text className="text-lg font-bold text-text-primary tracking-tight">{title}</Text>
+        <View
+          className="w-1.5 h-6 rounded-full"
+          style={{ backgroundColor: accent }}
+        />
+        <Text className="text-lg font-bold text-text-primary tracking-tight">
+          {title}
+        </Text>
       </View>
-      <View className="px-2.5 py-0.5 rounded-full" style={{ backgroundColor: `${accent}20` }}>
-        <Text className="text-xs font-bold" style={{ color: accent }}>{count}</Text>
+      <View
+        className="px-2.5 py-0.5 rounded-full"
+        style={{ backgroundColor: `${accent}20` }}
+      >
+        <Text className="text-xs font-bold" style={{ color: accent }}>
+          {count}
+        </Text>
       </View>
     </View>
   );
@@ -53,12 +63,16 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
       onPress={onPress}
       disabled={checked}
       activeOpacity={0.7}
-      className={`mb-3 rounded-2xl border p-4 flex-row items-center gap-4 ${checked ? "bg-surface/50 border-green-500/20" : "bg-surface border-border"
-        }`}
+      className={`mb-3 rounded-2xl border p-4 flex-row items-center gap-4 ${
+        checked
+          ? "bg-surface/50 border-green-500/20"
+          : "bg-surface border-border"
+      }`}
     >
       <View
-        className={`w-12 h-12 rounded-2xl items-center justify-center ${checked ? "bg-green-500/10" : "bg-primary/10"
-          }`}
+        className={`w-12 h-12 rounded-2xl items-center justify-center ${
+          checked ? "bg-green-500/10" : "bg-primary/10"
+        }`}
       >
         {checked ? (
           <Ionicons name="checkmark-done" size={24} color={COLORS.primary} />
@@ -73,8 +87,9 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
 
       <View className="flex-1">
         <Text
-          className={`text-base font-semibold ${checked ? "text-text-secondary line-through" : "text-text-primary"
-            }`}
+          className={`text-base font-semibold ${
+            checked ? "text-text-secondary line-through" : "text-text-primary"
+          }`}
           numberOfLines={1}
         >
           {ex.name || "Unknown Exercise"}
@@ -96,7 +111,11 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
 
       {!checked && (
         <View className="bg-border/30 rounded-full p-1">
-          <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={COLORS.textSecondary}
+          />
         </View>
       )}
     </TouchableOpacity>
@@ -176,7 +195,11 @@ type CalendarStripProps = {
   onSelectDate: (date: string) => void;
 };
 
-function CalendarStrip({ selectedDate, activeDates, onSelectDate }: CalendarStripProps) {
+function CalendarStrip({
+  selectedDate,
+  activeDates,
+  onSelectDate,
+}: CalendarStripProps) {
   const days = useMemo(() => {
     const today = new Date();
     return Array.from({ length: 30 }, (_, i) => {
@@ -212,8 +235,13 @@ function CalendarStrip({ selectedDate, activeDates, onSelectDate }: CalendarStri
             onPress={() => onSelectDate(item.dateStr)}
             activeOpacity={0.7}
             style={{ width: 52, marginRight: 8 }}
-            className={`items-center py-2 rounded-2xl ${isSelected ? "bg-primary" : isToday ? "bg-primary/10" : "bg-surface"
-              }`}
+            className={`items-center py-2 rounded-2xl ${
+              isSelected
+                ? "bg-primary"
+                : isToday
+                  ? "bg-primary/10"
+                  : "bg-surface"
+            }`}
           >
             <Text
               className="text-xs font-semibold mb-1"
@@ -250,7 +278,12 @@ function CalendarStrip({ selectedDate, activeDates, onSelectDate }: CalendarStri
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function TodayWorkoutScreen() {
-  const { workoutSessions, isExerciseChecked, refreshWorkoutSessions, isLoading } = useWorkout();
+  const {
+    workoutSessions,
+    isExerciseChecked,
+    refreshWorkoutSessions,
+    isLoading,
+  } = useWorkout();
 
   const todayStr = formatLocalDate(new Date());
   const [selectedDate, setSelectedDate] = useState(todayStr);
@@ -271,12 +304,20 @@ export default function TodayWorkoutScreen() {
     return workoutSessions
       .filter((s) => formatLocalDate(new Date(s.session_date)) === selectedDate)
       .flatMap((s) =>
-        s.exercises.map((ex) => ({ ...ex, sessionId: s.id, sessionTitle: s.title }))
+        s.exercises.map((ex) => ({
+          ...ex,
+          sessionId: s.id,
+          sessionTitle: s.title,
+        })),
       );
   }, [workoutSessions, selectedDate]);
 
-  const incomplete = selectedExercises.filter((ex) => !isExerciseChecked(ex.sessionId, ex.id));
-  const completed = selectedExercises.filter((ex) => isExerciseChecked(ex.sessionId, ex.id));
+  const incomplete = selectedExercises.filter(
+    (ex) => !isExerciseChecked(ex.sessionId, ex.id),
+  );
+  const completed = selectedExercises.filter((ex) =>
+    isExerciseChecked(ex.sessionId, ex.id),
+  );
 
   const [detailModal, setDetailModal] = useState<{
     visible: boolean;
@@ -309,13 +350,20 @@ export default function TodayWorkoutScreen() {
         <View className="bg-background pt-4 border-b border-border/40">
           <View className="flex-row items-center justify-between px-4 mb-3">
             <Text className="text-2xl font-bold text-text-primary">
-              {isToday ? "Today's Session" : new Date(selectedDate).toLocaleDateString("en-US", {
-                year: "numeric", month: "long", day: "numeric",
-              })}
+              {isToday
+                ? "Today's Session"
+                : new Date(selectedDate).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
             </Text>
           </View>
 
-          <SessionProgressBar done={completed.length} total={selectedExercises.length} />
+          <SessionProgressBar
+            done={completed.length}
+            total={selectedExercises.length}
+          />
           <CalendarStrip
             selectedDate={selectedDate}
             activeDates={activeDates}
@@ -325,42 +373,78 @@ export default function TodayWorkoutScreen() {
 
         {isLoading && !refreshing ? (
           <View className="items-center justify-center py-16">
-            <Ionicons name="barbell-outline" size={48} color={COLORS.textSecondary} />
-            <Text className="text-text-secondary text-base mt-3 font-medium">Loading workouts...</Text>
+            <Ionicons
+              name="barbell-outline"
+              size={48}
+              color={COLORS.textSecondary}
+            />
+            <Text className="text-text-secondary text-base mt-3 font-medium">
+              Loading workouts...
+            </Text>
           </View>
         ) : selectedExercises.length === 0 ? (
           <View className="items-center justify-center py-16">
-            <Ionicons name="calendar-outline" size={48} color={COLORS.textSecondary} />
-            <Text className="text-text-secondary text-base mt-3 font-medium">No exercises scheduled</Text>
+            <Ionicons
+              name="calendar-outline"
+              size={48}
+              color={COLORS.textSecondary}
+            />
+            <Text className="text-text-secondary text-base mt-3 font-medium">
+              No exercises scheduled
+            </Text>
             <Text className="text-text-secondary/60 text-sm mt-1">
               {isToday ? "Enjoy your rest day!" : "No session for this day."}
             </Text>
           </View>
         ) : (
           <>
-            <SectionHeader title="To Do" count={incomplete.length} accent={COLORS.primary} />
+            <SectionHeader
+              title="To Do"
+              count={incomplete.length}
+              accent={COLORS.primary}
+            />
             <ScrollView
               className="flex-1"
               contentContainerClassName="px-4"
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh}
-                  tintColor={COLORS.primary} colors={[COLORS.primary]} />
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={[COLORS.primary, COLORS.primaryDark]}
+                  tintColor={COLORS.primary}
+                  progressBackgroundColor={"transparent"}
+                />
               }
             >
               {incomplete.length === 0 ? (
                 <View className="items-center py-6">
-                  <Ionicons name="checkmark-circle" size={36} color={COLORS.primary} />
-                  <Text className="text-text-secondary text-sm mt-2">All done for today!</Text>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={36}
+                    color={COLORS.primary}
+                  />
+                  <Text className="text-text-secondary text-sm mt-2">
+                    All done for today!
+                  </Text>
                 </View>
               ) : (
                 incomplete.map((ex) => (
-                  <ExerciseCard key={ex.id} ex={ex} checked={false} onPress={() => openDetail(ex)} />
+                  <ExerciseCard
+                    key={ex.id}
+                    ex={ex}
+                    checked={false}
+                    onPress={() => openDetail(ex)}
+                  />
                 ))
               )}
 
               {completed.length > 0 && (
                 <View className="mt-6 opacity-60">
-                  <SectionHeader title="Completed" count={completed.length} accent={COLORS.success} />
+                  <SectionHeader
+                    title="Completed"
+                    count={completed.length}
+                    accent={COLORS.success}
+                  />
                   {completed.map((ex) => (
                     <ExerciseCard key={ex.id} ex={ex} checked={true} />
                   ))}

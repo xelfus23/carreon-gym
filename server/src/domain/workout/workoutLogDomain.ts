@@ -31,31 +31,29 @@ export type WorkoutLogRow = {
 };
 
 function calculateCalories(
-  durationSeconds: number | null,
-  completedSets: number | null,
-  completedReps: number | null,
-  difficulty: number | null,
-  weightKg: number
+  durationSeconds: number,
+  metValue: number,
+  weightKg: number,
 ): number {
-  let activeSeconds = 0;
+  const calories = (metValue * weightKg * durationSeconds) / 3600;
 
-  if (durationSeconds && durationSeconds > 0) {
-    activeSeconds = durationSeconds;
-  }
-  else if (completedSets && completedSets > 0 && completedReps && completedReps > 0) {
-    const SECONDS_PER_REP = 4;
-    activeSeconds = completedSets * completedReps * SECONDS_PER_REP;
-  }
+  return Math.round(calories);
+}
 
-  if (activeSeconds <= 0) return 0;
+function estimateStrengthDuration(
+  sets: number | null,
+  reps: number | null,
+  restSeconds = 90,
+): number {
+  if (!sets || !reps) return 0;
 
-  let met = 4.5;
-  if (difficulty === 1) met = 3.0;
-  if (difficulty === 3) met = 7.5;
+  const SECONDS_PER_REP = 4;
 
-  const totalBurn = (met * weightKg * activeSeconds) / 3600;
+  const activeTime = sets * reps * SECONDS_PER_REP;
 
-  return totalBurn > 0 && totalBurn < 1 ? 1 : Math.round(totalBurn);
+  const restTime = Math.max(0, sets - 1) * restSeconds;
+
+  return activeTime + restTime;
 }
 
 export async function upsertWorkoutLogDomain(
@@ -77,8 +75,18 @@ export async function upsertWorkoutLogDomain(
     sets: number | null;
     reps: number | null;
     duration_seconds: number | null;
+    rest_seconds: number | null;
+    met_value: number;
+    exercise_type: string;
   }>(
-    `SELECT exercise_name, sets, reps, duration_seconds
+    `SELECT
+        exercise_name,
+        sets,
+        reps,
+        duration_seconds,
+        rest_seconds,
+        met_value,
+        exercise_type
      FROM session_exercises
      WHERE id = $1`,
     [session_exercise_id],
@@ -95,21 +103,31 @@ export async function upsertWorkoutLogDomain(
      WHERE user_id = $1 
      ORDER BY recorded_at DESC 
      LIMIT 1`,
-    [userId]
+    [userId],
   );
 
   const userWeight = metricsRes.rows[0]?.weight_kg
     ? Number(metricsRes.rows[0].weight_kg)
     : 70.0;
 
-  const trackingDuration = duration_seconds ?? exercise.duration_seconds;
+  let trackingDuration = duration_seconds;
+
+  if (!trackingDuration) {
+    if (exercise.exercise_type === "strength") {
+      trackingDuration = estimateStrengthDuration(
+        completed_sets ?? exercise.sets,
+        completed_reps ?? exercise.reps,
+        exercise.rest_seconds ?? 90,
+      );
+    } else {
+      trackingDuration = exercise.duration_seconds ?? 0;
+    }
+  }
 
   const calculatedCalories = calculateCalories(
     trackingDuration,
-    completed_sets,
-    completed_reps,
-    difficulty_rating,
-    userWeight
+    exercise.met_value,
+    userWeight,
   );
 
   const existing = await pool.query<{ id: number }>(
@@ -183,8 +201,9 @@ export async function upsertWorkoutLogDomain(
   return result.rows[0] as WorkoutLogRow;
 }
 
-
-export async function getTodayLogsDomain(userId: number): Promise<WorkoutLogRow[]> {
+export async function getTodayLogsDomain(
+  userId: number,
+): Promise<WorkoutLogRow[]> {
   const result = await pool.query<WorkoutLogRow>(
     `SELECT wl.*, we.workout_session_id
      FROM workout_logs wl
@@ -195,7 +214,6 @@ export async function getTodayLogsDomain(userId: number): Promise<WorkoutLogRow[
   );
   return result.rows;
 }
-
 
 export async function getSessionLogsDomain(
   userId: number,
@@ -212,8 +230,9 @@ export async function getSessionLogsDomain(
   return result.rows;
 }
 
-
-export async function getAllLogsDomain(userId: number): Promise<WorkoutLogRow[]> {
+export async function getAllLogsDomain(
+  userId: number,
+): Promise<WorkoutLogRow[]> {
   const result = await pool.query<WorkoutLogRow>(
     `SELECT wl.*, we.workout_session_id
      FROM workout_logs wl

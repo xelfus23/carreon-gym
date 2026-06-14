@@ -1,6 +1,10 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { WorkoutLog, WorkoutLogPayload, workoutService } from "@/src/services/workout.service";
+import {
+  WorkoutLog,
+  WorkoutLogPayload,
+  workoutService,
+} from "@/src/services/workout.service";
 import type { WorkoutSessionProps } from "@/src/types/workout";
 
 export type LogModalState = {
@@ -27,11 +31,17 @@ export const logKey = (sessionId: number, exerciseId: number) =>
   `${sessionId}-${exerciseId}`;
 
 export function useWorkout() {
-  const [workoutSessions, setWorkoutSessions] = useState<WorkoutSessionProps[]>([]);
+  const [workoutSessions, setWorkoutSessions] = useState<WorkoutSessionProps[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [expandedSession, setExpandedSession] = useState<number | null>(null);
-  const [checkedExercises, setCheckedExercises] = useState<Record<string, WorkoutLog>>({});
-  const [loadingSessions, setLoadingSessions] = useState<Record<number, boolean>>({});
+  const [checkedExercises, setCheckedExercises] = useState<
+    Record<string, WorkoutLog>
+  >({});
+  const [loadingSessions, setLoadingSessions] = useState<
+    Record<number, boolean>
+  >({});
   const [modal, setModal] = useState<LogModalState>(EMPTY_MODAL);
   const [formSets, setFormSets] = useState("");
   const [formReps, setFormReps] = useState("");
@@ -62,12 +72,13 @@ export function useWorkout() {
 
       setWorkoutSessions(sessions);
 
-      console.log("SESSIONS:", sessions)
-      console.log("TODAY LOGS: ", todayLogs)
+      console.log("SESSIONS:", sessions);
+      console.log("TODAY LOGS: ", todayLogs);
 
       const initial: Record<string, WorkoutLog> = {};
       for (const log of todayLogs) {
-        const sessionId = (log as WorkoutLog & { workout_session_id: number }).workout_session_id;
+        const sessionId = (log as WorkoutLog & { workout_session_id: number })
+          .workout_session_id;
         if (sessionId != null)
           initial[logKey(sessionId, log.session_exercise_id)] = log;
       }
@@ -162,7 +173,9 @@ export function useWorkout() {
       const existing = checkedExercises[logKey(sessionId, exerciseId)];
       setFormSets(String(existing?.completed_sets ?? defaultSets ?? ""));
       setFormReps(String(existing?.completed_reps ?? defaultReps ?? ""));
-      setFormDuration(String(existing?.duration_seconds ?? defaultDuration ?? ""));
+      setFormDuration(
+        String(existing?.duration_seconds ?? defaultDuration ?? ""),
+      );
       setFormWeight(String(existing?.weight_used_kg ?? ""));
       setFormDifficulty(String(existing?.difficulty_rating ?? ""));
       setModal({
@@ -234,13 +247,24 @@ export function useWorkout() {
         setIsSaving(false);
       }
     },
-    [modal, formSets, formReps, formDuration, formWeight, formDifficulty, formNotes, closeModal],
+    [
+      modal,
+      formSets,
+      formReps,
+      formDuration,
+      formWeight,
+      formDifficulty,
+      formNotes,
+      closeModal,
+    ],
   );
 
   function calculateStreak(logs: { logged_at: string | Date }[]): number {
     if (!logs || logs.length === 0) return 0;
     const uniqueDates = Array.from(
-      new Set(logs.map((log) => new Date(log.logged_at).toISOString().split("T")[0]))
+      new Set(
+        logs.map((log) => new Date(log.logged_at).toISOString().split("T")[0]),
+      ),
     ).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
     if (!uniqueDates.length) return 0;
@@ -250,7 +274,8 @@ export function useWorkout() {
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-    if (uniqueDates[0] !== todayStr && uniqueDates[0] !== yesterdayStr) return 0;
+    if (uniqueDates[0] !== todayStr && uniqueDates[0] !== yesterdayStr)
+      return 0;
 
     let streak = 0;
     let currentCheckDate = new Date(uniqueDates[0]);
@@ -266,22 +291,44 @@ export function useWorkout() {
   const getTodayStats = useCallback(() => {
     const logs = Object.values(checkedExercises);
     const workoutsCompleted = logs.length;
-    const totalSeconds = logs.reduce((sum, log) => sum + (log.duration_seconds ?? 0), 0);
+    const totalSeconds = logs.reduce(
+      (sum, log) => sum + (log.duration_seconds ?? 0),
+      0,
+    );
     const activeMinutes = Math.round(totalSeconds / 60);
-    const caloriesBurned = logs.reduce((sum, log) => sum + (log.calories_burned ?? 0), 0);
+    const caloriesBurned = logs.reduce(
+      (sum, log) => sum + (log.calories_burned ?? 0),
+      0,
+    );
     const streak = calculateStreak(allLogs);
 
     let streakSubtext = "Keep up the momentum! 🔥";
-    if (streak === 0) streakSubtext = "Start a new workout streak today! Let's go!";
-    else if (streak >= 3 && streak < 7) streakSubtext = "You're building an unstoppable habit! 🚀";
-    else if (streak >= 7) streakSubtext = "Elite consistency! You are an inspiration! 👑";
+    if (streak === 0)
+      streakSubtext = "Start a new workout streak today! Let's go!";
+    else if (streak >= 3 && streak < 7)
+      streakSubtext = "You're building an unstoppable habit! 🚀";
+    else if (streak >= 7)
+      streakSubtext = "Elite consistency! You are an inspiration! 👑";
 
     let activityBadge = "Starting Out";
     let activityColor = "text-text-secondary";
-    if (caloriesBurned > 400 || activeMinutes > 45) { activityBadge = "Beast Mode"; activityColor = "text-accent"; }
-    else if (caloriesBurned > 150 || activeMinutes > 15) { activityBadge = "Solid Session"; activityColor = "text-primary"; }
+    if (caloriesBurned > 400 || activeMinutes > 45) {
+      activityBadge = "Beast Mode";
+      activityColor = "text-accent";
+    } else if (caloriesBurned > 150 || activeMinutes > 15) {
+      activityBadge = "Solid Session";
+      activityColor = "text-primary";
+    }
 
-    return { workoutsCompleted, activeMinutes, caloriesBurned, streak, streakSubtext, activityBadge, activityColor };
+    return {
+      workoutsCompleted,
+      activeMinutes,
+      caloriesBurned,
+      streak,
+      streakSubtext,
+      activityBadge,
+      activityColor,
+    };
   }, [checkedExercises, allLogs]);
 
   return {
@@ -293,11 +340,16 @@ export function useWorkout() {
     modal,
     formNotes,
     setFormNotes,
-    formSets, setFormSets,
-    formReps, setFormReps,
-    formDuration, setFormDuration,
-    formWeight, setFormWeight,
-    formDifficulty, setFormDifficulty,
+    formSets,
+    setFormSets,
+    formReps,
+    setFormReps,
+    formDuration,
+    setFormDuration,
+    formWeight,
+    setFormWeight,
+    formDifficulty,
+    setFormDifficulty,
     isSaving,
     refreshWorkoutSessions,
     fetchSessionLogs,

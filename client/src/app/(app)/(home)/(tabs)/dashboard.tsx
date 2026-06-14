@@ -51,12 +51,9 @@ export default function Dashboard() {
     workoutsThisWeek: todayStats.workoutsCompleted > 0 ? 1 : 0,
     workoutsGoal: 7,
     percentage: Math.min(
-      Math.round(
-        ((todayStats.workoutsCompleted > 0 ? 1 : 0) / 7) * 100,
-      ),
+      Math.round(((todayStats.workoutsCompleted > 0 ? 1 : 0) / 7) * 100),
       100,
-    )
-
+    ),
   };
 
   // 3. Smart Semantic Feedback for Weekly Goals Summary Text
@@ -82,9 +79,9 @@ export default function Dashboard() {
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
-          colors={[COLORS.primary, COLORS.primaryDark]} // Android spinner color
-          tintColor={COLORS.primary} // iOS spinner color
-          progressBackgroundColor={COLORS.background}
+          colors={[COLORS.primary, COLORS.primaryDark]}
+          tintColor={COLORS.primary}
+          progressBackgroundColor={"transparent"}
         />
       }
     >

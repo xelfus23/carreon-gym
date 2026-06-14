@@ -11,7 +11,8 @@ export const tools = [
           title: { type: "string", description: "e.g., 'Push Day', 'Leg Day'" },
           session_date: {
             type: "string",
-            description: "ISO 8601 format: YYYY-MM-DD. If user says 'today', use today's date.",
+            description:
+              "ISO 8601 format: YYYY-MM-DD. If user says 'today', use today's date.",
           },
           difficulty_level: {
             type: "string",
@@ -36,19 +37,38 @@ export const tools = [
         properties: {
           session_id: {
             type: "integer",
-            description: "The ID returned from create_workout_session or get_session_by_date",
+            description:
+              "The ID returned from create_workout_session or get_session_by_date",
           },
           exercise_order: {
             type: "integer",
-            description: "Sequential position in workout starting from 1 (e.g., 1, 2, 3...)",
+            description:
+              "Sequential position in workout starting from 1 (e.g., 1, 2, 3...)",
           },
           exercise_name: {
             type: "string",
-            description: "e.g., 'Dumbbell Bicep Curl', 'Barbell Bench Press'"
+            description: "e.g., 'Dumbbell Bicep Curl', 'Barbell Bench Press'",
+          },
+          exercise_type: {
+            type: "string",
+            enum: [
+              "strength",
+              "cardio",
+              "bodyweight",
+              "flexibility",
+              "isometric",
+            ],
+            description:
+              "Primary exercise category used for calorie estimation and analytics.",
+          },
+          met_value: {
+            type: "number",
+            description: "Exercise MET value used for calorie estimation.",
           },
           equipment_id: {
             type: "integer",
-            description: "The numeric ID from the inventory list provided in the system prompt",
+            description:
+              "The numeric ID from the inventory list provided in the system prompt",
           },
           sets: {
             type: "integer",
@@ -56,11 +76,13 @@ export const tools = [
           },
           reps: {
             type: "integer",
-            description: "Number of reps per set for strength exercises. Leave out or set null for cardio.",
+            description:
+              "Number of reps per set for strength exercises. Leave out or set null for cardio.",
           },
           duration_seconds: {
             type: "integer",
-            description: "Time in seconds for cardio or timed holds. Leave out or set null for strength.",
+            description:
+              "Time in seconds for cardio or timed holds. Leave out or set null for strength.",
           },
           rest_seconds: {
             type: "integer",
@@ -68,14 +90,24 @@ export const tools = [
           },
           weight_guidance: {
             type: "string",
-            description: "Target weight specification in pounds (lbs) or type. E.g., '25 lbs', '40 lbs dumbbells', '135 lbs barbell', or 'Bodyweight'. Do not leave blank if equipment is used.",
+            description:
+              "Target weight specification in pounds (lbs) or type. E.g., '25 lbs', '40 lbs dumbbells', '135 lbs barbell', or 'Bodyweight'. Do not leave blank if equipment is used.",
           },
           description: {
             type: "string",
-            description: "Brief execution details or setup instructions for the user."
-          }
+            description:
+              "Brief execution details or setup instructions for the user.",
+          },
         },
-        required: ["session_id", "exercise_order", "exercise_name", "equipment_id", "sets", "weight_guidance", "description"],
+        required: [
+          "session_id",
+          "exercise_order",
+          "exercise_name",
+          "equipment_id",
+          "sets",
+          "weight_guidance",
+          "description",
+        ],
       },
     },
   },
@@ -83,7 +115,8 @@ export const tools = [
     type: "function",
     function: {
       name: "get_user_workout_sessions",
-      description: "A full list of all the user's workout sessions with their associated exercises.",
+      description:
+        "A full list of all the user's workout sessions with their associated exercises.",
       parameters: { type: "object", properties: {}, required: [] },
     },
   },
@@ -98,7 +131,8 @@ export const tools = [
         properties: {
           session_date: {
             type: "string",
-            description: "ISO 8601 format: YYYY-MM-DD. Resolve 'today', 'tomorrow', 'next Monday' to an actual date before calling.",
+            description:
+              "ISO 8601 format: YYYY-MM-DD. Resolve 'today', 'tomorrow', 'next Monday' to an actual date before calling.",
           },
         },
         required: ["session_date"],
@@ -126,7 +160,8 @@ export const tools = [
           },
           session_id: {
             type: "integer",
-            description: "Required when scope is 'session'. The workout session ID to retrieve logs for.",
+            description:
+              "Required when scope is 'session'. The workout session ID to retrieve logs for.",
           },
         },
         required: ["scope"],
