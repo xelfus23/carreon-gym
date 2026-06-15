@@ -1,6 +1,15 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, ScrollView, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  Dimensions,
+} from "react-native";
 import { useProducts } from "@/src/hooks/useProducts";
+import { getCustomLoader } from "../../components/CustomRefreshControl";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -21,9 +30,12 @@ export default function Store() {
   // Pre-group or map data by category for the swiper
   const productsByCategory = useMemo(() => {
     return categories.map((category) => {
-      const filtered = category === "All"
-        ? products.filter((p) => p.is_active && p.available)
-        : products.filter((p) => p.category === category && p.is_active && p.available);
+      const filtered =
+        category === "All"
+          ? products.filter((p) => p.is_active && p.available)
+          : products.filter(
+              (p) => p.category === category && p.is_active && p.available,
+            );
       return { category, data: filtered };
     });
   }, [products, categories]);
@@ -51,7 +63,11 @@ export default function Store() {
           ref={categoryScrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16, alignItems: "center", gap: 8 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            alignItems: "center",
+            gap: 8,
+          }}
         >
           {categories.map((cat, index) => {
             const isActive = selectedCategory === cat;
@@ -60,7 +76,9 @@ export default function Store() {
                 key={cat}
                 onPress={() => handleCategoryPress(cat, index)}
                 className={`px-4 py-2 rounded-full border ${
-                  isActive ? "bg-primary border-primary" : "bg-surface border-border"
+                  isActive
+                    ? "bg-primary border-primary"
+                    : "bg-surface border-border"
                 }`}
               >
                 <Text
@@ -98,9 +116,11 @@ export default function Store() {
               data={categoryGroup.data}
               keyExtractor={(item, idx) => `${item.id}+${idx}`}
               numColumns={2}
-              refreshing={isLoading === null}
-              onRefresh={refresh}
-              columnWrapperStyle={{ justifyContent: "space-between", paddingHorizontal: 16 }}
+              refreshControl={getCustomLoader(isLoading === null, refresh)}
+              columnWrapperStyle={{
+                justifyContent: "space-between",
+                paddingHorizontal: 16,
+              }}
               contentContainerClassName="pb-4 gap-4"
               renderItem={({ item }) => (
                 <View className="w-[48%] bg-surface border border-border rounded-xl p-3 flex flex-col shadow-sm">
@@ -131,7 +151,10 @@ export default function Store() {
                 </View>
               )}
               ListEmptyComponent={
-                <View className="items-center justify-center py-20" style={{ width: SCREEN_WIDTH - 32 }}>
+                <View
+                  className="items-center justify-center py-20"
+                  style={{ width: SCREEN_WIDTH - 32 }}
+                >
                   <Text className="text-sm text-text-secondary italic">
                     No active store items match this category filter.
                   </Text>

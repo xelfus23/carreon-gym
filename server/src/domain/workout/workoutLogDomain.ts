@@ -81,8 +81,8 @@ export async function upsertWorkoutLogDomain(
   }>(
     `SELECT
         exercise_name,
-        sets,
-        reps,
+        set_count,
+        rep_count,
         duration_seconds,
         rest_seconds,
         met_value,

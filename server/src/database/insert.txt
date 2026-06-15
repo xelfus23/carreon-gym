@@ -134,9 +134,17 @@ INSERT INTO users (first_name, last_name, phone_number, email, hashed_password, 
 ('Jules', 'Winnfield', '555-0110', 'badmother@example.com', 'ezekiel2517', 'member', true)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO user_profiles (user_id, height_cm, gender, birth_date, goal, activity_level)
-SELECT id, 170 + ((id - 100000) % 20), CASE WHEN (id - 100000) % 2 = 0 THEN 'male' ELSE 'female' END, '1990-01-01'::DATE + ((id - 100000) * 10)::INT, 'General fitness', 'moderate'
-FROM users WHERE email LIKE '%@example.com';
+INSERT INTO user_profiles (
+    user_id, 
+    height_cm, 
+    gender, 
+    birth_date, 
+    goal, 
+    activity_level, 
+    experience_level
+)
+SELECT id, 170 + ((id - 100000) % 20), CASE WHEN (id - 100000) % 2 = 0 THEN 'male' ELSE 'female' END, '1990-01-01'::DATE + ((id - 100000) * 10)::INT, 'General fitness', 
+'moderate', CASE (id - 100000) % 3 WHEN 0 THEN 'beginner' WHEN 1 THEN 'intermediate' ELSE 'advanced' END FROM users WHERE email LIKE '%@example.com';
 
 INSERT INTO body_metrics (user_id, weight_kg, body_fat_percent, muscle_mass_kg)
 SELECT id, 70.5 + ((id - 100000) % 30), 15.0 + ((id - 100000) % 10), 30.0 + ((id - 100000) % 5)

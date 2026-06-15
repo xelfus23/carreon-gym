@@ -5,10 +5,12 @@ export const checkUserProfile = (profile: UserProfile) => {
 
   let completed = false;
 
+  console.log(profile);
+
   const userProfile = [
     profile.profile?.heightCm,
     profile.profile?.gender,
-    // profile.profile?.experienceLevel,
+    profile.profile?.experienceLevel,
     profile.profile?.birthDate,
     profile.profile?.goal,
     profile.profile?.activityLevel,

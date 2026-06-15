@@ -41,32 +41,32 @@ export const meDomain = async (params: { userId: number }) => {
 
     profile: userData.height_cm
       ? {
-        heightCm: userData.height_cm,
-        gender: userData.gender,
-        birthDate: userData.birth_date,
-        goal: userData.goal,
-        activityLevel: userData.activity_level,
-        experienceLevel: userData.experience_level,
-      }
+          heightCm: userData.height_cm,
+          gender: userData.gender,
+          birthDate: userData.birth_date,
+          goal: userData.goal,
+          activityLevel: userData.activity_level,
+          experienceLevel: userData.experience_level,
+        }
       : null,
 
     currentStats: latestMetric
       ? {
-        weightKg: parseFloat(latestMetric.weight_kg),
-        bodyFatPercent: parseFloat(latestMetric.body_fat_percent),
-        muscleMassKg: parseFloat(latestMetric.muscle_mass_kg),
-        lastRecorded: latestMetric.recorded_at,
-      }
+          weightKg: parseFloat(latestMetric.weight_kg),
+          bodyFatPercent: parseFloat(latestMetric.body_fat_percent),
+          muscleMassKg: parseFloat(latestMetric.muscle_mass_kg),
+          lastRecorded: latestMetric.recorded_at,
+        }
       : null,
 
     subscription: subscription
       ? {
-        status: subscription.status,
-        planName: subscription.plan_name,
-        startDate: subscription.start_date,
-        expiryDate: subscription.expiry_date,
-        autoRenew: subscription.auto_renew,
-      }
+          status: subscription.status,
+          planName: subscription.plan_name,
+          startDate: subscription.start_date,
+          expiryDate: subscription.expiry_date,
+          autoRenew: subscription.auto_renew,
+        }
       : null,
   };
 };

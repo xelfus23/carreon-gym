@@ -18,7 +18,7 @@ import { useUserProfile } from "@/src/context/profileProvider";
 import CustomLoader from "@/src/app/components/Plans/PlansLoading";
 import WelcomeScreen from "@/src/app/components/ChatWelcome";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-import { RefreshControl } from "react-native-gesture-handler";
+import { getCustomLoader } from "@/src/app/components/CustomRefreshControl";
 
 const PROMPT_SUGGESTIONS = [
   {
@@ -146,15 +146,7 @@ export default function Chats() {
           scrollEnabled={true}
           keyExtractor={(item, index) => JSON.stringify(item.id) + index}
           onScroll={handleScroll}
-          refreshControl={
-            <RefreshControl
-              refreshing={initializing}
-              onRefresh={refreshMessages}
-              colors={[COLORS.primary, COLORS.primaryDark]}
-              tintColor={COLORS.primary}
-              progressBackgroundColor={"transparent"}
-            />
-          }
+          refreshControl={getCustomLoader(initializing, refreshMessages)}
           scrollEventThrottle={16}
           onContentSizeChange={handleContentSizeChange}
           onLayout={handleContentSizeChange}

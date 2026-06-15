@@ -45,7 +45,7 @@ export default function ProfileCompletion() {
     activityLevel: "moderate",
     bodyFatPercent: 10,
     muscleMassKg: 11,
-    experienceLevel: "beginner"
+    experienceLevel: "beginner",
   });
 
   const animatedWidth = useRef(new Animated.Value(0)).current;
@@ -78,7 +78,7 @@ export default function ProfileCompletion() {
       });
 
       await refreshProfile();
-      router.push('/(app)/(home)/(tabs)/dashboard');
+      router.replace("/(app)/(home)/(tabs)/dashboard");
     } catch (error) {
       Alert.alert("Error", "Failed to save profile.");
       console.error(error);

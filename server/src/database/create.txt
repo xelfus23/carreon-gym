@@ -330,7 +330,7 @@ CREATE TABLE session_exercises (
     exercise_order INT NOT NULL,
     exercise_name TEXT NOT NULL,
     exercise_type TEXT NOT NULL,
-    met_value NUMERIC(3, 1) NOT NULL CHECK (met_value > 0.0),
+    met_value REAL NOT NULL CHECK (met_value > 0.0),
     equipment_id BIGINT REFERENCES equipment(id) ON DELETE SET NULL,
     set_count INT CHECK (set_count > 0),
     rep_count INT CHECK (rep_count > 0),
@@ -345,12 +345,12 @@ CREATE TABLE session_exercises (
     CONSTRAINT chk_reps_or_duration
         CHECK (
             (
-                reps IS NOT NULL
+                rep_count IS NOT NULL
                 AND duration_seconds IS NULL
             )
             OR
             (
-                reps IS NULL
+                rep_count IS NULL
                 AND duration_seconds IS NOT NULL
             )
         )

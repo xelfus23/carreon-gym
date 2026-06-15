@@ -50,6 +50,8 @@ export const getSubscriptionPlans = catchAsync(
   async (_req: Request, res: Response) => {
     const plans = await getSubscriptionsDomain();
 
+    console.log(plans);
+
     return res.status(200).json({
       success: true,
       message: "Get subscription plan success.",

@@ -15,20 +15,26 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { formatDate } from "@/src/utils/formatDate";
 import { Ionicons } from "@expo/vector-icons";
+import { getCustomLoader } from "@/src/app/components/CustomRefreshControl";
 
 export default function Dashboard() {
   const { profile, refreshProfile } = useUserProfile();
-  const { workoutSessions, todayStats, refreshWorkoutSessions, isExerciseChecked,
+  const {
+    workoutSessions,
+    todayStats,
+    refreshWorkoutSessions,
+    isExerciseChecked,
   } = useWorkout();
 
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const router = useRouter();
 
-
   const selectedExercises = useMemo(() => {
     return workoutSessions
-      .filter((s) => formatDate(new Date(s.session_date)) === formatDate(new Date()))
+      .filter(
+        (s) => formatDate(new Date(s.session_date)) === formatDate(new Date()),
+      )
       .flatMap((s) =>
         s.exercises.map((ex) => ({
           ...ex,
@@ -37,7 +43,6 @@ export default function Dashboard() {
         })),
       );
   }, [workoutSessions]);
-
 
   if (!profile) return null;
 
@@ -83,10 +88,10 @@ export default function Dashboard() {
     return `You're on track! Only ${weeklyProgress.workoutsGoal - weeklyProgress.workoutsThisWeek} more training slots scheduled this week.`;
   };
 
-  const upcomming = selectedExercises.filter(
-    (ex) => !isExerciseChecked(ex.sessionId, ex.id)
-  )[0] || null;
-
+  const upcomming =
+    selectedExercises.filter(
+      (ex) => !isExerciseChecked(ex.sessionId, ex.id),
+    )[0] || null;
 
   const isStreakHigh = todayStats.streak >= 7;
 
@@ -94,19 +99,12 @@ export default function Dashboard() {
     ? require("@/src/assets/ui/crown-icon.png")
     : require("@/src/assets/ui/fire-icon.png");
 
-
   return (
     <ScrollView
       className="flex-1 bg-background"
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          colors={[COLORS.primary, COLORS.primaryDark]}
-          tintColor={COLORS.primary}
-          progressBackgroundColor={"transparent"}
-        />
-      }
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
+      refreshControl={getCustomLoader(isRefreshing, handleRefresh)}
     >
       {/* Header/Greeting Section */}
       <View className="p-4 pt-6">
@@ -258,7 +256,7 @@ export default function Dashboard() {
         <Text className="text-text-primary text-lg font-bold mb-3">
           Next Workout
         </Text>
-        {upcomming ?
+        {upcomming ? (
           <TouchableOpacity
             className="bg-surface rounded-2xl p-4 border-l-4 border-primary"
             onPress={() => router.navigate("/(app)/(home)/workout-session")}
@@ -269,7 +267,7 @@ export default function Dashboard() {
                   {upcomming.name}
                 </Text>
                 <View className="flex-row gap-4 mt-2">
-                  {upcomming.reps ?
+                  {upcomming.reps ? (
                     <Text className="text-text-secondary text-sm font-inter">
                       <Ionicons
                         name="infinite"
@@ -278,7 +276,7 @@ export default function Dashboard() {
                       />
                       {" " + upcomming.reps} reps
                     </Text>
-                    :
+                  ) : (
                     <Text className="text-text-secondary text-sm font-inter">
                       <Ionicons
                         name="time-outline"
@@ -287,7 +285,7 @@ export default function Dashboard() {
                       />
                       {" " + upcomming.duration_seconds}
                     </Text>
-                  }
+                  )}
                   <Text className="text-text-secondary text-sm font-inter">
                     <Ionicons
                       name="repeat-outline"
@@ -299,13 +297,19 @@ export default function Dashboard() {
                 </View>
               </View>
               <View className="bg-primary rounded-full p-3">
-                <PlayIcon color={COLORS.border} fill={COLORS.surface} size={20} />
+                <PlayIcon
+                  color={COLORS.border}
+                  fill={COLORS.surface}
+                  size={20}
+                />
               </View>
             </View>
           </TouchableOpacity>
-          :
-          <Text className="text-primary font-inter text-center">You done all workout for today!</Text>
-        }
+        ) : (
+          <Text className="text-primary font-inter text-center">
+            You done all workout for today!
+          </Text>
+        )}
       </View>
     </ScrollView>
   );

@@ -20,7 +20,8 @@ export const userQuery = async (userId: number) => {
             p.gender,
             p.birth_date,
             p.goal,
-            p.activity_level
+            p.activity_level,
+            p.experience_level 
         FROM users u
         LEFT JOIN user_profiles p ON u.id = p.user_id
         WHERE u.id = $1`,
@@ -152,7 +153,7 @@ export const updateProfileQuery = async (
     birthDate?: Date;
     goal?: string;
     activityLevel?: string;
-    experienceLevel?: string
+    experienceLevel?: string;
   },
 ) => {
   const keys = Object.keys(updates);
@@ -187,12 +188,7 @@ export const addBodyMetricQuery = async (userId: number, metrics: any) => {
     `INSERT INTO body_metrics (user_id, weight_kg, body_fat_percent, muscle_mass_kg)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
-    [
-      userId,
-      metrics.weightKg,
-      metrics.bodyFatPercent,
-      metrics.muscleMassKg,
-    ],
+    [userId, metrics.weightKg, metrics.bodyFatPercent, metrics.muscleMassKg],
   );
   return res.rows[0];
 };

@@ -38,7 +38,6 @@ export default function PaymentInstructions() {
     planId?: string;
     planName?: string;
     productId?: string;
-    // Serialized CartItemParam[] for multi-product checkout
     items?: string;
   }>();
 
@@ -72,20 +71,6 @@ export default function PaymentInstructions() {
     try {
       setIsSubmitting(true);
 
-      // if (transactionType === "product" && cartItems.length > 0) {
-      //   // Fire one purchase request per cart line item
-      //   for (const ci of cartItems) {
-      //     await createPurchase({
-      //       transactionType: "product",
-      //       productId: ci.productId,
-      //       quantity: ci.quantity,
-      //       method: selectedMethod,
-      //     });
-      //   }
-      // } else {
-
-      // }
-
       await createPurchase({
         transactionType,
         planId: params.planId ? Number(params.planId) : undefined,
@@ -95,8 +80,7 @@ export default function PaymentInstructions() {
         method: selectedMethod,
       });
 
-      // Redirect to purchase history to submit proof
-      router.replace("/(app)/(purchase-history)/purchases")
+      router.replace("/(app)/(purchase-history)/purchases");
     } catch (error) {
       Alert.alert(
         "Order Failed",
@@ -171,8 +155,9 @@ export default function PaymentInstructions() {
                 <TouchableOpacity
                   key={method}
                   onPress={() => setSelectedMethod(method)}
-                  className={`flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-2xl border-2 ${isActive ? activeColor : "border-border bg-surface"
-                    }`}
+                  className={`flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-2xl border-2 ${
+                    isActive ? activeColor : "border-border bg-surface"
+                  }`}
                 >
                   <Ionicons
                     name={icon as any}
@@ -184,8 +169,9 @@ export default function PaymentInstructions() {
                     }
                   />
                   <Text
-                    className={`font-bold text-sm ${isActive ? activeText : "text-text-secondary"
-                      }`}
+                    className={`font-bold text-sm ${
+                      isActive ? activeText : "text-text-secondary"
+                    }`}
                   >
                     {label}
                   </Text>
@@ -195,7 +181,6 @@ export default function PaymentInstructions() {
           </View>
         </View>
 
-        {/* ── GCash Details (conditional) ── */}
         {showGCashDetails && (
           <>
             <View className="bg-surface p-5 rounded-2xl border border-border mb-5 shadow-sm">

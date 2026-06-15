@@ -15,6 +15,7 @@ import {
   FlatList,
 } from "react-native";
 import { formatDate } from "@/src/utils/formatDate";
+import { getCustomLoader } from "@/src/app/components/CustomRefreshControl";
 
 // ─── Section Header ───────────────────────────────────────────────────────────
 
@@ -64,14 +65,16 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
       onPress={onPress}
       disabled={checked}
       activeOpacity={0.7}
-      className={`mb-3 rounded-2xl border p-4 flex-row items-center gap-4 ${checked
-        ? "bg-surface/50 border-green-500/20"
-        : "bg-surface border-border"
-        }`}
+      className={`mb-3 rounded-2xl border p-4 flex-row items-center gap-4 ${
+        checked
+          ? "bg-surface/50 border-green-500/20"
+          : "bg-surface border-border"
+      }`}
     >
       <View
-        className={`w-12 h-12 rounded-2xl items-center justify-center ${checked ? "bg-green-500/10" : "bg-primary/10"
-          }`}
+        className={`w-12 h-12 rounded-2xl items-center justify-center ${
+          checked ? "bg-green-500/10" : "bg-primary/10"
+        }`}
       >
         {checked ? (
           <Ionicons name="checkmark-done" size={24} color={COLORS.primary} />
@@ -86,8 +89,9 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
 
       <View className="flex-1">
         <Text
-          className={`text-base font-semibold ${checked ? "text-text-secondary line-through" : "text-text-primary"
-            }`}
+          className={`text-base font-semibold ${
+            checked ? "text-text-secondary line-through" : "text-text-primary"
+          }`}
           numberOfLines={1}
         >
           {ex.name || "Unknown Exercise"}
@@ -126,10 +130,15 @@ type SessionProgressBarProps = {
   done: number;
   total: number;
   todayDate: string;
-  selectedDate: string
+  selectedDate: string;
 };
 
-function SessionProgressBar({ done, total, todayDate, selectedDate }: SessionProgressBarProps) {
+function SessionProgressBar({
+  done,
+  total,
+  todayDate,
+  selectedDate,
+}: SessionProgressBarProps) {
   const progressAnim = React.useRef(new Animated.Value(0)).current;
   const percent = total > 0 ? done / total : 0;
   const isComplete = total > 0 && done === total;
@@ -155,10 +164,16 @@ function SessionProgressBar({ done, total, todayDate, selectedDate }: SessionPro
       {/* Label row */}
       <View className="flex-row items-center justify-between mb-2">
         <Text className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-          {isComplete ? "Session complete 🎉" : `${todayDate === selectedDate ? "Today's" : formatDate(selectedDate, {
-            month: "short",
-            day: "2-digit"
-          })} Progress`}
+          {isComplete
+            ? "Session complete 🎉"
+            : `${
+                todayDate === selectedDate
+                  ? "Today's"
+                  : formatDate(selectedDate, {
+                      month: "short",
+                      day: "2-digit",
+                    })
+              } Progress`}
         </Text>
         <Text className="text-xs font-bold" style={{ color: barColor }}>
           {done}/{total}
@@ -235,12 +250,13 @@ function CalendarStrip({
           <TouchableOpacity
             onPress={() => onSelectDate(item.dateStr)}
             activeOpacity={0.7}
-            className={`items-center w-16 py-2 rounded-2xl ${isSelected
-              ? "bg-primary-dark"
-              : isToday
-                ? "bg-primary/10"
-                : "bg-surface"
-              }`}
+            className={`items-center w-16 py-2 rounded-2xl ${
+              isSelected
+                ? "bg-primary-dark"
+                : isToday
+                  ? "bg-primary/10"
+                  : "bg-surface"
+            }`}
           >
             <Text
               className="text-xs font-semibold mb-1"
@@ -311,7 +327,7 @@ export default function TodayWorkoutScreen() {
   const incomplete = selectedExercises.filter(
     (ex) => !isExerciseChecked(ex.sessionId, ex.id),
   );
-  
+
   const completed = selectedExercises.filter((ex) =>
     isExerciseChecked(ex.sessionId, ex.id),
   );
@@ -350,10 +366,10 @@ export default function TodayWorkoutScreen() {
               {isToday
                 ? "Today's Session"
                 : new Date(selectedDate).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
             </Text>
           </View>
 
@@ -405,15 +421,10 @@ export default function TodayWorkoutScreen() {
             <ScrollView
               className="flex-1"
               contentContainerClassName="px-4"
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  colors={[COLORS.primary, COLORS.primaryDark]}
-                  tintColor={COLORS.primary}
-                  progressBackgroundColor={"transparent"}
-                />
-              }
+              refreshControl={getCustomLoader(
+                refreshing,
+                refreshWorkoutSessions,
+              )}
             >
               {incomplete.length === 0 ? (
                 <View className="items-center py-6">

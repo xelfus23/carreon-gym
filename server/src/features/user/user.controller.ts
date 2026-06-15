@@ -14,24 +14,23 @@ import {
   updateProfileQuery,
 } from "../../repositories/user.repository.ts";
 
+export const meController = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user?.id;
 
-export const meController = catchAsync(
-  async (req: Request, res: Response) => {
-    const userId = (req as any).user?.id;
+  if (!userId) throw new AppError("Invalid User ID", 401, "INVALID_URSER_ID");
 
-    if (!userId) throw new AppError("Invalid User ID", 401, "INVALID_URSER_ID");
+  const data = await meDomain({ userId });
 
-    const data = await meDomain({ userId });
+  console.log(data);
 
-    return res.status(200).json({
-      success: true,
-      message: "Profile Retrieved",
-      data: {
-        user: mapUserData(data),
-      },
-    });
-  },
-);
+  return res.status(200).json({
+    success: true,
+    message: "Profile Retrieved",
+    data: {
+      user: mapUserData(data),
+    },
+  });
+});
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
   const { firstName, lastName, password, email, phoneNumber } = req.body;
