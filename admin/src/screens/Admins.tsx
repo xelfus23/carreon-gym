@@ -5,7 +5,7 @@ import type {
   ConfirmDialogTypes,
   FormField,
 } from "../types";
-import { Loader2, UserRoundKey } from "lucide-react";
+import { UserRoundKey } from "lucide-react";
 import SubscriptionModal from "../components/SubscriptionModal";
 import AdminRow from "../components/TableRows/AdminRow";
 import CustomHeader from "../components/CustomHeader";
@@ -145,19 +145,6 @@ export default function Admins() {
       setSortDir("asc");
     }
   };
-
-  if (isLoading)
-    return (
-      <div className="flex h-full flex-col items-center justify-center space-y-4">
-        <Loader2
-          size={26}
-          className="animate-spin text-primary stroke-primary"
-        />
-        <p className="text-text-secondary animate-pulse">
-          Loading admin records...
-        </p>
-      </div>
-    );
 
   return (
     <div className="space-y-6">

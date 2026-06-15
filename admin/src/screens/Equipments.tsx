@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useEquipments } from "../hooks/useEquipments";
-import { Dumbbell, Loader2, Layers, Activity } from "lucide-react";
+import { Dumbbell, Layers, Activity } from "lucide-react";
 import CustomTable from "../components/CustomTable";
 import CustomHeader from "../components/CustomHeader";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
@@ -104,13 +104,6 @@ export default function Equipments() {
     setSortKey(key);
     setSortDir("asc");
   };
-
-  if (isLoading) return (
-    <div className="flex h-full flex-col items-center justify-center space-y-4">
-      <Loader2 size={26} className="animate-spin text-primary stroke-primary" />
-      <p className="text-text-secondary animate-pulse">Loading equipment records...</p>
-    </div>
-  );
 
   const select: SelectProps[] = activeTab === "general" ? [
     {

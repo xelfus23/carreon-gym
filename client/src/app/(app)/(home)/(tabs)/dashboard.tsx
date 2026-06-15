@@ -306,9 +306,11 @@ export default function Dashboard() {
             </View>
           </TouchableOpacity>
         ) : (
-          <Text className="text-primary font-inter text-center">
-            You done all workout for today!
-          </Text>
+          <View className="items-center justify-center">
+            <Text className="text-text-secondary font-inter text-center border border-border rounded-xl py-3 px-4 w-fit">
+              You don&apos;t have upcomming workout today!
+            </Text>
+          </View>
         )}
       </View>
     </ScrollView>

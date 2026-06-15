@@ -12,7 +12,6 @@ import {
   Activity,
   Timer,
   AlertTriangle,
-  Loader2,
 } from "lucide-react";
 import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
@@ -138,19 +137,6 @@ export default function Attendance() {
     },
   ];
 
-  if (isLoading)
-    return (
-      <div className="flex h-full flex-col items-center justify-center space-y-4">
-        <Loader2
-          size={26}
-          className="animate-spin text-primary stroke-primary"
-        />
-        <p className="text-text-secondary animate-pulse">
-          Loading attendance log records...
-        </p>
-      </div>
-    );
-
   return (
     <div className="space-y-4">
       <CustomHeader
@@ -242,7 +228,6 @@ export default function Attendance() {
             setPage(1);
           }}
         />
-
         <CustomTable<AttendanceLogProps>
           columns={[
             { label: "Date", key: "check_in_time" },

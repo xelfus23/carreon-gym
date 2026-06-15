@@ -128,7 +128,7 @@ export default function Chats() {
       style={{ flex: 1 }}
       behavior="padding"
       keyboardVerticalOffset={100} // adjust based on your header height
-      className="bg-background"
+      className="bg-background relative"
     >
       {reminderOpen && (
         <SubscriptionReminder
@@ -201,11 +201,11 @@ export default function Chats() {
         </TouchableOpacity>
       )}
 
-      <View className="flex-row gap-2 p-4 items-center bg-background border-t border-border">
+      <View className="flex-row gap-2 p-4">
         <TextInput
           value={text}
           onChangeText={setText}
-          className="flex-1 text-lg bg-surface rounded-xl text-white px-4 py-3 min-h-[50px] max-h-[100px] font-inter"
+          className="flex-1 text-lg bg-background border border-border rounded-xl text-white px-4 py-3 min-h-[50px] max-h-[100px] font-inter"
           placeholder="Message..."
           placeholderTextColor={COLORS.textSecondary}
           returnKeyType="send"
@@ -215,7 +215,7 @@ export default function Chats() {
         <TouchableOpacity
           onPress={handleSend}
           disabled={loading}
-          className={`p-3 ${loading || !text.trim() ? "bg-surface opacity-50" : "bg-primary"} rounded-full self-end justify-center`}
+          className={`p-3 ${loading || !text.trim() ? "bg-surface opacity-50" : "bg-primary-dark"} rounded-full self-end justify-center`}
         >
           <Send color="white" size={24} />
         </TouchableOpacity>

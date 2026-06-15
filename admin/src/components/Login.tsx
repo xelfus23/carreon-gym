@@ -24,8 +24,8 @@ const Login: React.FC = () => {
             Gym Management Portal
           </p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-2">
+          <div className="space-y-1">
             <p className="text-text-primary min-w-xs">Email Address</p>
             <input
               type="email"
@@ -37,7 +37,7 @@ const Login: React.FC = () => {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <p className="text-text-primary min-w-xs">Password</p>
             <input
               type="password"
@@ -55,7 +55,7 @@ const Login: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="text-text-primary flex items-center justify-center bg-primary-dark w-full py-2 cursor-pointer hover:bg-primary hover:text-surface font-bold"
+            className="text-text-primary flex items-center rounded-lg justify-center bg-primary-dark w-full py-2 cursor-pointer hover:bg-primary hover:text-surface font-bold"
           >
             {isLoading ? (
               <Loader2 className="animate-spin stroke-surface" />

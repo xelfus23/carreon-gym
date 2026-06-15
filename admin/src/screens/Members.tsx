@@ -7,7 +7,7 @@ import type {
 } from "../types";
 import MemberRow from "../components/TableRows/MemberRow";
 import SubscriptionModal from "../components/SubscriptionModal";
-import { CircleAlert, CircleCheck, Loader2, Star, Users } from "lucide-react";
+import { CircleAlert, CircleCheck, Star, Users } from "lucide-react";
 import CustomTable from "../components/CustomTable";
 import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
@@ -213,18 +213,6 @@ export default function Members() {
     setIsAddModalOpen((v) => !v);
   };
 
-  if (isLoading)
-    return (
-      <div className="flex h-full flex-col items-center justify-center space-y-4">
-        <Loader2
-          size={26}
-          className="animate-spin text-primary stroke-primary"
-        />
-        <p className="text-text-secondary animate-pulse">
-          Loading member records...
-        </p>
-      </div>
-    );
 
   const cards = [
     {

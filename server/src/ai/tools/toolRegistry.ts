@@ -68,7 +68,7 @@ export const tools = [
           equipment_id: {
             type: "integer",
             description:
-              "The numeric ID from the inventory list provided in the system prompt",
+              "The numeric ID from the inventory list provided in the system prompt. Set to null if the request is a home exercise or bodyweight workout.",
           },
           set_count: {
             type: "integer",
@@ -105,7 +105,6 @@ export const tools = [
           "exercise_name",
           "exercise_type",
           "met_value",
-          "equipment_id",
           "set_count",
           "weight_guidance",
           "description",
@@ -170,6 +169,7 @@ export const tools = [
       },
     },
   },
+
 ];
 
 export const TOOL_NAMES = tools.map((t) => t.function.name);

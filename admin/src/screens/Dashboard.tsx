@@ -110,7 +110,7 @@ export default function Dashboard() {
             statsLoading
               ? "Loading..."
               : stats?.peak_hour_today !== null &&
-                  stats?.peak_hour_today !== undefined
+                stats?.peak_hour_today !== undefined
                 ? `Peak today: ${formatHour(stats.peak_hour_today)}`
                 : "Live gym occupancy"
           }
@@ -159,7 +159,7 @@ export default function Dashboard() {
               minHeight: 0,
             }}
           >
-            {statsLoading ? (
+            {!statsLoading ? (
               <ChartSkeleton />
             ) : chartData.length === 0 ? (
               <NoDataState message="No attendance data yet" />
@@ -286,8 +286,7 @@ export default function Dashboard() {
               minHeight: 0,
             }}
           >
-            {" "}
-            {statsLoading ? (
+            {!statsLoading ? (
               <ChartSkeleton />
             ) : chartData.length === 0 ? (
               <NoDataState message="No revenue data yet" />
@@ -374,7 +373,7 @@ export default function Dashboard() {
               minHeight: 0,
             }}
           >
-            {statsLoading ? (
+            {!statsLoading ? (
               <ChartSkeleton />
             ) : peakHourData.length === 0 ? (
               <NoDataState message="No check-in data yet" />
@@ -510,9 +509,8 @@ const StatCard: React.FC<{
     <div className="bg-surface p-6 border border-border shadow-sm">
       <p className="text-sm font-medium text-text-secondary mb-1">{title}</p>
       <h2
-        className={`text-3xl font-black text-text-primary mb-3 transition-opacity ${
-          loading ? "opacity-30 animate-pulse" : "opacity-100"
-        }`}
+        className={`text-3xl font-black text-text-primary mb-3 transition-opacity ${loading ? "opacity-30 animate-pulse" : "opacity-100"
+          }`}
       >
         {value}
       </h2>
@@ -536,25 +534,23 @@ const MetricTile: React.FC<{
   positive?: boolean;
 }> = ({ label, value, icon, loading, alert, positive }) => (
   <div
-    className={`bg-surface p-5 border shadow-sm flex items-center gap-4 ${
-      alert ? "border-amber-500/40" : "border-border"
-    }`}
+    className={`bg-surface p-5 border shadow-sm flex items-center gap-4 ${alert ? "border-amber-500/40" : "border-border"
+      }`}
   >
     <span className="text-2xl">{icon}</span>
     <div>
       <p className="text-xs text-text-secondary font-medium">{label}</p>
       <p
-        className={`text-xl font-black mt-0.5 transition-opacity ${
-          loading
-            ? "opacity-30 animate-pulse text-text-primary"
-            : positive === undefined
-              ? alert
-                ? "text-amber-400"
-                : "text-text-primary"
-              : positive
-                ? "text-emerald-400"
-                : "text-rose-400"
-        }`}
+        className={`text-xl font-black mt-0.5 transition-opacity ${loading
+          ? "opacity-30 animate-pulse text-text-primary"
+          : positive === undefined
+            ? alert
+              ? "text-amber-400"
+              : "text-text-primary"
+            : positive
+              ? "text-emerald-400"
+              : "text-rose-400"
+          }`}
       >
         {value}
       </p>

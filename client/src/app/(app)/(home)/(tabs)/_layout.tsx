@@ -23,9 +23,9 @@ export function MyTabBar({
   return (
     <SafeAreaView
       edges={["bottom"]}
-      className="bg-background pb-2 border border-border"
+      className="bg-background pb-2 border-t  border-border"
     >
-      <View className="flex-row  self-center w-[92%]">
+      <View className="flex-row items-center">
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;

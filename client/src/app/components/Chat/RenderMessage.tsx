@@ -14,12 +14,9 @@ const isCompletedStatus = (status: string) =>
 export default function renderMessageItem({ item }: { item: ChatMessage }) {
   const isUser = item.role === "user";
   const content = item.content || "";
-  const statusHistory = item.aiStatusHistory ?? [];
-  const currentStatus = item.aiStatus;
-  const statusLines = currentStatus
-    ? [...statusHistory, currentStatus]
-    : statusHistory;
-  const showStatus = !isUser && statusLines.length > 0;
+  const status = item.aiStatus;
+  const showStatus = !isUser && !!status;
+  const isDone = isCompletedStatus(status ?? "");
 
   return (
     <View className={`mb-4 ${isUser ? "items-end" : "items-start"} px-4`}>
@@ -29,35 +26,22 @@ export default function renderMessageItem({ item }: { item: ChatMessage }) {
         }
       >
         {showStatus && (
-          <View className="gap-1.5 opacity-80 mb-2">
-            {statusLines.map((status, index) => {
-              const isLast = index === statusLines.length - 1;
-              const isDone =
-                !isLast || isCompletedStatus(status) || content.length > 0;
-
-              return (
-                <View
-                  key={`${status}-${index}`}
-                  className="flex-row items-center gap-2"
-                >
-                  {isDone ? (
-                    <Check size={14} color={COLORS.primary} />
-                  ) : (
-                    <Image
-                      source={require("../../../assets/ui/star-icon.png")}
-                      resizeMode="contain"
-                      className="w-3.5 h-3.5 animate-spin"
-                      style={{ tintColor: COLORS.primary }}
-                    />
-                  )}
-                  <Text
-                    className={`text-text-secondary text-xs font-interMedium ${isDone ? "" : "animate-pulse"}`}
-                  >
-                    {status}
-                  </Text>
-                </View>
-              );
-            })}
+          <View className="flex-row items-center gap-2 opacity-80 mb-2">
+            {isDone ? (
+              <Check size={14} color={COLORS.primary} />
+            ) : (
+              <Image
+                source={require("../../../assets/ui/star-icon.png")}
+                resizeMode="contain"
+                className="w-3.5 h-3.5 animate-spin"
+                style={{ tintColor: COLORS.primary }}
+              />
+            )}
+            <Text
+              className={`text-text-secondary text-xs font-interMedium ${isDone ? "" : "animate-pulse"}`}
+            >
+              {status}
+            </Text>
           </View>
         )}
 
