@@ -94,9 +94,11 @@ export type EquipmentProps = {
   type: string;
   equipment_name: string;
   category: string;
-  target_muscles: string;
+  target_muscles?: string;
   description?: string;
   quantity?: number;
+  weight_lb?: number | null;
+  is_available?: boolean;
 };
 
 export type gymDetailsProps = {

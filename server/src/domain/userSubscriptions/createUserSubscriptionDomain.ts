@@ -52,43 +52,48 @@ export const createUserSubscriptionDomain = async (
     const finalDurationDays: number =
       options.durationOverride ?? plan.duration_days;
 
-    // const expiryDate = new Date();
-    // expiryDate.setDate(expiryDate.getDate() + finalDurationDays);
-
-    const existingSub = await client.query(
-      `SELECT expiry_date FROM subscriptions WHERE user_id = $1`,
+    // 3. Apply/extend subscription.
+    // Schema: only enforces uniqueness for active subscriptions; do NOT rely on ON CONFLICT(user_id).
+    const now = new Date();
+    const activeSub = await client.query(
+      `SELECT id, expiry_date
+         FROM subscriptions
+        WHERE user_id = $1 AND status = 'active'
+        ORDER BY created_at DESC
+        LIMIT 1`,
       [userId],
     );
 
-    let baseDate = new Date();
-    const now = new Date();
+    let subscription: any;
+    if (activeSub.rows.length > 0) {
+      const currentExpiry = new Date(activeSub.rows[0].expiry_date);
+      const base = currentExpiry > now ? currentExpiry : now;
+      const newExpiry = new Date(base);
+      newExpiry.setDate(newExpiry.getDate() + finalDurationDays);
 
-    if (existingSub.rows.length > 0) {
-      const currentExpiry = new Date(existingSub.rows[0].expiry_date);
-      if (currentExpiry > now) {
-        baseDate = currentExpiry;
-      }
+      const updated = await client.query(
+        `UPDATE subscriptions
+            SET plan_id = $2,
+                plan_name = $3,
+                expiry_date = $4,
+                updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+          RETURNING *`,
+        [activeSub.rows[0].id, planId, plan.name, newExpiry],
+      );
+      subscription = updated.rows[0];
+    } else {
+      const newExpiry = new Date(now);
+      newExpiry.setDate(newExpiry.getDate() + finalDurationDays);
+
+      const inserted = await client.query(
+        `INSERT INTO subscriptions (user_id, plan_id, plan_name, status, start_date, expiry_date)
+         VALUES ($1, $2, $3, 'active', CURRENT_TIMESTAMP, $4)
+         RETURNING *`,
+        [userId, planId, plan.name, newExpiry],
+      );
+      subscription = inserted.rows[0];
     }
-
-    baseDate.setDate(baseDate.getDate() + finalDurationDays);
-
-    // 3. Upsert subscription
-    const subResult = await client.query(
-      `INSERT INTO subscriptions (user_id, plan_id, plan_name, status, start_date, expiry_date)
-           VALUES ($1, $2, $3, 'active', CURRENT_TIMESTAMP, $4)
-           ON CONFLICT (user_id)
-           DO UPDATE SET
-               plan_id    = $2,
-               plan_name  = $3,
-               status     = 'active',
-               start_date = CURRENT_TIMESTAMP,
-               expiry_date = $4,
-               updated_at  = CURRENT_TIMESTAMP
-           RETURNING *`,
-      [userId, planId, plan.name, baseDate],
-    );
-
-    const subscription = subResult.rows[0];
 
     const paymentResult = await client.query(
       `INSERT INTO payments

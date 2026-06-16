@@ -1,13 +1,10 @@
 import { COLORS } from "@/src/consts/colors";
-import ExerciseDetailModal, {
-  type ExerciseDetail,
-} from "@/src/app/components/Plans/ExerciseDetailModal";
+import ExerciseDetailModal from "@/src/app/components/Plans/ExerciseDetailModal";
 import { useWorkout } from "@/src/hooks/useWorkout";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useState, useMemo } from "react";
 import {
   Animated,
-  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -16,6 +13,7 @@ import {
 } from "react-native";
 import { formatDate } from "@/src/utils/formatDate";
 import { getCustomLoader } from "@/src/app/components/CustomRefreshControl";
+import { SessionExerciseProps } from "@/src/types/workout";
 
 // ─── Section Header ───────────────────────────────────────────────────────────
 
@@ -52,29 +50,27 @@ export function SectionHeader({ title, count, accent }: SectionHeaderProps) {
 // ─── Exercise Card ────────────────────────────────────────────────────────────
 
 type ExerciseCardProps = {
-  ex: any;
+  ex: SessionExerciseProps;
   checked: boolean;
   onPress?: () => void;
 };
 
 export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
-  const isTimed = ex.duration_seconds != null && ex.reps == null;
+  const isTimed = ex.duration_seconds != null && ex.rep_count == null;
 
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={checked}
       activeOpacity={0.7}
-      className={`mb-3 rounded-2xl border p-4 flex-row items-center gap-4 ${
-        checked
-          ? "bg-surface/50 border-green-500/20"
-          : "bg-surface border-border"
-      }`}
+      className={`mb-3 rounded-2xl border p-4 flex-row items-center gap-4 ${checked
+        ? "bg-surface/50 border-green-500/20"
+        : "bg-surface border-border"
+        }`}
     >
       <View
-        className={`w-12 h-12 rounded-2xl items-center justify-center ${
-          checked ? "bg-green-500/10" : "bg-primary/10"
-        }`}
+        className={`w-12 h-12 rounded-2xl items-center justify-center ${checked ? "bg-green-500/10" : "bg-primary/10"
+          }`}
       >
         {checked ? (
           <Ionicons name="checkmark-done" size={24} color={COLORS.primary} />
@@ -89,18 +85,17 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
 
       <View className="flex-1">
         <Text
-          className={`text-base font-semibold ${
-            checked ? "text-text-secondary line-through" : "text-text-primary"
-          }`}
+          className={`text-base font-semibold ${checked ? "text-text-secondary line-through" : "text-text-primary"
+            }`}
           numberOfLines={1}
         >
-          {ex.name || "Unknown Exercise"}
+          {ex.exercise_name || "Unknown Exercise"}
         </Text>
         <View className="flex-row items-center gap-2 mt-1">
           <Text className="text-text-secondary text-xs font-medium">
             {isTimed
               ? `${ex.duration_seconds}s`
-              : `${ex.sets ?? 0} sets × ${ex.reps ?? 0} reps`}
+              : `${ex.set_count ?? 0} sets × ${ex.rep_count ?? 0} reps`}
           </Text>
           <View className="w-1 h-1 rounded-full bg-text-secondary/30" />
           <Text className="text-text-secondary text-xs" numberOfLines={1}>
@@ -166,14 +161,13 @@ function SessionProgressBar({
         <Text className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
           {isComplete
             ? "Session complete 🎉"
-            : `${
-                todayDate === selectedDate
-                  ? "Today's"
-                  : formatDate(selectedDate, {
-                      month: "short",
-                      day: "2-digit",
-                    })
-              } Progress`}
+            : `${todayDate === selectedDate
+              ? "Today's"
+              : formatDate(selectedDate, {
+                month: "short",
+                day: "2-digit",
+              })
+            } Progress`}
         </Text>
         <Text className="text-xs font-bold" style={{ color: barColor }}>
           {done}/{total}
@@ -250,13 +244,12 @@ function CalendarStrip({
           <TouchableOpacity
             onPress={() => onSelectDate(item.dateStr)}
             activeOpacity={0.7}
-            className={`items-center w-16 py-2 rounded-2xl ${
-              isSelected
-                ? "bg-primary-dark"
-                : isToday
-                  ? "bg-primary/10"
-                  : "bg-surface"
-            }`}
+            className={`items-center w-16 py-2 rounded-2xl ${isSelected
+              ? "bg-primary-dark"
+              : isToday
+                ? "bg-primary/10"
+                : "bg-surface"
+              }`}
           >
             <Text
               className="text-xs font-semibold mb-1"
@@ -325,16 +318,16 @@ export default function TodayWorkoutScreen() {
   }, [workoutSessions, selectedDate]);
 
   const incomplete = selectedExercises.filter(
-    (ex) => !isExerciseChecked(ex.sessionId, ex.id),
+    (ex) => !isExerciseChecked(ex.sessionId, ex.exercise_id),
   );
 
   const completed = selectedExercises.filter((ex) =>
-    isExerciseChecked(ex.sessionId, ex.id),
+    isExerciseChecked(ex.sessionId, ex.exercise_id),
   );
 
   const [detailModal, setDetailModal] = useState<{
     visible: boolean;
-    exercise: ExerciseDetail | null;
+    exercise: SessionExerciseProps | null;
     sessionId: number | null;
   }>({ visible: false, exercise: null, sessionId: null });
 
@@ -366,10 +359,10 @@ export default function TodayWorkoutScreen() {
               {isToday
                 ? "Today's Session"
                 : new Date(selectedDate).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
             </Text>
           </View>
 
@@ -440,7 +433,7 @@ export default function TodayWorkoutScreen() {
               ) : (
                 incomplete.map((ex) => (
                   <ExerciseCard
-                    key={ex.id}
+                    key={ex.exercise_id}
                     ex={ex}
                     checked={false}
                     onPress={() => openDetail(ex)}
@@ -456,7 +449,7 @@ export default function TodayWorkoutScreen() {
                     accent={COLORS.success}
                   />
                   {completed.map((ex) => (
-                    <ExerciseCard key={ex.id} ex={ex} checked={true} />
+                    <ExerciseCard key={ex.exercise_id} ex={ex} checked={true} />
                   ))}
                 </View>
               )}

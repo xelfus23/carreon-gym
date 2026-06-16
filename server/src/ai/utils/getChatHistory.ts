@@ -9,6 +9,8 @@ export const getChatHistory = async (
 ): Promise<any[]> => {
 
   const systemPrompt = await buildSystemPrompt(userId);
+  console.log("INSTRUCTIONS: ", systemPrompt)
+  
   const result = await chatQuery(sessionId);
   return await formatChatHistory([...result.rows, newMsg], systemPrompt);
 };

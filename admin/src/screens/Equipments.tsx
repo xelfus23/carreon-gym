@@ -18,6 +18,20 @@ const EQUIPMENT_FIELDS: FormField[] = [
   { name: "icon_url", label: "Equipment Image", type: "image", placeholder: "", gridSpan: "full" },
   { name: "equipment_name", label: "Equipment Name", type: "text", placeholder: "e.g., Olympic Barbell", required: true, gridSpan: "full" },
   {
+    name: "type",
+    label: "Equipment Type",
+    type: "select",
+    required: true,
+    options: [
+      { label: "Machine", value: "machine" },
+      { label: "Accessory", value: "accessory" },
+      { label: "Cardio", value: "cardio" },
+      { label: "Dumbbell", value: "dumbbell" },
+      { label: "Barbell", value: "barbell" },
+      { label: "Plate", value: "plate" },
+    ],
+  },
+  {
     name: "category", label: "Category", type: "select", required: true,
     options: [
       { label: "Free Weights", value: "Free Weight" },
@@ -28,6 +42,7 @@ const EQUIPMENT_FIELDS: FormField[] = [
   },
   { name: "quantity", label: "Quantity", type: "number", placeholder: "Enter quantity", required: true },
   { name: "weight_lb", label: "Weight In Lbs (Optional for Dumbbells)", type: "number", placeholder: "e.g., 50" },
+  { name: "is_available", label: "In Service / Available", type: "checkbox" },
 ];
 
 export default function Equipments() {
@@ -189,7 +204,7 @@ export default function Equipments() {
               onSort={handleSort}
               columns={[
                 { label: "ID", key: "id", sortable: true },
-                { label: "Icon", key: "icon_url" },
+                // { label: "Icon", key: "icon_url" },
                 { label: "Equipment Name", key: "equipment_name", sortable: true },
                 { label: "Category", key: "category", sortable: true },
                 { label: "Qty", key: "quantity", sortable: true },

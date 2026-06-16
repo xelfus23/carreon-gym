@@ -55,7 +55,9 @@ export const createUserSubscription = catchAsync(
 
     if (
       method &&
-      !["cash", "gcash", "bank_transfer"].includes(method.toLowerCase())
+      !["cash", "gcash", "maya", "bank_transfer", "card", "other"].includes(
+        method.toLowerCase(),
+      )
     ) {
       return res
         .status(400)

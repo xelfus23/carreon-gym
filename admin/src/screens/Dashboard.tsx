@@ -159,7 +159,7 @@ export default function Dashboard() {
               minHeight: 0,
             }}
           >
-            {!statsLoading ? (
+            {statsLoading ? (
               <ChartSkeleton />
             ) : chartData.length === 0 ? (
               <NoDataState message="No attendance data yet" />
@@ -286,7 +286,7 @@ export default function Dashboard() {
               minHeight: 0,
             }}
           >
-            {!statsLoading ? (
+            {statsLoading ? (
               <ChartSkeleton />
             ) : chartData.length === 0 ? (
               <NoDataState message="No revenue data yet" />
@@ -373,7 +373,7 @@ export default function Dashboard() {
               minHeight: 0,
             }}
           >
-            {!statsLoading ? (
+            {statsLoading ? (
               <ChartSkeleton />
             ) : peakHourData.length === 0 ? (
               <NoDataState message="No check-in data yet" />

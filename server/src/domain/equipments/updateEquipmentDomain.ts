@@ -7,6 +7,9 @@ interface EquipmentProps {
   target_muscles: string;
   quantity?: number;
   icon_url?: string;
+  type?: string;
+  weight_lb?: number | null;
+  is_available?: boolean;
 }
 
 export const updateEquipmentDomain = async (
@@ -17,13 +20,37 @@ export const updateEquipmentDomain = async (
   if (params.equipment_name !== undefined) payload.name = params.equipment_name;
   if (params.icon_url !== undefined) payload.icon_url = params.icon_url;
   if (params.quantity !== undefined) payload.quantity = params.quantity;
+  if (params.type !== undefined) payload.equipment_type = params.type;
+  if (params.weight_lb !== undefined) payload.weight_lb = params.weight_lb;
+  if (params.is_available !== undefined) payload.is_available = params.is_available;
 
   const entries = Object.entries(payload);
 
+  // Category needs a subquery update (category_id), since admin sends the category name
+  if (params.category !== undefined) {
+    entries.push([
+      "category_id",
+      {
+        __raw: true,
+        value: params.category,
+      },
+    ]);
+  }
+
   if (entries.length === 0) return { success: true };
 
-  const updates = entries.map(([key], idx) => `${key} = $${idx + 1}`);
-  const values = entries.map(([_, value]) => value);
+  const updates: string[] = [];
+  const values: any[] = [];
+
+  for (const [key, value] of entries) {
+    if (value && typeof value === "object" && value.__raw) {
+      values.push(value.value);
+      updates.push(`${key} = (SELECT id FROM equipment_category WHERE name = $${values.length})`);
+    } else {
+      values.push(value);
+      updates.push(`${key} = $${values.length}`);
+    }
+  }
 
   values.push(id);
   const idPlaceholder = `$${values.length}`;

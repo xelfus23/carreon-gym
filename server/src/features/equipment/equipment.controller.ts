@@ -31,7 +31,7 @@ export const updateEquipment = catchAsync(
     async (req: Request, res: Response) => {
         const { id } = req.params;
 
-        const data = await updateEquipmentDomain(id as string, req.body);
+        const data = await updateEquipmentDomain(Number(id), req.body);
 
         return res.status(200).json({
             success: true,

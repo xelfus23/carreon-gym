@@ -32,7 +32,6 @@ export default function EquipmentRow({
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setMenuOpen(false), []);
-  const previewUrl = equipment.icon_url ?? null;
 
   const actions: ActionItemProps[] = [
     {
@@ -59,20 +58,6 @@ export default function EquipmentRow({
     <tr className="transition-colors group hover:bg-border/40">
       <td className="p-4 text-xs text-text-secondary">
         {equipment.id?.toString() || "-"}
-      </td>
-      <td className="p-4">
-        {previewUrl ? (
-          <img
-            src={previewUrl}
-            alt={equipment.equipment_name}
-            className="h-10 w-10 rounded-md object-cover border border-border bg-background"
-            loading="lazy"
-          />
-        ) : (
-          <div className="h-10 w-10 rounded-md border border-border bg-background items-center p-2 justify-center flex">
-            <p className="text-[8px] text-center text-text-secondary">No Image</p>
-          </div>
-        )}
       </td>
       <td className="p-4">
         <div className="flex items-center gap-2.5">

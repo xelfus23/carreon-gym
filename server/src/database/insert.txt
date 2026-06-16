@@ -9,72 +9,64 @@ INSERT INTO equipment_category (name, description) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- ============================================================================
--- 2. GENERATE AND INSERT DUMBBELLS (5LB TO 200LB WITH NUMERIC WEIGHTS)
+-- 2. GENERATE DUMBBELLS (5LB TO 200LB WITH NUMERIC WEIGHTS)
 -- ============================================================================
-INSERT INTO equipment (name, category_id, type, quantity, weight_lb, icon_url)
+INSERT INTO equipment (name, category_id, equipment_type, quantity, weight_lb, icon_url)
 SELECT
     CONCAT(w, 'lb Dumbbell'),
     (SELECT id FROM equipment_category WHERE name = 'Free Weight'),
-    'Dumbbell',
+    'dumbbell',
     2, -- 2 pieces = 1 pair per weight increment
-    w, -- Populates your new weight_lb column accurately!
+    w, 
     ''
 FROM generate_series(5, 200, 5) AS w
-ON CONFLICT (name, category_id, type, weight_lb) DO NOTHING;
+ON CONFLICT (name, category_id, equipment_type, weight_lb) DO NOTHING;
 
 -- ============================================================================
--- 3. INSERT FIXED MACHINES, ACCESSORIES, AND STATIONS (WEIGHT_LB IS NULL)
+-- 3. FIXED MACHINES, ACCESSORIES, CARDIOS, AND UNIFIED BARBELLS
 -- ============================================================================
-INSERT INTO equipment (name, category_id, type, quantity, weight_lb, icon_url) VALUES
+INSERT INTO equipment (name, category_id, equipment_type, quantity, weight_lb, icon_url) VALUES
 -- Accessories
-('Yoga Ball',               (SELECT id FROM equipment_category WHERE name='Accessory'),   'Accessory', 10, NULL, ''),
-('Resistance Bands',        (SELECT id FROM equipment_category WHERE name='Accessory'),   'Accessory', 15, NULL, ''),
+('Yoga Ball',               (SELECT id FROM equipment_category WHERE name='Accessory'),   'accessory', 10, NULL, ''),
+('Resistance Bands',        (SELECT id FROM equipment_category WHERE name='Accessory'),   'accessory', 15, NULL, ''),
 
 -- Machines
-('Bench Press',             (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    3, NULL, ''),
-('Pec Deck',                (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    1, NULL, ''),
-('Incline Press',           (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    1, NULL, ''),
-('Cable Row',               (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    2, NULL, ''),
-('Lat Machine',             (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    2, NULL, ''),
-('Lat Pulldown',            (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    2, NULL, ''),
-('Leg Press',               (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    2, NULL, ''),
-('Smith Machine',           (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    1, NULL, ''),
-('Calf Raise Machine',      (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    1, NULL, ''),
-('Leg Extension Machine',   (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    1, NULL, ''),
-('Leg Curl Machine',        (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    1, NULL, ''),
-('Hack Squat Machine',      (SELECT id FROM equipment_category WHERE name='Machine'),     'Machine',    1, NULL, ''),
-('Barbell Squat Rack',      (SELECT id FROM equipment_category WHERE name='Free Weight'), 'Station',    2, NULL, ''),
+('Bench Press',             (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    3, NULL, ''),
+('Pec Deck',                (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    1, NULL, ''),
+('Incline Press',           (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    1, NULL, ''),
+('Cable Row',               (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    2, NULL, ''),
+('Lat Machine',             (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    2, NULL, ''),
+('Lat Pulldown',            (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    2, NULL, ''),
+('Leg Press',               (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    2, NULL, ''),
+('Smith Machine',           (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    1, NULL, ''),
+('Calf Raise Machine',      (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    1, NULL, ''),
+('Leg Extension Machine',   (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    1, NULL, ''),
+('Leg Curl Machine',        (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    1, NULL, ''),
+('Hack Squat Machine',      (SELECT id FROM equipment_category WHERE name='Machine'),     'machine',    1, NULL, ''),
 
--- Arm Bars (General manual weights where weight value isn't explicitly segmented)
-('Arm Bars',                (SELECT id FROM equipment_category WHERE name='Free Weight'), 'Free Weight', 2, NULL, ''),
+-- Stations
+('Barbell Squat Rack',      (SELECT id FROM equipment_category WHERE name='Free Weight'), 'machine',    2, NULL, ''),
+('Arm Bars',                (SELECT id FROM equipment_category WHERE name='Free Weight'), 'accessory',  2, NULL, ''),
 
 -- Cardio Suite
-('Cardio Bike',             (SELECT id FROM equipment_category WHERE name='Cardio'),      'Cardio',     10, NULL, ''),
-('Treadmill',               (SELECT id FROM equipment_category WHERE name='Cardio'),      'Cardio',      8, NULL, '')
-ON CONFLICT (name, category_id, type, weight_lb) DO NOTHING;
+('Cardio Bike',             (SELECT id FROM equipment_category WHERE name='Cardio'),      'cardio',     10, NULL, ''),
+('Treadmill',               (SELECT id FROM equipment_category WHERE name='Cardio'),      'cardio',      8, NULL, ''),
 
--- ============================================================================
--- 4. INSERT BARBELL SHAFT HOUSING COMPONENTS
--- ============================================================================
-INSERT INTO barbell_rods (name, quantity) VALUES
-('Barbell Rod (Stainless)', 2),
-('Barbell Rod (Normal)',    3),
-('Curve Barbell Rod',       2),
-('Olympic Barbell Rod',     1),
-('Deadlift Barbell Rod',    1)
-ON CONFLICT (name) DO NOTHING;
+-- Barbells & Rods (Migrated cleanly into unified Equipment structure)
+('Barbell Rod (Stainless)', (SELECT id FROM equipment_category WHERE name='Free Weight'), 'barbell',    2, NULL, ''),
+('Barbell Rod (Normal)',    (SELECT id FROM equipment_category WHERE name='Free Weight'), 'barbell',    3, NULL, ''),
+('Curve Barbell Rod',       (SELECT id FROM equipment_category WHERE name='Free Weight'), 'barbell',    2, NULL, ''),
+('Olympic Barbell Rod',     (SELECT id FROM equipment_category WHERE name='Free Weight'), 'barbell',    1, NULL, ''),
+('Deadlift Barbell Rod',    (SELECT id FROM equipment_category WHERE name='Free Weight'), 'barbell',    1, NULL, ''),
 
--- ============================================================================
--- 5. INSERT SHARED LOOSE PLATES INTERNAL OVERVIEW
--- ============================================================================
-INSERT INTO barbell_plates (weight_lb, quantity) VALUES
-(5.00,  10),
-(10.00, 30),
-(15.00, 30),
-(20.00, 35),
-(40.00, 25),
-(50.00, 20)
-ON CONFLICT (weight_lb) DO UPDATE SET quantity = EXCLUDED.quantity;
+-- Weight Plates (Migrated cleanly into unified Equipment structure)
+('5lb Plate',               (SELECT id FROM equipment_category WHERE name='Free Weight'), 'plate',     10, 5.00, ''),
+('10lb Plate',              (SELECT id FROM equipment_category WHERE name='Free Weight'), 'plate',     30, 10.00, ''),
+('15lb Plate',              (SELECT id FROM equipment_category WHERE name='Free Weight'), 'plate',     30, 15.00, ''),
+('20lb Plate',              (SELECT id FROM equipment_category WHERE name='Free Weight'), 'plate',     35, 20.00, ''),
+('40lb Plate',              (SELECT id FROM equipment_category WHERE name='Free Weight'), 'plate',     25, 40.00, ''),
+('50lb Plate',              (SELECT id FROM equipment_category WHERE name='Free Weight'), 'plate',     20, 50.00, '')
+ON CONFLICT (name, category_id, equipment_type, weight_lb) DO NOTHING;
 
 -- ============================================================================
 -- 3. SUBSCRIPTION PLANS & PRODUCT CATEGORIES

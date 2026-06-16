@@ -76,13 +76,11 @@ export const tools = [
           },
           rep_count: {
             type: "integer",
-            description:
-              "Number of reps per set for strength exercises. Leave out or set null for cardio.",
+            description: "Number of reps per set. Provide a value if the exercise is strength-based or measured in movements (e.g., 10 reps for a dynamic warm-up stretch). Leave null only if duration_seconds is provided."
           },
           duration_seconds: {
             type: "integer",
-            description:
-              "Time in seconds for cardio or timed holds. Leave out or set null for strength.",
+            description: "Time duration in seconds. Provide a value for cardio, timed holds, or time-based warmups (e.g., 60 for a 60-second stretch). Leave null only if rep_count is provided."
           },
           rest_seconds: {
             type: "integer",
@@ -96,8 +94,37 @@ export const tools = [
           description: {
             type: "string",
             description:
-              "Brief execution details or setup instructions for the user.",
+              "A short description of the exercise.",
           },
+          muscle_group: {
+            type: "array",
+            description: "Targeted muscle groups involved in this specific exercise. Choose from the provided list.",
+            items: {
+              type: "string",
+              enum: [
+                "Chest",
+                "Back",
+                "Shoulders",
+                "Biceps",
+                "Triceps",
+                "Forearms",
+                "Quads",
+                "Hamstrings",
+                "Glutes",
+                "Calves",
+                "Abs/Core",
+                "Full Body"
+              ]
+            }
+          },
+          instructions: {
+            type: "array",
+            description: "Step-by-step execution details or setup instructions for the user.",
+            items: {
+              type: "string",
+              description: "A single instruction step (e.g., 'Adjust the seat to hip height.', 'Keep your core tight while pulling.')"
+            }
+          }
         },
         required: [
           "session_id",
@@ -108,7 +135,13 @@ export const tools = [
           "set_count",
           "weight_guidance",
           "description",
+          "instructions",
+          "muscle_group",
         ],
+        anyOf: [
+          { required: ["rep_count"] },
+          { required: ["duration_seconds"] }
+        ]
       },
     },
   },
