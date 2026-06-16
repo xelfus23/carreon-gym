@@ -21,7 +21,7 @@ export type TransactionProps = {
   items: ProductItemProps[];
   amount: number;
   method: string;
-  status: "pending" | "paid" | "cancelled" | "rejected";
+  status: "pending" | "paid" | "cancelled" | "rejected" | "refunded";
   paid_at: string;
   created_at: string;
   reference_no: string | null;

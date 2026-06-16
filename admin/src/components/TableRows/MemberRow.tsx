@@ -1,17 +1,10 @@
-import {
-  useState,
-  useRef,
-  useCallback,
-} from "react";
-import type { ActionItemProps, UserAccountProps, SubscriptionStatus } from "../../types";
-import {
-  Ban,
-  Check,
-  ClockPlus,
-  Trash,
-  UserKey,
-  UserLock,
-} from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import type {
+  ActionItemProps,
+  UserAccountProps,
+  SubscriptionStatus,
+} from "../../types";
+import { Ban, Check, ClockPlus, Trash, UserKey, UserLock } from "lucide-react";
 import { ActionMenu } from "../ActionMenu";
 
 function formatRelativeDate(iso: string | null): string {
@@ -67,12 +60,18 @@ export default function MemberRow({
     {
       label: "Set Plan",
       icon: <ClockPlus className="h-4" />,
-      onClick: () => { onSetPlan(m); close() },
+      onClick: () => {
+        onSetPlan(m);
+        close();
+      },
     },
     {
       label: m.verified ? "Unverify Member" : "Verify Member",
       icon: <Check className="h-4" />,
-      onClick: () => { onVerify(m); close() },
+      onClick: () => {
+        onVerify(m);
+        close();
+      },
     },
     {
       label: isSuspended ? "Unsuspend Member" : "Suspend Member",
@@ -81,7 +80,10 @@ export default function MemberRow({
       ) : (
         <UserKey className="h-4" />
       ),
-      onClick: () => { onSuspend(m); close() },
+      onClick: () => {
+        onSuspend(m);
+        close();
+      },
       variant: isSuspended ? "default" : "warning",
       dividerBefore: true,
       disabled: isBanned || isDeleted,
@@ -89,31 +91,32 @@ export default function MemberRow({
     {
       label: "Ban / Blacklist",
       icon: <Ban className="h-4" />,
-      onClick: () => { onBan(m); close() },
+      onClick: () => {
+        onBan(m);
+        close();
+      },
       variant: "danger",
       disabled: isBanned,
     },
     ...(!isDeleted
       ? [
-        {
-          label: "Delete Member",
-          icon: <Trash className="h-4" />,
-          onClick: () => {
-            onDelete(m);
-            close();
+          {
+            label: "Delete Member",
+            icon: <Trash className="h-4" />,
+            onClick: () => {
+              onDelete(m);
+              close();
+            },
+            variant: "danger" as const,
+            dividerBefore: true,
           },
-          variant: "danger" as const,
-          dividerBefore: true,
-        },
-      ]
+        ]
       : []),
   ];
 
   return (
     <tr className={`transition-colors group hover:bg-border/40`}>
-      <td className="p-4 text-xs text-text-secondary">
-        {m.id.toString()}
-      </td>
+      <td className="p-4 text-xs text-text-secondary">{m.id.toString()}</td>
       {/* Member */}
       <td className="p-4">
         <div className={`font-semibold text-text-primary leading-tight`}>
@@ -129,8 +132,9 @@ export default function MemberRow({
       {/* Account status */}
       <td className="p-4">
         <span
-          className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wide ${ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-text-secondary"
-            }`}
+          className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wide ${
+            ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-text-secondary"
+          }`}
         >
           {m.account_status}
         </span>
@@ -161,8 +165,9 @@ export default function MemberRow({
         {m.subscription_status ? (
           <div>
             <span
-              className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${SUB_BADGE[m.subscription_status]
-                }`}
+              className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full tracking-wide ${
+                SUB_BADGE[m.subscription_status]
+              }`}
             >
               {m.subscription_status}
             </span>
@@ -230,10 +235,11 @@ export default function MemberRow({
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
                             opacity-0 group-hover:opacity-100 focus:opacity-100
-                            ${menuOpen
-                ? "opacity-100 bg-border text-text-primary"
-                : "text-text-secondary hover:bg-border hover:text-text-primary"
-              }`}
+                            ${
+                              menuOpen
+                                ? "opacity-100 bg-border text-text-primary"
+                                : "text-text-secondary hover:bg-border hover:text-text-primary"
+                            }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />

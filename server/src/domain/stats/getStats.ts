@@ -4,29 +4,24 @@ export const getStatsDomain = async () => {
   // ── Core stats ──────────────────────────────────────────────────────────
   const stats = await pool.query(`
         SELECT
-            -- Members
             (SELECT COUNT(*) FROM users
                 WHERE role = 'member' AND account_status = 'active'
             )::int AS total_members,
 
-            -- Active subscriptions
             (SELECT COUNT(*) FROM subscriptions
                 WHERE status = 'active'
             )::int AS active_subscriptions,
 
-            -- Today's check-ins
             (SELECT COUNT(*) FROM gym_attendance
                 WHERE check_in_time >= CURRENT_DATE
             )::int AS todays_checkins,
 
-            -- New members this month
             (SELECT COUNT(*) FROM users
                 WHERE role = 'member'
                 AND account_status = 'active'
                 AND created_at >= DATE_TRUNC('month', CURRENT_DATE)
             )::int AS new_members_this_month,
 
-            -- Revenue this month (from payments table)
             (
                 SELECT COALESCE(SUM(amount), 0)
                 FROM payments
@@ -34,7 +29,6 @@ export const getStatsDomain = async () => {
                 AND paid_at >= DATE_TRUNC('month', CURRENT_DATE)
             )::numeric AS revenue_this_month,
 
-            -- Revenue last month
             (
                 SELECT COALESCE(SUM(amount), 0)
                 FROM payments
@@ -43,7 +37,6 @@ export const getStatsDomain = async () => {
                 AND paid_at <  DATE_TRUNC('month', CURRENT_DATE)
             )::numeric AS revenue_last_month,
 
-            -- Revenue growth %
             (
                 WITH r AS (
                     SELECT
@@ -64,7 +57,6 @@ export const getStatsDomain = async () => {
                 FROM r
             )::numeric AS revenue_growth_percent,
 
-            -- Peak hour today (hour with most check-ins)
             (
                 SELECT EXTRACT(HOUR FROM check_in_time)::int
                 FROM gym_attendance
@@ -74,14 +66,12 @@ export const getStatsDomain = async () => {
                 LIMIT 1
             ) AS peak_hour_today,
 
-            -- Avg session duration (minutes) across all time
             (
                 SELECT ROUND(AVG(duration_minutes), 0)
                 FROM gym_attendance
                 WHERE duration_minutes IS NOT NULL
             )::int AS avg_daily_duration_minutes,
 
-            -- Subscriptions expiring in next 7 days
             (
                 SELECT COUNT(*)
                 FROM subscriptions
@@ -101,7 +91,19 @@ export const getStatsDomain = async () => {
         ORDER BY DATE_TRUNC('month', check_in_time)
     `);
 
-  // ── Monthly revenue chart (last 6 months, from payments) ───────────────
+  // ── Weekly attendance chart (last 7 days) ───────────────────────────────
+  const weeklyChart = await pool.query(`
+        SELECT
+            TO_CHAR(check_in_time::date, 'Dy') AS day,
+            check_in_time::date AS date,
+            COUNT(*)::int AS visits
+        FROM gym_attendance
+        WHERE check_in_time >= CURRENT_DATE - INTERVAL '6 days'
+        GROUP BY check_in_time::date
+        ORDER BY check_in_time::date
+    `);
+
+  // ── Monthly revenue chart (last 6 months) ───────────────────────────────
   const revenueChart = await pool.query(`
         SELECT
             TO_CHAR(DATE_TRUNC('month', paid_at), 'Mon') AS month,
@@ -128,7 +130,15 @@ export const getStatsDomain = async () => {
     }),
   );
 
-  // ── Peak hours (hourly check-in distribution, last 30 days) ────────────
+  // Weekly chart data: day label + visits
+  const weeklyChartData = weeklyChart.rows.map(
+    (row: { day: string; visits: number }) => ({
+      month: row.day, // reuse "month" key so the front-end chart config is identical
+      visits: row.visits,
+    }),
+  );
+
+  // ── Peak hours (hourly distribution, last 30 days) ──────────────────────
   const peakHours = await pool.query(`
         SELECT
             EXTRACT(HOUR FROM check_in_time)::int AS hour_num,
@@ -153,9 +163,89 @@ export const getStatsDomain = async () => {
     }),
   );
 
+  // ── Recent payments (last 10 paid/pending) ───────────────────────────────
+  const recentPayments = await pool.query(`
+        SELECT
+            p.id,
+            COALESCE(
+                NULLIF(CONCAT_WS(' ', u.first_name, u.last_name), ''),
+                'Walk-in / Guest'
+            ) AS member_name,
+            -- Initials: first letter of each word, up to 2
+            COALESCE(
+                UPPER(LEFT(u.first_name, 1) || LEFT(u.last_name, 1)),
+                'WG'
+            ) AS initials,
+            p.amount,
+            p.method,
+            p.transaction_type,
+            p.status,
+            p.paid_at,
+            CASE
+                WHEN p.transaction_type = 'plan' THEN sp.name
+                ELSE (
+                    SELECT STRING_AGG(prod.name, ', ')
+                    FROM payment_items pi
+                    JOIN products prod ON pi.product_id = prod.id
+                    WHERE pi.payment_id = p.id
+                )
+            END AS item_name
+        FROM payments p
+        LEFT JOIN users u ON p.user_id = u.id
+        LEFT JOIN subscription_plans sp ON p.plan_id = sp.id
+        WHERE p.status IN ('paid', 'pending')
+        ORDER BY p.created_at DESC
+        LIMIT 10
+    `);
+
+  // ── New members (last 10 registered) ────────────────────────────────────
+  const newMembers = await pool.query(`
+        SELECT
+            CONCAT_WS(' ', u.first_name, u.last_name) AS name,
+            UPPER(LEFT(u.first_name, 1) || LEFT(u.last_name, 1)) AS initials,
+            u.created_at,
+            COALESCE(sp.name, 'No plan') AS plan_name,
+            COALESCE(s.status::text, 'pending') AS subscription_status
+        FROM users u
+        LEFT JOIN subscriptions s
+            ON s.user_id = u.id
+            AND s.id = (
+                SELECT id FROM subscriptions
+                WHERE user_id = u.id
+                ORDER BY created_at DESC
+                LIMIT 1
+            )
+        LEFT JOIN subscription_plans sp ON s.plan_id = sp.id
+        WHERE u.role = 'member'
+        AND u.account_status = 'active'
+        ORDER BY u.created_at DESC
+        LIMIT 10
+    `);
+
+  // ── Subscriptions by plan ────────────────────────────────────────────────
+  const planStats = await pool.query(`
+        SELECT
+            sp.name AS plan_name,
+            COUNT(s.id)::int AS count,
+            ROUND(
+                COUNT(s.id)::numeric
+                / NULLIF(SUM(COUNT(s.id)) OVER (), 0) * 100,
+                1
+            )::numeric AS percent
+        FROM subscriptions s
+        JOIN subscription_plans sp ON s.plan_id = sp.id
+        WHERE s.status = 'active'
+        GROUP BY sp.id, sp.name
+        ORDER BY count DESC
+    `);
+
   return {
     stats: stats.rows[0],
     chartData,
+    weeklyChartData,
     peakHourData,
+    recentPayments: recentPayments.rows,
+    newMembers: newMembers.rows,
+    planStats: planStats.rows,
   };
 };

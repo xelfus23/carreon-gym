@@ -261,7 +261,7 @@ export default function GymSubscriptionsAdmin() {
       {/* ── Header Section ── */}
       <CustomHeader
         hasAction={true}
-        title="Subscription Manager"
+        title="Plans Manager"
         icon={<Dumbbell className="text-primary" />}
         description="Manage and configure carreon gym plan offerings"
         refresh={refresh}

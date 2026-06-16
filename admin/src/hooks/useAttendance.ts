@@ -57,8 +57,9 @@ export const useAttendanceLog = () => {
   const [latestFailureAlert, setLatestFailureAlert] =
     useState<AttendanceAttemptLog | null>(null);
 
+  const [selectedDate, setSelectedDate] = useState<string>("");
   const getAttendanceLog = useCallback(async (isSilent = false) => {
-    if (!isSilent) setIsLoading(true); // Only show loading spinner on initial load
+    if (!isSilent) setIsLoading(true);
     setError(null);
     try {
       const result = await memberService.getAttendance();
@@ -111,7 +112,7 @@ export const useAttendanceLog = () => {
             result: "failed",
             reason:
               message.data.reason != null &&
-                String(message.data.reason).trim() !== ""
+              String(message.data.reason).trim() !== ""
                 ? formatAttemptReason(String(message.data.reason))
                 : "Unknown error",
             metadata: null,
@@ -149,6 +150,8 @@ export const useAttendanceLog = () => {
     isLoading,
     error,
     latestFailureAlert,
+    selectedDate, // Exposed state
+    setSelectedDate,
     clearFailureAlert: () => setLatestFailureAlert(null),
     refresh: getAttendanceLog,
   };

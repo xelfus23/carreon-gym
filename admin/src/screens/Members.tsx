@@ -1,10 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
-import type {
-  UserAccountProps,
-  ConfirmDialogTypes,
-  FormField,
-} from "../types";
+import type { UserAccountProps, ConfirmDialogTypes, FormField } from "../types";
 import MemberRow from "../components/TableRows/MemberRow";
 import SubscriptionModal from "../components/SubscriptionModal";
 import { CircleAlert, CircleCheck, Star, Users } from "lucide-react";
@@ -27,47 +23,43 @@ export type FilterStatus =
   | "deleted";
 export type FilterSub = "all" | "active" | "expired" | "pending" | "cancelled";
 
-
-
 const fields: FormField[] = [
   {
     name: "first_name",
     label: "First Name",
     type: "text",
     gridSpan: "half",
-    required: true
+    required: true,
   },
   {
     name: "last_name",
     label: "Last Name",
     type: "text",
     gridSpan: "half",
-    required: true
+    required: true,
   },
   {
     name: "password",
     label: "Password",
     type: "password",
     gridSpan: "full",
-    required: true
+    required: true,
   },
   {
     name: "email",
     label: "Email",
     type: "text",
     gridSpan: "half",
-    required: true
+    required: true,
   },
   {
     name: "phone_number",
     label: "Phone Number",
     type: "phone",
     gridSpan: "half",
-    required: true
-  }
+    required: true,
+  },
 ];
-
-
 
 export default function Members() {
   const {
@@ -78,7 +70,7 @@ export default function Members() {
     deleteAccount,
     banAccount,
     suspendAccount,
-    createAccount
+    createAccount,
   } = useMember();
   const [subscriptionMember, setSubscriptionMember] =
     useState<UserAccountProps | null>(null);
@@ -197,8 +189,8 @@ export default function Members() {
         .length,
       avgAttendance: members.length
         ? Math.round(
-          members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
-        )
+            members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
+          )
         : 0,
     }),
     [members],
@@ -212,7 +204,6 @@ export default function Members() {
   const handleOnClick = () => {
     setIsAddModalOpen((v) => !v);
   };
-
 
   const cards = [
     {
@@ -302,7 +293,13 @@ export default function Members() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map(({ label, value, color, icon }) => (
-          <StatsCard key={label} label={label} value={value} color={color} icon={icon} />
+          <StatsCard
+            key={label}
+            label={label}
+            value={value}
+            color={color}
+            icon={icon}
+          />
         ))}
       </div>
 

@@ -40,8 +40,8 @@ const App: React.FC = () => {
     switch (currentTab) {
       case NavItem.ANALYTICS:
         return <DashboardHome />;
-      case NavItem.ADMIN:
-        return <AdminManagement />;
+      // case NavItem.ADMIN:
+      //   return <AdminManagement />;
       case NavItem.MEMBERS:
         return <MemberManagement />;
       case NavItem.TRANSACTIONS:

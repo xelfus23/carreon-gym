@@ -12,6 +12,10 @@ import {
   Activity,
   Timer,
   AlertTriangle,
+  UserCheck,
+  UserX,
+  X,
+  RefreshCw,
 } from "lucide-react";
 import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
@@ -21,6 +25,7 @@ import { formatDuration } from "../utils/formatDuration";
 import { formatTime } from "../utils/formatTime";
 import { formatDate } from "../utils/formatDate";
 import AttendanceRow from "../components/TableRows/AttendanceRow";
+import CalendarStrip from "../components/CalendarStrip";
 
 export default function Attendance() {
   const {
@@ -28,6 +33,8 @@ export default function Attendance() {
     attempts,
     isLoading,
     refresh,
+    selectedDate,
+    setSelectedDate,
     latestFailureAlert,
     clearFailureAlert,
   } = useAttendanceLog();
@@ -40,13 +47,16 @@ export default function Attendance() {
   const [manualAction, setManualAction] = useState<"check_in" | "check_out">(
     "check_in",
   );
-  const [manualStatus, setManualStatus] = useState<string | null>(null);
+  const [manualStatus, setManualStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
   const PAGE_SIZE = 50;
 
   const handleManualAttendance = async () => {
     if (!selectedMemberId) {
-      setManualStatus("Please select a member.");
+      setManualStatus({ type: "error", message: "Please select a member." });
       return;
     }
 
@@ -57,51 +67,77 @@ export default function Attendance() {
         userId: Number(selectedMemberId),
         action: manualAction,
       });
-      setManualStatus(
-        manualAction === "check_in"
-          ? "Manual check-in logged."
-          : "Manual check-out logged.",
-      );
+      setManualStatus({
+        type: "success",
+        message:
+          manualAction === "check_in"
+            ? "Check-in logged successfully."
+            : "Check-out logged successfully.",
+      });
       refresh(true);
     } catch (err) {
-      if (err instanceof Error) {
-        setManualStatus(err.message);
-      } else {
-        setManualStatus("Failed to log manual attendance.");
-      }
+      setManualStatus({
+        type: "error",
+        message:
+          err instanceof Error ? err.message : "Failed to log attendance.",
+      });
     } finally {
       setIsSubmittingManual(false);
     }
   };
 
-  // --- Helper Function to Format Duration ---
-
   const filteredLogs = useMemo(() => {
-    return logs.filter(
-      (log) =>
+    return logs.filter((log) => {
+      const matchesSearch =
         `${log.first_name} ${log.last_name}`
           .toLowerCase()
           .includes(search.toLowerCase()) ||
-        log.method.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [logs, search]);
+        log.method.toLowerCase().includes(search.toLowerCase());
 
-  const failedAttempts = useMemo(
-    () => attempts.filter((attempt) => attempt.result === "failed"),
-    [attempts],
-  );
+      const matchesDate = selectedDate
+        ? log.check_in_time.startsWith(selectedDate)
+        : true;
 
-  const stats = useMemo(
-    () => ({
-      total: logs.length,
-      activeNow: logs.filter((l) => l.status === "checked_in").length,
-      avgDuration: logs.length
-        ? logs.reduce((acc, curr) => acc + (curr.duration || 0), 0) /
-        logs.length
+      return matchesSearch && matchesDate;
+    });
+  }, [logs, search, selectedDate]);
+
+  const failedAttempts = useMemo(() => {
+    return attempts.filter((a) => {
+      const isFailed = a.result === "failed";
+      const matchesDate = selectedDate
+        ? a.created_at.startsWith(selectedDate)
+        : true;
+      return isFailed && matchesDate;
+    });
+  }, [attempts, selectedDate]);
+
+  const activeDates = useMemo(() => {
+    const dates = new Set<string>();
+    logs.forEach((log) => {
+      if (log.check_in_time) {
+        // Splitting "2026-06-17T04:00:00Z" to get "2026-06-17"
+        const datePart = log.check_in_time.split("T")[0];
+        dates.add(datePart);
+      }
+    });
+    return dates;
+  }, [logs]);
+
+  const stats = useMemo(() => {
+    const relevantLogs = selectedDate
+      ? logs.filter((l) => l.check_in_time.startsWith(selectedDate))
+      : logs;
+
+    return {
+      total: relevantLogs.length,
+      activeNow: relevantLogs.filter((l) => l.status === "checked_in").length,
+      avgDuration: relevantLogs.length
+        ? relevantLogs.reduce((acc, curr) => acc + (curr.duration || 0), 0) /
+          relevantLogs.length
         : 0,
-    }),
-    [logs],
-  );
+    };
+  }, [logs, selectedDate]);
 
   const paginated = filteredLogs.slice(
     (page - 1) * PAGE_SIZE,
@@ -124,13 +160,12 @@ export default function Attendance() {
     },
     {
       label: "Avg Session",
-      // Using the formatter for the stats bar too
       value: formatDuration(stats.avgDuration),
       color: "border-indigo-500/20 bg-indigo-500/5 text-indigo-500",
       icon: <Timer size={16} />,
     },
     {
-      label: "Error Log",
+      label: "Failed Scans",
       value: failedAttempts.length,
       color: "border-red-400/20 bg-red-400/5 text-red-400",
       icon: <AlertTriangle size={16} />,
@@ -138,7 +173,8 @@ export default function Attendance() {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* ── Header ── */}
       <CustomHeader
         hasAction={false}
         isLoading={isLoading}
@@ -146,81 +182,150 @@ export default function Attendance() {
         icon={<Logs className="text-primary" />}
         title="Attendance Log"
         buttonLabel="Refresh"
-        description="Manage and view carreon gym attendance log"
+        description="Manage and view Careon Gym attendance log"
       />
 
-      <div className="border border-border bg-surface p-4 flex flex-col md:flex-row md:items-end gap-3">
-        <div className="flex-1 flex flex-col">
-          <label className="text-xs text-text-secondary font-semibold uppercase tracking-wide">
-            Member
-          </label>
-          <select
-            value={selectedMemberId}
-            onChange={(e) =>
-              setSelectedMemberId(e.target.value ? Number(e.target.value) : "")
-            }
-            className="mt-1 w-full px-2 py-2 bg-surface border rounded-lg border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+      {/* ── Failure alert banner ── */}
+      {latestFailureAlert && (
+        <div className="flex items-center justify-between gap-4 px-4 py-3 border border-rose-500/30 bg-rose-500/10 rounded-none">
+          <div className="flex items-center gap-3">
+            <AlertTriangle size={16} className="text-rose-400 shrink-0" />
+            <p className="text-sm font-semibold text-rose-400">
+              Failed {latestFailureAlert.action.replace("_", " ")} —{" "}
+              <span className="font-normal text-rose-300">
+                {latestFailureAlert.last_name}:{" "}
+                {formatAttemptReason(latestFailureAlert.reason)}
+              </span>
+            </p>
+          </div>
+          <button
+            onClick={clearFailureAlert}
+            className="text-rose-400 hover:text-rose-300 transition-colors shrink-0"
+            aria-label="Dismiss alert"
           >
-            <option value="">Select member</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.first_name} {m.last_name} ({m.email})
-              </option>
-            ))}
-          </select>
+            <X size={16} />
+          </button>
         </div>
+      )}
 
-        <div className="space-x-4">
-          <label className="text-xs text-text-secondary font-semibold uppercase tracking-wide">
-            Action
-          </label>
-          <select
-            value={manualAction}
-            onChange={(e) =>
-              setManualAction(e.target.value as "check_in" | "check_out")
-            }
-            className="mt-1 px-3 rounded-lg py-2 bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
-          >
-            <option value="check_in">Check In</option>
-            <option value="check_out">Check Out</option>
-          </select>
-        </div>
-
-        <button
-          onClick={handleManualAttendance}
-          disabled={isSubmittingManual}
-          className="px-4 rounded-lg cursor-pointer py-2 bg-primary hover:bg-primary-dark transition-colors text-background text-sm font-semibold disabled:opacity-50"
-        >
-          {isSubmittingManual ? "Saving..." : "Log Attendance"}
-        </button>
-      </div>
-      {manualStatus && <p className="text-sm text-red-500">{manualStatus}</p>}
-
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      {/* ── Stat cards ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map((props) => (
           <StatsCard key={props.label} {...props} />
         ))}
       </div>
 
-      {latestFailureAlert && (
-        <div className="px-4 py-3 border border-rose-300 bg-rose-50 text-rose-700 flex items-center justify-between">
-          <p className="text-sm font-semibold">
-            Failed {latestFailureAlert.action.replace("_", " ")} scan detected:{" "}
-            {latestFailureAlert.last_name} (
-            {formatAttemptReason(latestFailureAlert.reason)})
-          </p>
+      {/* ── Manual attendance panel ── */}
+      <div className="border border-border bg-surface">
+        <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+          <UserCheck size={15} className="text-primary" />
+          <h2 className="text-sm font-bold text-text-primary">
+            Manual attendance
+          </h2>
+          <span className="ml-auto text-xs text-text-secondary">
+            For walk-ins or QR failures
+          </span>
+        </div>
+
+        <div className="p-4 flex flex-col sm:flex-row sm:items-end gap-3">
+          {/* Member selector */}
+          <div className="flex-1 flex flex-col gap-1">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+              Member
+            </label>
+            <select
+              value={selectedMemberId}
+              onChange={(e) =>
+                setSelectedMemberId(
+                  e.target.value ? Number(e.target.value) : "",
+                )
+              }
+              className="w-full px-3 py-2 bg-surface border border-border text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+            >
+              <option value="">Select a member…</option>
+              {members.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.first_name} {m.last_name} — {m.email}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Action toggle */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+              Action
+            </label>
+            <div className="flex border border-border overflow-hidden">
+              <button
+                onClick={() => setManualAction("check_in")}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors ${
+                  manualAction === "check_in"
+                    ? "bg-emerald-500/15 text-emerald-400 border-r border-emerald-500/30"
+                    : "text-text-secondary hover:text-text-primary hover:bg-white/5 border-r border-border"
+                }`}
+              >
+                <UserCheck size={13} />
+                Check in
+              </button>
+              <button
+                onClick={() => setManualAction("check_out")}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors ${
+                  manualAction === "check_out"
+                    ? "bg-amber-500/15 text-amber-400"
+                    : "text-text-secondary hover:text-text-primary hover:bg-white/5"
+                }`}
+              >
+                <UserX size={13} />
+                Check out
+              </button>
+            </div>
+          </div>
+
+          {/* Submit */}
           <button
-            onClick={clearFailureAlert}
-            className="text-xs font-bold uppercase tracking-wide hover:opacity-80"
+            onClick={handleManualAttendance}
+            disabled={isSubmittingManual || !selectedMemberId}
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 transition-colors text-background text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Dismiss
+            {isSubmittingManual ? (
+              <>
+                <RefreshCw size={13} className="animate-spin" />
+                Saving…
+              </>
+            ) : (
+              "Log attendance"
+            )}
           </button>
         </div>
-      )}
 
+        {/* Inline status feedback */}
+        {manualStatus && (
+          <div
+            className={`mx-4 mb-4 px-3 py-2 text-xs font-semibold border ${
+              manualStatus.type === "success"
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                : "border-rose-500/30 bg-rose-500/10 text-rose-400"
+            }`}
+          >
+            {manualStatus.message}
+          </div>
+        )}
+      </div>
+
+      <CalendarStrip
+        selectedDate={selectedDate}
+        activeDates={activeDates}
+        onSelectDate={(dateStr) => {
+          setSelectedDate(dateStr);
+          setPage(1); // Reset page numbers upon scoping a new day
+        }}
+      />
+
+      {/* ── Attendance log table ── */}
       <div className="bg-surface border border-border shadow-sm overflow-hidden">
         <ToolBar
-          placeholder="Search member name..."
+          placeholder="Search by member name or method…"
           search={search}
           filtered={filteredLogs}
           handleSearchChange={(e) => {
@@ -232,8 +337,8 @@ export default function Attendance() {
           columns={[
             { label: "Date", key: "check_in_time" },
             { label: "Member", key: "first_name" },
-            { label: "Check In", key: "check_in_time" },
-            { label: "Check Out", key: "check_out_time" },
+            { label: "Check in", key: "check_in_time" },
+            { label: "Check out", key: "check_out_time" },
             { label: "Duration", key: "duration" },
             { label: "Method", key: "method" },
           ]}
@@ -246,55 +351,97 @@ export default function Attendance() {
         />
       </div>
 
+      {/* ── Error / failed scans log ── */}
       <div className="bg-surface border border-border shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-border bg-surface">
-          <h2 className="text-lg font-bold text-rose-600">Error Log</h2>
-          <p className="text-xs text-text-secondary mt-1">
-            Shows failed QR scans like no subscription, invalid QR, or duplicate
-            check-in.
+        {/* Section header */}
+        <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={15} className="text-rose-400" />
+            <h2 className="text-sm font-bold text-text-primary">
+              Failed scan log
+            </h2>
+          </div>
+          {failedAttempts.length > 0 && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/20">
+              {failedAttempts.length}
+            </span>
+          )}
+          <p className="ml-auto text-xs text-text-secondary hidden sm:block">
+            QR errors, missing subscriptions, duplicate scans
           </p>
         </div>
 
-        <div className="overflow-x-auto h-[500px]">
+        <div className="overflow-x-auto max-h-[480px]">
           <table className="text-left text-sm w-full">
-            <thead>
-              <tr className="bg-surface text-text-primary font-bold uppercase tracking-wider border-b border-border">
-                <th className="px-5 py-3.5 text-xs">Time</th>
-                <th className="px-5 py-3.5 text-xs">Member</th>
-                <th className="px-5 py-3.5 text-xs">Action</th>
-                <th className="px-5 py-3.5 text-xs">Reason</th>
+            <thead className="sticky top-0 z-10">
+              <tr className="bg-surface border-b border-border">
+                <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-text-secondary">
+                  Time
+                </th>
+                <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-text-secondary">
+                  Member
+                </th>
+                <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-text-secondary">
+                  Action
+                </th>
+                <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-text-secondary">
+                  Reason
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {failedAttempts.slice(0, 50).map((attempt) => (
                 <tr
                   key={attempt.id}
-                  className="hover:bg-border/30 transition-colors"
+                  className="hover:bg-white/2 transition-colors group"
                 >
-                  <td className="px-5 py-4 whitespace-nowrap text-xs text-text-secondary">
-                    {formatDate(attempt.created_at)}{" "}
-                    {formatTime(attempt.created_at)}
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <span className="text-xs text-text-secondary">
+                      {formatDate(attempt.created_at)}
+                    </span>
+                    <span className="text-xs text-text-secondary/60 ml-1.5">
+                      {formatTime(attempt.created_at)}
+                    </span>
                   </td>
-                  <td className="px-5 py-4 font-bold text-text-primary">
-                    {attempt.first_name} {attempt.last_name}
+                  <td className="px-5 py-3.5">
+                    <span className="text-sm font-semibold text-text-primary">
+                      {attempt.first_name} {attempt.last_name}
+                    </span>
                   </td>
-                  <td className="px-5 py-4">
-                    <span className="rounded-md text-amber-500 text-[10px] font-bold uppercase">
+                  <td className="px-5 py-3.5">
+                    <span
+                      className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 border ${
+                        attempt.action === "check_in"
+                          ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                          : "text-amber-400 bg-amber-500/10 border-amber-500/20"
+                      }`}
+                    >
+                      {attempt.action === "check_in" ? (
+                        <UserCheck size={10} />
+                      ) : (
+                        <UserX size={10} />
+                      )}
                       {attempt.action.replace("_", " ")}
                     </span>
                   </td>
-                  <td className=" text-xs text-rose-600 font-semibold">
-                    {formatAttemptReason(attempt.reason)}
+                  <td className="px-5 py-3.5">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-400">
+                      <span className="w-1 h-1 rounded-full bg-rose-400 shrink-0" />
+                      {formatAttemptReason(attempt.reason)}
+                    </span>
                   </td>
                 </tr>
               ))}
+
               {failedAttempts.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-5 py-6 text-center text-text-secondary"
-                  >
-                    No failed attendance attempts found.
+                  <td colSpan={4} className="px-5 py-12 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <Activity size={20} className="text-text-secondary/40" />
+                      <p className="text-sm text-text-secondary">
+                        No failed scans — all clear
+                      </p>
+                    </div>
                   </td>
                 </tr>
               )}

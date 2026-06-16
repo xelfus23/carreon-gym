@@ -2,16 +2,16 @@ import type { ComponentType, ReactElement } from "react";
 
 export enum NavItem {
   ANALYTICS = "ANALYTICS",
-  QR_CODE = "QR_CODE",
-  ADMIN = "ADMIN",
+  QR_CODE = "QR_CODES",
+  // ADMIN = "ADMIN",
   MEMBERS = "MEMBERS",
-  ATTENDANCE_LOG = "ATTENDANCE_LOG",
-  TRANSACTIONS = "TRANSACTIONS",
-  GYM_EQUIPMENTS = "GYM_EQUIPMENTS",
-  GYM_PRODUCTS = "GYM_PRODUCTS",
+  ATTENDANCE_LOG = "ATTENDANCE",
+  TRANSACTIONS = "PAYMENTS",
+  GYM_EQUIPMENTS = "EQUIPMENTS",
+  GYM_PRODUCTS = "INVENTORY",
   // AI_INSIGHTS = "AI_INSIGHTS",
-  GYM_SETTINGS = "GYM_SETTINGS",
-  SUBSCRIPTIONS = "SUBSCRIPTIONS",
+  GYM_SETTINGS = "SETTINGS",
+  SUBSCRIPTIONS = "PLANS",
 }
 
 export type SubscriptionStatus = "active" | "expired" | "pending" | "cancelled";
@@ -149,13 +149,22 @@ export interface SubscriptionPlanProps {
   is_active: boolean;
   icon_url: string;
   is_popular: boolean;
-  savings_label: string
+  savings_label: string;
 }
 
 export interface FormField {
   name: string;
   label: string;
-  type: "text" | "number" | "textarea" | "checkbox" | "select" | "image" | "password" | "phone" | "email";
+  type:
+    | "text"
+    | "number"
+    | "textarea"
+    | "checkbox"
+    | "select"
+    | "image"
+    | "password"
+    | "phone"
+    | "email";
   placeholder?: string;
   required?: boolean;
   options?: { label: string; value: string | number }[]; // For select fields

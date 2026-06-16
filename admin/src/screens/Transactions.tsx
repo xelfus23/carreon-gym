@@ -4,7 +4,14 @@ import {
   type TransactionProps,
 } from "../hooks/useTransactions";
 import { purchaseService } from "../services/purchase.service";
-import { Receipt, CheckCircle, Clock, X } from "lucide-react";
+import {
+  Receipt,
+  CheckCircle,
+  Clock,
+  X,
+  TrendingUp,
+  ImageOff,
+} from "lucide-react";
 import StatsCard from "../components/CustomStatsCard";
 import CustomHeader from "../components/CustomHeader";
 import CustomTable, { type ColumnDefinition } from "../components/CustomTable";
@@ -27,7 +34,7 @@ export default function Transactions() {
     string | null | undefined
   >();
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogTypes>(null);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const menuWrapRef = useRef<HTMLDivElement | null>(null);
 
   const PAGE_SIZE = 50;
@@ -40,10 +47,13 @@ export default function Transactions() {
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
 
+  // ── Stats ────────────────────────────────────────────────────────────────
+
   const stats = useMemo(() => {
     let totalRevenue = 0;
     let paidCount = 0;
     let pendingCount = 0;
+    let refundedCount = 0;
 
     for (const t of transactions) {
       if (t.status === "paid") {
@@ -51,27 +61,30 @@ export default function Transactions() {
         paidCount++;
       } else if (t.status === "pending") {
         pendingCount++;
+      } else if (t.status === "refunded") {
+        refundedCount++;
       }
     }
 
     return {
       totalRevenue,
+      paidCount,
       pendingCount,
+      refundedCount,
       avgOrder: paidCount ? totalRevenue / paidCount : 0,
     };
   }, [transactions]);
 
+  // ── Filtering ────────────────────────────────────────────────────────────
+
   const filteredTransactions = useMemo(() => {
     const q = search.toLowerCase();
-
     if (!q) return transactions;
-
-    return transactions.filter((tx) => {
-      return (
+    return transactions.filter(
+      (tx) =>
         tx.member_name.toLowerCase().includes(q) ||
-        tx.transaction_type.toLowerCase().includes(q)
-      );
-    });
+        tx.transaction_type.toLowerCase().includes(q),
+    );
   }, [transactions, search]);
 
   const paginated = filteredTransactions.slice(
@@ -80,10 +93,12 @@ export default function Transactions() {
   );
   const totalPages = Math.ceil(filteredTransactions.length / PAGE_SIZE) || 1;
 
+  // ── Actions ──────────────────────────────────────────────────────────────
+
   const onAccept = (t: TransactionProps) => {
     setConfirmDialog({
-      title: "Verify Transaction",
-      message: `Requested by ${t.member_name} with amount of ${t.amount}? This action cannot be undone.`,
+      title: "Verify payment",
+      message: `Mark ${formatCurrency(Number(t.amount))} from ${t.member_name} as paid? This cannot be undone.`,
       confirmLabel: "Verify",
       variant: "success",
       onConfirm: async () => {
@@ -97,8 +112,8 @@ export default function Transactions() {
 
   const onDeny = (t: TransactionProps) => {
     setConfirmDialog({
-      title: "Deny Transaction",
-      message: `Requested ${t.member_name} with amount of ${t.amount}? This action cannot be undone.`,
+      title: "Deny payment",
+      message: `Deny ${formatCurrency(Number(t.amount))} from ${t.member_name}? This cannot be undone.`,
       confirmLabel: "Deny",
       variant: "warning",
       onConfirm: async () => {
@@ -112,8 +127,8 @@ export default function Transactions() {
 
   const onDelete = (t: TransactionProps) => {
     setConfirmDialog({
-      title: "Delete Transaction",
-      message: `Requested by ${t.member_name} with amount of ${t.amount}? This action cannot be undone.`,
+      title: "Delete transaction",
+      message: `Permanently delete ${formatCurrency(Number(t.amount))} from ${t.member_name}? This cannot be undone.`,
       confirmLabel: "Delete",
       variant: "danger",
       onConfirm: async () => {
@@ -125,9 +140,11 @@ export default function Transactions() {
     });
   };
 
+  // ── Table columns ────────────────────────────────────────────────────────
+
   const columns: ColumnDefinition<TransactionProps>[] = useMemo(
     () => [
-      { label: "Ref. No.", key: "reference_no" },
+      { label: "Ref. no.", key: "reference_no" },
       { label: "Date", key: "paid_at" },
       { label: "Member", key: "member_name" },
       { label: "Item", key: "items" },
@@ -148,77 +165,110 @@ export default function Transactions() {
       icon: <CheckCircle size={16} />,
     },
     {
-      label: "Pending Requests",
+      label: "Avg. Transaction",
+      value: formatCurrency(stats.avgOrder),
+      color: "border-blue-500/20 bg-blue-500/5 text-blue-500",
+      icon: <TrendingUp size={16} />,
+    },
+    {
+      label: "Pending",
       value: stats.pendingCount,
       color: "border-amber-500/20 bg-amber-500/5 text-amber-500",
       icon: <Clock size={16} />,
     },
     {
-      label: "Avg. Transaction",
-      value: formatCurrency(stats.avgOrder),
-      color: "border-blue-500/20 bg-blue-500/5 text-blue-500",
-      icon: <Receipt size={16} />,
+      label: "Paid",
+      value: stats.paidCount,
+      color: "border-emerald-500/20 bg-emerald-500/5 text-emerald-500",
+      icon: <CheckCircle size={16} />,
     },
   ];
 
   return (
-    <div className="space-y-4">
-      {/* ── Enhanced Receipt Modal ── */}
+    <div className="space-y-5">
+      {/* ── Receipt preview modal ── */}
       {selectedReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="relative max-w-2xl w-full bg-surface overflow-hidden shadow-2xl border border-border">
-            <div className="flex items-center justify-between p-4 border-b border-border bg-surface">
-              <h3 className="font-bold flex items-center gap-2">
-                <Receipt size={18} className="text-primary" /> Payment Proof
-              </h3>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75"
+          onClick={() => setSelectedReceipt(null)}
+        >
+          <div
+            className="relative w-full max-w-lg bg-surface border border-border shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Receipt size={15} className="text-primary" />
+                <span className="text-sm font-bold text-text-primary">
+                  Payment proof
+                </span>
+              </div>
               <button
                 onClick={() => setSelectedReceipt(null)}
-                className="p-1 hover:bg-border rounded-full transition-colors"
+                className="p-1 text-text-secondary hover:text-text-primary transition-colors"
+                aria-label="Close preview"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
-            <div className="p-6 bg-zinc-900 flex justify-center overflow-auto max-h-[70vh]">
-              <img
-                src={selectedReceipt}
-                alt="Receipt"
-                className="max-w-full h-auto shadow-lg object-contain"
-              />
+
+            {/* Image */}
+            <div className="bg-black/40 flex items-center justify-center min-h-64 max-h-[65vh] overflow-auto p-4">
+              {selectedReceipt ? (
+                <img
+                  src={selectedReceipt}
+                  alt="Payment receipt"
+                  className="max-w-full h-auto object-contain"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
+                  }}
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-text-secondary py-8">
+                  <ImageOff size={24} />
+                  <p className="text-xs">Image unavailable</p>
+                </div>
+              )}
             </div>
-            <div className="p-4 bg-surface border-t border-border flex justify-end">
+
+            {/* Footer */}
+            <div className="px-4 py-3 border-t border-border flex justify-end">
               <button
                 onClick={() => setSelectedReceipt(null)}
-                className="px-4 py-2 bg-primary text-background font-bold text-sm"
+                className="px-4 py-1.5 bg-primary hover:bg-primary/90 transition-colors text-background text-sm font-semibold"
               >
-                Close Preview
+                Close
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* ── Page header ── */}
       <CustomHeader
-        title="Payment Log"
-        description="Manage and verify carreon gym transactions"
+        title="Payment log"
+        description="Manage and verify Careon Gym transactions"
         refresh={refresh}
         hasAction={true}
-        buttonLabel="Log Transaction"
+        buttonLabel="Log transaction"
         icon={<Receipt className="text-primary" />}
         isLoading={isLoading}
         onClick={() => setIsModalOpen(true)}
       />
 
-      {/* ── Stats Grid ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* ── Stat cards ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map((props) => (
           <StatsCard key={props.label} {...props} />
         ))}
       </div>
 
-      {/* ── Table Container ── */}
+      {/* ── Transactions table ── */}
       <div
         ref={menuWrapRef}
-        className="bg-surface border border-border shadow-sm flex flex-col"
+        className="bg-surface border border-border shadow-sm"
       >
         <ToolBar
           filtered={filteredTransactions}
@@ -227,7 +277,7 @@ export default function Transactions() {
             setSearch(e.target.value);
             setPage(1);
           }}
-          placeholder="Search transactions"
+          placeholder="Search by member name or type…"
         />
 
         <CustomTable<TransactionProps>
@@ -250,6 +300,7 @@ export default function Transactions() {
         />
       </div>
 
+      {/* ── Modals ── */}
       {isModalOpen && (
         <LogTransactionModal
           members={members}

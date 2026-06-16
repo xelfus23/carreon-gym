@@ -2,27 +2,32 @@ import type { ChangeEventHandler } from "react";
 import SearchInput from "./CustomSearchInput";
 
 export type options = {
-  label: string,
-  value: string
-}
+  label: string;
+  value: string;
+};
 
 export type SelectProps = {
-  value: string,
+  value: string;
   onChange: ChangeEventHandler<HTMLSelectElement>;
-  options: options[],
-  label: string
-}
+  options: options[];
+  label: string;
+};
 
 interface ToolbarProps<T> {
   search: string;
   handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   select?: SelectProps[];
   filtered: T[];
-  placeholder: string,
+  placeholder: string;
 }
 
-
-export default function ToolBar<T>({ search, handleSearchChange, select, filtered, placeholder }: ToolbarProps<T>) {
+export default function ToolBar<T>({
+  search,
+  handleSearchChange,
+  select,
+  filtered,
+  placeholder,
+}: ToolbarProps<T>) {
   return (
     <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
       <SearchInput
@@ -40,10 +45,11 @@ export default function ToolBar<T>({ search, handleSearchChange, select, filtere
             className="px-2 py-1 rounded-md bg-surface border border-border text-sm text-text-primary focus:ring-2 focus:ring-primary outline-none cursor-pointer"
           >
             {values.options.map((v) => (
-              <option key={v.label} value={v.value}>{v.label}</option>
+              <option key={v.label} value={v.value}>
+                {v.label}
+              </option>
             ))}
           </select>
-
         </div>
       ))}
 
@@ -52,5 +58,5 @@ export default function ToolBar<T>({ search, handleSearchChange, select, filtere
         {filtered.length !== 1 ? "s" : ""}
       </span>
     </div>
-  )
+  );
 }

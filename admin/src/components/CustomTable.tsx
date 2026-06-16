@@ -43,7 +43,6 @@ export default function CustomTable<T>(props: TableProps<T>) {
                   key={col.label + idx}
                   onClick={() => col.sortable && col.key && onSort?.(col.key)}
                   className="px-4 py-2.5 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider"
-
                 >
                   {col.label}
                 </th>
