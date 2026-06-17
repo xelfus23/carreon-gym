@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { NavItem } from "../types";
 import {
-  Badge,
-  CircleSlash,
   CircleStar,
   DoorOpen,
   Dumbbell,
@@ -109,12 +107,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
         {sideBarOn ? (
           <PanelLeftClose
             onClick={() => setSideBarOn(false)}
-            className="aspect-square h-10 transition-all"
+            className="aspect-square h-4 transition-all"
           />
         ) : (
           <PanelLeftOpen
             onClick={() => setSideBarOn(true)}
-            className="aspect-square h-10 transition-all"
+            className="aspect-square h-4 transition-all"
           />
         )}
       </div>
@@ -130,11 +128,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
             <button
               key={item.id}
               onClick={() => setTab(item.id)}
-              className={`w-full flex items-center hover:bg-border border-l-2 ${sideBarOn ? "justify-normal aspect-auto px-2 py-2" : "aspect-square justify-center h-10"} gap-2 transition-all duration-200 ${
-                currentTab === item.id
-                  ? "text-primary"
-                  : " hover:text-text-primary border-surface"
-              }`}
+              className={`w-full flex items-center hover:bg-border border-l-2 ${sideBarOn ? "justify-normal aspect-auto px-2 py-2.5" : "aspect-square justify-center h-10"} gap-2 transition-all duration-200 ${currentTab === item.id
+                ? "text-primary"
+                : " hover:text-text-primary border-surface"
+                }`}
             >
               {item.icon}
               {sideBarOn && <span className={`text-sm`}>{item.label}</span>}
@@ -151,11 +148,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
             <button
               key={item.id}
               onClick={() => setTab(item.id)}
-              className={`w-full flex items-center hover:bg-border border-l-2 ${sideBarOn ? "justify-normal aspect-auto px-2 py-2" : "aspect-square justify-center h-10"} gap-2 transition-all duration-200 ${
-                currentTab === item.id
-                  ? "text-primary"
-                  : " hover:text-text-primary border-surface"
-              }`}
+              className={`w-full flex items-center hover:bg-border border-l-2 ${sideBarOn ? "justify-normal aspect-auto px-2 py-2.5" : "aspect-square justify-center h-10"} gap-2 transition-all duration-200 ${currentTab === item.id
+                ? "text-primary"
+                : " hover:text-text-primary border-surface"
+                }`}
             >
               {item.icon}
               {sideBarOn && <span className={`text-sm`}>{item.label}</span>}
@@ -172,11 +168,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
             <button
               key={item.id}
               onClick={() => setTab(item.id)}
-              className={`w-full flex items-center hover:bg-border border-l-2 ${sideBarOn ? "justify-normal aspect-auto px-2 py-2" : "aspect-square justify-center h-10"} gap-2 transition-all duration-200 ${
-                currentTab === item.id
-                  ? "text-primary"
-                  : " hover:text-text-primary border-surface"
-              }`}
+              className={`w-full flex items-center hover:bg-border border-l-2 ${sideBarOn ? "justify-normal aspect-auto px-2 py-2.5" : "aspect-square justify-center h-10"} gap-2 transition-all duration-200 ${currentTab === item.id
+                ? "text-primary"
+                : " hover:text-text-primary border-surface"
+                }`}
             >
               {item.icon}
               {sideBarOn && <span className={`text-sm`}>{item.label}</span>}

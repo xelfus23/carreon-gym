@@ -24,6 +24,7 @@ export const getSessionByDateDomain = async (params: {
   }
 
   const row = result.rows[0];
+  
   return {
     found: true,
     session_id: Number(row.id),

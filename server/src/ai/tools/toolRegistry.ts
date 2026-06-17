@@ -202,7 +202,24 @@ export const tools = [
       },
     },
   },
-
+  {
+    type: "function",
+    function: {
+      name: "get_body_metrics_history",
+      description: "Retrieves the user's body metrics history including weight, body fat percentage, and muscle mass over time. Use this when the user asks about their progress, weight, body composition, or physical changes.",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "number",
+            description: "Number of recent entries to retrieve. Default 10, max 30.",
+            default: 10
+          }
+        },
+        required: []
+      }
+    }
+  }
 ];
 
 export const TOOL_NAMES = tools.map((t) => t.function.name);

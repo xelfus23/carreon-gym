@@ -6,6 +6,7 @@ import { createSessionExercise } from "./functions/createSessionExercise.ts";
 import { deleteWorkoutSession } from "./functions/deleteWorkoutSession.ts";
 import { getSessionByDate } from "./functions/getSessionByDate.ts";
 import { getWorkoutLogs } from "../../domain/chat/getWorkoutLogs.ts";
+import { getBodyMetricsHistory } from "./functions/getBodyMetricHistory.ts";
 
 type ToolHandler = (ws: WebSocket, args: any, userId: number) => Promise<any>;
 
@@ -16,6 +17,7 @@ const toolHandlers: Record<string, ToolHandler> = {
   get_user_workout_sessions: getUserWorkoutPlan,
   get_session_by_date: getSessionByDate,
   get_workout_logs: getWorkoutLogs,
+  get_body_metrics_history: getBodyMetricsHistory
 };
 
 export async function handleToolCall(

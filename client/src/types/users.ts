@@ -29,8 +29,8 @@ export type Subscription = {
 
 export type CurrentStats = {
   weightKg: number;
-  bodyFatPercent: number;
-  muscleMassKg: number;
+  bodyFatPercent: number | null;
+  muscleMassKg: number | null;
   lastRecorded?: Date;
   recorded_at?: Date;
 };

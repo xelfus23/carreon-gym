@@ -103,8 +103,8 @@ CREATE TABLE subscriptions (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE UNIQUE INDEX uq_active_subscription_per_user 
-ON subscriptions(user_id) 
+CREATE UNIQUE INDEX uq_active_subscription_per_user_category
+ON subscriptions(user_id, plan_id)
 WHERE status = 'active';
 
 CREATE INDEX idx_subscriptions_user_status 
@@ -140,8 +140,6 @@ CREATE TABLE products (
 
 CREATE INDEX idx_products_category ON products(category_id);
 CREATE INDEX idx_products_status ON products(status);
-
-
 
 -- ============================================================================
 -- PAYMENTS

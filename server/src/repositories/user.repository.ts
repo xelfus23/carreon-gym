@@ -197,7 +197,7 @@ export const getBodyMetricsHistoryQuery = async (
   userId: number,
   limit = 30,
 ) => {
-  return await pool.query(
+  const res = await pool.query(
     `SELECT 
             weight_kg,
             body_fat_percent,
@@ -209,4 +209,18 @@ export const getBodyMetricsHistoryQuery = async (
          LIMIT $2`,
     [userId, limit],
   );
+
+  if (res.rows.length === 0) {
+    return {
+      success: true,
+      data: [],
+      message: "No body metrics recorded yet.",
+    };
+  }
+
+  return {
+    success: true,
+    data: res.rows,
+    message: `Retrieved ${res.rows.length} body metric entries.`,
+  };
 };

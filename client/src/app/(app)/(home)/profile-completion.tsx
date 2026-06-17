@@ -19,7 +19,7 @@ import StepGender from "../../components/ProfileCompletion/StepGender";
 import StepStart from "../../components/ProfileCompletion/StepStart";
 import StepBirthdate from "../../components/ProfileCompletion/StepBirthdate";
 import StepGoals from "../../components/ProfileCompletion/StepGoals";
-import StepBodyType from "../../components/ProfileCompletion/StepBodyType";
+// import StepBodyType from "../../components/ProfileCompletion/StepBodyType";
 import StepExperienceLevel from "../../components/ProfileCompletion/StepExperienceLevel";
 
 import { router } from "expo-router";
@@ -43,8 +43,8 @@ export default function ProfileCompletion() {
     weightKg: 24,
     goal: "lose_weight",
     activityLevel: "moderate",
-    bodyFatPercent: 10,
-    muscleMassKg: 11,
+    bodyFatPercent: null,
+    muscleMassKg: null,
     experienceLevel: "beginner",
   });
 
@@ -73,8 +73,8 @@ export default function ProfileCompletion() {
 
       await updateStats({
         weightKg: Number(formData.weightKg),
-        bodyFatPercent: Number(formData.bodyFatPercent),
-        muscleMassKg: Number(formData.muscleMassKg),
+        // bodyFatPercent: Number(formData.bodyFatPercent),
+        // muscleMassKg: Number(formData.muscleMassKg),
       });
 
       await refreshProfile();
@@ -129,17 +129,17 @@ export default function ProfileCompletion() {
             onBack={prevStep}
           />
         );
+      // case 6:
+      //   return (
+      //     <StepBodyType
+      //       key="step-bodytype"
+      //       data={formData}
+      //       setData={setFormData}
+      //       onNext={nextStep}
+      //       onBack={prevStep}
+      //     />
+      //   );
       case 6:
-        return (
-          <StepBodyType
-            key="step-bodytype"
-            data={formData}
-            setData={setFormData}
-            onNext={nextStep}
-            onBack={prevStep}
-          />
-        );
-      case 7:
         return (
           <StepActivityLevel
             key="step-activity"
@@ -149,7 +149,7 @@ export default function ProfileCompletion() {
             onBack={prevStep}
           />
         );
-      case 8:
+      case 7:
         return (
           <StepExperienceLevel
             key="step-experience"
@@ -159,7 +159,7 @@ export default function ProfileCompletion() {
             onBack={prevStep}
           />
         );
-      case 9:
+      case 8:
         return (
           <StepGoals
             key="step-goals"
