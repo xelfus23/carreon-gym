@@ -27,6 +27,12 @@ import { formatDate } from "../utils/formatDate";
 import AttendanceRow from "../components/TableRows/AttendanceRow";
 import CalendarStrip from "../components/CalendarStrip";
 
+
+const toLocalDateStr = (isoString: string) => {
+  const d = new Date(isoString);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
 export default function Attendance() {
   const {
     logs,
@@ -95,18 +101,19 @@ export default function Attendance() {
         log.method.toLowerCase().includes(search.toLowerCase());
 
       const matchesDate = selectedDate
-        ? log.check_in_time.startsWith(selectedDate)
+        ? toLocalDateStr(log.check_in_time) === selectedDate
         : true;
 
       return matchesSearch && matchesDate;
     });
   }, [logs, search, selectedDate]);
 
+
   const failedAttempts = useMemo(() => {
     return attempts.filter((a) => {
       const isFailed = a.result === "failed";
       const matchesDate = selectedDate
-        ? a.created_at.startsWith(selectedDate)
+        ? toLocalDateStr(a.created_at) === selectedDate
         : true;
       return isFailed && matchesDate;
     });
@@ -116,8 +123,7 @@ export default function Attendance() {
     const dates = new Set<string>();
     logs.forEach((log) => {
       if (log.check_in_time) {
-        const datePart = log.check_in_time.split("T")[0];
-        dates.add(datePart);
+        dates.add(toLocalDateStr(log.check_in_time));
       }
     });
     return dates;

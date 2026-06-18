@@ -14,7 +14,7 @@ const SessionTimerContext = createContext<SessionTimerContextType>({
 
 export const useSessionTimer = () => useContext(SessionTimerContext);
 
-export const SessionTimerProvider = ({ children }: { children: React.ReactNode }) => {
+export default function SessionTimerProvider({ children }: { children: React.ReactNode }) {
   const { sessionStatus } = useUserProfile();
   const [elapsed, setElapsed] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);

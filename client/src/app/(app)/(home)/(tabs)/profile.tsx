@@ -3,7 +3,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  RefreshControl,
 } from "react-native";
 import SubscriptionCard from "../../../components/Profile/ProfileSubscriptionCard";
 import BasicInfoCard from "../../../components/Profile/BasicInfoCard";
@@ -12,7 +11,7 @@ import ProfileHeader from "../../../components/Profile/ProfileHeader";
 import { useUserProfile } from "@/src/context/profileProvider";
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
-import { getCustomLoader } from "@/src/app/components/CustomRefreshControl";
+import getCustomLoader from "@/src/app/components/CustomRefreshControl";
 
 export default function Profile() {
   const { refreshProfile, isLoading } = useUserProfile();

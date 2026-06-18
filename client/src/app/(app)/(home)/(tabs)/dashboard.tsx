@@ -3,8 +3,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
   Image,
 } from "react-native";
 import { useUserProfile } from "@/src/context/profileProvider";
@@ -15,7 +13,7 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { formatDate } from "@/src/utils/formatDate";
 import { Ionicons } from "@expo/vector-icons";
-import { getCustomLoader } from "@/src/app/components/CustomRefreshControl";
+import getCustomLoader from "@/src/app/components/CustomRefreshControl";
 
 export default function Dashboard() {
   const { profile, refreshProfile } = useUserProfile();
@@ -90,7 +88,7 @@ export default function Dashboard() {
 
   const upcomming =
     selectedExercises.filter(
-      (ex) => !isExerciseChecked(ex.sessionId, ex.id),
+      (ex) => !isExerciseChecked(ex.sessionId, ex.exercise_id),
     )[0] || null;
 
   const isStreakHigh = todayStats.streak >= 7;
@@ -264,17 +262,17 @@ export default function Dashboard() {
             <View className="flex-row justify-between items-center">
               <View className="flex-1">
                 <Text className="text-text-primary text-base font-bold font-inter">
-                  {upcomming.name}
+                  {upcomming.exercise_name}
                 </Text>
                 <View className="flex-row gap-4 mt-2">
-                  {upcomming.reps ? (
+                  {upcomming.rep_count ? (
                     <Text className="text-text-secondary text-sm font-inter">
                       <Ionicons
                         name="infinite"
                         size={12}
                         color={COLORS.primary}
                       />
-                      {" " + upcomming.reps} reps
+                      {" " + upcomming.rep_count} reps
                     </Text>
                   ) : (
                     <Text className="text-text-secondary text-sm font-inter">
@@ -292,7 +290,7 @@ export default function Dashboard() {
                       size={12}
                       color={COLORS.primary}
                     />
-                    {" " + upcomming.sets} sets
+                    {" " + upcomming.set_count} sets
                   </Text>
                 </View>
               </View>

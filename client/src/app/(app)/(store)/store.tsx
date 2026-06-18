@@ -9,7 +9,7 @@ import {
   Dimensions,
 } from "react-native";
 import { useProducts } from "@/src/hooks/useProducts";
-import { getCustomLoader } from "../../components/CustomRefreshControl";
+import getCustomLoader from "../../components/CustomRefreshControl";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -34,8 +34,8 @@ export default function Store() {
         category === "All"
           ? products.filter((p) => p.is_active && p.available)
           : products.filter(
-              (p) => p.category === category && p.is_active && p.available,
-            );
+            (p) => p.category === category && p.is_active && p.available,
+          );
       return { category, data: filtered };
     });
   }, [products, categories]);
@@ -75,16 +75,14 @@ export default function Store() {
               <TouchableOpacity
                 key={cat}
                 onPress={() => handleCategoryPress(cat, index)}
-                className={`px-4 py-2 rounded-full border ${
-                  isActive
+                className={`px-4 py-2 rounded-full border ${isActive
                     ? "bg-primary border-primary"
                     : "bg-surface border-border"
-                }`}
+                  }`}
               >
                 <Text
-                  className={`text-xs font-bold ${
-                    isActive ? "text-background" : "text-text-secondary"
-                  }`}
+                  className={`text-xs font-bold ${isActive ? "text-background" : "text-text-secondary"
+                    }`}
                 >
                   {cat}
                 </Text>

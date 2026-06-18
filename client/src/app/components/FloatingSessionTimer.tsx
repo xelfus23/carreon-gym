@@ -26,7 +26,7 @@ const formatTime = (seconds: number) => {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 };
 
-export const FloatingSessionTimer = () => {
+export default function FloatingSessionTimer() {
   const { elapsed, isRunning } = useSessionTimer();
   const insets = useSafeAreaInsets();
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -35,7 +35,6 @@ export const FloatingSessionTimer = () => {
   const initialY = SCREEN_HEIGHT - PILL_HEIGHT - TAB_BAR_HEIGHT - insets.bottom - BOTTOM_MARGIN;
 
   const pan = useRef(new Animated.ValueXY({ x: initialX, y: initialY })).current;
-
 
   const panResponder = useRef(
     PanResponder.create({

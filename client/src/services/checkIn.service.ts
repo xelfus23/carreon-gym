@@ -15,7 +15,7 @@ export class CheckInService {
           qr_data: qrData,
         }),
       })
-    ).data;
+    );
   }
 
   static async checkOut(qrData: string) {
@@ -31,7 +31,7 @@ export class CheckInService {
           qr_data: qrData,
         }),
       })
-    ).data;
+    );
   }
 
   static async getSessionStatus() {

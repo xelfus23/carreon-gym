@@ -12,7 +12,7 @@ import {
   FlatList,
 } from "react-native";
 import { formatDate } from "@/src/utils/formatDate";
-import { getCustomLoader } from "@/src/app/components/CustomRefreshControl";
+import getCustomLoader from "@/src/app/components/CustomRefreshControl";
 import { SessionExerciseProps } from "@/src/types/workout";
 
 // ─── Section Header ───────────────────────────────────────────────────────────
@@ -63,16 +63,14 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
       onPress={onPress}
       disabled={checked}
       activeOpacity={0.7}
-      className={`mb-3 rounded-2xl border p-4 flex-row items-center gap-4 ${
-        checked
+      className={`mb-3 rounded-2xl border p-4 flex-row items-center gap-4 ${checked
           ? "bg-surface/50 border-green-500/20"
           : "bg-surface border-border"
-      }`}
+        }`}
     >
       <View
-        className={`w-12 h-12 rounded-2xl items-center justify-center ${
-          checked ? "bg-green-500/10" : "bg-primary/10"
-        }`}
+        className={`w-12 h-12 rounded-2xl items-center justify-center ${checked ? "bg-green-500/10" : "bg-primary/10"
+          }`}
       >
         {checked ? (
           <Ionicons name="checkmark-done" size={24} color={COLORS.primary} />
@@ -87,9 +85,8 @@ export function ExerciseCard({ ex, checked, onPress }: ExerciseCardProps) {
 
       <View className="flex-1">
         <Text
-          className={`text-base font-semibold ${
-            checked ? "text-text-secondary line-through" : "text-text-primary"
-          }`}
+          className={`text-base font-semibold ${checked ? "text-text-secondary line-through" : "text-text-primary"
+            }`}
           numberOfLines={1}
         >
           {ex.exercise_name || "Unknown Exercise"}
@@ -164,14 +161,13 @@ function SessionProgressBar({
         <Text className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
           {isComplete
             ? "Session complete 🎉"
-            : `${
-                todayDate === selectedDate
-                  ? "Today's"
-                  : formatDate(selectedDate, {
-                      month: "short",
-                      day: "2-digit",
-                    })
-              } Progress`}
+            : `${todayDate === selectedDate
+              ? "Today's"
+              : formatDate(selectedDate, {
+                month: "short",
+                day: "2-digit",
+              })
+            } Progress`}
         </Text>
         <Text className="text-xs font-bold" style={{ color: barColor }}>
           {done}/{total}
@@ -248,13 +244,12 @@ function CalendarStrip({
           <TouchableOpacity
             onPress={() => onSelectDate(item.dateStr)}
             activeOpacity={0.7}
-            className={`items-center w-16 py-2 rounded-2xl ${
-              isSelected
+            className={`items-center w-16 py-2 rounded-2xl ${isSelected
                 ? "bg-primary-dark"
                 : isToday
                   ? "bg-primary/10"
                   : "bg-surface"
-            }`}
+              }`}
           >
             <Text
               className="text-xs font-semibold mb-1"
@@ -364,10 +359,10 @@ export default function TodayWorkoutScreen() {
               {isToday
                 ? "Today's Session"
                 : new Date(selectedDate).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
             </Text>
           </View>
 

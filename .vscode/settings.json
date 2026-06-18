@@ -1,8 +1,10 @@
 {
   "cSpell.words": [
+    "COOLDOWN",
     "gema",
     "URSER"
   ],
   "workbench.colorTheme": "GitHub Dark",
-  "window.autoDetectColorScheme": false
+  "window.autoDetectColorScheme": false,
+  "java.configuration.updateBuildConfiguration": "disabled"
 }

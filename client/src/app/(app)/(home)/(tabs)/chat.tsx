@@ -18,7 +18,7 @@ import { useUserProfile } from "@/src/context/profileProvider";
 import CustomLoader from "@/src/app/components/Plans/PlansLoading";
 import WelcomeScreen from "@/src/app/components/ChatWelcome";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-import { getCustomLoader } from "@/src/app/components/CustomRefreshControl";
+import getCustomLoader from "@/src/app/components/CustomRefreshControl";
 
 const PROMPT_SUGGESTIONS = [
   {

@@ -146,7 +146,6 @@ export const WebsocketHandler = async (server: Server) => {
 };
 
 export const broadcastNotification = (type: string, payload: any) => {
-  // Change this to wssAdmin if you want the Admin dashboard to receive it
   if (!wssAdmin) return;
 
   const message = JSON.stringify({

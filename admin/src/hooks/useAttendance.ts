@@ -20,8 +20,8 @@ export function formatAttemptReason(reason: string | null | undefined): string {
   if (reason == null || reason === "") return "—";
   const labels: Record<string, string> = {
     UNKNOWN_ERROR: "Unknown error",
-    NO_SUBSCRIPTION: "No Subscription",
-    UNAUTHORIZED_ACCESS: "No Subscription",
+    NO_SUBSCRIPTION: "User has no active subscription",
+    UNAUTHORIZED_ACCESS: "Unauthorized access",
     ALREADY_CHECKED_IN: "Already Checked In",
     UNVERIFIED_USER: "Unverified User",
     USER_NOT_FOUND: "User Not Found",

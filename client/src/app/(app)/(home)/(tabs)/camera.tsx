@@ -46,10 +46,12 @@ export default function CameraScreen() {
 
     try {
       if (data === "GYM:in") {
-        await CheckInService.checkIn(data);
+        const response = await CheckInService.checkIn(data);
+        console.log("Check In Response: ", response)
         setSuccessMessage("Check-in successful!");
       } else if (data === "GYM:out") {
-        await CheckInService.checkOut(data);
+        const response = await CheckInService.checkOut(data);
+        console.log("Check Out Response: ", response)
         setSuccessMessage("Check-out successful!");
       } else {
         throw new Error("Invalid QR Code");
@@ -57,6 +59,7 @@ export default function CameraScreen() {
       await refreshProfile();
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");
+      console.log("Error Response: ", err.message)
     } finally {
       setScanning(false);
       setScanned(true);
