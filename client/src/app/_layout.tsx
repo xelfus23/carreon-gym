@@ -16,6 +16,9 @@ import {
 
 import { UserProfileProvider } from "../context/profileProvider";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { FloatingSessionTimer } from "./components/FloatingSessionTimer";
+import { PortalHost, PortalProvider } from "@gorhom/portal";
+import { SessionTimerProvider } from "./components/SessionTimer";
 
 export default function RootLayout() {
 
@@ -31,11 +34,17 @@ export default function RootLayout() {
 
   return (
     <KeyboardProvider>
-      <AuthProvider>
-        <UserProfileProvider>
-          <Slot />
-        </UserProfileProvider>
-      </AuthProvider>
+      <PortalProvider>
+        <AuthProvider>
+          <UserProfileProvider>
+            <SessionTimerProvider>
+              <Slot />
+              <FloatingSessionTimer />
+              <PortalHost name="floating" />
+            </SessionTimerProvider>
+          </UserProfileProvider>
+        </AuthProvider>
+      </PortalProvider>
     </KeyboardProvider>
   );
 }

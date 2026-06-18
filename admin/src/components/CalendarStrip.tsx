@@ -1,4 +1,6 @@
 import { useMemo, useRef, useEffect, useState } from "react";
+import { formatLocalDate } from "../utils/formatLocalDate";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CalendarStripProps {
   selectedDate: string;
@@ -21,14 +23,7 @@ const MONTHS = [
   "November",
   "December",
 ];
-// Format local date as YYYY-MM-DD
-function formatLocalDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
 
-  return `${year}-${month}-${day}`;
-}
 
 export default function CalendarStrip({
   selectedDate,
@@ -85,8 +80,29 @@ export default function CalendarStrip({
     }
   }, [todayStr, selectedMonth, selectedYear]);
 
+  const SCROLL_AMOUNT = 900;
+
+  const scrollLeft = () => {
+    if (!scrollContainerRef.current) return;
+
+    scrollContainerRef.current.scrollTo({
+      left: scrollContainerRef.current.scrollLeft - SCROLL_AMOUNT,
+      behavior: "smooth",
+    });
+  };
+
+  const scrollRight = () => {
+    if (!scrollContainerRef.current) return;
+
+    scrollContainerRef.current.scrollTo({
+      left: scrollContainerRef.current.scrollLeft + SCROLL_AMOUNT,
+      behavior: "smooth",
+    });
+  };
+
+
   return (
-    <div className="w-full min-w-0 overflow-hidden rounded-xl border border-border bg-surface p-4 shadow-sm">
+    <div className="w-full min-w-0 overflow-hidden border border-border bg-surface p-4 shadow-sm">
       <div className="mb-3 flex flex-wrap gap-2">
         <select
           value={selectedMonth}
@@ -118,7 +134,7 @@ export default function CalendarStrip({
       </div>
 
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="truncate text-xs font-bold uppercase tracking-wider text-text-primary">
+        <h3 className="font-mulish text-xs uppercase text-text-primary">
           Attendance Timeline
         </h3>
 
@@ -132,49 +148,55 @@ export default function CalendarStrip({
         )}
       </div>
 
-      <div className="grid">
-        <div
-          ref={scrollContainerRef}
-          className="overflow-x-auto overflow-y-hidden scrollbar-none pb-2"
-          style={{
-            scrollbarWidth: "none",
-          }}
-        >
-          <div className="flex w-max gap-2">
-            {days.map((item) => {
-              const isSelected = item.dateStr === selectedDate;
-              const isToday = item.dateStr === todayStr;
-              const hasLogs = activeDates.has(item.dateStr);
+      <div className="flex items-center space-x-4">
+        <button onClick={scrollLeft} className="rounded-full border border-border p-1 hover:bg-border cursor-pointer hover:scale-140 transition-all active:scale-120">
+          <ChevronLeft size={18} />
+        </button>
+        <div className="grid">
+          <div
+            ref={scrollContainerRef}
+            className="overflow-x-auto overflow-y-hidden scrollbar-none"
+            style={{
+              scrollbarWidth: "none",
+            }}
+          >
+            <div className="flex w-max gap-2 p-2">
+              {days.map((item) => {
+                const isSelected = item.dateStr === selectedDate;
+                const isToday = item.dateStr === todayStr;
+                const hasLogs = activeDates.has(item.dateStr);
 
-              return (
-                <button
-                  key={item.dateStr}
-                  data-date={item.dateStr}
-                  onClick={() => onSelectDate(item.dateStr)}
-                  className={`flex w-16 shrink-0 flex-col items-center justify-center rounded-xl border py-2.5 transition-all ${
-                    isSelected
+                return (
+                  <button
+                    key={item.dateStr}
+                    data-date={item.dateStr}
+                    onClick={() => onSelectDate(item.dateStr)}
+                    className={`flex w-16 shrink-0 flex-col cursor-pointer hover:scale-120 active:scale-110 items-center justify-center rounded-xl border py-2.5 transition-all ${isSelected
                       ? "border-primary bg-primary text-background shadow-md"
                       : isToday
                         ? "border-primary/30 bg-primary/10 text-primary"
                         : "border-border bg-background/40 text-text-primary hover:bg-white/5"
-                  }`}
-                >
-                  <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide">
-                    {item.dayLabel}
-                  </span>
+                      }`}
+                  >
+                    <span className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                      {item.dayLabel}
+                    </span>
 
-                  <span className="text-base font-bold">{item.dayNum}</span>
+                    <span className="text-base font-bold">{item.dayNum}</span>
 
-                  <div
-                    className={`mt-1.5 h-1.5 w-1.5 rounded-full ${
-                      hasLogs ? "bg-primary" : "bg-transparent"
-                    }`}
-                  />
-                </button>
-              );
-            })}
+                    <div
+                      className={`mt-1.5 h-1.5 w-1.5 rounded-full ${hasLogs ? "bg-primary" : "bg-transparent"
+                        }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
+        <button onClick={scrollRight} className="rounded-full border border-border p-1 hover:bg-border cursor-pointer hover:scale-140 transition-all active:scale-120">
+          <ChevronRight size={18} />
+        </button>
       </div>
     </div>
   );

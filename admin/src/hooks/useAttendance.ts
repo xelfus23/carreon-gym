@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { memberService } from "../services/member.service";
 import { getWsUrl } from "../utils/getWsUrl";
+import { formatLocalDate } from "../utils/formatLocalDate";
 
 export type AttendanceLogProps = {
   id: number;
@@ -57,7 +58,7 @@ export const useAttendanceLog = () => {
   const [latestFailureAlert, setLatestFailureAlert] =
     useState<AttendanceAttemptLog | null>(null);
 
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<string>(formatLocalDate(new Date()));
   const getAttendanceLog = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsLoading(true);
     setError(null);
@@ -112,7 +113,7 @@ export const useAttendanceLog = () => {
             result: "failed",
             reason:
               message.data.reason != null &&
-              String(message.data.reason).trim() !== ""
+                String(message.data.reason).trim() !== ""
                 ? formatAttemptReason(String(message.data.reason))
                 : "Unknown error",
             metadata: null,

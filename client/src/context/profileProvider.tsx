@@ -48,6 +48,7 @@ export const UserProfileProvider = ({
       const { user } = await authService.me();
       console.log(user);
       const sessionData = await CheckInService.getSessionStatus();
+      console.log(sessionData)
 
       setSessionStatus(sessionData);
       setProfile(user);

@@ -116,7 +116,6 @@ export default function Attendance() {
     const dates = new Set<string>();
     logs.forEach((log) => {
       if (log.check_in_time) {
-        // Splitting "2026-06-17T04:00:00Z" to get "2026-06-17"
         const datePart = log.check_in_time.split("T")[0];
         dates.add(datePart);
       }
@@ -134,7 +133,7 @@ export default function Attendance() {
       activeNow: relevantLogs.filter((l) => l.status === "checked_in").length,
       avgDuration: relevantLogs.length
         ? relevantLogs.reduce((acc, curr) => acc + (curr.duration || 0), 0) /
-          relevantLogs.length
+        relevantLogs.length
         : 0,
     };
   }, [logs, selectedDate]);
@@ -143,6 +142,7 @@ export default function Attendance() {
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE,
   );
+
   const totalPages = Math.ceil(filteredLogs.length / PAGE_SIZE) || 1;
 
   const cards = [
@@ -259,22 +259,20 @@ export default function Attendance() {
             <div className="flex border border-border overflow-hidden">
               <button
                 onClick={() => setManualAction("check_in")}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors ${
-                  manualAction === "check_in"
-                    ? "bg-emerald-500/15 text-emerald-400 border-r border-emerald-500/30"
-                    : "text-text-secondary hover:text-text-primary hover:bg-white/5 border-r border-border"
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors ${manualAction === "check_in"
+                  ? "bg-emerald-500/15 text-emerald-400 border-r border-emerald-500/30"
+                  : "text-text-secondary hover:text-text-primary hover:bg-white/5 border-r border-border"
+                  }`}
               >
                 <UserCheck size={13} />
                 Check in
               </button>
               <button
                 onClick={() => setManualAction("check_out")}
-                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors ${
-                  manualAction === "check_out"
-                    ? "bg-amber-500/15 text-amber-400"
-                    : "text-text-secondary hover:text-text-primary hover:bg-white/5"
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors ${manualAction === "check_out"
+                  ? "bg-amber-500/15 text-amber-400"
+                  : "text-text-secondary hover:text-text-primary hover:bg-white/5"
+                  }`}
               >
                 <UserX size={13} />
                 Check out
@@ -286,7 +284,7 @@ export default function Attendance() {
           <button
             onClick={handleManualAttendance}
             disabled={isSubmittingManual || !selectedMemberId}
-            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 transition-colors text-background text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 rounded-md py-2 bg-primary hover:bg-primary/90 transition-colors text-background text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isSubmittingManual ? (
               <>
@@ -302,11 +300,10 @@ export default function Attendance() {
         {/* Inline status feedback */}
         {manualStatus && (
           <div
-            className={`mx-4 mb-4 px-3 py-2 text-xs font-semibold border ${
-              manualStatus.type === "success"
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                : "border-rose-500/30 bg-rose-500/10 text-rose-400"
-            }`}
+            className={`mx-4 mb-4 px-3 py-2 text-xs font-semibold border ${manualStatus.type === "success"
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+              : "border-rose-500/30 bg-rose-500/10 text-rose-400"
+              }`}
           >
             {manualStatus.message}
           </div>
@@ -410,11 +407,10 @@ export default function Attendance() {
                   </td>
                   <td className="px-5 py-3.5">
                     <span
-                      className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 border ${
-                        attempt.action === "check_in"
-                          ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-                          : "text-amber-400 bg-amber-500/10 border-amber-500/20"
-                      }`}
+                      className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 border ${attempt.action === "check_in"
+                        ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                        : "text-amber-400 bg-amber-500/10 border-amber-500/20"
+                        }`}
                     >
                       {attempt.action === "check_in" ? (
                         <UserCheck size={10} />
