@@ -1,12 +1,10 @@
 import { useUserProfile } from "@/src/context/profileProvider";
 import { displayValue } from "@/src/utils/displayValue";
 import { formatDate } from "@/src/utils/formatDate";
-import { useRouter } from "expo-router";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, View } from "react-native";
 
 export default function SubscriptionCard() {
   const { profile } = useUserProfile();
-  const router = useRouter();
 
   // Get subscription status color
   const getSubscriptionTextColor = (status: string | undefined) => {
@@ -65,19 +63,6 @@ export default function SubscriptionCard() {
           </View>
         )}
       </View>
-
-      {profile?.subscription?.status !== "active" && (
-        <TouchableOpacity
-          onPress={() =>
-            router.push("/(app)/(home)/subscription-plan")
-          }
-          className="bg-primary rounded-lg p-3 mt-3"
-        >
-          <Text className="text-background font-bold text-center text-sm">
-            Upgrade Membership
-          </Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }

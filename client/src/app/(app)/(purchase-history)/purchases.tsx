@@ -12,6 +12,7 @@ import * as ImagePicker from "expo-image-picker";
 import { usePayments } from "@/src/hooks/usePayments";
 import { uploadImage } from "@/src/utils/uploadImage";
 import { COLORS } from "@/src/consts/colors";
+import getCustomLoader from "../../components/CustomRefreshControl";
 
 export interface ProductItemProps {
   id: number;
@@ -283,8 +284,7 @@ export default function Purchases() {
             keyExtractor={(item) => item.transaction_id.toString()}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}
-            onRefresh={refresh}
-            refreshing={isLoading && isUploading === null}
+            refreshControl={getCustomLoader(isLoading && isUploading === null, refresh)}
             contentContainerStyle={{ paddingBottom: 24 }}
           />
         )}

@@ -2,6 +2,7 @@ import { Modal, Text, View, TouchableOpacity, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Dispatch, SetStateAction, useEffect, useRef } from "react";
 import { useRouter } from "expo-router";
+import { useModal } from "@/src/context/ModalProvider";
 
 export default function SubscriptionReminder({
   title,
@@ -12,6 +13,10 @@ export default function SubscriptionReminder({
   title: string;
   setReminderOpen: Dispatch<SetStateAction<boolean>>;
 }) {
+
+  const { subscription } = useModal();
+
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const router = useRouter()
@@ -59,7 +64,7 @@ export default function SubscriptionReminder({
             </Text>
           </View>
 
-          <TouchableOpacity onPress={() => router.push("/(app)/(home)/subscription-plan")} className="bg-primary py-3 w-[50%] rounded-full items-center mt-2 active:opacity-80">
+          <TouchableOpacity onPress={subscription.show} className="bg-primary py-3 w-[50%] rounded-full items-center mt-2 active:opacity-80">
             <Text className="text-background font-interBold text-base">
               View Plans
             </Text>

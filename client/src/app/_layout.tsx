@@ -36,11 +36,9 @@ export default function RootLayout() {
     <KeyboardProvider>
       <PortalProvider>
         <AuthProvider>
-
           <UserProfileProvider>
-            <Slot />
-
             <SessionTimerProvider>
+              <Slot />
               <FloatingSessionTimer />
               <PortalHost name="floating" />
             </SessionTimerProvider>
