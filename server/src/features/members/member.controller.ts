@@ -9,12 +9,18 @@ import { banAccountDomain } from "../../domain/members/banAccountDomain.ts";
 export const getMembers = catchAsync(async (req: Request, res: Response) => {
   const members = await getUsersDomain();
 
-  const formattedMembers = members.map((member) => ({
-    ...member,
-    attendance_rate: member.total_visits_this_month
-      ? Math.round((member.total_visits_this_month / 12) * 100)
-      : 0,
-  }));
+  const formattedMembers = members.map((member) => {
+    const baselineTargetVisits = 12;
+    const currentVisits = member.total_visits_this_month || 0;
+
+    // Compute safe proportion between 0.0 and 1.0 representation
+    const calculatedRate = currentVisits / baselineTargetVisits;
+
+    return {
+      ...member,
+      attendance_rate: parseFloat(Math.min(calculatedRate, 1.0).toFixed(2)),
+    };
+  });
 
   return res.status(200).json({
     success: true,

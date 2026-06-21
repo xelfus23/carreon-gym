@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from "react";
 import { useGymSubs } from "../hooks/useGymSubs";
 import ConfirmDialog from "../components/Modals/ConfirmDialog";
 import { Dumbbell, Zap, Users, Layers, Loader2 } from "lucide-react";
-import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
 import CustomTable from "../components/CustomTable";
 import type {
@@ -258,18 +257,6 @@ export default function GymSubscriptionsAdmin() {
 
   return (
     <div className="space-y-4">
-      {/* ── Header Section ── */}
-      <CustomHeader
-        hasAction={true}
-        title="Plans Manager"
-        icon={<Dumbbell className="text-primary" />}
-        description="Manage and configure carreon gym plan offerings"
-        refresh={refresh}
-        onClick={() => setIsAddModalOpen(true)}
-        buttonLabel="Create New Plan"
-        isLoading={isLoading}
-      />
-
       {/* ── Stats Grid (Identical to Transaction Stats) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {cards.map(({ label, value, color, icon }) => (
@@ -294,7 +281,11 @@ export default function GymSubscriptionsAdmin() {
             setPage(1);
           }}
           select={select}
-          filtered={filtered}
+          action={{
+            label: "Add New Plan",
+            function: () => setIsAddModalOpen(true),
+            loading: isLoading
+          }}
           placeholder="Search plan name or category..."
         />
 

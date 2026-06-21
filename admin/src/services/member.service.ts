@@ -1,5 +1,5 @@
 import { API_URL } from "../constants";
-import type { AccountRegistrationProps } from "../types";
+import type { UserAccountProps } from "../types";
 import { authService } from "./auth.service";
 
 export const memberService = {
@@ -93,7 +93,7 @@ export const memberService = {
     return data;
   },
 
-  createMember: async (payload: AccountRegistrationProps) => {
+  createMember: async (payload: Partial<UserAccountProps>) => {
     const result = await authService.fetchWithRefresh(
       `${API_URL}/api/users/register`,
       {

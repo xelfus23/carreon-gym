@@ -1,11 +1,8 @@
 import { useState, useRef, useCallback } from "react";
-import type {
-  ActionItemProps,
-  UserAccountProps,
-  SubscriptionStatus,
-} from "../../types";
-import { Ban, Check, ClockPlus, Trash, UserKey, UserLock } from "lucide-react";
+import type { ActionItemProps, UserAccountProps, SubscriptionItem, SubscriptionStatus } from "../../types";
+import { Ban, Check, ClockPlus, Ellipsis, Search, Trash, UserKey, UserLock } from "lucide-react";
 import { ActionMenu } from "../ActionMenu";
+import { PopupList } from "../Popups/PopupList";
 
 function formatRelativeDate(iso: string | null): string {
   if (!iso) return "—";
@@ -32,6 +29,124 @@ const SUB_BADGE: Record<SubscriptionStatus, string> = {
   cancelled: "bg-rose-100 text-rose-600",
 };
 
+// ── Subscription status dot colors ───────────────────────────────────────────
+const SUB_DOT: Record<SubscriptionStatus, string> = {
+  active: "bg-emerald-500",
+  expired: "bg-red-400",
+  pending: "bg-yellow-400",
+  cancelled: "bg-rose-400",
+};
+
+function SubscriptionCell({ subscriptions }: { subscriptions: SubscriptionItem[] }) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+
+  if (subscriptions.length === 0) {
+    return <span className="text-text-secondary text-xs">—</span>;
+  }
+
+  const first = subscriptions[0];
+  const hasMore = subscriptions.length > 1;
+
+  const activeSubs = subscriptions.filter(v => v.status === "active")
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      {/* First subscription preview */}
+      <div className="flex items-center gap-1.5">
+        <span
+          className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full tracking-wide ${SUB_BADGE[first.status]}`}
+        >
+          {first.status}
+        </span>
+        <span className="text-xs font-medium text-text-primary truncate max-w-[100px]">
+          {first.plan_name}
+        </span>
+      </div>
+
+      {first.expiry_date && (
+        <div className="text-[11px] text-text-secondary ml-0.5">
+          Expires{" "}
+          {new Date(first.expiry_date).toLocaleString([], {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}
+        </div>
+      )}
+
+      {/* "view all" trigger when there are multiple */}
+      {hasMore && (
+        <>
+          <button
+            ref={triggerRef}
+            onClick={() => setOpen((o) => !o)}
+            className={`text-left text-[11px] font-semibold hover:underline mt-0.5 transition-colors ${open ? "text-text-primary" : "text-primary"
+              }`}
+          >
+            +{activeSubs.length - 1} more active subscription{activeSubs.length - 1 > 1 ? "s" : ""}
+          </button>
+
+          {open && (
+            <PopupList
+              title={`SubscactiveSubs.length})`}
+              anchorRef={triggerRef}
+              onClose={close}
+            >
+              {activeSubs.map((sub) => (
+                <div
+                  key={sub.id}
+                  className="flex items-start gap-3 p-3 hover:bg-border/20 transition-colors"
+                >
+                  {/* Status dot */}
+                  <span
+                    className={`mt-1 w-2 h-2 rounded-full shrink-0 ${SUB_DOT[sub.status]}`}
+                  />
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-text-primary truncate">
+                      {sub.plan_name}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span
+                        className={`px-1.5 py-0.5 text-[9px] font-bold uppercase rounded-full tracking-wide ${SUB_BADGE[sub.status]}`}
+                      >
+                        {sub.status}
+                      </span>
+                    </div>
+                    {sub.expiry_date && (
+                      <p className="text-[11px] text-text-secondary mt-0.5">
+                        Expires{" "}
+                        {new Date(sub.expiry_date).toLocaleString([], {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                    )}
+                    {sub.start_date && (
+                      <p className="text-[11px] text-text-secondary">
+                        Started{" "}
+                        {new Date(sub.start_date).toLocaleString([], {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </PopupList>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── MemberRow ─────────────────────────────────────────────────────────────────
 export default function MemberRow({
   m,
@@ -40,6 +155,7 @@ export default function MemberRow({
   onBan,
   onDelete,
   onVerify,
+  onSelect
 }: {
   m: UserAccountProps;
   onSetPlan: (m: UserAccountProps) => void;
@@ -47,6 +163,7 @@ export default function MemberRow({
   onBan: (m: UserAccountProps) => void;
   onDelete: (m: UserAccountProps) => void;
   onVerify: (m: UserAccountProps) => void;
+  onSelect: (m: UserAccountProps) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -56,34 +173,30 @@ export default function MemberRow({
   const isDeleted = m.account_status === "deleted";
   const isBanned = m.account_status === "banned";
 
+  // Derive a single top-level subscription status for the plan column
+  // const activeSub = m.subscriptions.find((s) => s.status === "active");
+
   const actions: ActionItemProps[] = [
+
     {
       label: "Set Plan",
       icon: <ClockPlus className="h-4" />,
-      onClick: () => {
-        onSetPlan(m);
-        close();
-      },
+      onClick: () => { onSetPlan(m); close(); },
     },
     {
       label: m.verified ? "Unverify Member" : "Verify Member",
       icon: <Check className="h-4" />,
-      onClick: () => {
-        onVerify(m);
-        close();
-      },
+      onClick: () => { onVerify(m); close(); },
+    },
+    {
+      label: "More Details",
+      icon: <Ellipsis className="h-4" />,
+      onClick: () => { onSelect(m); close() }
     },
     {
       label: isSuspended ? "Unsuspend Member" : "Suspend Member",
-      icon: isSuspended ? (
-        <UserLock className="h-4" />
-      ) : (
-        <UserKey className="h-4" />
-      ),
-      onClick: () => {
-        onSuspend(m);
-        close();
-      },
+      icon: isSuspended ? <UserLock className="h-4" /> : <UserKey className="h-4" />,
+      onClick: () => { onSuspend(m); close(); },
       variant: isSuspended ? "default" : "warning",
       dividerBefore: true,
       disabled: isBanned || isDeleted,
@@ -91,103 +204,69 @@ export default function MemberRow({
     {
       label: "Ban / Blacklist",
       icon: <Ban className="h-4" />,
-      onClick: () => {
-        onBan(m);
-        close();
-      },
+      onClick: () => { onBan(m); close(); },
       variant: "danger",
       disabled: isBanned,
     },
     ...(!isDeleted
-      ? [
-          {
-            label: "Delete Member",
-            icon: <Trash className="h-4" />,
-            onClick: () => {
-              onDelete(m);
-              close();
-            },
-            variant: "danger" as const,
-            dividerBefore: true,
-          },
-        ]
+      ? [{
+        label: "Delete Member",
+        icon: <Trash className="h-4" />,
+        onClick: () => { onDelete(m); close(); },
+        variant: "danger" as const,
+        dividerBefore: true,
+      }]
       : []),
   ];
 
   return (
-    <tr className={`transition-colors group hover:bg-border/40`}>
+    <tr className="transition-colors group hover:bg-border/40">
       <td className="p-4 text-xs text-text-secondary">{m.id.toString()}</td>
+
       {/* Member */}
       <td className="p-4">
-        <div className={`font-semibold text-text-primary leading-tight`}>
+        <div className="font-semibold text-text-primary leading-tight">
           {m.first_name} {m.last_name}
         </div>
         <div className="text-[11px] text-text-secondary mt-0.5">{m.email}</div>
         {m.phone_number && (
-          <div className="text-[11px] text-text-secondary">
-            {m.phone_number}
-          </div>
+          <div className="text-[11px] text-text-secondary">{m.phone_number}</div>
         )}
       </td>
+
       {/* Account status */}
       <td className="p-4">
         <span
-          className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wide ${
-            ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-text-secondary"
-          }`}
+          className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wide ${ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-text-secondary"
+            }`}
         >
           {m.account_status}
         </span>
         {m.verified ? (
-          <span className="ml-1.5 text-[10px] text-primary font-semibold">
-            Verified
-          </span>
+          <span className="ml-1.5 text-[10px] text-primary font-semibold">Verified</span>
         ) : (
           <span className="ml-1.5 text-[10px] text-yellow-400">Unverified</span>
         )}
       </td>
-      {/* Plan */}
-      <td className="p-4 text-sm">
+
+      {/* Plan — shows active plan name or falls back to latest */}
+      {/* <td className="p-4 text-sm">
         <span className="font-medium text-text-primary">
-          {m.plan_name ?? "—"}
+          {activeSub?.plan_name ?? m.subscriptions[0]?.plan_name ?? "—"}
         </span>
         {m.weight_kg != null && (
           <div className="text-[11px] text-text-secondary mt-0.5">
             {m.weight_kg} kg
-            {m.weight_recorded_at && (
-              <> · {formatRelativeDate(m.weight_recorded_at)}</>
-            )}
+            {m.weight_recorded_at && <> · {formatRelativeDate(m.weight_recorded_at)}</>}
           </div>
         )}
-      </td>
-      {/* Subscription */}
+      </td> */}
+
+      {/* Subscription — popup for multiple, inline for single */}
       <td className="p-4">
-        {m.subscription_status ? (
-          <div>
-            <span
-              className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full tracking-wide ${
-                SUB_BADGE[m.subscription_status]
-              }`}
-            >
-              {m.subscription_status}
-            </span>
-            {m.expiry_date && (
-              <div className="text-[11px] text-text-secondary mt-0.5">
-                Expires{" "}
-                {new Date(m.expiry_date).toLocaleString([], {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </div>
-            )}
-          </div>
-        ) : (
-          <span className="text-text-secondary text-xs">—</span>
-        )}
+        <SubscriptionCell subscriptions={m.subscriptions} />
       </td>
+
       {/* Last check-in */}
       <td className="p-4 text-sm text-text-primary">
         {formatRelativeDate(m.last_check_in)}
@@ -197,6 +276,7 @@ export default function MemberRow({
           </div>
         )}
       </td>
+
       {/* Visits */}
       <td className="p-4">
         <span className="text-base font-black text-text-primary">
@@ -208,23 +288,8 @@ export default function MemberRow({
           </div>
         )}
       </td>
-      {/* Attendance */}
-      {/* <td className="p-4">
-        <div className="flex items-center gap-2">
-          <div className="flex-1 bg-border h-1.5 rounded-full overflow-hidden min-w-[60px]">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${attendanceColor}`}
-              style={{
-                width: `${Math.min(100, m.attendance_rate)}%`,
-              }}
-            />
-          </div>
-          <span className="text-xs font-semibold text-text-primary w-8 text-right tabular-nums">
-            {m.attendance_rate}%
-          </span>
-        </div>
-      </td> */}
-      {/* ── Actions ── */}
+
+      {/* Actions */}
       <td className="p-4">
         <div className="flex items-center justify-end">
           <button
@@ -234,12 +299,11 @@ export default function MemberRow({
             aria-haspopup="true"
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
-                            opacity-0 group-hover:opacity-100 focus:opacity-100
-                            ${
-                              menuOpen
-                                ? "opacity-100 bg-border text-text-primary"
-                                : "text-text-secondary hover:bg-border hover:text-text-primary"
-                            }`}
+              opacity-0 group-hover:opacity-100 focus:opacity-100
+              ${menuOpen
+                ? "opacity-100 bg-border text-text-primary"
+                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="3" r="1.4" />
@@ -249,11 +313,7 @@ export default function MemberRow({
           </button>
 
           {menuOpen && (
-            <ActionMenu
-              items={actions}
-              anchorRef={triggerRef}
-              onClose={close}
-            />
+            <ActionMenu items={actions} anchorRef={triggerRef} onClose={close} />
           )}
         </div>
       </td>

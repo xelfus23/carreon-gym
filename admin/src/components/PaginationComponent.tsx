@@ -1,18 +1,26 @@
 import type { Dispatch, SetStateAction } from "react";
 
-interface PaginationProps {
+interface PaginationProps<T> {
   page: number,
   totalPages: number,
   setPage: Dispatch<SetStateAction<number>>
+  data: T[],
 }
 
-export default function PaginationComponent({ page, totalPages, setPage }: PaginationProps) {
+export default function PaginationComponent<T>({ page, totalPages, setPage, data }: PaginationProps<T>) {
 
   return (
     <div className="px-5 py-3 border-t border-border bg-surface/60 flex items-center justify-between">
-      <span className="text-xs text-text-secondary">
-        Page {page} of {totalPages}
-      </span>
+      <div className="flex space-x-4">
+        <span className="text-xs text-text-secondary">
+          Page {page} of {totalPages}
+        </span>
+        <div className="bg-text-secondary w-px" />
+        <span className="ml-auto text-xs text-text-secondary font-medium whitespace-nowrap">
+          {data.length} result
+          {data.length !== 1 ? "s" : ""}
+        </span>
+      </div>
       <div className="flex gap-1">
         <button
           onClick={() =>

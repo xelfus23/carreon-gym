@@ -1,27 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, ShoppingBag } from "lucide-react";
-import { formatCurrency } from "../../utils/formatCurrency";
+import { X } from "lucide-react";
 
-interface CartItem {
-  id: number;
-  name: string;
-  quantity: number;
-  price_at_purchase: number;
-  icon_url: string | null;
-}
-
-interface CartItemsPopupProps {
-  items: CartItem[];
+interface PopupListProps {
+  title: string;
   anchorRef: React.RefObject<HTMLButtonElement | null>;
   onClose: () => void;
+  children: React.ReactNode;
 }
 
-export function CartItemsPopup({
-  items,
-  anchorRef,
-  onClose,
-}: CartItemsPopupProps) {
+export function PopupList({ title, anchorRef, onClose, children }: PopupListProps) {
   const popupRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
@@ -32,17 +20,15 @@ export function CartItemsPopup({
     const place = () => {
       const rect = anchor.getBoundingClientRect();
       const popupHeight = popupRef.current?.offsetHeight ?? 280;
-      const popupWidth = popupRef.current?.offsetWidth ?? 288; // w-72
+      const popupWidth = popupRef.current?.offsetWidth ?? 288;
 
-      // Check vertical space (flip up if squeezed at the bottom of screen)
       const spaceBelow = window.innerHeight - rect.bottom;
       const top =
         spaceBelow > popupHeight ? rect.bottom + 6 : rect.top - popupHeight - 6;
 
-      // Horizontal align left side of the popup with the left edge of trigger text link
       let left = rect.left;
       if (left + popupWidth > window.innerWidth) {
-        left = window.innerWidth - popupWidth - 16; // Margin safeguard
+        left = window.innerWidth - popupWidth - 16;
       }
 
       setPos({ top, left });
@@ -88,21 +74,21 @@ export function CartItemsPopup({
         position: "fixed",
         top: pos.top,
         left: pos.left,
-        zIndex: 9998, // Stays right around contextual menus
+        zIndex: 9998,
         animation: "popupIn 150ms cubic-bezier(0.16, 1, 0.3, 1)",
       }}
     >
       <style>{`
         @keyframes popupIn {
           from { opacity: 0; transform: scale(0.96) translateY(-4px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
+          to   { opacity: 1; transform: scale(1)    translateY(0);    }
         }
       `}</style>
 
-      {/* POPUP HEADER */}
+      {/* Header */}
       <div className="flex items-center justify-between px-3 py-2.5 bg-border/20 border-b border-border">
         <span className="text-[11px] font-bold text-text-secondary tracking-wider uppercase">
-          Items Breakdown ({items.length})
+          {title}
         </span>
         <button
           onClick={onClose}
@@ -112,42 +98,9 @@ export function CartItemsPopup({
         </button>
       </div>
 
-      {/* ITEMS LIST (SCROLLABLE CONTAINER) */}
+      {/* Scrollable content */}
       <div className="max-h-60 overflow-y-auto divide-y divide-border/40 custom-scrollbar">
-        {items.map((item, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-3 p-3 hover:bg-border/20 transition-colors"
-          >
-            {/* Thumbnail Preview */}
-            <div className="w-9 h-9 rounded-md bg-border/40 border border-border shrink-0 flex items-center justify-center overflow-hidden">
-              {item.icon_url ? (
-                <img
-                  src={item.icon_url}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <ShoppingBag size={14} className="text-text-secondary" />
-              )}
-            </div>
-
-            {/* Product Meta */}
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-text-primary truncate">
-                {item.name}
-              </p>
-              <p className="text-[11px] text-text-secondary mt-0.5">
-                {formatCurrency(item.price_at_purchase)} × {item.quantity}
-              </p>
-            </div>
-
-            {/* Calculated Subtotal line */}
-            <div className="text-xs font-bold text-text-primary whitespace-nowrap">
-              {formatCurrency(item.price_at_purchase * item.quantity)}
-            </div>
-          </div>
-        ))}
+        {children}
       </div>
     </div>,
     document.body,

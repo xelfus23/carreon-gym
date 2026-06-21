@@ -11,13 +11,11 @@ export const useMember = () => {
     setIsLoading(true);
     try {
       const result = await memberService.getMember();
+      const rawData: UserAccountProps[] = result.data ?? [];
 
-      setMembers(
-        result.data?.filter((v: UserAccountProps) => v.role !== "admin") ?? [],
-      );
-      setAdmins(
-        result.data?.filter((v: UserAccountProps) => v.role !== "member") ?? [],
-      );
+      setMembers(rawData.filter((user) => user.role === "member"));
+      setAdmins(rawData.filter((user) => user.role === "admin" || user.role === "trainer"));
+
     } catch (err) {
       if (err instanceof Error) console.error("Fetch error:", err.message);
     } finally {
@@ -30,7 +28,7 @@ export const useMember = () => {
       await memberService.createMember(data);
       await refetch();
     } catch (err) {
-      if (err instanceof Error) console.error("Verify error:", err.message);
+      if (err instanceof Error) console.error("Create error:", err.message);
     }
   };
 

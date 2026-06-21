@@ -3,15 +3,14 @@ import { useMember } from "../hooks/useMember";
 import type { UserAccountProps, ConfirmDialogTypes, FormField } from "../types";
 import MemberRow from "../components/TableRows/MemberRow";
 import SubscriptionModal from "../components/SubscriptionModal";
-import { CircleAlert, CircleCheck, Star, Users } from "lucide-react";
+import { CircleAlert, CircleCheck, Users } from "lucide-react";
 import CustomTable from "../components/CustomTable";
-import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
-import { COLORS } from "../constants";
 import type { SelectProps } from "../components/ToolBar";
 import ToolBar from "../components/ToolBar";
 import ConfirmDialog from "../components/Modals/ConfirmDialog";
 import AddModal from "../components/Modals/AddModal";
+import MemberProfileAnalytics from "../components/Charts/MemberProfileAnalytics";
 
 export type SortKey = keyof UserAccountProps | null;
 export type SortDir = "asc" | "desc";
@@ -75,6 +74,7 @@ export default function Members() {
   const [subscriptionMember, setSubscriptionMember] =
     useState<UserAccountProps | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserAccountProps | null>()
 
   // Table controls
   const [search, setSearch] = useState("");
@@ -152,8 +152,6 @@ export default function Members() {
 
     if (filterStatus !== "all")
       list = list.filter((m) => m.account_status === filterStatus);
-    if (filterSub !== "all")
-      list = list.filter((m) => m.subscription_status === filterSub);
 
     if (sortKey) {
       list.sort((a, b) => {
@@ -167,7 +165,7 @@ export default function Members() {
     }
 
     return list;
-  }, [members, search, filterStatus, filterSub, sortKey, sortDir]);
+  }, [members, search, filterStatus, sortKey, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -185,12 +183,10 @@ export default function Members() {
       total: members.length,
       active: members.filter((m) => m.account_status === "active").length,
       suspended: members.filter((m) => m.account_status === "suspended").length,
-      activeSubs: members.filter((m) => m.subscription_status === "active")
-        .length,
       avgAttendance: members.length
         ? Math.round(
-            members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
-          )
+          members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
+        )
         : 0,
     }),
     [members],
@@ -204,6 +200,10 @@ export default function Members() {
   const handleOnClick = () => {
     setIsAddModalOpen((v) => !v);
   };
+
+  const handleBack = () => {
+    setSelectedUser(null)
+  }
 
   const cards = [
     {
@@ -223,12 +223,6 @@ export default function Members() {
       value: stats.suspended,
       color: "border-amber-500/30 bg-amber-500/5 text-amber-500",
       icon: <CircleAlert size={16} />,
-    },
-    {
-      label: "Active Subs",
-      value: stats.activeSubs,
-      color: "border-indigo-500/30 bg-indigo-500/5 text-indigo-500",
-      icon: <Star size={16} />,
     },
   ];
 
@@ -265,18 +259,12 @@ export default function Members() {
     },
   ];
 
-  return (
+  return selectedUser ?
     <div className="space-y-4">
-      <CustomHeader
-        isLoading={isLoading}
-        refresh={refresh}
-        onClick={handleOnClick}
-        buttonLabel="Add Member"
-        title="Member Management"
-        description="Manage carreon gym members"
-        icon={<Users color={COLORS.primary} />}
-        hasAction={true}
-      />
+      <MemberProfileAnalytics user={selectedUser} onBack={handleBack} />
+    </div>
+    :
+    <div className="space-y-4">
 
       {isAddModalOpen && (
         <AddModal
@@ -291,7 +279,7 @@ export default function Members() {
         />
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {cards.map(({ label, value, color, icon }) => (
           <StatsCard
             key={label}
@@ -306,15 +294,16 @@ export default function Members() {
       <div className="flex-1 bg-surface border border-border shadow-sm overflow-hidden min-w-0 w-full">
         <ToolBar
           placeholder="Search name, email, phone..."
-          filtered={filtered}
           search={search}
           handleSearchChange={handleSearchChange}
           select={select}
+          action={{ label: "Add Member", function: handleOnClick, loading: isLoading }}
         />
 
         <CustomTable
           renderRow={(m) => (
             <MemberRow
+              onSelect={(m) => setSelectedUser(m)}
               key={m.id}
               m={m}
               onSetPlan={setSubscriptionMember}
@@ -331,20 +320,14 @@ export default function Members() {
           pageSize={PAGE_SIZE}
           onSort={handleSort}
           columns={[
-            { label: "ID", key: "id", sortable: true },
-            { label: "Member", key: "first_name", sortable: true },
-            { label: "Status", key: "account_status", sortable: true },
-            { label: "Plan", key: "plan_name", sortable: true },
-            {
-              label: "Subscription",
-              key: "subscription_status",
-              sortable: true,
-            },
-            { label: "Last Check-in", key: "last_check_in", sortable: true },
+            { label: "ID", key: "id" },
+            { label: "Member", key: "first_name" },
+            { label: "Status", key: "account_status" },
+            { label: "Subscriptions", key: "subscriptions" },
+            { label: "Last Check-in", key: "last_check_in" },
             {
               label: "Visits / mo",
               key: "total_visits_this_month",
-              sortable: true,
             },
             { label: "", key: null },
           ]}
@@ -371,5 +354,4 @@ export default function Members() {
         />
       )}
     </div>
-  );
 }

@@ -7,7 +7,6 @@ import {
 import { useMember } from "../hooks/useMember";
 import { memberService } from "../services/member.service";
 import {
-  Logs,
   Users,
   Activity,
   Timer,
@@ -17,7 +16,6 @@ import {
   X,
   RefreshCw,
 } from "lucide-react";
-import CustomHeader from "../components/CustomHeader";
 import StatsCard from "../components/CustomStatsCard";
 import ToolBar from "../components/ToolBar";
 import CustomTable from "../components/CustomTable";
@@ -37,7 +35,6 @@ export default function Attendance() {
   const {
     logs,
     attempts,
-    isLoading,
     refresh,
     selectedDate,
     setSelectedDate,
@@ -180,16 +177,6 @@ export default function Attendance() {
 
   return (
     <div className="space-y-5">
-      {/* ── Header ── */}
-      <CustomHeader
-        hasAction={false}
-        isLoading={isLoading}
-        refresh={refresh}
-        icon={<Logs className="text-primary" />}
-        title="Attendance Log"
-        buttonLabel="Refresh"
-        description="Manage and view Careon Gym attendance log"
-      />
 
       {/* ── Failure alert banner ── */}
       {latestFailureAlert && (
@@ -290,7 +277,7 @@ export default function Attendance() {
           <button
             onClick={handleManualAttendance}
             disabled={isSubmittingManual || !selectedMemberId}
-            className="flex items-center gap-2 px-4 rounded-md py-2 bg-primary hover:bg-primary/90 transition-colors text-background text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 rounded-md py-2 cursor-pointer active:scale-95 transition-all bg-primary hover:bg-primary/90  text-background text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isSubmittingManual ? (
               <>
@@ -330,7 +317,6 @@ export default function Attendance() {
         <ToolBar
           placeholder="Search by member name or method…"
           search={search}
-          filtered={filteredLogs}
           handleSearchChange={(e) => {
             setSearch(e.target.value);
             setPage(1);

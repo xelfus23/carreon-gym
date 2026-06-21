@@ -15,33 +15,43 @@ export enum NavItem {
 }
 
 export type SubscriptionStatus = "active" | "expired" | "pending" | "cancelled";
-
 export type AccountStatus = "active" | "suspended" | "banned" | "deleted";
+
+export interface SubscriptionItem {
+  id: number;
+  plan_name: string;
+  status: SubscriptionStatus;
+  start_date: string; // ISO String or YYYY-MM-DD
+  expiry_date: string; // ISO String or YYYY-MM-DD
+}
+
+export interface AttendanceLog {
+  id: number;
+  check_in: string;        // ISO timestamp
+  check_out: string | null; // ISO timestamp or null if still training
+}
 
 export interface UserAccountProps {
   id: number;
   role: "member" | "admin" | "trainer";
-  // Basic Info
   first_name: string;
   last_name: string;
   email: string;
   phone_number: string | null;
   verified: boolean;
   account_status: AccountStatus;
-  last_login: string | null; // ISO string
-  created_at: string; // ISO string
+  last_login: string | null;
+  created_at: string;
 
-  // Subscription Info (nullable because LEFT JOIN)
-  plan_name: string | null;
-  subscription_status: SubscriptionStatus | null;
+  subscriptions: SubscriptionItem[];
   expiry_date: string | null;
 
-  // Latest Body Metric (nullable)
   weight_kg: number | null;
   weight_recorded_at: string | null;
 
-  // Attendance
-  last_check_in: string | null; // ISO string
+  // Track raw logs for visualization
+  attendance_logs?: AttendanceLog[];
+  last_check_in: string | null;
   total_visits_all_time: number | null;
   total_visits_this_month: number | null;
   attendance_rate: number;
@@ -156,15 +166,15 @@ export interface FormField {
   name: string;
   label: string;
   type:
-    | "text"
-    | "number"
-    | "textarea"
-    | "checkbox"
-    | "select"
-    | "image"
-    | "password"
-    | "phone"
-    | "email";
+  | "text"
+  | "number"
+  | "textarea"
+  | "checkbox"
+  | "select"
+  | "image"
+  | "password"
+  | "phone"
+  | "email";
   placeholder?: string;
   required?: boolean;
   options?: { label: string; value: string | number }[]; // For select fields

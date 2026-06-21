@@ -10,7 +10,7 @@ import MemberManagement from "./screens/Members";
 import EquipmentTab from "./screens/Equipments";
 import AttendanceLog from "./screens/Attendance";
 import Product from "./screens/Products";
-import AdminManagement from "./screens/Admins";
+// import AdminManagement from "./screens/Admins";
 import Transactions from "./screens/Transactions";
 import GymSettings from "./screens/Settings";
 import GymSubscriptions from "./screens/Subscriptions";

@@ -1,11 +1,9 @@
-import { Package } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useProducts } from "../hooks/useProducts";
 import ProductRow from "../components/TableRows/ProductRow";
 import CustomTable from "../components/CustomTable";
 import type { ConfirmDialogTypes, FormField, ProductProps } from "../types";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
-import CustomHeader from "../components/CustomHeader";
 import AddModal from "../components/Modals/AddModal";
 import EditModal from "../components/Modals/EditModal";
 import ConfirmDialog from "../components/Modals/ConfirmDialog";
@@ -191,21 +189,14 @@ export default function Products() {
   return (
     <>
       <div className="space-y-4">
-        <CustomHeader
-          isLoading={isLoading}
-          refresh={refresh}
-          onClick={() => setIsAddModalOpen(true)}
-          buttonLabel="Add Product"
-          title="Inventory Management"
-          description="Manage carreon gym product inventory"
-          icon={<Package className="text-primary" />}
-          hasAction={true}
-        />
-
         <div className="bg-surface border border-border shadow-sm overflow-hidden flex flex-col">
           <ToolBar
             placeholder="Search product"
-            filtered={paginatedData}
+            action={{
+              label: "Add Product",
+              function: () => setIsAddModalOpen(true),
+              loading: isLoading
+            }}
             search={search}
             select={select}
             handleSearchChange={handleSearchChange}

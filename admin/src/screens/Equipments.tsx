@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import { useEquipments } from "../hooks/useEquipments";
-import { Dumbbell, Layers, Activity } from "lucide-react";
+import { Layers, Activity } from "lucide-react";
 import CustomTable from "../components/CustomTable";
-import CustomHeader from "../components/CustomHeader";
 import ToolBar, { type SelectProps } from "../components/ToolBar";
 import EquipmentRow from "../components/TableRows/EquipmentRow";
 import type { ConfirmDialogTypes, EquipmentProps, FormField } from "../types";
@@ -137,18 +136,6 @@ export default function Equipments() {
   return (
     <>
       <div className="space-y-6">
-        <CustomHeader
-          isLoading={isLoading}
-          refresh={refresh}
-          buttonLabel="Add Equipment"
-          hasAction={true}
-          title="Equipment Management"
-          icon={<Dumbbell className="text-primary" />}
-          description="Manage gym infrastructure assets, dumbbells, and adjustable barbells."
-          onClick={() => setIsAddModalOpen(true)}
-        />
-
-        {/* Tab Selection Row */}
         <div className="flex border-b border-border gap-2">
           <button
             onClick={() => { setActiveTab("general"); setPage(1); }}
@@ -176,7 +163,11 @@ export default function Equipments() {
               search={search}
               handleSearchChange={(e) => { setSearch(e.target.value); setPage(1); }}
               select={select}
-              filtered={filtered}
+              action={{
+                label: "New Equipment",
+                function: () => setIsAddModalOpen(true),
+                loading: isLoading
+              }}
               placeholder={activeTab === "dumbbells" ? "Search dumbbells..." : "Search machinery..."}
             />
 

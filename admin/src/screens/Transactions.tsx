@@ -13,7 +13,6 @@ import {
   ImageOff,
 } from "lucide-react";
 import StatsCard from "../components/CustomStatsCard";
-import CustomHeader from "../components/CustomHeader";
 import CustomTable, { type ColumnDefinition } from "../components/CustomTable";
 import TransactionRow from "../components/TableRows/TransactionRow";
 import { formatCurrency } from "../utils/formatCurrency";
@@ -246,18 +245,6 @@ export default function Transactions() {
         </div>
       )}
 
-      {/* ── Page header ── */}
-      <CustomHeader
-        title="Payment log"
-        description="Manage and verify Careon Gym transactions"
-        refresh={refresh}
-        hasAction={true}
-        buttonLabel="Log transaction"
-        icon={<Receipt className="text-primary" />}
-        isLoading={isLoading}
-        onClick={() => setIsModalOpen(true)}
-      />
-
       {/* ── Stat cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map((props) => (
@@ -271,7 +258,11 @@ export default function Transactions() {
         className="bg-surface border border-border shadow-sm"
       >
         <ToolBar
-          filtered={filteredTransactions}
+          action={{
+            label: "New Transaction",
+            function: () => setIsModalOpen(true),
+            loading: isLoading
+          }}
           search={search}
           handleSearchChange={(e) => {
             setSearch(e.target.value);

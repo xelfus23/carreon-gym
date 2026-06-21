@@ -21,8 +21,6 @@ export const meController = catchAsync(async (req: Request, res: Response) => {
 
   const data = await meDomain({ userId });
 
-  console.log(data);
-
   return res.status(200).json({
     success: true,
     message: "Profile Retrieved",

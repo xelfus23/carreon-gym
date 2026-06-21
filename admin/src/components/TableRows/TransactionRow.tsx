@@ -17,7 +17,7 @@ import {
 } from "react";
 import type { ActionItemProps } from "../../types";
 import { ActionMenu } from "../ActionMenu";
-import { CartItemsPopup } from "../Modals/CartItemPopup";
+import { CartItemsPopup } from "../Popups/CartItemPopup";
 
 interface TransactionRowProps {
   tx: TransactionProps;
@@ -40,10 +40,10 @@ export default function TransactionRow({
   onDeny,
 }: TransactionRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false); // Manages dynamic window trigger state
+  const [cartOpen, setCartOpen] = useState(false);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const cartTriggerRef = useRef<HTMLButtonElement>(null); // Anchor point mapping for item frame window
+  const cartTriggerRef = useRef<HTMLButtonElement>(null);
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   const closeCart = useCallback(() => setCartOpen(false), []);
@@ -135,9 +135,8 @@ export default function TransactionRow({
               <button
                 ref={cartTriggerRef}
                 onClick={() => setCartOpen((o) => !o)}
-                className={`text-left text-[11px] font-semibold cursor-pointer hover:underline mt-0.5 transition-colors ${
-                  cartOpen ? "text-text-primary" : "text-primary"
-                }`}
+                className={`text-left text-[11px] font-semibold cursor-pointer hover:underline mt-0.5 transition-colors ${cartOpen ? "text-text-primary" : "text-primary"
+                  }`}
               >
                 view all {itemsCount} items
               </button>

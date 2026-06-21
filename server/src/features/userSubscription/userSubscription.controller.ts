@@ -139,7 +139,6 @@ export const getUserSubscription = catchAsync(
 
     const subscription = await getUserSubscriptionDomain(userId);
 
-    console.log(subscription);
     return res.status(200).json({ success: true, data: subscription });
   },
 );

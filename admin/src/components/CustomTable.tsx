@@ -66,6 +66,7 @@ export default function CustomTable<T>(props: TableProps<T>) {
         </table>
       </div>
       <PaginationComponent
+        data={data}
         page={page}
         totalPages={totalPages}
         setPage={setPage}

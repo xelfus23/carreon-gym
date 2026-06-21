@@ -1,5 +1,6 @@
 import type { ChangeEventHandler } from "react";
 import SearchInput from "./CustomSearchInput";
+import { PlusCircle, RefreshCw } from "lucide-react";
 
 export type options = {
   label: string;
@@ -13,21 +14,25 @@ export type SelectProps = {
   label: string;
 };
 
-interface ToolbarProps<T> {
+interface ToolbarProps {
   search: string;
   handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   select?: SelectProps[];
-  filtered: T[];
   placeholder: string;
+  action?: {
+    label: string,
+    loading: boolean
+    function: () => void;
+  };
 }
 
-export default function ToolBar<T>({
+export default function ToolBar({
   search,
   handleSearchChange,
   select,
-  filtered,
   placeholder,
-}: ToolbarProps<T>) {
+  action,
+}: ToolbarProps) {
   return (
     <div className="p-4 border-b border-border bg-surface flex flex-wrap gap-3 items-center">
       <SearchInput
@@ -53,10 +58,24 @@ export default function ToolBar<T>({
         </div>
       ))}
 
-      <span className="ml-auto text-xs text-text-secondary font-medium whitespace-nowrap">
-        {filtered.length} result
-        {filtered.length !== 1 ? "s" : ""}
-      </span>
+      <div className="flex items-center gap-2 ml-auto">
+        {!action?.loading && (
+          <button
+            // onClick={action.function}
+            className="flex rounded-full cursor-pointer items-center justify-center gap-2 p-2 border border-border bg-surface text-text-primary text-sm font-bold hover:bg-border transition-all active:scale-90"
+          >
+            <RefreshCw className="text-text-secondary" size={14} />
+          </button>
+        )}
+        {action && (
+          <button
+            onClick={action.function}
+            className="flex rounded-md cursor-pointer items-center justify-center gap-2 px-4 py-2 bg-primary text-background text-sm font-bold hover:bg-primary-dark transition-all active:scale-90"
+          >
+            <PlusCircle size={16} /> {action.label}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
