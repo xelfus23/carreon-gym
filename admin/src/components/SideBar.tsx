@@ -184,7 +184,7 @@ const SystemStatus: React.FC<{ expanded: boolean }> = ({ expanded }) => {
 
   // ── Expanded ─────────────────────────────────────────────────────────────
   return (
-    <div className="p-3 bg-background border border-border space-y-3 rounded-lg">
+    <div className="border-border space-y-3 rounded-lg">
       {/* Header row */}
       <p className="text-[10px] uppercase font-bold tracking-wider text-text-secondary/50">
         System Status

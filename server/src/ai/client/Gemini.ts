@@ -1,5 +1,5 @@
 // src/ai/client/Gemini.ts
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { env } from "../../config/env.ts";
 import { tools as toolRegistry } from "../tools/toolRegistry.ts";
 import type { ChatMessage } from "../../types/index.ts";
@@ -90,13 +90,66 @@ function toGeminiContents(messages: ChatMessage[]) {
   return contents;
 }
 
+/** Gemini rejects schemas where `type` and `anyOf`/`oneOf`/`allOf` coexist on the same node. */
+function sanitizeSchemaForGemini(schema: Record<string, unknown>): Record<string, unknown> {
+  if (!schema || typeof schema !== "object") return schema;
+
+  const { anyOf, oneOf, allOf, default: _default, ...rest } = schema;
+  const hasComposition = anyOf != null || oneOf != null || allOf != null;
+
+  const sanitized: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(rest)) {
+    if (key === "properties" && value && typeof value === "object") {
+      const properties: Record<string, unknown> = {};
+      for (const [propKey, propValue] of Object.entries(
+        value as Record<string, unknown>,
+      )) {
+        properties[propKey] = sanitizeSchemaForGemini(
+          propValue as Record<string, unknown>,
+        );
+      }
+      sanitized.properties = properties;
+      continue;
+    }
+
+    if (key === "items" && value && typeof value === "object") {
+      sanitized.items = sanitizeSchemaForGemini(value as Record<string, unknown>);
+      continue;
+    }
+
+    sanitized[key] = value;
+  }
+
+  // Keep composition-only nodes; otherwise drop anyOf/oneOf/allOf when `type` is present.
+  if (hasComposition && sanitized.type == null) {
+    if (anyOf != null) {
+      sanitized.anyOf = (anyOf as Record<string, unknown>[]).map((item) =>
+        sanitizeSchemaForGemini(item),
+      );
+    }
+    if (oneOf != null) {
+      sanitized.oneOf = (oneOf as Record<string, unknown>[]).map((item) =>
+        sanitizeSchemaForGemini(item),
+      );
+    }
+    if (allOf != null) {
+      sanitized.allOf = (allOf as Record<string, unknown>[]).map((item) =>
+        sanitizeSchemaForGemini(item),
+      );
+    }
+  }
+
+  return sanitized;
+}
+
 function toGeminiTools(tools: any[]) {
   return [
     {
       functionDeclarations: tools.map((t) => ({
         name: t.function.name,
         description: t.function.description,
-        parameters: t.function.parameters,
+        parameters: sanitizeSchemaForGemini(t.function.parameters),
       })),
     },
   ];

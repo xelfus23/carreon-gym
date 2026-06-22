@@ -24,14 +24,19 @@ function CustomTooltip({ active, payload }: any) {
     <div className="bg-background border border-border rounded-lg px-3 py-2 text-xs shadow-md">
       <p className="font-bold text-text-primary">{row.weekLabel}</p>
       <p className="text-text-secondary mt-0.5">
-        Avg session: {row.avgMinutes != null ? `${row.avgMinutes} min` : "no data"}
+        Avg session:{" "}
+        {row.avgMinutes != null ? `${row.avgMinutes} min` : "no data"}
       </p>
-      <p className="text-text-secondary mt-0.5">{row.sessionCount} {row.sessionCount === 1 ? "visit" : "visits"}</p>
+      <p className="text-text-secondary mt-0.5">
+        {row.sessionCount} {row.sessionCount === 1 ? "visit" : "visits"}
+      </p>
     </div>
   );
 }
 
-export default function SessionDurationTrendChart({ user }: SessionDurationTrendChartProps) {
+export default function SessionDurationTrendChart({
+  user,
+}: SessionDurationTrendChartProps) {
   const data = useMemo(() => {
     const logs = user.attendance_logs ?? [];
 
@@ -42,7 +47,8 @@ export default function SessionDurationTrendChart({ user }: SessionDurationTrend
       if (!log.check_out) return;
       const inDate = new Date(log.check_in);
       const outDate = new Date(log.check_out);
-      if (Number.isNaN(inDate.getTime()) || Number.isNaN(outDate.getTime())) return;
+      if (Number.isNaN(inDate.getTime()) || Number.isNaN(outDate.getTime()))
+        return;
 
       const mins = (outDate.getTime() - inDate.getTime()) / 60000;
       if (mins <= 0 || mins > 6 * 60) return; // discard bad/outlier data
@@ -66,7 +72,10 @@ export default function SessionDurationTrendChart({ user }: SessionDurationTrend
       const d = new Date(key);
       return {
         weekLabel: `Week of ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
-        shortLabel: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        shortLabel: d.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
         avgMinutes: Math.round(avg),
         sessionCount: mins.length,
       };
@@ -76,7 +85,9 @@ export default function SessionDurationTrendChart({ user }: SessionDurationTrend
   if (data.length === 0) {
     return (
       <div className="bg-surface p-5 rounded-xl border border-border">
-        <p className="text-sm text-text-secondary py-6 text-center">Not enough completed sessions to chart a trend yet.</p>
+        <p className="text-sm text-text-secondary py-6 text-center">
+          Not enough completed sessions to chart a trend yet.
+        </p>
       </div>
     );
   }
@@ -84,8 +95,20 @@ export default function SessionDurationTrendChart({ user }: SessionDurationTrend
   return (
     <div className="bg-surface p-5 rounded-xl border border-border">
       <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={data} margin={{ top: 8, right: 16, left: 4, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} vertical={false} />
+        <LineChart
+          data={data}
+          margin={{ top: 8, right: 16, left: 4, bottom: 4 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={COLORS.border}
+            vertical={false}
+          />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={COLORS.border}
+            vertical={true}
+          />
           <XAxis
             dataKey="shortLabel"
             tick={{ fontSize: 10, fill: COLORS.textSecondary }}
@@ -100,7 +123,10 @@ export default function SessionDurationTrendChart({ user }: SessionDurationTrend
             tickFormatter={(v: number) => `${v}m`}
             width={36}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ stroke: COLORS.border }} />
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ stroke: COLORS.border }}
+          />
           <Line
             type="monotone"
             dataKey="avgMinutes"

@@ -112,10 +112,7 @@ export async function streamModel(
           }
         }
       } catch (parseErr) {
-        console.warn(
-          `⚠️ Could not parse chunk:`,
-          (parseErr as Error).message,
-        );
+        console.warn(`⚠️ Could not parse chunk:`, (parseErr as Error).message);
       }
     }
   }

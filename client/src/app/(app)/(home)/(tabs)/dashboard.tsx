@@ -218,7 +218,6 @@ export default function Dashboard() {
         </View>
       </View>
 
-      {/* Current Stats Overview */}
       {profile.currentStats && (
         <View className="px-4 mb-4">
           <Text className="text-text-primary text-lg font-bold mb-3">
