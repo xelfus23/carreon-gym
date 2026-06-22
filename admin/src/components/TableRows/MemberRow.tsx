@@ -1,6 +1,9 @@
 import { useState, useRef, useCallback } from "react";
 import type { ActionItemProps, UserAccountProps, SubscriptionItem, SubscriptionStatus } from "../../types";
-import { Ban, Check, ClockPlus, Ellipsis, Search, Trash, UserKey, UserLock } from "lucide-react";
+import {
+  Ban, Check, ClockPlus, Ellipsis,
+  Trash, UserKey, UserLock
+} from "lucide-react";
 import { ActionMenu } from "../ActionMenu";
 import { PopupList } from "../Popups/PopupList";
 
@@ -49,6 +52,8 @@ function SubscriptionCell({ subscriptions }: { subscriptions: SubscriptionItem[]
   const first = subscriptions[0];
   const hasMore = subscriptions.length > 1;
 
+  console.log(subscriptions)
+
   const activeSubs = subscriptions.filter(v => v.status === "active")
 
   return (
@@ -90,7 +95,7 @@ function SubscriptionCell({ subscriptions }: { subscriptions: SubscriptionItem[]
 
           {open && (
             <PopupList
-              title={`SubscactiveSubs.length})`}
+              title={`${activeSubs.length}`}
               anchorRef={triggerRef}
               onClose={close}
             >

@@ -13,7 +13,6 @@ export const getMembers = catchAsync(async (req: Request, res: Response) => {
     const baselineTargetVisits = 12;
     const currentVisits = member.total_visits_this_month || 0;
 
-    // Compute safe proportion between 0.0 and 1.0 representation
     const calculatedRate = currentVisits / baselineTargetVisits;
 
     return {

@@ -21,6 +21,7 @@ export interface SubscriptionItem {
   id: number;
   plan_name: string;
   status: SubscriptionStatus;
+  type: "membership" | "class" | "personal_training" | "add_on",
   start_date: string; // ISO String or YYYY-MM-DD
   expiry_date: string; // ISO String or YYYY-MM-DD
 }

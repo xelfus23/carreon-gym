@@ -1,6 +1,42 @@
 import pool from "../../config/pool.ts";
 
-export const getUsersDomain = async () => {
+// Define strict interfaces for better Type Safety in your Capstone Project
+export interface SubscriptionItem {
+  id: string;
+  plan_name: string;
+  category: string; // <-- Added this
+  status: 'cancelled' | 'pending' | 'expired' | 'active';
+  expiry_date: string | null;
+  start_date: string;
+}
+
+export interface AttendanceLogItem {
+  id: string;
+  check_in: string;
+  check_out: string | null;
+}
+
+export interface UserDomainRow {
+  id: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  email: string;
+  phone_number: string | null;
+  account_status: string;
+  verified: boolean;
+  last_login: string | null;
+  created_at: string;
+  subscriptions: SubscriptionItem[];
+  weight_kg: number | null;
+  weight_recorded_at: string | null;
+  last_check_in: string | null;
+  total_visits_all_time: number;
+  total_visits_this_month: number;
+  attendance_logs: AttendanceLogItem[];
+}
+
+export const getUsersDomain = async (): Promise<UserDomainRow[]> => {
   const query = `
     SELECT 
         u.id,
@@ -29,16 +65,17 @@ export const getUsersDomain = async () => {
 
     FROM users u
 
-    -- Clean Isolated Aggregation of Subscriptions
+    -- Clean Isolated Aggregation of Subscriptions (Updated with Join for Plan Category)
     LEFT JOIN LATERAL (
         SELECT json_agg(
             json_build_object(
               'id',          s.id,
               'plan_name',   s.plan_name,
+              'category',    sp.category, -- <-- Fetched from the joined subscription_plans table
               'status',      CASE
                                WHEN s.status = 'cancelled' THEN 'cancelled'
                                WHEN s.status = 'pending'   THEN 'pending'
-                               WHEN s.expiry_date IS NULL  THEN 'active' -- If open-ended plan
+                               WHEN s.expiry_date IS NULL  THEN 'active' 
                                WHEN s.expiry_date < CURRENT_TIMESTAMP THEN 'expired'
                                ELSE 'active'
                              END,
@@ -47,6 +84,8 @@ export const getUsersDomain = async () => {
             ) ORDER BY s.updated_at DESC, s.created_at DESC
         ) AS list
         FROM subscriptions s 
+        -- Inner Join here ensures we match the plan to access its category field
+        LEFT JOIN subscription_plans sp ON s.plan_id = sp.id
         WHERE s.user_id = u.id
     ) sub ON true
 
