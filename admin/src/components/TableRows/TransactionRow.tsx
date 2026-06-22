@@ -33,6 +33,13 @@ const mapMethod: Record<string, { label: string; text: string }> = {
   bank_transfer: { label: "Bank Transfer", text: "text-amber-500" },
 };
 
+function formatReferenceNo(
+  referenceNo: string | null | undefined,
+  transactionId: number,
+): string {
+  return referenceNo || `TRX-${transactionId}`;
+}
+
 export default function TransactionRow({
   tx,
   setSelectedReceipt,
@@ -85,7 +92,7 @@ export default function TransactionRow({
       {/* REFERENCE NUMBER */}
       <td className="p-4 whitespace-nowrap">
         <p className="text-text-secondary text-[10px] font-mono">
-          {tx.reference_no || "N/A"}
+          {formatReferenceNo(tx.reference_no, tx.transaction_id)}
         </p>
       </td>
 
@@ -135,8 +142,9 @@ export default function TransactionRow({
               <button
                 ref={cartTriggerRef}
                 onClick={() => setCartOpen((o) => !o)}
-                className={`text-left text-[11px] font-semibold cursor-pointer hover:underline mt-0.5 transition-colors ${cartOpen ? "text-text-primary" : "text-primary"
-                  }`}
+                className={`text-left text-[11px] font-semibold cursor-pointer hover:underline mt-0.5 transition-colors ${
+                  cartOpen ? "text-text-primary" : "text-primary"
+                }`}
               >
                 view all {itemsCount} items
               </button>
@@ -198,7 +206,7 @@ export default function TransactionRow({
           </button>
         ) : (
           <span className="text-[10px] text-text-secondary font-medium uppercase tracking-wider">
-            No Image
+            None
           </span>
         )}
       </td>

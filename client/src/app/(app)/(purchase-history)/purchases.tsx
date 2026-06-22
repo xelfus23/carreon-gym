@@ -39,6 +39,13 @@ export type TransactionProps = {
   quantity: number;
 };
 
+function formatReferenceNo(
+  referenceNo: string | null | undefined,
+  transactionId: number,
+): string {
+  return referenceNo || `TRX-${transactionId}`;
+}
+
 export default function Purchases() {
   const { submitProof, paymentHistory, isLoading, refresh } = usePayments();
   const [isUploading, setIsUploading] = useState<number | null>(null);
@@ -138,7 +145,7 @@ export default function Purchases() {
         <View className="flex-row justify-between items-start">
           <View className="flex-1 pr-2">
             <Text className="text-zinc-500 font-mono text-[10px] tracking-widest uppercase">
-              Ref: {item.reference_no || `TRX-${item.transaction_id}`}
+              Ref: {formatReferenceNo(item.reference_no, item.transaction_id)}
             </Text>
             <Text className="text-white text-base font-bold mt-0.5" numberOfLines={1}>
               {primaryDisplayName}

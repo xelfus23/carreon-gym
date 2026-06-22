@@ -204,17 +204,24 @@ export const getStatsDomain = async () => {
             CONCAT_WS(' ', u.first_name, u.last_name) AS name,
             UPPER(LEFT(u.first_name, 1) || LEFT(u.last_name, 1)) AS initials,
             u.created_at,
-            COALESCE(sp.name, 'No plan') AS plan_name,
-            COALESCE(s.status::text, 'pending') AS subscription_status
+            u.verified,
+            COALESCE(sp.name, 'No plan') AS plan_name
         FROM users u
-        LEFT JOIN subscriptions s
-            ON s.user_id = u.id
-            AND s.id = (
-                SELECT id FROM subscriptions
-                WHERE user_id = u.id
-                ORDER BY created_at DESC
-                LIMIT 1
-            )
+        LEFT JOIN LATERAL (
+            SELECT s.plan_id, s.status
+            FROM subscriptions s
+            WHERE s.user_id = u.id
+            ORDER BY
+                CASE
+                    WHEN s.status = 'active'
+                      AND (s.expiry_date IS NULL OR s.expiry_date >= CURRENT_TIMESTAMP) THEN 0
+                    WHEN s.status = 'pending' THEN 1
+                    ELSE 2
+                END,
+                s.updated_at DESC,
+                s.created_at DESC
+            LIMIT 1
+        ) s ON true
         LEFT JOIN subscription_plans sp ON s.plan_id = sp.id
         WHERE u.role = 'member'
         AND u.account_status = 'active'

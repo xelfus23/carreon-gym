@@ -78,10 +78,9 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen w-screen overflow-hidden bg-background">
       <Sidebar currentTab={currentTab} setTab={setCurrentTab} />
-
-      <main className="flex-1 bg-background relative">
+      <main className="flex-1 min-w-0 bg-background relative flex flex-col">
         <header className="sticky top-0 z-10 bg-surface backdrop-blur-md border-b border-border px-10 py-4 flex justify-between items-center">
           <div className="flex flex-col">
             <h2 className="text-xl font-bold text-text-primary capitalize">
@@ -114,10 +113,8 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="">
-          <div className="p-10 mx-auto flex-1 overflow-y-auto  h-[calc(100vh-80px)]">
-            {renderContent()}
-          </div>
+        <div className="p-8 flex-1 overflow-y-auto overflow-x-auto h-[calc(100vh-80px)]">
+          <div className="mx-auto w-full">{renderContent()}</div>
         </div>
       </main>
     </div>

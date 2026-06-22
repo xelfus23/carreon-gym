@@ -1,4 +1,5 @@
 import pool from "../../config/pool.ts";
+import { generateReferenceNo } from "../../utils/generateReferenceNo.ts";
 
 // in paymentDomain.ts
 export const sellProductDomain = async (
@@ -27,11 +28,13 @@ export const sellProductDomain = async (
       [productId],
     );
 
+    const referenceNo = generateReferenceNo("walk_in_pos");
+
     // 3. Record the payment
     const paymentRes = await client.query(
-      `INSERT INTO payments (user_id, product_id, amount, transaction_type, method, recorded_by, status)
-           VALUES ($1, $2, $3, 'product', $4, $5, 'paid') RETURNING *`,
-      [userId, productId, product.price, method, adminId],
+      `INSERT INTO payments (user_id, amount, transaction_type, origin, method, recorded_by, status, reference_no, paid_at)
+           VALUES ($1, $2, 'product', 'walk_in_pos', $3, $4, 'paid', $5, NOW()) RETURNING *`,
+      [userId, product.price, method, adminId, referenceNo],
     );
 
     await client.query("COMMIT");

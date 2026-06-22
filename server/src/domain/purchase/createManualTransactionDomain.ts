@@ -1,4 +1,5 @@
 import pool from "../../config/pool.ts";
+import { generateReferenceNo } from "../../utils/generateReferenceNo.ts";
 
 interface CartItemInput {
   product_id: number;
@@ -34,10 +35,7 @@ export const createManualTransactionDomain = async ({
       return sum + Number(item.price_at_purchase) * Number(item.quantity);
     }, 0);
 
-    // Generate or format an audit-safe tracking invoice reference tag
-    const finalReferenceNo =
-      referenceNo ||
-      `POS-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const finalReferenceNo = generateReferenceNo("walk_in_pos", referenceNo);
 
     // 2. Insert the singular financial record summary header row
     const masterPaymentRes = await client.query(

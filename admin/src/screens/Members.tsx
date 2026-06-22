@@ -74,7 +74,7 @@ export default function Members() {
   const [subscriptionMember, setSubscriptionMember] =
     useState<UserAccountProps | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserAccountProps | null>()
+  const [selectedUser, setSelectedUser] = useState<UserAccountProps | null>();
 
   // Table controls
   const [search, setSearch] = useState("");
@@ -185,8 +185,8 @@ export default function Members() {
       suspended: members.filter((m) => m.account_status === "suspended").length,
       avgAttendance: members.length
         ? Math.round(
-          members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
-        )
+            members.reduce((s, m) => s + m.attendance_rate, 0) / members.length,
+          )
         : 0,
     }),
     [members],
@@ -202,8 +202,8 @@ export default function Members() {
   };
 
   const handleBack = () => {
-    setSelectedUser(null)
-  }
+    setSelectedUser(null);
+  };
 
   const cards = [
     {
@@ -259,13 +259,12 @@ export default function Members() {
     },
   ];
 
-  return selectedUser ?
+  return selectedUser ? (
     <div className="space-y-4">
       <MemberProfileAnalytics user={selectedUser} onBack={handleBack} />
     </div>
-    :
+  ) : (
     <div className="space-y-4">
-
       {isAddModalOpen && (
         <AddModal
           isOpen={isAddModalOpen}
@@ -279,7 +278,7 @@ export default function Members() {
         />
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {cards.map(({ label, value, color, icon }) => (
           <StatsCard
             key={label}
@@ -297,7 +296,11 @@ export default function Members() {
           search={search}
           handleSearchChange={handleSearchChange}
           select={select}
-          action={{ label: "Add Member", function: handleOnClick, loading: isLoading }}
+          action={{
+            label: "Add Member",
+            function: handleOnClick,
+            loading: isLoading,
+          }}
         />
 
         <CustomTable
@@ -354,4 +357,5 @@ export default function Members() {
         />
       )}
     </div>
+  );
 }

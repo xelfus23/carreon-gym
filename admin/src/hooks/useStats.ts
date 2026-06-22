@@ -42,7 +42,7 @@ export interface NewMember {
   initials: string;
   created_at: string;
   plan_name: string;
-  subscription_status: "active" | "pending" | "expired" | "cancelled";
+  verified: boolean;
 }
 
 export interface PlanStat {

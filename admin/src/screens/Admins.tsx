@@ -1,10 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMember } from "../hooks/useMember";
-import type {
-  UserAccountProps,
-  ConfirmDialogTypes,
-  FormField,
-} from "../types";
+import type { UserAccountProps, ConfirmDialogTypes, FormField } from "../types";
 import { UserRoundKey } from "lucide-react";
 import SubscriptionModal from "../components/SubscriptionModal";
 import AdminRow from "../components/TableRows/AdminRow";
@@ -169,7 +165,6 @@ export default function Admins() {
             setSearch(e.target.value);
             setPage(1);
           }}
-          filtered={filtered}
           placeholder="Search name, email, phone..."
         />
 
@@ -201,7 +196,12 @@ export default function Admins() {
           page={page}
           pageSize={PAGE_SIZE}
           renderRow={(admin) => (
-            <AdminRow key={admin.id} m={admin} onBan={handleBan} onDelete={handleDelete} />
+            <AdminRow
+              key={admin.id}
+              m={admin}
+              onBan={handleBan}
+              onDelete={handleDelete}
+            />
           )}
         />
       </div>

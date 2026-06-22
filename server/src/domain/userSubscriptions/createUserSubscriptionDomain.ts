@@ -1,4 +1,5 @@
 import pool from "../../config/pool.ts";
+import { generateReferenceNo } from "../../utils/generateReferenceNo.ts";
 
 export const createUserSubscriptionDomain = async (
   userId: number,
@@ -95,10 +96,15 @@ export const createUserSubscriptionDomain = async (
       subscription = inserted.rows[0];
     }
 
+    const referenceNo = generateReferenceNo(
+      "walk_in_pos",
+      options.referenceNo ?? null,
+    );
+
     const paymentResult = await client.query(
       `INSERT INTO payments
-         (user_id, subscription_id, plan_id, amount, status, method, recorded_by, reference_no, notes)
-       VALUES ($1, $2, $3, $4, 'paid', $5, $6, $7, $8)
+         (user_id, subscription_id, plan_id, transaction_type, origin, amount, status, method, recorded_by, reference_no, notes, paid_at)
+       VALUES ($1, $2, $3, 'plan', 'walk_in_pos', $4, 'paid', $5, $6, $7, $8, NOW())
        RETURNING *`,
       [
         userId,
@@ -107,7 +113,7 @@ export const createUserSubscriptionDomain = async (
         finalAmount,
         options.method ?? "cash",
         recordedBy,
-        options.referenceNo ?? null,
+        referenceNo,
         options.notes ?? null,
       ],
     );

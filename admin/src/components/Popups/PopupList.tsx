@@ -53,14 +53,20 @@ export function PopupList({ title, anchorRef, onClose, children }: PopupListProp
       if (e.key === "Escape") onClose();
     };
 
+    const handleScroll = (e: Event) => {
+      const target = e.target as Node;
+      if (popupRef.current?.contains(target)) return;
+      onClose();
+    };
+
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("keydown", handleEsc);
-    window.addEventListener("scroll", onClose, true);
+    window.addEventListener("scroll", handleScroll, true);
 
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
       document.removeEventListener("keydown", handleEsc);
-      window.removeEventListener("scroll", onClose, true);
+      window.removeEventListener("scroll", handleScroll, true);
     };
   }, [onClose, anchorRef]);
 
@@ -69,6 +75,7 @@ export function PopupList({ title, anchorRef, onClose, children }: PopupListProp
   return createPortal(
     <div
       ref={popupRef}
+      onMouseDown={(e) => e.stopPropagation()}
       className="w-72 bg-surface border border-border shadow-2xl shadow-black/50 rounded-xl overflow-hidden flex flex-col"
       style={{
         position: "fixed",

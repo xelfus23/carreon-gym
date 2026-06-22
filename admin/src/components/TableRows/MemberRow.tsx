@@ -1,8 +1,18 @@
 import { useState, useRef, useCallback } from "react";
-import type { ActionItemProps, UserAccountProps, SubscriptionItem, SubscriptionStatus } from "../../types";
+import type {
+  ActionItemProps,
+  UserAccountProps,
+  SubscriptionItem,
+  SubscriptionStatus,
+} from "../../types";
 import {
-  Ban, Check, ClockPlus, Ellipsis,
-  Trash, UserKey, UserLock
+  Ban,
+  Check,
+  ClockPlus,
+  Ellipsis,
+  Trash,
+  UserKey,
+  UserLock,
 } from "lucide-react";
 import { ActionMenu } from "../ActionMenu";
 import { PopupList } from "../Popups/PopupList";
@@ -40,7 +50,11 @@ const SUB_DOT: Record<SubscriptionStatus, string> = {
   cancelled: "bg-rose-400",
 };
 
-function SubscriptionCell({ subscriptions }: { subscriptions: SubscriptionItem[] }) {
+function SubscriptionCell({
+  subscriptions,
+}: {
+  subscriptions: SubscriptionItem[];
+}) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setOpen(false), []);
@@ -52,10 +66,6 @@ function SubscriptionCell({ subscriptions }: { subscriptions: SubscriptionItem[]
   const first = subscriptions[0];
   const hasMore = subscriptions.length > 1;
 
-  console.log(subscriptions)
-
-  const activeSubs = subscriptions.filter(v => v.status === "active")
-
   return (
     <div className="flex flex-col gap-0.5">
       {/* First subscription preview */}
@@ -65,7 +75,7 @@ function SubscriptionCell({ subscriptions }: { subscriptions: SubscriptionItem[]
         >
           {first.status}
         </span>
-        <span className="text-xs font-medium text-text-primary truncate max-w-[100px]">
+        <span className="text-xs font-medium text-text-primary truncate max-w-25">
           {first.plan_name}
         </span>
       </div>
@@ -87,19 +97,21 @@ function SubscriptionCell({ subscriptions }: { subscriptions: SubscriptionItem[]
           <button
             ref={triggerRef}
             onClick={() => setOpen((o) => !o)}
-            className={`text-left text-[11px] font-semibold hover:underline mt-0.5 transition-colors ${open ? "text-text-primary" : "text-primary"
-              }`}
+            className={`text-left text-[11px] font-semibold hover:underline mt-0.5 transition-colors ${
+              open ? "text-text-primary" : "text-primary"
+            }`}
           >
-            +{activeSubs.length - 1} more active subscription{activeSubs.length - 1 > 1 ? "s" : ""}
+            +{subscriptions.length - 1} more subscription
+            {subscriptions.length - 1 > 1 ? "s" : ""}
           </button>
 
           {open && (
             <PopupList
-              title={`${activeSubs.length}`}
+              title={`Subscriptions (${subscriptions.length})`}
               anchorRef={triggerRef}
               onClose={close}
             >
-              {activeSubs.map((sub) => (
+              {subscriptions.map((sub) => (
                 <div
                   key={sub.id}
                   className="flex items-start gap-3 p-3 hover:bg-border/20 transition-colors"
@@ -160,7 +172,7 @@ export default function MemberRow({
   onBan,
   onDelete,
   onVerify,
-  onSelect
+  onSelect,
 }: {
   m: UserAccountProps;
   onSetPlan: (m: UserAccountProps) => void;
@@ -182,26 +194,41 @@ export default function MemberRow({
   // const activeSub = m.subscriptions.find((s) => s.status === "active");
 
   const actions: ActionItemProps[] = [
-
     {
       label: "Set Plan",
       icon: <ClockPlus className="h-4" />,
-      onClick: () => { onSetPlan(m); close(); },
+      onClick: () => {
+        onSetPlan(m);
+        close();
+      },
     },
     {
       label: m.verified ? "Unverify Member" : "Verify Member",
       icon: <Check className="h-4" />,
-      onClick: () => { onVerify(m); close(); },
+      onClick: () => {
+        onVerify(m);
+        close();
+      },
     },
     {
       label: "More Details",
       icon: <Ellipsis className="h-4" />,
-      onClick: () => { onSelect(m); close() }
+      onClick: () => {
+        onSelect(m);
+        close();
+      },
     },
     {
       label: isSuspended ? "Unsuspend Member" : "Suspend Member",
-      icon: isSuspended ? <UserLock className="h-4" /> : <UserKey className="h-4" />,
-      onClick: () => { onSuspend(m); close(); },
+      icon: isSuspended ? (
+        <UserLock className="h-4" />
+      ) : (
+        <UserKey className="h-4" />
+      ),
+      onClick: () => {
+        onSuspend(m);
+        close();
+      },
       variant: isSuspended ? "default" : "warning",
       dividerBefore: true,
       disabled: isBanned || isDeleted,
@@ -209,18 +236,26 @@ export default function MemberRow({
     {
       label: "Ban / Blacklist",
       icon: <Ban className="h-4" />,
-      onClick: () => { onBan(m); close(); },
+      onClick: () => {
+        onBan(m);
+        close();
+      },
       variant: "danger",
       disabled: isBanned,
     },
     ...(!isDeleted
-      ? [{
-        label: "Delete Member",
-        icon: <Trash className="h-4" />,
-        onClick: () => { onDelete(m); close(); },
-        variant: "danger" as const,
-        dividerBefore: true,
-      }]
+      ? [
+          {
+            label: "Delete Member",
+            icon: <Trash className="h-4" />,
+            onClick: () => {
+              onDelete(m);
+              close();
+            },
+            variant: "danger" as const,
+            dividerBefore: true,
+          },
+        ]
       : []),
   ];
 
@@ -235,20 +270,25 @@ export default function MemberRow({
         </div>
         <div className="text-[11px] text-text-secondary mt-0.5">{m.email}</div>
         {m.phone_number && (
-          <div className="text-[11px] text-text-secondary">{m.phone_number}</div>
+          <div className="text-[11px] text-text-secondary">
+            {m.phone_number}
+          </div>
         )}
       </td>
 
       {/* Account status */}
       <td className="p-4">
         <span
-          className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wide ${ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-text-secondary"
-            }`}
+          className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wide ${
+            ACCOUNT_BADGE[m.account_status] ?? "bg-surface text-text-secondary"
+          }`}
         >
           {m.account_status}
         </span>
         {m.verified ? (
-          <span className="ml-1.5 text-[10px] text-primary font-semibold">Verified</span>
+          <span className="ml-1.5 text-[10px] text-primary font-semibold">
+            Verified
+          </span>
         ) : (
           <span className="ml-1.5 text-[10px] text-yellow-400">Unverified</span>
         )}
@@ -305,9 +345,10 @@ export default function MemberRow({
             aria-expanded={menuOpen}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all
               opacity-0 group-hover:opacity-100 focus:opacity-100
-              ${menuOpen
-                ? "opacity-100 bg-border text-text-primary"
-                : "text-text-secondary hover:bg-border hover:text-text-primary"
+              ${
+                menuOpen
+                  ? "opacity-100 bg-border text-text-primary"
+                  : "text-text-secondary hover:bg-border hover:text-text-primary"
               }`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -318,7 +359,11 @@ export default function MemberRow({
           </button>
 
           {menuOpen && (
-            <ActionMenu items={actions} anchorRef={triggerRef} onClose={close} />
+            <ActionMenu
+              items={actions}
+              anchorRef={triggerRef}
+              onClose={close}
+            />
           )}
         </div>
       </td>

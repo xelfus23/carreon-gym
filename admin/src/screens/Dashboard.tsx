@@ -12,6 +12,7 @@ import {
   Cell,
 } from "recharts";
 import { useStats } from "../hooks/useStats";
+import { COLORS } from "../constants";
 
 type AttendanceView = "weekly" | "monthly";
 
@@ -219,15 +220,8 @@ interface NewMember {
   plan_name: string;
   created_at: string;
   initials: string;
-  subscription_status: "active" | "pending" | "expired" | "cancelled";
+  verified: boolean;
 }
-
-const SUB_STATUS_STYLES: Record<string, string> = {
-  active: "text-emerald-400",
-  pending: "text-amber-400",
-  expired: "text-text-secondary",
-  cancelled: "text-rose-400",
-};
 
 const timeAgo = (dateStr: string): string => {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -262,11 +256,11 @@ const MemberRow: React.FC<{ member: NewMember; index: number }> = ({
     </div>
     <div className="text-right shrink-0">
       <p
-        className={`text-xs font-semibold capitalize ${
-          SUB_STATUS_STYLES[member.subscription_status] ?? "text-text-secondary"
+        className={`text-xs font-semibold ${
+          member.verified ? "text-emerald-400" : "text-amber-400"
         }`}
       >
-        {member.subscription_status}
+        {member.verified ? "Verified" : "Unverified"}
       </p>
       <p className="text-xs text-text-secondary mt-0.5">
         {timeAgo(member.created_at)}
@@ -335,9 +329,9 @@ export default function Dashboard() {
       : "Check-ins over the last 7 days";
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-4 animate-in fade-in duration-500">
       {/* ── Row 1: Stat Cards ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Members"
           value={
@@ -444,7 +438,8 @@ export default function Dashboard() {
                 />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  labelStyle={{ color: "#B3B3B3" }}
+                  labelStyle={{ color: COLORS.textPrimary }}
+                  itemStyle={{ color: COLORS.textSecondary }}
                   cursor={{
                     stroke: "#7CFF00",
                     strokeWidth: 1,
@@ -471,7 +466,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Row 3: Revenue Chart + Peak Hours ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Monthly Revenue Chart */}
         <div className="bg-surface p-6 border border-border shadow-sm">
           <div className="mb-6">
@@ -524,7 +519,8 @@ export default function Dashboard() {
                   />
                   <Tooltip
                     contentStyle={tooltipStyle}
-                    labelStyle={{ color: "#B3B3B3" }}
+                    labelStyle={{ color: COLORS.textPrimary }}
+                    itemStyle={{ color: COLORS.textSecondary }}
                     formatter={(value: number | undefined) =>
                       [formatCurrency(value ?? 0), "Revenue"] as const
                     }
@@ -550,7 +546,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Peak Hours Chart */}
         <div className="bg-surface p-6 border border-border shadow-sm">
           <div className="mb-6">
             <h3 className="text-lg font-bold text-text-primary">Peak Hours</h3>
@@ -588,26 +583,40 @@ export default function Dashboard() {
                   />
                   <Tooltip
                     contentStyle={tooltipStyle}
-                    labelStyle={{ color: "#B3B3B3" }}
+                    labelStyle={{ color: COLORS.textPrimary }}
+                    itemStyle={{ color: COLORS.textSecondary }}
                     formatter={(value: number | undefined) =>
                       [value ?? 0, "Check-ins"] as const
                     }
-                    cursor={{ fill: "rgba(251,191,36,0.08)" }}
+                    cursor={{
+                      fill: "rgba(251,191,36,0.08)",
+                      color: COLORS.textPrimary,
+                    }}
                   />
-                  <Bar dataKey="checkins" radius={[4, 4, 0, 0]}>
-                    {peakHourData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={
-                          // Highlight the peak hour in green, rest in amber
-                          entry.checkins ===
-                          Math.max(...peakHourData.map((d) => d.checkins))
-                            ? "#7CFF00"
-                            : "#FBBF24"
-                        }
-                      />
-                    ))}
-                  </Bar>
+                  <Bar
+                    dataKey="checkins"
+                    radius={[4, 4, 0, 0]}
+                    // Replaces the <Cell /> mapping by dynamically filling the generated rectangle
+                    shape={(props: any) => {
+                      const maxCheckins = Math.max(
+                        ...peakHourData.map((d) => d.checkins),
+                      );
+                      const fillColor =
+                        props.checkins === maxCheckins ? "#7CFF00" : "#FBBF24";
+
+                      return (
+                        <rect
+                          x={props.x}
+                          y={props.y}
+                          width={props.width}
+                          height={props.height}
+                          rx={4}
+                          ry={4}
+                          fill={fillColor}
+                        />
+                      );
+                    }}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -616,7 +625,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Row 4: Recent Payments + New Members + Plan Breakdown ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Recent Payments */}
         <div className="bg-surface p-6 border border-border shadow-sm">
           <div className="flex items-center justify-between mb-4">
@@ -713,7 +722,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Row 5: Quick Metrics ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricTile
           label="Avg. Session Duration"
           value={

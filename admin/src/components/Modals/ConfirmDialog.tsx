@@ -32,8 +32,7 @@ export default function ConfirmDialog({
       case "success":
         return {
           iconBg: "bg-emerald-500/10 text-emerald-500",
-          confirmBtnBg:
-            "bg-emerald-500 hover:bg-emerald-500 focus:ring-emerald-500/20 text-white",
+          confirmBtnBg: "bg-primary hover:bg-primary-dark text-background",
           icon: <CheckCircle2 size={22} />,
         };
       case "warning":
@@ -57,7 +56,7 @@ export default function ConfirmDialog({
   const styles = getVariantStyles();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       {/* Backdrop click interceptor */}
       <div
         className="absolute inset-0"
@@ -67,7 +66,7 @@ export default function ConfirmDialog({
       {/* Modal Card wrapper */}
       <div
         ref={modalRef}
-        className="relative w-full max-w-md bg-surface border border-border shadow-2xl p-4 flex flex-col space-y-4 animate-in zoom-in-95 duration-200 content-start"
+        className="relative w-full max-w-md bg-surface rounded-xl border border-border shadow-2xl p-4 flex flex-col space-y-4 animate-in zoom-in-95 duration-200 content-start"
       >
         {/* Top Close Button */}
         <button
@@ -99,7 +98,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="p-2 border border-border font-bold text-sm text-text-secondary hover:bg-border transition-colors min-w-20"
+            className="uppercase font-bold text-sm px-6 py-2 rounded-md font-mulish bg-danger border-danger border-2 hover:bg-danger/80 transition-all hover:scale-105 active:scale-95 cursor-pointer"
           >
             {cancelLabel}
           </button>
@@ -110,7 +109,7 @@ export default function ConfirmDialog({
               onClose();
             }}
             disabled={isLoading}
-            className={`p-2 font-bold text-sm shadow-sm focus:ring-4 outline-none transition-all flex items-center justify-center min-w-25 disabled:opacity-70 ${styles.confirmBtnBg}`}
+            className={`uppercase font-bold text-sm px-6 py-2 rounded-md font-mulish transition-all hover:scale-105 active:scale-95 cursor-pointer ${styles.confirmBtnBg}`}
           >
             {isLoading ? "Processing..." : confirmLabel}
           </button>

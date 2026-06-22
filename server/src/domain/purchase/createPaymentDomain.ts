@@ -1,5 +1,6 @@
 import pool from "../../config/pool.ts";
 import { AppError } from "../../utils/appError.ts";
+import { generateReferenceNo } from "../../utils/generateReferenceNo.ts";
 
 export const createPaymentDomain = async (
   userId: number,
@@ -41,14 +42,23 @@ export const createPaymentDomain = async (
     const targetPlan = planRes.rows[0];
     const finalAmount = Number(targetPlan.price);
     const resolvedItemName = targetPlan.name;
+    const referenceNo = generateReferenceNo("mobile_online");
 
     // 3. Insert transaction ledger entry exclusively for plan
     const masterResPlan = await client.query(
-      `INSERT INTO payments (user_id, plan_id, transaction_type, origin, amount, status, method, receipt_image_url)
-       VALUES ($1, $2, 'plan', 'mobile_online', $3, 'pending', $4, $5) RETURNING id`,
-      [userId, targetPlan.id, finalAmount, method, receiptImageUrl || null],
+      `INSERT INTO payments (user_id, plan_id, transaction_type, origin, amount, status, method, reference_no, receipt_image_url)
+       VALUES ($1, $2, 'plan', 'mobile_online', $3, 'pending', $4, $5, $6) RETURNING id, reference_no`,
+      [
+        userId,
+        targetPlan.id,
+        finalAmount,
+        method,
+        referenceNo,
+        receiptImageUrl || null,
+      ],
     );
     const masterPaymentId = masterResPlan.rows[0].id;
+    const insertedReferenceNo = masterResPlan.rows[0].reference_no;
 
     // 4. Resolve full name safely
     const userRes = await client.query(
@@ -64,6 +74,7 @@ export const createPaymentDomain = async (
       amount: finalAmount,
       item_name: resolvedItemName,
       member_name: memberName,
+      reference_no: insertedReferenceNo,
     };
   } catch (error) {
     await client.query("ROLLBACK");

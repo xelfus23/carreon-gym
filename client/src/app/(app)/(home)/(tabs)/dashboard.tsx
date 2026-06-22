@@ -1,10 +1,4 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useUserProfile } from "@/src/context/profileProvider";
 import { Check, PlayIcon } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
@@ -238,11 +232,11 @@ export default function Dashboard() {
               />
               <MetricItem
                 label="Body Fat"
-                value={`${profile.currentStats.bodyFatPercent}%`}
+                value={`${profile.currentStats.bodyFatPercent || "N/A"}%`}
               />
               <MetricItem
                 label="Muscle Mass"
-                value={`${profile.currentStats.muscleMassKg} kg`}
+                value={`${profile.currentStats.muscleMassKg || "N/A"} kg`}
               />
             </View>
           </View>
