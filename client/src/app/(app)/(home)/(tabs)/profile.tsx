@@ -1,15 +1,10 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import SubscriptionCard from "../../../components/Profile/ProfileSubscriptionCard";
 import BasicInfoCard from "../../../components/Profile/BasicInfoCard";
 import CurrentStatCard from "../../../components/Profile/CurrentStatCard";
 import ProfileHeader from "../../../components/Profile/ProfileHeader";
 import { useUserProfile } from "@/src/context/profileProvider";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import getCustomLoader from "@/src/app/components/CustomRefreshControl";
 import { useModal } from "@/src/context/ModalProvider";

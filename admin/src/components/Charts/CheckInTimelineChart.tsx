@@ -1,186 +1,144 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo } from "react";
-import {
-  BarChart,
-  Bar,
-  Cell,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
 import type { UserAccountProps } from "../../types";
-import { COLORS } from "../../constants";
+import { IntervalTimeline, type TimelineInterval, type TimelineRow } from "./IntervalTimeline";
 
 interface CheckInTimelineChartProps {
   user: UserAccountProps;
   daysToShow?: number;
 }
 
+const HOUR_MS = 1000 * 60 * 60;
+
 function localDateKey(date: Date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
-
   return `${y}-${m}-${d}`;
 }
 
-function formatTime(hoursFloat: number) {
-  const h = Math.floor(hoursFloat);
-  const m = Math.round((hoursFloat - h) * 60);
-
-  const period = h >= 12 ? "PM" : "AM";
-  const displayH = h % 12 === 0 ? 12 : h % 12;
-
-  return `${displayH}:${String(m).padStart(2, "0")} ${period}`;
+function formatTime(ms: number) {
+  return new Date(ms).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
-function CustomTooltip({ active, payload }: any) {
-  if (!active || !payload?.length) return null;
-
-  const row = payload[0]?.payload;
-
-  if (!row || row.sessions.length === 0) return null;
-
-  return (
-    <div className="bg-background border border-border rounded-lg px-3 py-2 text-xs shadow-md space-y-1">
-      <p className="font-bold text-text-primary">{row.dateLabel}</p>
-
-      {row.sessions.map((s: any, i: number) => (
-        <p key={i} className="text-text-secondary">
-          {formatTime(s.inHour)} –{" "}
-          {s.outHour !== null ? formatTime(s.outHour) : "ongoing"}
-          {s.outHour !== null && <span> · {s.durationLabel}</span>}
-        </p>
-      ))}
-    </div>
-  );
+function formatDuration(ms: number) {
+  const mins = Math.round(ms / 60000);
+  if (mins < 60) return `${mins}m`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
 }
 
 export default function CheckInTimelineChart({
   user,
   daysToShow = 14,
 }: CheckInTimelineChartProps) {
-  const rows = useMemo(() => {
+  // Snapshot "now" once per render at the top level, not inside useMemo.
+  // Calling Date.now() inside a memoized calculation is impure: the memo's
+  // result can change between calls with identical inputs purely because
+  // time passed, which violates React's render-purity rules and can cause
+  // unstable output across re-renders (e.g. Strict Mode double-invoke).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const now = useMemo(() => Date.now(), []);
+
+  const { rows, intervals, domain } = useMemo(() => {
     const logs = user.attendance_logs ?? [];
 
-    const today = new Date();
+    const today = new Date(now);
     today.setHours(0, 0, 0, 0);
-
     const todayKey = localDateKey(today);
 
-    const dayBuckets: Record<
-      string,
-      {
-        inHour: number;
-        outHour: number | null;
-        durationLabel: string;
-      }[]
-    > = {};
+    // Pre-build the full window of day rows (even empty days) so the axis
+    // stays stable regardless of which days actually have check-ins.
+    const dayMeta: Record<string, { dayStartMs: number; isToday: boolean; label: string }> = {};
+    const rowOrder: string[] = [];
 
     for (let i = daysToShow - 1; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
-
-      dayBuckets[localDateKey(d)] = [];
+      const key = localDateKey(d);
+      const isToday = key === todayKey;
+      dayMeta[key] = {
+        dayStartMs: d.getTime(),
+        isToday,
+        label: isToday
+          ? "● Today"
+          : d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
+      };
+      rowOrder.push(key);
     }
 
-    logs.forEach((log) => {
-      const inDate = new Date(log.check_in);
+    const rows: TimelineRow[] = rowOrder.map((key) => ({
+      id: key,
+      label: dayMeta[key].label,
+    }));
 
+    const intervals: TimelineInterval[] = [];
+
+    logs.forEach((log, i) => {
+      const inDate = new Date(log.check_in);
       if (Number.isNaN(inDate.getTime())) return;
 
       const key = localDateKey(inDate);
+      if (!(key in dayMeta)) return; // outside the visible window
 
-      if (!(key in dayBuckets)) return;
-
-      const inHour = inDate.getHours() + inDate.getMinutes() / 60;
-
-      let outHour: number | null = null;
-      let durationLabel = "—";
+      const inMs = inDate.getTime();
+      let outMs: number | null = null;
 
       if (log.check_out) {
         const outDate = new Date(log.check_out);
-
-        if (!Number.isNaN(outDate.getTime())) {
-          outHour = outDate.getHours() + outDate.getMinutes() / 60;
-
-          const mins = Math.round(
-            (outDate.getTime() - inDate.getTime()) / 60000,
-          );
-
-          durationLabel =
-            mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`;
-        }
+        if (!Number.isNaN(outDate.getTime())) outMs = outDate.getTime();
       }
 
-      dayBuckets[key].push({
-        inHour,
-        outHour,
-        durationLabel,
+      const isOngoing = outMs === null;
+      // Ongoing visits still get a visible sliver (30 min) instead of
+      // stretching to "now" or vanishing.
+      const effectiveOutMs = outMs ?? Math.min(inMs + 30 * 60000, now);
+      const isToday = dayMeta[key].isToday;
+
+      // Every row shares one "hour of day" axis (0-24h), not the absolute
+      // calendar timeline — otherwise a visit on day 3 would land far to
+      // the right of the same hour on day 1. Re-anchor each interval to a
+      // common reference day (the first day in the window) using only its
+      // time-of-day offset from that day's own midnight.
+      const dayStart = dayMeta[key].dayStartMs;
+      const refDayStart = dayMeta[rowOrder[0]].dayStartMs;
+      const startOffsetMs = inMs - dayStart;
+      const endOffsetMs = Math.max(effectiveOutMs, inMs + 60000) - dayStart;
+
+      intervals.push({
+        id: `${key}-${i}`,
+        rowId: key,
+        startMs: refDayStart + startOffsetMs,
+        endMs: refDayStart + endOffsetMs,
+        color: isToday ? "#3b82f6" : "#10b981",
+        tooltip: (
+          <div className="space-y-0.5">
+            <p className="font-bold text-text-primary">{dayMeta[key].label.replace("● ", "")}</p>
+            <p className="text-text-secondary">
+              {formatTime(inMs)} – {isOngoing ? "ongoing" : formatTime(outMs as number)}
+            </p>
+            {!isOngoing && (
+              <p className="text-text-secondary">{formatDuration((outMs as number) - inMs)}</p>
+            )}
+          </div>
+        ),
       });
     });
 
-    return Object.entries(dayBuckets)
-      .map(([key, sessions]) => {
-        const d = new Date(`${key}T00:00:00`);
+    // Fixed domain: one reference day, midnight to midnight. All intervals
+    // were re-anchored onto this same day above, so every row plots on the
+    // identical hour-of-day axis regardless of which calendar day it is.
+    const refDayStart = dayMeta[rowOrder[0]].dayStartMs;
 
-        const isToday = key === todayKey;
+    return {
+      rows,
+      intervals,
+      domain: [refDayStart, refDayStart + 24 * HOUR_MS] as [number, number],
+    };
+  }, [user.attendance_logs, daysToShow, now]);
 
-        const validSessions = sessions.filter((s) => s.outHour !== null);
-
-        const CHART_START_HOUR = 5;
-
-        const startHour = sessions.length
-          ? Math.min(...sessions.map((s) => s.inHour))
-          : 0;
-
-        const endHour = validSessions.length
-          ? Math.max(...validSessions.map((s) => s.outHour as number))
-          : startHour;
-
-        const duration = sessions.length
-          ? Math.max(endHour - startHour, 0.5)
-          : 0;
-
-        return {
-          rowId: key,
-
-          isToday,
-
-          fill: isToday ? "#3b82f6" : "#10b981",
-
-          dateLabel: isToday
-            ? `Today • ${d.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              })}`
-            : d.toLocaleDateString("en-US", {
-                weekday: "short",
-                month: "short",
-                day: "numeric",
-              }),
-
-          shortLabel: isToday
-            ? "Today"
-            : d.toLocaleDateString("en-US", {
-                weekday: "short",
-              }),
-
-          sessions,
-          startHour,
-          duration,
-          timeRange:
-            sessions.length && endHour > startHour
-              ? [startHour, endHour]
-              : null,
-        };
-      })
-      .reverse();
-  }, [user.attendance_logs, daysToShow]);
-
-  const hasAnyData = rows.some((r) => r.sessions.length > 0);
+  const hasAnyData = intervals.length > 0;
 
   return (
     <div className="bg-surface p-5 rounded-xl border border-border">
@@ -189,84 +147,19 @@ export default function CheckInTimelineChart({
           No check-ins recorded in this period.
         </p>
       ) : (
-        <ResponsiveContainer
-          width="100%"
-          height={Math.max(rows.length * 28 + 40, 220)}
-        >
-          <BarChart
-            data={rows}
-            layout="vertical"
-            margin={{
-              top: 4,
-              right: 16,
-              left: 4,
-              bottom: 4,
-            }}
-            barCategoryGap={6}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke={COLORS.border}
-              vertical={false}
-              className="pointer-events-none"
-            />
-
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke={COLORS.border}
-              vertical={true}
-              className="pointer-events-none"
-            />
-
-            <XAxis
-              type="number"
-              domain={[5, 23]}
-              ticks={[6, 9, 12, 15, 18, 21]}
-              tickFormatter={(v) => formatTime(v)}
-              tick={{
-                fontSize: 10,
-                fill: COLORS.textSecondary,
-              }}
-              axisLine={{
-                stroke: COLORS.border,
-              }}
-              tickLine={{
-                stroke: COLORS.border,
-              }}
-            />
-
-            <YAxis
-              type="category"
-              dataKey="rowId"
-              width={60}
-              tickFormatter={(value) => {
-                const row = rows.find((r) => r.rowId === value);
-
-                if (!row) return "";
-
-                return row.isToday ? "● Today" : row.shortLabel;
-              }}
-              tick={{
-                fontSize: 10,
-                fill: COLORS.textSecondary,
-              }}
-              axisLine={{
-                stroke: COLORS.border,
-              }}
-              tickLine={{
-                stroke: COLORS.border,
-              }}
-            />
-
-            <Tooltip cursor={false} content={<CustomTooltip />} />
-
-            <Bar dataKey="timeRange" radius={4} isAnimationActive={false}>
-              {rows.map((row) => (
-                <Cell key={row.rowId} fill={row.fill} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <IntervalTimeline
+          rows={rows}
+          intervals={intervals}
+          domain={domain}
+          tickCount={6}
+          rowHeight={28}
+          barThickness={14}
+          leftLabelWidth={90}
+          formatTick={(ms) => {
+            const d = new Date(ms);
+            return d.toLocaleTimeString("en-US", { hour: "numeric" });
+          }}
+        />
       )}
     </div>
   );

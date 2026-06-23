@@ -98,7 +98,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="uppercase font-bold text-sm px-6 py-2 rounded-md font-mulish bg-danger border-danger border-2 hover:bg-danger/80 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            className="uppercase font-bold text-sm px-6 py-1 rounded-md font-mulish bg-danger border-danger border-2 hover:bg-danger/80 transition-all hover:scale-105 active:scale-95 cursor-pointer"
           >
             {cancelLabel}
           </button>
@@ -109,7 +109,7 @@ export default function ConfirmDialog({
               onClose();
             }}
             disabled={isLoading}
-            className={`uppercase font-bold text-sm px-6 py-2 rounded-md font-mulish transition-all hover:scale-105 active:scale-95 cursor-pointer ${styles.confirmBtnBg}`}
+            className={`uppercase font-bold text-sm px-6 rounded-md font-mulish transition-all hover:scale-105 active:scale-95 cursor-pointer ${styles.confirmBtnBg}`}
           >
             {isLoading ? "Processing..." : confirmLabel}
           </button>

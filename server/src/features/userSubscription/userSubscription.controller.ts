@@ -4,6 +4,7 @@ import { cancelUserSubscriptionDomain } from "../../domain/userSubscriptions/can
 import { resetUserSubscriptionDomain } from "../../domain/userSubscriptions/resetUserSubscriptionDomain.ts";
 import { getUserSubscriptionDomain } from "../../domain/userSubscriptions/getUserSubscriptionDomain.ts";
 import { catchAsync } from "../../utils/catchAsync.ts";
+import { AppError } from "../../utils/appError.ts";
 
 export const createUserSubscription = catchAsync(
   async (req: Request, res: Response) => {
@@ -20,37 +21,38 @@ export const createUserSubscription = catchAsync(
     const targetUserId = Number(user_id);
 
     if (user_id == null || isNaN(targetUserId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Valid User ID is required." });
+      throw new AppError("Valid User ID is required.", 400, "INVALID_USER_ID");
     }
 
     const targetPlanId = Number(plan_id);
     if (plan_id == null || isNaN(targetPlanId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Valid Plan ID is required. Fetch plans from GET /plans.",
-      });
+      throw new AppError(
+        "Valid Plan ID is required. Fetch plans from GET /plans.",
+        400,
+        "INVALID_PLAN_ID",
+      );
     }
 
     if (
       amount_override !== undefined &&
       (typeof amount_override !== "number" || amount_override < 0)
     ) {
-      return res.status(400).json({
-        success: false,
-        message: "amount_override must be a non-negative number.",
-      });
+      throw new AppError(
+        "amount_override must be a non-negative number.",
+        400,
+        "INVALID_AMOUNT_OVERRIDE",
+      );
     }
 
     if (
       duration_override !== undefined &&
       (!Number.isInteger(duration_override) || duration_override <= 0)
     ) {
-      return res.status(400).json({
-        success: false,
-        message: "duration_override must be a positive integer (days).",
-      });
+      throw new AppError(
+        "duration_override must be a positive integer (days).",
+        400,
+        "INVALID_DURATION_OVERRIDE",
+      );
     }
 
     if (
@@ -59,9 +61,11 @@ export const createUserSubscription = catchAsync(
         method.toLowerCase(),
       )
     ) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid payment method structure." });
+      throw new AppError(
+        "Invalid payment method structure.",
+        400,
+        "INVALID_PAYMENT_METHOD",
+      );
     }
 
     const recordedBy = (req as any).user?.id;

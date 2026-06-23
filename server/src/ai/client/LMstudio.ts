@@ -18,7 +18,7 @@ export const LMstudio = async (messages: ChatMessage[]) => {
   if (!response.ok) {
     const text = await response.text();
     console.error("❌ LM Studio error:", text);
-    throw new Error("LM Studio request failed");
+    throw new Error(text || `LM Studio request failed with status ${response.status}`);
   }
 
 

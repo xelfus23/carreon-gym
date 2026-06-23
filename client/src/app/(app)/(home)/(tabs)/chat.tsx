@@ -19,6 +19,7 @@ import CustomLoader from "@/src/app/components/Plans/PlansLoading";
 import WelcomeScreen from "@/src/app/components/ChatWelcome";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import getCustomLoader from "@/src/app/components/CustomRefreshControl";
+import { hasActiveSubscription } from "@/src/utils/subscription";
 
 const PROMPT_SUGGESTIONS = [
   {
@@ -51,7 +52,7 @@ export default function Chats() {
   const { profile } = useUserProfile();
 
   const [reminderOpen, setReminderOpen] = useState(
-    profile?.subscription?.status !== "active",
+    !hasActiveSubscription(profile),
   );
 
   const {
@@ -88,7 +89,7 @@ export default function Chats() {
     const prompt = text;
     setText("");
     try {
-      if (profile?.subscription?.status !== "active") {
+      if (!hasActiveSubscription(profile)) {
         setReminderOpen(true);
         return;
       }

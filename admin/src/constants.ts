@@ -1,23 +1,14 @@
 export const API_URL = import.meta.env.VITE_SERVER_URL;
 
 export const COLORS = {
-  // Brand
-  primary: "#7CFF00", // Neon green (main brand color)
+  primary: "#7CFF00",
   primaryDark: "#5ECC00",
-
-  // Backgrounds
-  background: "#0F0F0F", // App background
-  surface: "#1A1A1A", // Cards, modals, sections
-
-  // Text
+  background: "#0F0F0F",
+  surface: "#1A1A1A",
   textPrimary: "#FFFFFF",
   textSecondary: "#B3B3B3",
-
-  // UI Elements
   border: "#2A2A2A",
   danger: "#FF3B3B",
-
-  // Optional extras (nice to have)
   disabled: "#3A3A3A",
   success: "#7CFF00",
 };
@@ -31,8 +22,31 @@ export const PAYMENT_METHODS = [
   // { value: "other", label: "Other", icon: "···" },
 ];
 
+
+export const PLAN_COLORS = ["#7CFF00", "#FBBF24", "#60A5FA", "#A78BFA", "#F472B6"];
+
+export const PAYMENT_STATUS_STYLES: Record<string, string> = {
+  paid: "text-emerald-400 bg-emerald-400/10",
+  pending: "text-amber-400 bg-amber-400/10",
+  refunded: "text-blue-400 bg-blue-400/10",
+  cancelled: "text-text-secondary bg-white/5",
+  rejected: "text-rose-400 bg-rose-400/10",
+};
+
+export const AVATAR_COLORS = [
+  "bg-violet-500/20 text-violet-300",
+  "bg-emerald-500/20 text-emerald-300",
+  "bg-amber-500/20 text-amber-300",
+  "bg-rose-500/20 text-rose-300",
+  "bg-blue-500/20 text-blue-300",
+  "bg-pink-500/20 text-pink-300",
+];
+
+export const avatarColor = (initials: string) =>
+  AVATAR_COLORS[initials.charCodeAt(0) % AVATAR_COLORS.length];
+
+
 export function getMuscleStyle(muscle: string): { text: string; bg: string } {
-  // Normalize input string for consistent lookups
   const m = muscle.trim().toLowerCase();
 
   // ── Push / Chest / Shoulders / Triceps ──

@@ -27,10 +27,27 @@ export const mapUserData = (user: any) => ({
         lastRecorded: user.currentStats.lastRecorded,
       }
     : null,
+  subscriptions: (user.subscriptions ?? []).map((sub: {
+    id?: string;
+    status: string;
+    planName: string;
+    category?: string;
+    startDate?: string | Date | null;
+    expiryDate?: string | Date | null;
+  }) => ({
+    id: sub.id,
+    status: sub.status,
+    planName: sub.planName,
+    category: sub.category,
+    startDate: sub.startDate,
+    expiryDate: sub.expiryDate,
+  })),
   subscription: user.subscription
     ? {
+        id: user.subscription.id,
         status: user.subscription.status,
         planName: user.subscription.planName,
+        category: user.subscription.category,
         startDate: user.subscription.startDate,
         expiryDate: user.subscription.expiryDate,
       }

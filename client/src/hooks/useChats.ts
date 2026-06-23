@@ -9,6 +9,7 @@ import {
 import { chatService } from "@/src/services/chat.service";
 import { ChatMessage } from "../types/chats";
 import { UserProfile } from "../types/users";
+import { hasActiveSubscription } from "../utils/subscription";
 
 let tempIdCounter = 0;
 const newTempId = () => `__streaming_${tempIdCounter++}__`;
@@ -159,7 +160,7 @@ export function useChat(params?: {
 
       if (
         params?.setReminderOpen &&
-        params.profile?.subscription?.status !== "active"
+        !hasActiveSubscription(params.profile)
       ) {
         params.setReminderOpen(true);
       }
@@ -191,6 +192,8 @@ export function useChat(params?: {
           role: "assistant",
           content: "",
           aiStatus: "Preparing assistant",
+          isStreaming: true,
+          streamVersion: 0,
         },
       ]);
 
@@ -204,7 +207,13 @@ export function useChat(params?: {
             setMessages((prev) =>
               prev.map((msg) =>
                 msg.id === targetAssistantId
-                  ? { ...msg, content: msg.content + token, aiStatus: undefined }
+                  ? {
+                      ...msg,
+                      content: msg.content + token,
+                      aiStatus: undefined,
+                      isStreaming: true,
+                      streamVersion: (msg.streamVersion ?? 0) + 1,
+                    }
                   : msg,
               ),
             );
@@ -216,7 +225,11 @@ export function useChat(params?: {
             setMessages((prev) =>
               prev.map((msg) =>
                 msg.id === targetAssistantId
-                  ? { ...msg, aiStatus: state }
+                  ? {
+                      ...msg,
+                      aiStatus: state,
+                      isStreaming: state !== "Complete",
+                    }
                   : msg,
               ),
             );
@@ -239,13 +252,17 @@ export function useChat(params?: {
 
               return [
                 ...prev.map((msg) =>
-                  msg.id === activeId ? { ...msg, aiStatus: undefined } : msg,
+                  msg.id === activeId
+                    ? { ...msg, aiStatus: undefined, isStreaming: false }
+                    : msg,
                 ),
                 {
                   id: nextAssistantId,
                   role: "assistant",
                   content: "",
                   aiStatus: "Writing response",
+                  isStreaming: true,
+                  streamVersion: 0,
                 },
               ];
             });
@@ -273,9 +290,11 @@ export function useChat(params?: {
             {
               id: `__error_${Date.now()}__`,
               role: "assistant",
-              content: `⚠️ ${message || GENERIC_ASSISTANT_ERROR}`,
+              content: `${message || GENERIC_ASSISTANT_ERROR}`,
               timestamp: Date.now(),
               aiStatus: "Error",
+              isStreaming: true,
+              streamVersion: 1,
             },
           ]);
         }

@@ -14,7 +14,7 @@ type SortKey = keyof EquipmentProps | null;
 type SortDir = "asc" | "desc";
 
 const EQUIPMENT_FIELDS: FormField[] = [
-  { name: "icon_url", label: "Equipment Image", type: "image", placeholder: "", gridSpan: "full" },
+  // { name: "icon_url", label: "Equipment Image", type: "image", placeholder: "", gridSpan: "full" },
   { name: "equipment_name", label: "Equipment Name", type: "text", placeholder: "e.g., Olympic Barbell", required: true, gridSpan: "full" },
   {
     name: "type",

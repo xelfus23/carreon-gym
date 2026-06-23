@@ -8,6 +8,12 @@ import { useMemo, useState } from "react";
 import { formatDate } from "@/src/utils/formatDate";
 import { Ionicons } from "@expo/vector-icons";
 import getCustomLoader from "@/src/app/components/CustomRefreshControl";
+import { useModal } from "@/src/context/ModalProvider";
+import {
+  getActiveSubscriptions,
+  getSubscriptionSummary,
+  hasActiveSubscription,
+} from "@/src/utils/subscription";
 
 export default function Dashboard() {
   const { profile, refreshProfile } = useUserProfile();
@@ -21,6 +27,10 @@ export default function Dashboard() {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const router = useRouter();
+  const { currentSubscriptions } = useModal();
+  const subscriptionSummary = getSubscriptionSummary(profile);
+  const activeSubscriptions = getActiveSubscriptions(profile);
+  const showSubscriptionBadge = hasActiveSubscription(profile);
 
   const selectedExercises = useMemo(() => {
     return workoutSessions
@@ -107,15 +117,26 @@ export default function Dashboard() {
         </Text>
 
         {/* Subscription status badges */}
-        {profile.subscription?.status === "active" && (
-          <View className="flex flex-row gap-2 items-center py-1 mt-1">
+        {showSubscriptionBadge && (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={currentSubscriptions.show}
+            className="flex flex-row gap-2 items-center py-1 mt-1 self-start"
+          >
             <View className="rounded-full bg-primary/40 p-0.5">
               <Check color={COLORS.primary} size={12} />
             </View>
             <Text className="text-primary font-bold">
-              {profile.subscription.planName || "Premium Member"}
+              {activeSubscriptions.length > 1
+                ? `${activeSubscriptions.length} Active Plans`
+                : subscriptionSummary.headline}
             </Text>
-          </View>
+            <Ionicons
+              name="chevron-forward"
+              size={14}
+              color={COLORS.primary}
+            />
+          </TouchableOpacity>
         )}
       </View>
 

@@ -1,4 +1,5 @@
 import pool from "../../config/pool.ts";
+import { assertMembershipPurchaseAllowed } from "../userSubscriptions/assertMembershipPurchaseAllowed.ts";
 
 export const verifyPaymentDomain = async (
   paymentId: number,
@@ -61,6 +62,8 @@ export const verifyPaymentDomain = async (
         throw new Error("Invalid or inactive subscription plan");
 
       const plan = planRes.rows[0];
+
+      await assertMembershipPurchaseAllowed(client, payment.user_id, plan);
 
       const existingSub = await client.query(
         `SELECT s.id, s.expiry_date 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import {
   AreaChart,
@@ -9,10 +10,15 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
 } from "recharts";
 import { useStats } from "../hooks/useStats";
-import { COLORS } from "../constants";
+import { COLORS, PLAN_COLORS } from "../constants";
+import StatCard from "../components/DashboardComponents/StatCard";
+import PlanBar from "../components/DashboardComponents/PlanBar";
+import PaymentRow from "../components/DashboardComponents/PaymentRow";
+import MemberRow from "../components/DashboardComponents/MemberRow";
+import { formatHour } from "../utils/formatHour";
+import { formatCurrency } from "../utils/formatCurrency";
 
 type AttendanceView = "weekly" | "monthly";
 
@@ -24,21 +30,6 @@ const tooltipStyle: React.CSSProperties = {
   boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.4)",
 };
 
-const PLAN_COLORS = ["#7CFF00", "#FBBF24", "#60A5FA", "#A78BFA", "#F472B6"];
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const formatHour = (h: number): string => {
-  if (h === 0) return "12AM";
-  if (h < 12) return `${h}AM`;
-  if (h === 12) return "12PM";
-  return `${h - 12}PM`;
-};
-
-const formatCurrency = (v: number) =>
-  `₱${v.toLocaleString("en-PH", { minimumFractionDigits: 0 })}`;
-
-// ── Sub-components ────────────────────────────────────────────────────────────
 
 const ChartSkeleton: React.FC = () => (
   <div className="h-full flex items-center justify-center">
@@ -52,38 +43,6 @@ const NoDataState: React.FC<{ message: string }> = ({ message }) => (
   </div>
 );
 
-const StatCard: React.FC<{
-  title: string;
-  value: string;
-  trend: string;
-  color: string;
-  loading?: boolean;
-}> = ({ title, value, trend, color, loading }) => {
-  const colorMap: Record<string, string> = {
-    indigo: "text-indigo-400",
-    emerald: "text-emerald-400",
-    amber: "text-amber-400",
-    rose: "text-rose-400",
-  };
-
-  return (
-    <div className="bg-surface p-6 border border-border shadow-sm">
-      <p className="text-sm font-medium text-text-secondary mb-1">{title}</p>
-      <h2
-        className={`text-3xl font-black text-text-primary mb-3 transition-opacity ${
-          loading ? "opacity-30 animate-pulse" : "opacity-100"
-        }`}
-      >
-        {value}
-      </h2>
-      <p
-        className={`text-xs font-semibold ${colorMap[color] ?? "text-text-secondary"}`}
-      >
-        {trend}
-      </p>
-    </div>
-  );
-};
 
 const MetricTile: React.FC<{
   label: string;
@@ -94,33 +53,29 @@ const MetricTile: React.FC<{
   positive?: boolean;
 }> = ({ label, value, icon, loading, alert, positive }) => (
   <div
-    className={`bg-surface p-5 border shadow-sm flex items-center gap-4 ${
-      alert ? "border-amber-500/40" : "border-border"
-    }`}
+    className={`bg-surface p-5 border shadow-sm flex items-center gap-4 ${alert ? "border-amber-500/40" : "border-border"
+      }`}
   >
     <span className="text-2xl">{icon}</span>
     <div>
       <p className="text-xs text-text-secondary font-medium">{label}</p>
       <p
-        className={`text-xl font-black mt-0.5 transition-opacity ${
-          loading
-            ? "opacity-30 animate-pulse text-text-primary"
-            : positive === undefined
-              ? alert
-                ? "text-amber-400"
-                : "text-text-primary"
-              : positive
-                ? "text-emerald-400"
-                : "text-rose-400"
-        }`}
+        className={`text-xl font-black mt-0.5 transition-opacity ${loading
+          ? "opacity-30 animate-pulse text-text-primary"
+          : positive === undefined
+            ? alert
+              ? "text-amber-400"
+              : "text-text-primary"
+            : positive
+              ? "text-emerald-400"
+              : "text-rose-400"
+          }`}
       >
         {value}
       </p>
     </div>
   </div>
 );
-
-// ── Attendance toggle tabs ────────────────────────────────────────────────────
 
 const ViewToggle: React.FC<{
   value: AttendanceView;
@@ -131,11 +86,10 @@ const ViewToggle: React.FC<{
       <button
         key={v}
         onClick={() => onChange(v)}
-        className={`px-3 py-1 text-xs font-semibold rounded-md transition-all capitalize ${
-          value === v
-            ? "bg-surface text-text-primary shadow-sm"
-            : "text-text-secondary hover:text-text-primary"
-        }`}
+        className={`px-3 py-1 text-xs font-semibold rounded-md transition-all capitalize ${value === v
+          ? "bg-surface text-text-primary shadow-sm"
+          : "text-text-secondary hover:text-text-primary"
+          }`}
       >
         {v}
       </button>
@@ -143,167 +97,6 @@ const ViewToggle: React.FC<{
   </div>
 );
 
-// ── Recent payment row ────────────────────────────────────────────────────────
-
-interface RecentPayment {
-  member_name: string;
-  amount: number;
-  method: string;
-  transaction_type: string;
-  item_name: string;
-  status: "paid" | "pending" | "refunded" | "cancelled" | "rejected";
-  paid_at: string | null;
-  initials: string;
-}
-
-const PAYMENT_STATUS_STYLES: Record<string, string> = {
-  paid: "text-emerald-400 bg-emerald-400/10",
-  pending: "text-amber-400 bg-amber-400/10",
-  refunded: "text-blue-400 bg-blue-400/10",
-  cancelled: "text-text-secondary bg-white/5",
-  rejected: "text-rose-400 bg-rose-400/10",
-};
-
-const AVATAR_COLORS = [
-  "bg-violet-500/20 text-violet-300",
-  "bg-emerald-500/20 text-emerald-300",
-  "bg-amber-500/20 text-amber-300",
-  "bg-rose-500/20 text-rose-300",
-  "bg-blue-500/20 text-blue-300",
-  "bg-pink-500/20 text-pink-300",
-];
-
-const avatarColor = (initials: string) =>
-  AVATAR_COLORS[initials.charCodeAt(0) % AVATAR_COLORS.length];
-
-const PaymentRow: React.FC<{ payment: RecentPayment; index: number }> = ({
-  payment,
-  index,
-}) => (
-  <div
-    className={`flex items-center gap-3 py-3 ${
-      index !== 0 ? "border-t border-border" : ""
-    }`}
-  >
-    <div
-      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${avatarColor(payment.initials)}`}
-    >
-      {payment.initials}
-    </div>
-    <div className="flex-1 min-w-0">
-      <p className="text-sm font-semibold text-text-primary truncate">
-        {payment.member_name}
-      </p>
-      <p className="text-xs text-text-secondary truncate">
-        {payment.item_name}
-      </p>
-    </div>
-    <div className="text-right shrink-0">
-      <p className="text-sm font-bold text-text-primary">
-        {formatCurrency(payment.amount)}
-      </p>
-      <span
-        className={`text-xs font-semibold px-1.5 py-0.5 rounded capitalize ${
-          PAYMENT_STATUS_STYLES[payment.status] ?? "text-text-secondary"
-        }`}
-      >
-        {payment.status}
-      </span>
-    </div>
-  </div>
-);
-
-// ── New member row ────────────────────────────────────────────────────────────
-
-interface NewMember {
-  name: string;
-  plan_name: string;
-  created_at: string;
-  initials: string;
-  verified: boolean;
-}
-
-const timeAgo = (dateStr: string): string => {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-};
-
-const MemberRow: React.FC<{ member: NewMember; index: number }> = ({
-  member,
-  index,
-}) => (
-  <div
-    className={`flex items-center gap-3 py-3 ${
-      index !== 0 ? "border-t border-border" : ""
-    }`}
-  >
-    <div
-      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${avatarColor(member.initials)}`}
-    >
-      {member.initials}
-    </div>
-    <div className="flex-1 min-w-0">
-      <p className="text-sm font-semibold text-text-primary truncate">
-        {member.name}
-      </p>
-      <p className="text-xs text-text-secondary">
-        {member.plan_name || "No plan"}
-      </p>
-    </div>
-    <div className="text-right shrink-0">
-      <p
-        className={`text-xs font-semibold ${
-          member.verified ? "text-emerald-400" : "text-amber-400"
-        }`}
-      >
-        {member.verified ? "Verified" : "Unverified"}
-      </p>
-      <p className="text-xs text-text-secondary mt-0.5">
-        {timeAgo(member.created_at)}
-      </p>
-    </div>
-  </div>
-);
-
-// ── Plan distribution bar ─────────────────────────────────────────────────────
-
-interface PlanStat {
-  plan_name: string;
-  count: number;
-  percent: number;
-}
-
-const PlanBar: React.FC<{ plan: PlanStat; index: number; total: number }> = ({
-  plan,
-  index,
-}) => (
-  <div className="space-y-1.5">
-    <div className="flex items-center justify-between">
-      <span className="text-xs text-text-secondary truncate pr-2">
-        {plan.plan_name}
-      </span>
-      <span className="text-xs font-bold text-text-primary shrink-0">
-        {plan.count.toLocaleString()}
-        <span className="font-normal text-text-secondary ml-1">
-          ({plan.percent}%)
-        </span>
-      </span>
-    </div>
-    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-      <div
-        className="h-full rounded-full transition-all duration-500"
-        style={{
-          width: `${plan.percent}%`,
-          backgroundColor: PLAN_COLORS[index % PLAN_COLORS.length],
-        }}
-      />
-    </div>
-  </div>
-);
 
 export default function Dashboard() {
   const {
@@ -367,7 +160,7 @@ export default function Dashboard() {
             statsLoading
               ? "Loading..."
               : stats?.peak_hour_today !== null &&
-                  stats?.peak_hour_today !== undefined
+                stats?.peak_hour_today !== undefined
                 ? `Peak today: ${formatHour(stats.peak_hour_today)}`
                 : "Live gym occupancy"
           }
@@ -596,7 +389,6 @@ export default function Dashboard() {
                   <Bar
                     dataKey="checkins"
                     radius={[4, 4, 0, 0]}
-                    // Replaces the <Cell /> mapping by dynamically filling the generated rectangle
                     shape={(props: any) => {
                       const maxCheckins = Math.max(
                         ...peakHourData.map((d) => d.checkins),

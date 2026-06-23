@@ -14,6 +14,35 @@ const errorMsg: Record<string, string> = {
   SESSION_MISSING: "Chat session does not exist."
 };
 
+const mapClientErrorMessage = (message?: string) => {
+  const normalized = message?.trim().toLowerCase() ?? "";
+
+  if (!normalized) {
+    return "Something went wrong while contacting the assistant.";
+  }
+
+  if (normalized === "authentication_failed") {
+    return "AUTHENTICATION_FAILED";
+  }
+
+  if (normalized.includes("connection closed before completion")) {
+    return "The assistant connection ended early. Please try again.";
+  }
+
+  if (normalized.includes("unknown connection error")) {
+    return "The assistant connection failed. Please try again.";
+  }
+
+  if (
+    normalized.includes("error please try again later") ||
+    normalized.includes("server error")
+  ) {
+    return "The assistant is unavailable right now. Please try again in a moment.";
+  }
+
+  return message!.trim();
+};
+
 export const chatService = {
   getHistory: async () => {
     return (await request(`/chats/sessions`)).data;
@@ -125,7 +154,7 @@ export const chatService = {
                 settle(() =>
                   reject(
                     new Error(
-                      data.message ?? "Server error",
+                      mapClientErrorMessage(data.message),
                     ),
                   ),
                 );
@@ -146,7 +175,11 @@ export const chatService = {
           receivedError = true;
           cleanup();
           settle(() =>
-            reject(new Error('Error please try again later.')),
+            reject(
+              new Error(
+                mapClientErrorMessage("Error please try again later."),
+              ),
+            ),
           );
         };
 
@@ -162,13 +195,15 @@ export const chatService = {
                 : errorMsg[e.reason];
             settle(() =>
               reject(
-                new Error(reason || "Unknown Connection Error"),
+                new Error(mapClientErrorMessage(reason || "Unknown Connection Error")),
               ),
             );
           } else if (!receivedError) {
             settle(() =>
               reject(
-                new Error("Connection closed before completion."),
+                new Error(
+                  mapClientErrorMessage("Connection closed before completion."),
+                ),
               ),
             );
           }

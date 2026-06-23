@@ -160,6 +160,43 @@ function extractSystemInstruction(messages: ChatMessage[]): string | undefined {
   return sys ? (sys.content as string) : undefined;
 }
 
+function normalizeGeminiError(error: unknown): Error {
+  if (!(error instanceof Error)) {
+    return new Error("Gemini request failed");
+  }
+
+  const rawMessage = error.message?.trim();
+  if (!rawMessage) {
+    return new Error("Gemini request failed");
+  }
+
+  const jsonStart = rawMessage.indexOf("{");
+  if (jsonStart !== -1) {
+    const jsonSlice = rawMessage.slice(jsonStart);
+    try {
+      const parsed = JSON.parse(jsonSlice) as {
+        error?: { message?: string; status?: string; code?: number };
+      };
+
+      const providerMessage = parsed.error?.message;
+      const providerStatus = parsed.error?.status;
+      const providerCode = parsed.error?.code;
+
+      if (providerMessage) {
+        const statusLabel =
+          providerStatus || providerCode
+            ? `${providerStatus ?? "Error"}${providerCode ? ` (${providerCode})` : ""}`
+            : "Gemini";
+        return new Error(`${statusLabel}: ${providerMessage}`);
+      }
+    } catch {
+      // Keep the original provider message if the JSON suffix is malformed.
+    }
+  }
+
+  return error;
+}
+
 export const Gemini = async (
   messages: ChatMessage[],
   options?: { disableTools: boolean },
@@ -176,11 +213,16 @@ export const Gemini = async (
   if (systemInstruction) config.systemInstruction = systemInstruction;
   if (geminiTools) config.tools = geminiTools;
 
-  const responseStream = await ai.models.generateContentStream({
-    model: model.gemini_2_5_flash,
-    contents,
-    ...(Object.keys(config).length > 0 && { config }),
-  });
+  let responseStream;
+  try {
+    responseStream = await ai.models.generateContentStream({
+      model: model.gemini_2_5_flash,
+      contents,
+      ...(Object.keys(config).length > 0 && { config }),
+    });
+  } catch (error) {
+    throw normalizeGeminiError(error);
+  }
 
   return new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -246,7 +288,7 @@ export const Gemini = async (
         controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
         controller.close();
       } catch (err) {
-        controller.error(err);
+        controller.error(normalizeGeminiError(err));
       }
     },
   });

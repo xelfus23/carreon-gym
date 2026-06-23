@@ -7,10 +7,12 @@ export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        header: (props) => <CustomHeader title={props.route.name} />,
+        header: (props) => <CustomHeader title={props.options.title || ""} />,
       }}
     >
-      <Stack.Screen name="purchases" />
+      <Stack.Screen name="purchases" options={{
+        title: "Recent Purchase"
+      }} />
     </Stack>
   );
 }

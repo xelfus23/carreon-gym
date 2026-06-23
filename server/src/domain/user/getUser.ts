@@ -65,32 +65,36 @@ export const getUsersDomain = async (): Promise<UserDomainRow[]> => {
 
     FROM users u
 
-    -- One subscription per plan category: active first, otherwise most recent
+    -- Keep every purchased subscription so the client can render all plans
     LEFT JOIN LATERAL (
         SELECT json_agg(
             json_build_object(
-              'id',          picked.id,
-              'plan_name',   picked.plan_name,
-              'category',    picked.category,
-              'status',      picked.computed_status,
-              'expiry_date', picked.expiry_date,
-              'start_date',  picked.start_date
+              'id',          sub_item.id,
+              'plan_name',   sub_item.plan_name,
+              'category',    sub_item.category,
+              'status',      sub_item.computed_status,
+              'expiry_date', sub_item.expiry_date,
+              'start_date',  sub_item.start_date
             ) ORDER BY
-              CASE picked.computed_status
+              CASE sub_item.computed_status
                 WHEN 'active' THEN 0
                 WHEN 'pending' THEN 1
                 WHEN 'expired' THEN 2
                 ELSE 3
               END,
-              picked.category
+              sub_item.category,
+              sub_item.updated_at DESC,
+              sub_item.created_at DESC
         ) AS list
         FROM (
-            SELECT DISTINCT ON (COALESCE(sp.category::text, 'membership'))
+            SELECT
                 s.id,
                 s.plan_name,
                 COALESCE(sp.category::text, 'membership') AS category,
                 s.expiry_date,
                 s.start_date,
+                s.updated_at,
+                s.created_at,
                 CASE
                    WHEN s.status = 'cancelled' THEN 'cancelled'
                    WHEN s.status = 'pending'   THEN 'pending'
@@ -101,17 +105,7 @@ export const getUsersDomain = async (): Promise<UserDomainRow[]> => {
             FROM subscriptions s
             LEFT JOIN subscription_plans sp ON s.plan_id = sp.id
             WHERE s.user_id = u.id
-            ORDER BY
-                COALESCE(sp.category::text, 'membership'),
-                CASE
-                   WHEN s.status = 'active'
-                     AND (s.expiry_date IS NULL OR s.expiry_date >= CURRENT_TIMESTAMP) THEN 0
-                   WHEN s.status = 'pending' THEN 1
-                   ELSE 2
-                END,
-                s.updated_at DESC,
-                s.created_at DESC
-        ) picked
+        ) sub_item
     ) sub ON true
 
     -- Fetch Last Body Composition Data

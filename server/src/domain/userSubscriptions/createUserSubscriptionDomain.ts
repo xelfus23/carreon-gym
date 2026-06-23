@@ -1,5 +1,6 @@
 import pool from "../../config/pool.ts";
 import { generateReferenceNo } from "../../utils/generateReferenceNo.ts";
+import { assertMembershipPurchaseAllowed } from "./assertMembershipPurchaseAllowed.ts";
 
 export const createUserSubscriptionDomain = async (
   userId: number,
@@ -27,7 +28,7 @@ export const createUserSubscriptionDomain = async (
     if (userCheck.rows.length === 0) throw new Error("User does not exist.");
 
     const planResult = await client.query(
-      `SELECT id, name, price, duration_days
+      `SELECT id, name, price, duration_days, category
        FROM subscription_plans
        WHERE id = $1 AND is_active = TRUE`,
       [planId],
@@ -40,6 +41,8 @@ export const createUserSubscriptionDomain = async (
     const finalAmount: number = options.amountOverride ?? Number(plan.price);
     const finalDurationDays: number = options.durationOverride ?? plan.duration_days;
     const now = new Date();
+
+    await assertMembershipPurchaseAllowed(client, userId, plan, finalDurationDays);
 
     await client.query(
       `UPDATE subscriptions

@@ -95,6 +95,53 @@ export const subscriptionQuery = async (userId: number) => {
   );
 };
 
+export const subscriptionsQuery = async (userId: number) => {
+  return await pool.query(
+    `SELECT
+        s.id,
+        s.plan_name,
+        COALESCE(sp.category::text, 'membership') AS category,
+        s.expiry_date,
+        s.start_date,
+        CASE
+           WHEN s.status = 'cancelled' THEN 'cancelled'
+           WHEN s.status = 'pending'   THEN 'pending'
+           WHEN s.expiry_date IS NULL  THEN 'active'
+           WHEN s.expiry_date < CURRENT_TIMESTAMP THEN 'expired'
+           ELSE 'active'
+        END AS status
+     FROM subscriptions s
+     LEFT JOIN subscription_plans sp ON s.plan_id = sp.id
+     WHERE s.user_id = $1
+     ORDER BY
+       CASE
+         WHEN s.status = 'active'
+           AND (s.expiry_date IS NULL OR s.expiry_date >= CURRENT_TIMESTAMP) THEN 0
+         WHEN s.status = 'pending' THEN 1
+         WHEN s.status = 'cancelled' THEN 3
+         WHEN s.expiry_date IS NOT NULL AND s.expiry_date < CURRENT_TIMESTAMP THEN 2
+         ELSE 0
+       END,
+       COALESCE(sp.category::text, 'membership'),
+       s.updated_at DESC,
+       s.created_at DESC,
+       CASE
+         WHEN s.status = 'cancelled' THEN 'cancelled'
+         WHEN s.status = 'pending'   THEN 'pending'
+         WHEN s.expiry_date IS NULL  THEN 'active'
+         WHEN s.expiry_date < CURRENT_TIMESTAMP THEN 'expired'
+         ELSE 'active'
+       END,
+       CASE
+         WHEN s.expiry_date IS NULL THEN 0
+         ELSE 1
+       END,
+       s.expiry_date DESC,
+       s.id DESC`,
+    [userId],
+  );
+};
+
 export const updateUserQuery = async (
   userId: number,
   updates: {

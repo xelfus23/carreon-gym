@@ -264,13 +264,13 @@ export default function Purchases() {
   return (
     <View className="flex-1 bg-zinc-950">
       <View className="flex-1 px-4 pt-4">
-        <View className="flex-row justify-between items-center mb-6">
+        {/* <View className="flex-row justify-between items-center mb-6">
           <View>
             <Text className="text-white text-2xl font-black tracking-tight">Payment History</Text>
             <Text className="text-zinc-400 text-xs mt-0.5">Track your gym orders and subscriptions</Text>
           </View>
           {isLoading && isUploading === null && <ActivityIndicator color={COLORS.primary} />}
-        </View>
+        </View> */}
 
         {paymentHistory.length === 0 && !isLoading ? (
           <View className="flex-1 justify-center items-center px-8 pb-12">

@@ -212,14 +212,12 @@ const SystemStatus: React.FC<{ expanded: boolean }> = ({ expanded }) => {
         </div>
         <div className="flex items-center gap-1.5">
           <div
-            className={`w-1.5 h-1.5 rounded-full ${
-              isOpen ? "bg-primary" : "bg-text-secondary/40"
-            }`}
+            className={`w-1.5 h-1.5 rounded-full ${isOpen ? "bg-primary" : "bg-text-secondary/40"
+              }`}
           />
           <span
-            className={`text-xs font-semibold ${
-              isOpen ? "text-primary" : "text-text-secondary"
-            }`}
+            className={`text-xs font-semibold ${isOpen ? "text-primary" : "text-text-secondary"
+              }`}
           >
             {isOpen ? "Open" : "Closed"}
           </span>
@@ -247,9 +245,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
 
   return (
     <aside
-      className={`${
-        sideBarOn ? "w-52" : "w-13"
-      } shrink-0 transition-all duration-300 bg-surface h-screen flex flex-col text-text-secondary border-r border-border`}
+      className={`${sideBarOn ? "w-52" : "w-13"
+        } shrink-0 transition-all duration-300 bg-surface h-screen flex flex-col text-text-secondary border-r border-border`}
     >
       {/* Header */}
       <div
@@ -278,12 +275,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
       <nav className="flex-1 mt-4 space-y-6 overflow-y-auto no-scrollbar">
         {NAV_CATEGORIES.map((category) => (
           <div key={category.title} className="space-y-1">
+
+            <div className="h-px bg-linear-to-r from-border to-transparent mb-4" />
+
+
             <h1
-              className={`uppercase text-text-secondary/50 font-mulish text-[10px] font-bold tracking-wider px-4 mb-2 transition-all duration-300 ${
-                sideBarOn
-                  ? "opacity-100 max-h-4"
-                  : "opacity-0 max-h-0 overflow-hidden pointer-events-none"
-              }`}
+              className={`uppercase text-text-secondary/50 font-mulish text-[10px] font-bold tracking-wider px-4 mb-2 transition-all duration-300 ${sideBarOn
+                ? "opacity-100 max-h-4"
+                : "opacity-0 max-h-0 overflow-hidden pointer-events-none"
+                }`}
             >
               {category.title}
             </h1>
@@ -294,11 +294,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
                 <button
                   key={item.id}
                   onClick={() => setTab(item.id)}
-                  className={`w-full h-10 flex items-center border-l-2 transition-all duration-200 gap-3 px-4 group ${
-                    isActive
-                      ? "text-primary border-primary bg-linear-to-r from-primary/6 to-transparent translate-x-0"
-                      : `text-text-secondary border-transparent hover:bg-linear-to-r from-text-primary/6 to-transparent hover:text-text-primary ${sideBarOn ? "-translate-x-2" : ""}`
-                  }`}
+                  className={`w-full h-10 flex items-center border-l-2 transition-all duration-200 gap-3 px-4 group ${isActive
+                    ? "text-primary border-primary bg-linear-to-r from-primary/6 to-transparent translate-x-0"
+                    : `text-text-secondary border-transparent hover:bg-linear-to-r from-text-primary/6 to-transparent hover:text-text-primary ${sideBarOn ? "-translate-x-2" : ""}`
+                    }`}
                 >
                   <div
                     className={`${sideBarOn ? "ml-2" : "ml-0"} w-4 h-4 flex items-center justify-center shrink-0 transition-transform`}
@@ -306,11 +305,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
                     {item.icon}
                   </div>
                   <span
-                    className={`text-sm whitespace-nowrap transition-all duration-300 block overflow-hidden ${
-                      sideBarOn
-                        ? "opacity-100 max-w-37.5 translate-x-0"
-                        : "opacity-0 max-w-0 -translate-x-2 pointer-events-none"
-                    }`}
+                    className={`text-sm whitespace-nowrap transition-all duration-300 block overflow-hidden ${sideBarOn
+                      ? "opacity-100 max-w-37.5 translate-x-0"
+                      : "opacity-0 max-w-0 -translate-x-2 pointer-events-none"
+                      }`}
                   >
                     {item.label}
                   </span>

@@ -6,7 +6,7 @@
         "start:client": "npm start --prefix client",
         "start:admin": "npm run electron:dev --prefix admin",
         "start:server": "npm run dev --prefix server",
-        "dev": "concurrently \"npm run start:server\" \"npm run start:admin\""
+        "dev": "start cmd /k \"npm run start:server\" && start cmd /k \"npm run start:admin\" && start cmd /k \"npm run start:client\""
     },
     "keywords": [],
     "author": "",

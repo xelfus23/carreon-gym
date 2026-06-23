@@ -1,6 +1,6 @@
 import {
   metricsQuery,
-  subscriptionQuery,
+  subscriptionsQuery,
   userQuery,
 } from "../../repositories/user.repository.ts";
 
@@ -20,9 +20,20 @@ export const meDomain = async (params: { userId: number }) => {
   const metricsResult = await metricsQuery(userId);
   const latestMetric = metricsResult.rows[0] || null;
 
-  // Get subscription info
-  const subscriptionResult = await subscriptionQuery(userId);
-  const subscription = subscriptionResult.rows[0] || null;
+  const subscriptionsResult = await subscriptionsQuery(userId);
+  const subscriptions = subscriptionsResult.rows.map((row) => ({
+    id: String(row.id),
+    planName: row.plan_name,
+    category: row.category,
+    status: row.status,
+    startDate: row.start_date,
+    expiryDate: row.expiry_date,
+  }));
+
+  const primarySubscription =
+    subscriptions.find((sub) => sub.status === "active") ??
+    subscriptions[0] ??
+    null;
 
   return {
     id: userData.id,
@@ -59,14 +70,7 @@ export const meDomain = async (params: { userId: number }) => {
         }
       : null,
 
-    subscription: subscription
-      ? {
-          status: subscription.status,
-          planName: subscription.plan_name,
-          startDate: subscription.start_date,
-          expiryDate: subscription.expiry_date,
-          autoRenew: subscription.auto_renew,
-        }
-      : null,
+    subscriptions,
+    subscription: primarySubscription,
   };
 };

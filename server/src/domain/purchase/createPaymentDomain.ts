@@ -1,6 +1,7 @@
 import pool from "../../config/pool.ts";
 import { AppError } from "../../utils/appError.ts";
 import { generateReferenceNo } from "../../utils/generateReferenceNo.ts";
+import { assertMembershipPurchaseAllowed } from "../userSubscriptions/assertMembershipPurchaseAllowed.ts";
 
 export const createPaymentDomain = async (
   userId: number,
@@ -30,7 +31,8 @@ export const createPaymentDomain = async (
 
     // 2. Find target subscription plan data using explicit type casting for $2
     const planRes = await client.query(
-      `SELECT id, name, price FROM subscription_plans 
+      `SELECT id, name, price, duration_days, category
+       FROM subscription_plans 
        WHERE (id = $1) OR ($1 IS NULL AND $2::text IS NOT NULL AND LOWER(name) = LOWER($2::text))`,
       [planId ?? null, planName ?? null],
     );
@@ -40,6 +42,8 @@ export const createPaymentDomain = async (
     }
 
     const targetPlan = planRes.rows[0];
+
+    await assertMembershipPurchaseAllowed(client, userId, targetPlan);
     const finalAmount = Number(targetPlan.price);
     const resolvedItemName = targetPlan.name;
     const referenceNo = generateReferenceNo("mobile_online");

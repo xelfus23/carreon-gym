@@ -20,11 +20,16 @@ export type Profile = {
   | "very_active";
   experienceLevel: "beginner" | "intermediate" | "advanced"
 };
+export type SubscriptionStatus = "active" | "expired" | "pending" | "cancelled";
+
 export type Subscription = {
-  status: "active" | "expired" | "pending" | "cancelled";
+  id?: string;
+  status: SubscriptionStatus;
   planName: string;
-  expiryDate: Date;
-  startDate: Date;
+  category?: string;
+  expiryDate?: Date | string | null;
+  startDate?: Date | string | null;
+  autoRenew?: boolean;
 };
 
 export type CurrentStats = {
@@ -46,6 +51,7 @@ export type UserProfile = {
   profileImageUrl?: string;
   profile: Profile;
   currentStats?: CurrentStats;
-  subscription?: Subscription;
+  subscription?: Subscription | null;
+  subscriptions?: Subscription[];
   createdAt: string;
 };

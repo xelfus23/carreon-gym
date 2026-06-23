@@ -6,6 +6,92 @@ import { streamModel } from "./streamModel.ts";
 
 const VALID_TOOLS = new Set(TOOL_NAMES);
 
+function mapProviderErrorMessage(message: string): string {
+  const normalized = message.trim().toLowerCase();
+
+  if (
+    normalized.includes("currently experiencing high demand") ||
+    normalized.includes("status: unavailable") ||
+    normalized.includes('"status":"unavailable"')
+  ) {
+    return "The assistant is busy right now. Please try again in a moment.";
+  }
+
+  if (
+    normalized.includes("quota") ||
+    normalized.includes("rate limit") ||
+    normalized.includes("too many requests")
+  ) {
+    return "The assistant is temporarily handling too many requests. Please try again shortly.";
+  }
+
+  if (
+    normalized.includes("api key") ||
+    normalized.includes("permission denied") ||
+    normalized.includes("permission_denied") ||
+    normalized.includes("authentication")
+  ) {
+    return "The assistant could not be reached right now because of a configuration issue.";
+  }
+
+  if (
+    normalized.includes("econnrefused") ||
+    normalized.includes("fetch failed") ||
+    normalized.includes("network error") ||
+    normalized.includes("failed to fetch") ||
+    normalized.includes("lm studio request failed")
+  ) {
+    return "The assistant service is currently unavailable. Please try again in a moment.";
+  }
+
+  if (normalized.includes("no response from model")) {
+    return "The assistant did not return a response. Please try again.";
+  }
+
+  if (normalized.includes("empty assistant response")) {
+    return "The assistant returned an empty response. Please try again.";
+  }
+
+  return message.trim();
+}
+
+function extractProviderErrorMessage(error: unknown): string {
+  if (!error) return "Something went wrong while generating a response.";
+
+  if (typeof error === "string") {
+    return mapProviderErrorMessage(error);
+  }
+
+  if (!(error instanceof Error)) {
+    return "Something went wrong while generating a response.";
+  }
+
+  const rawMessage = error.message?.trim();
+  if (!rawMessage) return "Something went wrong while generating a response.";
+
+  const jsonStart = rawMessage.indexOf("{");
+  if (jsonStart !== -1) {
+    const jsonSlice = rawMessage.slice(jsonStart);
+    try {
+      const parsed = JSON.parse(jsonSlice) as {
+        error?: { message?: string; status?: string; code?: number };
+        message?: string;
+      };
+
+      const providerMessage =
+        parsed.error?.message ?? parsed.message ?? rawMessage.slice(0, jsonStart).trim();
+
+      if (providerMessage) {
+        return mapProviderErrorMessage(providerMessage);
+      }
+    } catch {
+      // Fall through to the raw error message when the suffix is not valid JSON.
+    }
+  }
+
+  return mapProviderErrorMessage(rawMessage);
+}
+
 export async function handleModelStreamWithTools(
   messages: ChatMessage[],
   userId: number,
@@ -148,7 +234,7 @@ export async function handleModelStreamWithTools(
           `[Stream][session=${sessionId}][iter=${iteration}] ❌ streamModel threw:`,
           err,
         );
-        safeSend({ type: "error", message: "Model stream failed" });
+        safeSend({ type: "error", message: extractProviderErrorMessage(err) });
         return undefined;
       }
 
@@ -254,7 +340,7 @@ export async function handleModelStreamWithTools(
             `[Stream][session=${sessionId}] ❌ streamModel (disableTools) threw:`,
             err,
           );
-          safeSend({ type: "error", message: "Unable to produce final response after tools" });
+          safeSend({ type: "error", message: extractProviderErrorMessage(err) });
           return undefined;
         }
       }
