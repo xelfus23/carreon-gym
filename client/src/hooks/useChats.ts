@@ -88,15 +88,14 @@ export function useChat(params?: {
 
   const loadMessages = useCallback(async () => {
     if (!sessionId) return;
+    setLoading(false);
     setInitializing(true);
     try {
       const data = await chatService.getSessionMessages(sessionId);
       if (!mountedRef.current) return;
 
       const formatted: ChatMessage[] = data
-        .filter(
-          (msg: any) => msg.role !== "tool" && msg.content !== null,
-        )
+        .filter((msg: any) => msg.role !== "tool" && msg.content !== null)
         .map((msg: any) => ({
           id: msg.id,
           role: msg.role,
@@ -111,14 +110,18 @@ export function useChat(params?: {
           name: msg.name,
           aiStatus:
             msg.aiStatus ??
-            (msg.role === "assistant" && String(msg.content ?? "").trim().length > 0
+            (msg.role === "assistant" &&
+            String(msg.content ?? "").trim().length > 0
               ? "Done"
               : undefined),
         }));
 
       setMessages(formatted);
     } catch (err) {
-      console.error("Failed to load messages:", err instanceof Error ? err.message : "Unknown Error Occurred");
+      console.error(
+        "Failed to load messages:",
+        err instanceof Error ? err.message : "Unknown Error Occurred",
+      );
       if (mountedRef.current) setError("Could not load chat history");
     } finally {
       if (mountedRef.current) setInitializing(false);
@@ -145,8 +148,7 @@ export function useChat(params?: {
         console.log("✅ New session created:", id);
       } catch (err) {
         console.error("Failed to create session:", err);
-        if (mountedRef.current)
-          setError("Could not start chat session");
+        if (mountedRef.current) setError("Could not start chat session");
       } finally {
         if (mountedRef.current) setLoading(false);
       }
@@ -158,10 +160,7 @@ export function useChat(params?: {
     async (text: string) => {
       if (!text.trim() || !sessionId) return;
 
-      if (
-        params?.setReminderOpen &&
-        !hasActiveSubscription(params.profile)
-      ) {
+      if (params?.setReminderOpen && !hasActiveSubscription(params.profile)) {
         params.setReminderOpen(true);
       }
 

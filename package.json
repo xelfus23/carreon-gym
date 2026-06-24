@@ -1,17 +1,17 @@
 {
-    "name": "careon-gym",
-    "version": "1.0.0",
-    "description": "",
-    "scripts": {
-        "start:client": "npm start --prefix client",
-        "start:admin": "npm run electron:dev --prefix admin",
-        "start:server": "npm run dev --prefix server",
-        "dev": "start cmd /k \"npm run start:server\" && start cmd /k \"npm run start:admin\" && start cmd /k \"npm run start:client\""
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "devDependencies": {
-        "concurrently": "^9.2.1"
-    }
+  "name": "careon-gym",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start:client": "npm start --prefix client",
+    "start:admin": "npm run electron:dev --prefix admin",
+    "start:server": "npm run dev --prefix server",
+    "dev": "concurrently -k -n \"server,admin,client\" -c \"blue,magenta,cyan\" \"npm run start:server\" \"npm run start:admin\" \"start cmd /k npm run start:client\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }

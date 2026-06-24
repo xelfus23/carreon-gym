@@ -2,17 +2,20 @@ import { WebSocket } from "ws";
 import type { ChatMessage, ToolCall } from "../../types/index.ts";
 import { LMstudio } from "../client/LMstudio.ts";
 import { Gemini } from "../client/Gemini.ts";
-import { env } from "../../config/env.ts";
 import { sanitizeAssistantContent } from "./sanitizeAssistantContent.ts";
+
+const PROVIDER = "lmstudio";
+
+const PROVIDER_FUNC = {
+  gemini: Gemini,
+  lmstudio: LMstudio,
+};
 
 export const modelProvider = async (
   messages: ChatMessage[],
   options?: { disableTools: boolean },
 ) => {
-  if (env.PROVIDER === "gemini") {
-    return Gemini(messages, options);
-  }
-  return LMstudio(messages);
+  return PROVIDER_FUNC[PROVIDER](messages, options);
 };
 
 export async function streamModel(
