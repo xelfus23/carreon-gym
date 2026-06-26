@@ -8,7 +8,7 @@ export const buildContext = ({ inventory, summary, userProfile }: { inventory: s
 ${today}
 
 ## USER PROFILE
-${JSON.stringify(userProfile)}  // AI reads this, never needs to call get_user_details
+${JSON.stringify(userProfile)}
 
 ## GYM INVENTORY
 ${inventory ? `## INVENTORY (ID:NAME)\n${inventory}\n` : ""}
