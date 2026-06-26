@@ -40,7 +40,17 @@ export default function CustomDrawerContent(props: any) {
                         <View className="bg-surface p-6 mb-4 border-b border-border">
                             <View className="flex-row ga-2 w-full">
                                 <View className="h-32 aspect-square bg-gray-700 rounded-full items-center justify-center mb-3">
-                                    <Image />
+                                    <Image
+                                        className="aspect-square h-32 w-32 bg-surface rounded-full border-2 border-primary"
+                                        resizeMode="center"
+                                        source={
+                                            profile?.profileImageUrl
+                                                ? {
+                                                      uri: profile.profileImageUrl,
+                                                  }
+                                                : require("../../assets/ui/profile-placeholder.png")
+                                        }
+                                    />
                                 </View>
                             </View>
 
