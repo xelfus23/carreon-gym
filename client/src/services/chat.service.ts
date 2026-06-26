@@ -1,4 +1,4 @@
-// chatService.ts
+import { AiPreferences } from "../types/aiPreferences";
 import { forceRefreshToken, request } from "../utils/request";
 import { tokenManager } from "../utils/tokenManager";
 
@@ -48,8 +48,27 @@ export const chatService = {
     return (await request(`/chats/sessions`)).data;
   },
 
-  getSessionMessages: async (sessionId: number) => {
-    return (await request(`/chats/sessions/${sessionId}/messages`)).data;
+  getSessionMessages: async (
+    sessionId: number,
+    options?: { limit?: number; beforeId?: number },
+  ) => {
+    const params = new URLSearchParams();
+    if (options?.limit) params.set("limit", String(options.limit));
+    if (options?.beforeId) params.set("beforeId", String(options.beforeId));
+    const query = params.toString();
+    const path = `/chats/sessions/${sessionId}/messages${query ? `?${query}` : ""}`;
+    return (await request(path)).data;
+  },
+
+  getGenerationStatus: async (sessionId: number) => {
+    return (
+      await request(`/chats/sessions/${sessionId}/generation-status`)
+    ).data as {
+      isGenerating: boolean;
+      lastMessageRole: string | null;
+      lastMessageId: number | null;
+      awaitingAssistant: boolean;
+    };
   },
 
   createChat: async () => {
@@ -75,7 +94,8 @@ export const chatService = {
     onState: (state: string) => void,
     onAssistantResponseStart?: () => void,
     signal?: AbortSignal,
-    isRetry = false, // Add a retry flag to prevent infinite loops
+    isRetry = false,
+    preferences?: AiPreferences,
   ): Promise<void> => {
     // Define the core logic as a helper to allow for easy retries
     const connectAndSend = (): Promise<void> => {
@@ -128,7 +148,12 @@ export const chatService = {
 
         socket.onopen = () => {
           onState("Connecting to assistant");
-          socket.send(JSON.stringify({ message: text }));
+          socket.send(
+            JSON.stringify({
+              message: text,
+              preferences: preferences ?? undefined,
+            }),
+          );
         };
 
         socket.onmessage = (e) => {
@@ -228,6 +253,7 @@ export const chatService = {
             onAssistantResponseStart,
             signal,
             true,
+            preferences,
           );
         } catch (refreshError) {
           console.error(refreshError);

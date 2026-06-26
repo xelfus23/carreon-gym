@@ -1,14 +1,18 @@
 import { chatQuery } from "../../repositories/user.repository.ts";
-import { buildSystemPrompt } from "../prompts/buildSystemPrompt.ts";
+import {
+  buildSystemPrompt,
+  type AiPersonalization,
+} from "../prompts/buildSystemPrompt.ts";
 import { formatChatHistory } from "./formatHistory.ts";
 
 export const getChatHistory = async (
   userId: number,
   sessionId: number,
   newMsg: any,
+  personalization?: AiPersonalization,
 ): Promise<any[]> => {
 
-  const systemPrompt = await buildSystemPrompt(userId);
+  const systemPrompt = await buildSystemPrompt(userId, personalization);
   console.log("INSTRUCTIONS: ", systemPrompt)
   
   const result = await chatQuery(sessionId);

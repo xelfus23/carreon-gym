@@ -6,15 +6,62 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
+import { AppState, AppStateStatus } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { chatService } from "@/src/services/chat.service";
 import { ChatMessage } from "../types/chats";
 import { UserProfile } from "../types/users";
 import { hasActiveSubscription } from "../utils/subscription";
+import { getAiPreferences } from "../utils/aiPreferences";
+
+const MESSAGE_PAGE_SIZE = 30;
+const POLL_INTERVAL_MS = 2000;
+const PENDING_ASSISTANT_ID = "__pending_assistant__";
 
 let tempIdCounter = 0;
 const newTempId = () => `__streaming_${tempIdCounter++}__`;
 const GENERIC_ASSISTANT_ERROR =
   "I ran into an issue while processing your request. Please try again.";
+
+function formatMessage(msg: {
+  id: number;
+  role: string;
+  content: string | null;
+  created_at: string;
+  aiStatus?: string;
+}): ChatMessage {
+  return {
+    id: msg.id,
+    role: msg.role as ChatMessage["role"],
+    content: msg.content ?? "",
+    timestamp: new Date(msg.created_at).getTime(),
+    aiStatus:
+      msg.aiStatus ??
+      (msg.role === "assistant" &&
+      String(msg.content ?? "").trim().length > 0
+        ? "Done"
+        : undefined),
+  };
+}
+
+function formatServerMessages(data: unknown[]): ChatMessage[] {
+  return data
+    .filter(
+      (msg: { role: string; content: string | null }) =>
+        msg.role !== "tool" && msg.content !== null,
+    )
+    .map((msg) => formatMessage(msg as Parameters<typeof formatMessage>[0]));
+}
+
+function isDisconnectError(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("connection closed") ||
+    normalized.includes("connection failed") ||
+    normalized.includes("connection ended") ||
+    normalized.includes("aborted")
+  );
+}
 
 export function useChat(params?: {
   initialSessionId?: number;
@@ -28,6 +75,9 @@ export function useChat(params?: {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMoreOlder, setHasMoreOlder] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,17 +97,104 @@ export function useChat(params?: {
   const abortRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
   const activeAssistantIdRef = useRef<string | null>(null);
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isSendingRef = useRef(false);
 
   const sessionResolvedRef = useRef(!!params?.initialSessionId);
+
+  const stopPolling = useCallback(() => {
+    if (pollTimerRef.current) {
+      clearInterval(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+    setIsPolling(false);
+  }, []);
+
+  const applyServerMessages = useCallback(
+    (formatted: ChatMessage[], options?: { pendingAssistant?: boolean }) => {
+      if (options?.pendingAssistant) {
+        const last = formatted[formatted.length - 1];
+        if (last?.role === "user") {
+          setMessages([
+            ...formatted,
+            {
+              id: PENDING_ASSISTANT_ID,
+              role: "assistant",
+              content: "",
+              aiStatus: "AI is responding...",
+              isStreaming: true,
+              streamVersion: 0,
+            },
+          ]);
+          return;
+        }
+      }
+
+      setMessages(formatted);
+    },
+    [],
+  );
+
+  const syncMessagesFromServer = useCallback(
+    async (options?: { pendingAssistant?: boolean }) => {
+      if (!sessionId) return null;
+
+      try {
+        const data = await chatService.getSessionMessages(sessionId, {
+          limit: MESSAGE_PAGE_SIZE,
+        });
+        if (!mountedRef.current) return null;
+
+        const formatted = formatServerMessages(data);
+        applyServerMessages(formatted, options);
+        setHasMoreOlder(data.length >= MESSAGE_PAGE_SIZE);
+        return formatted;
+      } catch (err) {
+        console.error(
+          "Failed to sync messages:",
+          err instanceof Error ? err.message : "Unknown Error",
+        );
+        return null;
+      }
+    },
+    [sessionId, applyServerMessages],
+  );
+
+  const checkAndPollGeneration = useCallback(async () => {
+    if (!sessionId || isSendingRef.current) return;
+
+    try {
+      const status = await chatService.getGenerationStatus(sessionId);
+      if (!mountedRef.current) return;
+
+      if (status.isGenerating || status.awaitingAssistant) {
+        await syncMessagesFromServer({ pendingAssistant: true });
+        if (!pollTimerRef.current) {
+          setIsPolling(true);
+          pollTimerRef.current = setInterval(() => {
+            checkAndPollGeneration();
+          }, POLL_INTERVAL_MS);
+        }
+        return;
+      }
+
+      stopPolling();
+      await syncMessagesFromServer();
+    } catch {
+      // Status endpoint may be unavailable until server restarts — fall back to message sync.
+      await syncMessagesFromServer();
+    }
+  }, [sessionId, stopPolling, syncMessagesFromServer]);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       abortRef.current?.abort();
+      stopPolling();
       chatService.disconnect();
     };
-  }, []);
+  }, [stopPolling]);
 
   useEffect(() => {
     if (sessionResolvedRef.current) {
@@ -78,7 +215,7 @@ export function useChat(params?: {
         } else {
           setInitializing(false);
         }
-      } catch (err) {
+      } catch {
         if (mountedRef.current) setInitializing(false);
       }
     };
@@ -91,32 +228,16 @@ export function useChat(params?: {
     setLoading(false);
     setInitializing(true);
     try {
-      const data = await chatService.getSessionMessages(sessionId);
+      const data = await chatService.getSessionMessages(sessionId, {
+        limit: MESSAGE_PAGE_SIZE,
+      });
       if (!mountedRef.current) return;
 
-      const formatted: ChatMessage[] = data
-        .filter((msg: any) => msg.role !== "tool" && msg.content !== null)
-        .map((msg: any) => ({
-          id: msg.id,
-          role: msg.role,
-          content: msg.content,
-          timestamp: new Date(msg.created_at).getTime(),
-          tool_calls: msg.tool_calls
-            ? typeof msg.tool_calls === "string"
-              ? JSON.parse(msg.tool_calls)
-              : msg.tool_calls
-            : undefined,
-          tool_call_id: msg.tool_call_id,
-          name: msg.name,
-          aiStatus:
-            msg.aiStatus ??
-            (msg.role === "assistant" &&
-            String(msg.content ?? "").trim().length > 0
-              ? "Done"
-              : undefined),
-        }));
+      const formatted = formatServerMessages(data);
+      applyServerMessages(formatted);
+      setHasMoreOlder(data.length >= MESSAGE_PAGE_SIZE);
 
-      setMessages(formatted);
+      await checkAndPollGeneration();
     } catch (err) {
       console.error(
         "Failed to load messages:",
@@ -126,34 +247,91 @@ export function useChat(params?: {
     } finally {
       if (mountedRef.current) setInitializing(false);
     }
-  }, [sessionId]);
+  }, [sessionId, applyServerMessages, checkAndPollGeneration]);
+
+  const loadOlderMessages = useCallback(async () => {
+    if (!sessionId || !hasMoreOlder || loadingOlder) return;
+
+    const oldestId = messages[0]?.id;
+    if (typeof oldestId !== "number") return;
+
+    setLoadingOlder(true);
+    try {
+      const data = await chatService.getSessionMessages(sessionId, {
+        limit: MESSAGE_PAGE_SIZE,
+        beforeId: oldestId,
+      });
+      if (!mountedRef.current) return;
+
+      const older = formatServerMessages(data);
+
+      if (older.length === 0) {
+        setHasMoreOlder(false);
+        return;
+      }
+
+      setMessages((prev) => [...older, ...prev]);
+      setHasMoreOlder(data.length >= MESSAGE_PAGE_SIZE);
+    } catch (err) {
+      console.error(
+        "Failed to load older messages:",
+        err instanceof Error ? err.message : "Unknown Error",
+      );
+    } finally {
+      if (mountedRef.current) setLoadingOlder(false);
+    }
+  }, [sessionId, hasMoreOlder, loadingOlder, messages]);
 
   useEffect(() => {
     loadMessages();
   }, [loadMessages]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!sessionId) return;
+      syncMessagesFromServer();
+      checkAndPollGeneration();
+    }, [sessionId, syncMessagesFromServer, checkAndPollGeneration]),
+  );
+
+  useEffect(() => {
+    const handleAppState = (nextState: AppStateStatus) => {
+      if (nextState === "active" && sessionId) {
+        syncMessagesFromServer();
+        checkAndPollGeneration();
+      }
+    };
+
+    const sub = AppState.addEventListener("change", handleAppState);
+    return () => sub.remove();
+  }, [sessionId, syncMessagesFromServer, checkAndPollGeneration]);
+
   const startNewSession = useCallback(
     async (force = false) => {
       if (sessionId && !force) {
         console.log("⚠️ Session already exists:", sessionId);
-        return;
+        return false;
       }
 
+      stopPolling();
       setLoading(true);
       setMessages([]);
+      setHasMoreOlder(false);
       try {
         const { id } = await chatService.createChat();
-        if (!mountedRef.current) return;
+        if (!mountedRef.current) return false;
         setSessionId(id);
         console.log("✅ New session created:", id);
+        return true;
       } catch (err) {
         console.error("Failed to create session:", err);
         if (mountedRef.current) setError("Could not start chat session");
+        return false;
       } finally {
         if (mountedRef.current) setLoading(false);
       }
     },
-    [sessionId],
+    [sessionId, stopPolling],
   );
 
   const sendMessage = useCallback(
@@ -167,8 +345,12 @@ export function useChat(params?: {
       abortRef.current?.abort();
       abortRef.current = new AbortController();
 
+      isSendingRef.current = true;
+      stopPolling();
       setLoading(true);
       setError(null);
+
+      const preferences = await getAiPreferences();
 
       const userTempId = `__user_${Date.now()}__`;
       const initialAssistantId = newTempId();
@@ -267,12 +449,24 @@ export function useChat(params?: {
             });
           },
           abortRef.current.signal,
+          false,
+          preferences,
         );
+
+        await syncMessagesFromServer();
       } catch (err) {
         if ((err as Error).message === "Aborted") return;
 
         const message =
           err instanceof Error ? err.message : "Connection failed";
+
+        if (isDisconnectError(message)) {
+          setError(null);
+          await syncMessagesFromServer({ pendingAssistant: true });
+          checkAndPollGeneration();
+          return;
+        }
+
         setError(message);
 
         if (mountedRef.current) {
@@ -299,6 +493,7 @@ export function useChat(params?: {
         }
       } finally {
         activeAssistantIdRef.current = null;
+        isSendingRef.current = false;
         if (mountedRef.current) {
           setLoading(false);
         } else {
@@ -306,7 +501,13 @@ export function useChat(params?: {
         }
       }
     },
-    [sessionId, params],
+    [
+      sessionId,
+      params,
+      stopPolling,
+      syncMessagesFromServer,
+      checkAndPollGeneration,
+    ],
   );
 
   return {
@@ -314,9 +515,13 @@ export function useChat(params?: {
     sessionId,
     loading,
     initializing,
+    loadingOlder,
+    hasMoreOlder,
+    isPolling,
     error,
     sendMessage,
     startNewSession,
     refreshMessages: loadMessages,
+    loadOlderMessages,
   };
 }

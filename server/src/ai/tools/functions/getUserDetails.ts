@@ -29,7 +29,7 @@ export const getUserDetails = async (userId: number) => {
     height: `${result.profile?.heightCm} cm`,
     gender: result.profile?.gender,
     fitness_goal: result.profile?.goal,
-    experience_level: result.profile?.activityLevel,
+    experience_level: result.profile?.experienceLevel,
     activity_level: result.profile?.activityLevel,
     current_status: {
       weight: `${result.currentStats?.weightKg}`,

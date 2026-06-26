@@ -1,7 +1,13 @@
 export const buildContext = ({ inventory, summary, userProfile }: { inventory: string; summary: string, userProfile: {} }) => {
+  
   const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
+    timeZone: "Asia/Manila",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
+
 
   return `
 ## TODAY

@@ -4,10 +4,11 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 
-import React, { useEffect, useRef, useState } from "react";
-import { Send, ArrowDown } from "lucide-react-native";
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { Send, ArrowDown, SlidersHorizontal, Wand, Sliders } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import ScreenWrapper from "../../../components/ScreenWrapper";
 import { useChat } from "@/src/hooks/useChats";
@@ -20,6 +21,16 @@ import WelcomeScreen from "@/src/app/components/ChatWelcome";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import getCustomLoader from "@/src/app/components/CustomRefreshControl";
 import { hasActiveSubscription } from "@/src/utils/subscription";
+import AiPersonalizationModal from "@/src/app/components/Modals/AiPersonalizationModal";
+import ProfileAccuracyPromptModal from "@/src/app/components/Modals/ProfileAccuracyPromptModal";
+import EditProfileModal from "@/src/app/components/Modals/EditProfileModal";
+import CustomHeader from "@/src/app/components/CustomHeader";
+import { useNavigation } from "expo-router";
+import {
+  dismissProfilePrompt,
+  hasBodyCompositionData,
+  isProfilePromptDismissed,
+} from "@/src/utils/aiPreferences";
 
 const PROMPT_SUGGESTIONS = [
   {
@@ -50,6 +61,7 @@ const PROMPT_SUGGESTIONS = [
 
 export default function Chats() {
   const { profile } = useUserProfile();
+  const navigation = useNavigation();
 
   const [reminderOpen, setReminderOpen] = useState(
     !hasActiveSubscription(profile),
@@ -61,26 +73,96 @@ export default function Chats() {
     sendMessage,
     loading,
     initializing,
+    loadingOlder,
+    hasMoreOlder,
     startNewSession,
     refreshMessages,
+    loadOlderMessages,
   } = useChat({ profile, setReminderOpen });
 
   const [text, setText] = useState("");
   const scrollRef = useRef<FlatList<ChatMessage>>(null);
   const isAtBottom = useRef(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [personalizationOpen, setPersonalizationOpen] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [profilePromptOpen, setProfilePromptOpen] = useState(false);
+  const loadOlderLock = useRef(false);
 
-  useEffect(() => {
-    refreshMessages();
-  }, [refreshMessages]);
+  const openPersonalization = useCallback(() => {
+    setPersonalizationOpen(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      header: () => (
+        <CustomHeader
+          title="AI Trainer"
+          headerRight={
+            <TouchableOpacity
+              onPress={openPersonalization}
+              className="flex-row items-center gap-1.5 bg-background px-3 py-2 rounded-lg border border-border"
+              accessibilityLabel="AI Settings"
+            >
+              <SlidersHorizontal size={12} color={COLORS.primary} />
+              <Text className="text-text-secondary text-xs font-interMedium">
+                AI Settings
+              </Text>
+            </TouchableOpacity>
+          }
+        />
+      ),
+    });
+  }, [navigation, openPersonalization]);
+
+  const handleStartChat = useCallback(async () => {
+    const created = await startNewSession();
+    if (!created || !profile) return;
+
+    const dismissed = await isProfilePromptDismissed();
+    if (!dismissed && !hasBodyCompositionData(profile)) {
+      setProfilePromptOpen(true);
+    }
+  }, [startNewSession, profile]);
+
+  const handleProfilePromptContinue = useCallback(async () => {
+    setProfilePromptOpen(false);
+    setEditProfileOpen(true);
+  }, []);
+
+  const handleProfilePromptLater = useCallback(async () => {
+    await dismissProfilePrompt();
+    setProfilePromptOpen(false);
+  }, []);
 
   if (!profile) return null;
 
+  const modals = (
+    <>
+      <AiPersonalizationModal
+        visible={personalizationOpen}
+        onClose={() => setPersonalizationOpen(false)}
+      />
+      <ProfileAccuracyPromptModal
+        visible={profilePromptOpen}
+        onContinue={handleProfilePromptContinue}
+        onMaybeLater={handleProfilePromptLater}
+      />
+      <EditProfileModal
+        visible={editProfileOpen}
+        onClose={() => setEditProfileOpen(false)}
+      />
+    </>
+  );
+
   if (!sessionId) {
     return (
-      <ScreenWrapper>
-        <WelcomeScreen onStartChat={startNewSession} loading={loading} />
-      </ScreenWrapper>
+      <>
+        <ScreenWrapper>
+          <WelcomeScreen onStartChat={handleStartChat} loading={loading} />
+        </ScreenWrapper>
+        {modals}
+      </>
     );
   }
 
@@ -101,7 +183,13 @@ export default function Chats() {
     }
   };
 
-  const handleScroll = (event: any) => {
+  const handleScroll = (event: {
+    nativeEvent: {
+      layoutMeasurement: { height: number };
+      contentOffset: { y: number };
+      contentSize: { height: number };
+    };
+  }) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     const paddingToBottom = 20;
     const isCloseToBottom =
@@ -110,6 +198,18 @@ export default function Chats() {
 
     isAtBottom.current = isCloseToBottom;
     setShowScrollButton(!isCloseToBottom);
+
+    if (
+      contentOffset.y < 60 &&
+      hasMoreOlder &&
+      !loadingOlder &&
+      !loadOlderLock.current
+    ) {
+      loadOlderLock.current = true;
+      loadOlderMessages().finally(() => {
+        loadOlderLock.current = false;
+      });
+    }
   };
 
   const handleContentSizeChange = () => {
@@ -128,7 +228,7 @@ export default function Chats() {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior="padding"
-      keyboardVerticalOffset={100} // adjust based on your header height
+      keyboardVerticalOffset={100}
       className="bg-background relative"
     >
       {reminderOpen && (
@@ -138,6 +238,7 @@ export default function Chats() {
           setReminderOpen={setReminderOpen}
         />
       )}
+
       {initializing ? (
         <CustomLoader text="Loading your chat history..." />
       ) : (
@@ -154,6 +255,35 @@ export default function Chats() {
           keyboardShouldPersistTaps="handled"
           contentContainerClassName="p-4"
           className="flex-1"
+          maintainVisibleContentPosition={{
+            minIndexForVisible: 0,
+            autoscrollToTopThreshold: 10,
+          }}
+          ListHeaderComponent={
+            loadingOlder ? (
+              <View className="py-3 items-center">
+                <ActivityIndicator size="small" color={COLORS.primary} />
+                <Text className="text-text-secondary text-xs mt-1">
+                  Loading older messages...
+                </Text>
+              </View>
+            ) : hasMoreOlder ? (
+              <TouchableOpacity
+                onPress={loadOlderMessages}
+                className="py-3 items-center"
+              >
+                <Text className="text-primary text-xs font-interMedium">
+                  Pull down or tap to load older messages
+                </Text>
+              </TouchableOpacity>
+            ) : messages.length > 0 ? (
+              <View className="py-2 items-center">
+                <Text className="text-text-secondary text-xs">
+                  Beginning of conversation
+                </Text>
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             <View className="flex-1 justify-center items-center mt-10 px-4">
               <Text className="text-text-secondary text-center text-lg font-inter">
@@ -221,6 +351,8 @@ export default function Chats() {
           <Send color="white" size={24} />
         </TouchableOpacity>
       </View>
+
+      {modals}
     </KeyboardAvoidingView>
   );
 }

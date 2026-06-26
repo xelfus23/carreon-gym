@@ -6,6 +6,10 @@ import { getChatHistory } from "./utils/getChatHistory.ts";
 import { handleModelStreamWithTools } from "./utils/handleModelStreamWithTools.ts";
 import { saveMessageDomain } from "../domain/chat/saveMessage.ts";
 import { saveSummaryDomain } from "../domain/chat/saveSummary.ts";
+import {
+  markSessionGenerating,
+  clearSessionGenerating,
+} from "../domain/chat/sessionGeneration.ts";
 import pool from "../config/pool.ts";
 import { env } from "../config/env.ts";
 import jwt, { type JwtPayload } from "jsonwebtoken";
@@ -66,25 +70,33 @@ export const WebsocketHandler = async (server: Server) => {
       try {
         const parsed = JSON.parse(message.toString());
         const userMessage = parsed.message;
+        const personalization = parsed.preferences;
 
         const newMsg = {
           role: "user",
           content: userMessage,
         };
 
-        const chatHistory = await getChatHistory(userId, sessionId!, newMsg);
+        const chatHistory = await getChatHistory(
+          userId,
+          sessionId!,
+          newMsg,
+          personalization,
+        );
 
         let messages: ChatMessage[] = [...chatHistory];
+
+        markSessionGenerating(sessionId!);
+
+        await saveMessageDomain(ws, sessionId!, userId, {
+          role: "user",
+          content: userMessage,
+        });
 
         const msgResult: ChatMessage | undefined =
           await handleModelStreamWithTools(messages, userId, sessionId!, ws);
 
         if (msgResult) {
-          await saveMessageDomain(ws, sessionId!, userId, {
-            role: "user",
-            content: userMessage,
-          });
-
           await saveMessageDomain(ws, sessionId!, userId, msgResult);
 
           const countResult = await pool.query(
@@ -100,7 +112,7 @@ export const WebsocketHandler = async (server: Server) => {
             console.log("Skip Summarization message count: ", messageCount);
           }
         } else {
-          console.log("AI did not return a response, skipping save");
+          console.log("AI did not return a response, skipping assistant save");
         }
       } catch (err) {
         console.error("WS message error:", err);
@@ -110,6 +122,8 @@ export const WebsocketHandler = async (server: Server) => {
             message: "Streaming failed",
           }),
         );
+      } finally {
+        clearSessionGenerating(sessionId!);
       }
     });
 

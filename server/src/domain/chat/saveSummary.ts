@@ -37,7 +37,7 @@ export const saveSummaryDomain = async (sessionId: number) => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: model.qwen9b,
+      model: model.gema_12b,
       messages: fullHistory,
       stream: false,
     }),

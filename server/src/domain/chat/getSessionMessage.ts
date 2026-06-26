@@ -4,8 +4,10 @@ import { AppError } from "../../utils/appError.ts";
 export const getSessionMessagesDomain = async (params: {
   userId: number;
   sessionId: number;
+  limit?: number;
+  beforeId?: number;
 }) => {
-  const { sessionId, userId } = params;
+  const { sessionId, userId, limit = 50, beforeId } = params;
 
   const sessionCheck = await pool.query(
     "SELECT id FROM chat_sessions WHERE id = $1 AND user_id = $2",
@@ -16,12 +18,18 @@ export const getSessionMessagesDomain = async (params: {
     throw new AppError("Chat session does not exist.", 401, "SESSION_MISSING");
   }
 
-  const result = await pool.query(
-    `SELECT * FROM chat_messages 
-             WHERE session_id = $1 
-             ORDER BY created_at ASC`,
-    [sessionId],
-  );
+  const queryParams: (number)[] = [sessionId];
+  let query = `SELECT * FROM chat_messages WHERE session_id = $1`;
 
-  return result.rows;
+  if (beforeId) {
+    queryParams.push(beforeId);
+    query += ` AND id < $${queryParams.length}`;
+  }
+
+  queryParams.push(limit);
+  query += ` ORDER BY created_at DESC LIMIT $${queryParams.length}`;
+
+  const result = await pool.query(query, queryParams);
+
+  return result.rows.reverse();
 };

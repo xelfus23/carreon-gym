@@ -8,22 +8,25 @@ import { ReactNode } from "react";
 
 interface CustomHeaderProps {
   title: string;
-  icon?: ReactNode | null
+  icon?: ReactNode | null;
+  headerRight?: ReactNode | null;
 }
 
-export default function CustomHeader({ title, icon }: CustomHeaderProps) {
+export default function CustomHeader({ title, icon, headerRight }: CustomHeaderProps) {
   const navigation = useNavigation();
 
   return (
     <View className="bg-surface border-b border-border">
       <SafeAreaView edges={["top"]} className="bg-surface">
-        <View className="h-16 flex-row items-center px-4">
-          <View className="flex-1 items-center gap-4 flex-row">
+        <View className="h-16 flex-row items-center px-4 gap-2">
+          <View className="flex-1 flex-row items-center gap-4">
             {icon && icon}
             <Text className="text-2xl font-bold text-gray-200 capitalize">
               {title}
             </Text>
           </View>
+
+          {headerRight}
 
           <TouchableOpacity
             onPress={() =>

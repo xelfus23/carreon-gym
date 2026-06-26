@@ -90,7 +90,7 @@ export const UserProfileProvider = ({
         if (!prev) return null;
         return {
           ...prev,
-          profile: {
+          currentStats: {
             ...prev.currentStats,
             ...currentStats,
           },
