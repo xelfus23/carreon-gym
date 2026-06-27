@@ -37,8 +37,7 @@ function formatMessage(msg: {
     timestamp: new Date(msg.created_at).getTime(),
     aiStatus:
       msg.aiStatus ??
-      (msg.role === "assistant" &&
-        String(msg.content ?? "").trim().length > 0
+      (msg.role === "assistant" && String(msg.content ?? "").trim().length > 0
         ? "Done"
         : undefined),
   };
@@ -66,7 +65,7 @@ function isServerMessage(msg: unknown): msg is ServerMessage {
 function formatServerMessages(data: unknown[]): ChatMessage[] {
   return data
     .filter(isServerMessage)
-    .filter(msg => msg.role !== "tool" && msg.content !== null)
+    .filter((msg) => msg.role !== "tool" && msg.content !== null)
     .map((msg, index) =>
       formatMessage({
         id: msg.id ?? index,
@@ -74,7 +73,7 @@ function formatServerMessages(data: unknown[]): ChatMessage[] {
         content: msg.content,
         created_at: msg.created_at ?? new Date().toISOString(),
         aiStatus: msg.aiStatus,
-      })
+      }),
     );
 }
 
@@ -193,7 +192,8 @@ export function useChat(params?: {
       if (!mountedRef.current) return;
 
       if (status.isGenerating || status.awaitingAssistant) {
-        await syncMessagesFromServer({ pendingAssistant: true });
+        const showPending = AppState.currentState !== "active";
+        await syncMessagesFromServer({ pendingAssistant: showPending });
         if (!pollTimerRef.current) {
           setIsPolling(true);
           pollTimerRef.current = setInterval(() => {
@@ -414,12 +414,12 @@ export function useChat(params?: {
               prev.map((msg) =>
                 msg.id === targetAssistantId
                   ? {
-                    ...msg,
-                    content: msg.content + token,
-                    aiStatus: undefined,
-                    isStreaming: true,
-                    streamVersion: (msg.streamVersion ?? 0) + 1,
-                  }
+                      ...msg,
+                      content: msg.content + token,
+                      aiStatus: undefined,
+                      isStreaming: true,
+                      streamVersion: (msg.streamVersion ?? 0) + 1,
+                    }
                   : msg,
               ),
             );
@@ -432,10 +432,10 @@ export function useChat(params?: {
               prev.map((msg) =>
                 msg.id === targetAssistantId
                   ? {
-                    ...msg,
-                    aiStatus: state,
-                    isStreaming: state !== "Complete",
-                  }
+                      ...msg,
+                      aiStatus: state,
+                      isStreaming: state !== "Complete",
+                    }
                   : msg,
               ),
             );
@@ -487,7 +487,8 @@ export function useChat(params?: {
 
         if (isDisconnectError(message)) {
           setError(null);
-          await syncMessagesFromServer({ pendingAssistant: true });
+          const showPending = AppState.currentState !== "active";
+          await syncMessagesFromServer({ pendingAssistant: showPending });
           checkAndPollGeneration();
           return;
         }
