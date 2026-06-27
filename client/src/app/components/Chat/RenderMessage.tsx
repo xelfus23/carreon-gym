@@ -26,15 +26,23 @@ function useTypewriterReveal(
 
   const revealedRef = useRef(revealedLength);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevMessageIdRef = useRef(messageId);
 
   revealedRef.current = revealedLength;
 
   useEffect(() => {
-    const initialLength = isStreaming ? 0 : content.length;
-    setRevealedLength(initialLength);
-    revealedRef.current = initialLength;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messageId]);
+    if (prevMessageIdRef.current !== messageId) {
+      const initialLength = isStreaming ? 0 : content.length;
+      setRevealedLength(initialLength);
+      revealedRef.current = initialLength;
+    } else if (revealedRef.current > content.length) {
+      const clampedLength = Math.min(revealedRef.current, content.length);
+      setRevealedLength(clampedLength);
+      revealedRef.current = clampedLength;
+    }
+
+    prevMessageIdRef.current = messageId;
+  }, [content.length, isStreaming, messageId]);
 
   useEffect(() => {
     const tick = () => {
@@ -64,7 +72,7 @@ function useTypewriterReveal(
         timerRef.current = null;
       }
     };
-  }, [content]);
+  }, [content, revealedLength]);
 
   return {
     revealedLength,

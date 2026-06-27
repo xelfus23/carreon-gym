@@ -38,19 +38,44 @@ function formatMessage(msg: {
     aiStatus:
       msg.aiStatus ??
       (msg.role === "assistant" &&
-      String(msg.content ?? "").trim().length > 0
+        String(msg.content ?? "").trim().length > 0
         ? "Done"
         : undefined),
   };
 }
 
+type ServerMessage = {
+  id: number;
+  role: string;
+  content: string | null;
+  created_at: string;
+  aiStatus?: string;
+};
+
+function isServerMessage(msg: unknown): msg is ServerMessage {
+  return (
+    typeof msg === "object" &&
+    msg !== null &&
+    "id" in msg &&
+    "role" in msg &&
+    "content" in msg &&
+    "created_at" in msg
+  );
+}
+
 function formatServerMessages(data: unknown[]): ChatMessage[] {
   return data
-    .filter(
-      (msg: { role: string; content: string | null }) =>
-        msg.role !== "tool" && msg.content !== null,
-    )
-    .map((msg) => formatMessage(msg as Parameters<typeof formatMessage>[0]));
+    .filter(isServerMessage)
+    .filter(msg => msg.role !== "tool" && msg.content !== null)
+    .map((msg, index) =>
+      formatMessage({
+        id: msg.id ?? index,
+        role: msg.role,
+        content: msg.content,
+        created_at: msg.created_at ?? new Date().toISOString(),
+        aiStatus: msg.aiStatus,
+      })
+    );
 }
 
 function isDisconnectError(message: string): boolean {
@@ -389,12 +414,12 @@ export function useChat(params?: {
               prev.map((msg) =>
                 msg.id === targetAssistantId
                   ? {
-                      ...msg,
-                      content: msg.content + token,
-                      aiStatus: undefined,
-                      isStreaming: true,
-                      streamVersion: (msg.streamVersion ?? 0) + 1,
-                    }
+                    ...msg,
+                    content: msg.content + token,
+                    aiStatus: undefined,
+                    isStreaming: true,
+                    streamVersion: (msg.streamVersion ?? 0) + 1,
+                  }
                   : msg,
               ),
             );
@@ -407,10 +432,10 @@ export function useChat(params?: {
               prev.map((msg) =>
                 msg.id === targetAssistantId
                   ? {
-                      ...msg,
-                      aiStatus: state,
-                      isStreaming: state !== "Complete",
-                    }
+                    ...msg,
+                    aiStatus: state,
+                    isStreaming: state !== "Complete",
+                  }
                   : msg,
               ),
             );
