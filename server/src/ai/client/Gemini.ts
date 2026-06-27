@@ -219,7 +219,7 @@ export const Gemini = async (
   try {
     responseStream = await Promise.race([
       ai.models.generateContentStream({
-        model: model.gemini_2_5_flash,
+        model: model.gemini_2_5_flash_lite,
         contents,
         ...(Object.keys(config).length > 0 && { config }),
       }),

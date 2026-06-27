@@ -5,91 +5,183 @@ import { TOOL_NAMES } from "../tools/toolRegistry.ts";
 import { streamModel } from "./streamModel.ts";
 
 const VALID_TOOLS = new Set(TOOL_NAMES);
+const MAX_TOOL_ITERATIONS = 20;
 
-function mapProviderErrorMessage(message: string): string {
-  const normalized = message.trim().toLowerCase();
+/** Categorizes errors and provides user-friendly messages */
+function getUserFriendlyErrorMessage(error: unknown): string {
+  const message = extractErrorMessage(error);
+  const lower = message.toLowerCase();
 
+  // Service capacity/availability
   if (
-    normalized.includes("currently experiencing high demand") ||
-    normalized.includes("status: unavailable") ||
-    normalized.includes('"status":"unavailable"')
+    lower.includes("busy") ||
+    lower.includes("unavailable") ||
+    lower.includes("high demand")
   ) {
     return "The assistant is busy right now. Please try again in a moment.";
   }
 
+  // Rate limiting
   if (
-    normalized.includes("quota") ||
-    normalized.includes("rate limit") ||
-    normalized.includes("too many requests")
+    lower.includes("quota") ||
+    lower.includes("rate limit") ||
+    lower.includes("too many")
   ) {
     return "The assistant is temporarily handling too many requests. Please try again shortly.";
   }
 
+  // Authentication/configuration
   if (
-    normalized.includes("api key") ||
-    normalized.includes("permission denied") ||
-    normalized.includes("permission_denied") ||
-    normalized.includes("authentication")
+    lower.includes("api key") ||
+    lower.includes("permission") ||
+    lower.includes("auth")
   ) {
-    return "The assistant could not be reached right now because of a configuration issue.";
+    return "The assistant could not be reached due to a configuration issue.";
   }
 
+  // Network
   if (
-    normalized.includes("econnrefused") ||
-    normalized.includes("fetch failed") ||
-    normalized.includes("network error") ||
-    normalized.includes("failed to fetch") ||
-    normalized.includes("lm studio request failed")
+    lower.includes("refused") ||
+    lower.includes("fetch") ||
+    lower.includes("network")
   ) {
     return "The assistant service is currently unavailable. Please try again in a moment.";
   }
 
-  if (normalized.includes("no response from model")) {
-    return "The assistant did not return a response. Please try again.";
+  // Empty response
+  if (lower.includes("empty") || lower.includes("no response")) {
+    return "The assistant did not respond. Please try again.";
   }
 
-  if (normalized.includes("empty assistant response")) {
-    return "The assistant returned an empty response. Please try again.";
-  }
-
-  return message.trim();
+  return "Something went wrong. Please try again.";
 }
 
-function extractProviderErrorMessage(error: unknown): string {
-  if (!error) return "Something went wrong while generating a response.";
+/** Extracts the actual error message from various error types */
+function extractErrorMessage(error: unknown): string {
+  if (typeof error === "string") return error;
 
-  if (typeof error === "string") {
-    return mapProviderErrorMessage(error);
-  }
+  if (error instanceof Error) {
+    const message = error.message?.trim() || "";
+    if (!message) return "Unknown error";
 
-  if (!(error instanceof Error)) {
-    return "Something went wrong while generating a response.";
-  }
-
-  const rawMessage = error.message?.trim();
-  if (!rawMessage) return "Something went wrong while generating a response.";
-
-  const jsonStart = rawMessage.indexOf("{");
-  if (jsonStart !== -1) {
-    const jsonSlice = rawMessage.slice(jsonStart);
-    try {
-      const parsed = JSON.parse(jsonSlice) as {
-        error?: { message?: string; status?: string; code?: number };
-        message?: string;
-      };
-
-      const providerMessage =
-        parsed.error?.message ?? parsed.message ?? rawMessage.slice(0, jsonStart).trim();
-
-      if (providerMessage) {
-        return mapProviderErrorMessage(providerMessage);
+    // Try to extract provider error details from JSON in message
+    const jsonStart = message.indexOf("{");
+    if (jsonStart > -1) {
+      try {
+        const json = JSON.parse(message.slice(jsonStart)) as {
+          error?: { message?: string };
+          message?: string;
+        };
+        return (
+          json.error?.message || json.message || message.slice(0, jsonStart)
+        );
+      } catch {
+        return message;
       }
-    } catch {
-      // Fall through to the raw error message when the suffix is not valid JSON.
+    }
+
+    return message;
+  }
+
+  return "Unknown error";
+}
+
+/** Converts tool names to user-friendly status messages */
+function getToolStateName(
+  toolName: string,
+  type: "start" | "done",
+  args?: Record<string, unknown>,
+): string {
+  const toolLabels: Record<string, { start: string; done: string }> = {
+    create_session_exercise: {
+      start: "Creating",
+      done: "Done creating",
+    },
+    create_workout_session: {
+      start: "Creating",
+      done: "Done creating",
+    },
+    delete_workout_session: {
+      start: "Removing",
+      done: "Done removing",
+    },
+    get_session_by_date: {
+      start: "Looking up",
+      done: "Done looking up",
+    },
+    get_user_workout_sessions: {
+      start: "Getting",
+      done: "Done getting",
+    },
+    get_workout_logs: {
+      start: "Getting",
+      done: "Done getting",
+    },
+  };
+
+  const label = toolLabels[toolName];
+  if (!label) {
+    // Generic fallback: "create_" → "Creating", "get_" → "Getting", etc.
+    const action = toolName
+      .replace(/^get_/, "Getting ")
+      .replace(/^create_/, "Creating ")
+      .replace(/^delete_/, "Removing ")
+      .replace(/^add_/, "Updating ")
+      .replace(/_/g, " ")
+      .trim();
+
+    return type === "done" ? `Done ${action.toLowerCase()}` : action;
+  }
+
+  // Try to extract descriptive info from args
+  if (type === "start" && args) {
+    if (toolName === "create_session_exercise" && args.exercise_name) {
+      const name = String(args.exercise_name).trim();
+      return name ? `Creating ${name}` : `${label.start} exercise`;
+    }
+    if (toolName === "create_workout_session" && args.title) {
+      const title = String(args.title).trim();
+      return title ? `Creating ${title} session` : `${label.start} session`;
     }
   }
 
-  return mapProviderErrorMessage(rawMessage);
+  return type === "start" ? `${label.start}...` : `${label.done}`;
+}
+
+/** Safely parses tool call arguments JSON */
+function parseToolArgs(json: string): Record<string, unknown> {
+  try {
+    return JSON.parse(json);
+  } catch (err) {
+    console.warn(`Failed to parse tool args: ${json}`);
+    return {};
+  }
+}
+
+/** Sends a message to the WebSocket if it's open */
+function safeSend(ws: WebSocket, payload: unknown): void {
+  try {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(payload));
+    }
+  } catch (err) {
+    console.error("Failed to send WebSocket message:", err);
+  }
+}
+
+/** Sends state update to client */
+function sendState(ws: WebSocket, state: string): void {
+  safeSend(ws, { type: "state", state });
+}
+
+/** Sends error message to client */
+function sendError(ws: WebSocket, message: string): void {
+  safeSend(ws, { type: "error", message });
+}
+
+/** Sends completion signal to client */
+function sendDone(ws: WebSocket): void {
+  safeSend(ws, { type: "done" });
 }
 
 export async function handleModelStreamWithTools(
@@ -98,255 +190,53 @@ export async function handleModelStreamWithTools(
   sessionId: number,
   ws: WebSocket,
 ): Promise<ChatMessage | undefined> {
-  const MAX_TOOL_ITERATIONS = 20;
   let toolCallCount = 0;
   let iteration = 0;
 
-  const log = (msg: string, data?: unknown) => {
-    const prefix = `[Stream][session=${sessionId}][user=${userId}][iter=${iteration}]`;
-    data !== undefined
-      ? console.log(`${prefix} ${msg}`, data)
-      : console.log(`${prefix} ${msg}`);
-  };
-
-  const safeSend = (payload: object) => {
-    try {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(payload));
-      }
-    } catch (err) {
-      console.error(`[Stream][session=${sessionId}] ❌ ws.send() threw:`, err);
-    }
-  };
-
-  const parseToolArgs = (argumentsJson: string): Record<string, unknown> => {
-    try {
-      return JSON.parse(argumentsJson) as Record<string, unknown>;
-    } catch {
-      return {};
-    }
-  };
-
-  const toReadableToolState = (toolName: string) =>
-    toolName
-      .replace(/^get_/, "Getting ")
-      .replace(/^create_/, "Creating ")
-      .replace(/^add_/, "Updating ")
-      .replace(/^delete_/, "Updating ")
-      .replace(/_/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-  const getToolStartState = (toolName: string, args: Record<string, unknown>) => {
-    switch (toolName) {
-      case "create_session_exercise": {
-        const exerciseName =
-          typeof args.exercise_name === "string" ? args.exercise_name.trim() : "";
-        return exerciseName ? `Creating ${exerciseName}` : "Creating exercise";
-      }
-      case "create_workout_session": {
-        const title = typeof args.title === "string" ? args.title.trim() : "";
-        return title ? `Creating ${title} session` : "Creating workout session";
-      }
-      case "delete_workout_session":
-        return "Removing workout session";
-      case "get_session_by_date":
-        return "Looking up your session";
-      case "get_user_workout_sessions":
-        return "Getting your workout sessions";
-      case "get_workout_logs":
-        return "Getting your workout logs";
-      default:
-        return toReadableToolState(toolName);
-    }
-  };
-
-  const getToolDoneState = (
-    toolName: string,
-    args: Record<string, unknown>,
-    result: unknown,
-  ) => {
-    const parsedResult =
-      result && typeof result === "object"
-        ? (result as Record<string, unknown>)
-        : {};
-
-    switch (toolName) {
-      case "create_session_exercise": {
-        const exerciseName =
-          (typeof args.exercise_name === "string" && args.exercise_name.trim()) ||
-          (typeof parsedResult.message === "string"
-            ? parsedResult.message.replace(/^Added\s+/i, "").trim()
-            : "");
-        return exerciseName
-          ? `Done creating ${exerciseName}`
-          : "Done creating exercise";
-      }
-      case "create_workout_session": {
-        const title =
-          (typeof args.title === "string" && args.title.trim()) ||
-          (typeof parsedResult.title === "string" ? parsedResult.title.trim() : "");
-        return title
-          ? `Done creating ${title} session`
-          : "Done creating workout session";
-      }
-      case "delete_workout_session":
-        return "Done removing workout session";
-      case "get_session_by_date":
-        return "Done looking up your session";
-      case "get_user_workout_sessions":
-        return "Done getting your workout sessions";
-      case "get_workout_logs":
-        return "Done getting your workout logs";
-      default: {
-        const label = toReadableToolState(toolName);
-        return `Done ${label.charAt(0).toLowerCase()}${label.slice(1)}`;
-      }
-    }
-  };
-
-  log("▶️ Starting stream loop");
-
   try {
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       iteration++;
-      log(`🔄 Loop iteration start`);
-      safeSend({
-        type: "state",
-        state:
-          iteration === 1
-            ? "Understanding your request"
-            : "Preparing response from latest updates",
-      });
 
-      let toolCalls: Awaited<ReturnType<typeof streamModel>>["toolCalls"];
-      let assistantContent: Awaited<ReturnType<typeof streamModel>>["assistantContent"];
+      // Get response from model
+      sendState(
+        ws,
+        iteration === 1 ? "Understanding your request" : "Preparing response",
+      );
 
-      try {
-        const result = await streamModel(messages, ws);
-        toolCalls = result.toolCalls;
-        assistantContent = result.assistantContent;
-        log(
-          `✅ streamModel complete — toolCalls=${toolCalls.length}, contentLength=${assistantContent?.length ?? 0}`,
-        );
-      } catch (err) {
-        console.error(
-          `[Stream][session=${sessionId}][iter=${iteration}] ❌ streamModel threw:`,
-          err,
-        );
-        safeSend({ type: "error", message: extractProviderErrorMessage(err) });
-        return undefined;
-      }
+      let { toolCalls, assistantContent } = await streamModel(messages, ws);
 
-      // ── Final response (no tool calls) ──────────────────────────
+      // No tool calls = final response
       if (toolCalls.length === 0) {
-        log("🏁 No tool calls — final response");
-        safeSend({ type: "state", state: "Finalizing response" });
-
-        if (!assistantContent) {
-          const exercisesAdded = messages.filter(
-            (m) => m.role === "tool" && m.name === "create_session_exercise",
-          ).length;
-
-          if (exercisesAdded > 0 && iteration < MAX_TOOL_ITERATIONS) {
-            log(
-              `⚠️ Empty response after ${exercisesAdded} exercise(s) — requesting summary`,
-            );
-            messages.push({
-              role: "user",
-              content:
-                "All exercises have been saved. Provide a clean summary for the user with exercise names, sets, reps, and instructions. Do not call any more tools.",
-            } as ChatMessage);
-            continue;
-          }
-
-          log("⚠️ No assistant content and no tool calls — empty response");
-          safeSend({ type: "error", message: "Empty assistant response" });
-          return undefined;
-        }
-
-        safeSend({ type: "done" });
-        return { role: "assistant", content: assistantContent } as ChatMessage;
+        return handleFinalResponse(ws, messages, assistantContent, iteration);
       }
 
-      const invalidCalls = toolCalls.filter((tc) => !VALID_TOOLS.has(tc.name));
+      // Separate valid from invalid tool calls
       const validCalls = toolCalls.filter((tc) => VALID_TOOLS.has(tc.name));
+      const invalidCalls = toolCalls.filter((tc) => !VALID_TOOLS.has(tc.name));
 
+      // Correct hallucinations and loop back
       if (invalidCalls.length > 0) {
-        log(
-          `⚠️ Hallucinated tool name(s): ${invalidCalls.map((c) => `"${c.name}"`).join(", ")} — injecting correction`,
-        );
-        safeSend({ type: "state", state: "Correcting exercise format" });
+        const invalidNames = invalidCalls.map((c) => `"${c.name}"`).join(", ");
+        sendState(ws, "Correcting format");
+
         messages.push({
           role: "user",
-          content:
-            `You called tool(s) named ${invalidCalls.map((c) => `"${c.name}"`).join(", ")} which do not exist. ` +
-            `Valid tools are: ${TOOL_NAMES.join(", ")}. ` +
-            `Do not use exercise names or equipment names as tool names. ` +
-            `To add those exercises, call create_session_exercise with the name in the exercise_name parameter. ` +
-            `Continue the workout using the session_id from earlier tool results.`,
+          content: `You called invalid tools: ${invalidNames}. Valid tools: ${TOOL_NAMES.join(", ")}. Continue with valid tools.`,
         } as ChatMessage);
-        log("➡️ Looping back after hallucination correction");
+
         continue;
       }
 
-      // ── Tool call cap check ──────────────────────────────────────
+      // Execute valid tool calls
       toolCallCount += validCalls.length;
-      log(`🔧 Tool calls this round: ${validCalls.length} (total so far: ${toolCallCount})`);
 
       if (toolCallCount > MAX_TOOL_ITERATIONS) {
-        log(`⚠️ Tool call limit hit — forcing final response`);
-
-        // Inject as user turn — more reliable than mid-conversation system message
-        messages.push({
-          role: "user",
-          content:
-            "All exercises have been added. Please summarize the full workout session you just created for me.",
-        } as ChatMessage);
-
-        try {
-          const { assistantContent: summary } = await streamModel(messages, ws, {
-            disableTools: true,
-          });
-
-          if (summary) {
-            safeSend({ type: "done" });
-            return { role: "assistant", content: summary } as ChatMessage;
-          }
-
-          log("⚠️ streamModel returned empty summary — using fallback");
-          const toolNames = messages
-            .filter((m) => m.role === "tool")
-            .map((m) => {
-              try {
-                const parsed = JSON.parse(m.content as string);
-                return parsed.message ?? parsed.exercise_name ?? null;
-              } catch {
-                return null;
-              }
-            })
-            .filter(Boolean);
-
-          const fallbackSummary =
-            toolNames.length > 0
-              ? `Your workout session has been created with the following exercises:\n${toolNames.map((n, i) => `${i + 1}. ${n}`).join("\n")}`
-              : "Your workout session has been created successfully.";
-
-          safeSend({ type: "done" });
-          return { role: "assistant", content: fallbackSummary } as ChatMessage;
-
-        } catch (err) {
-          console.error(
-            `[Stream][session=${sessionId}] ❌ streamModel (disableTools) threw:`,
-            err,
-          );
-          safeSend({ type: "error", message: extractProviderErrorMessage(err) });
-          return undefined;
-        }
+        return handleMaxIterationsReached(ws, messages);
       }
 
-      // ── Push assistant message with tool calls into context ──────
-      const assistantMessageWithTools: ChatMessage = {
+      // Add assistant message to context
+      messages.push({
         role: "assistant",
         content: assistantContent || "",
         tool_calls: validCalls.map((tc) => ({
@@ -354,62 +244,133 @@ export async function handleModelStreamWithTools(
           type: "function",
           function: { name: tc.name, arguments: tc.arguments },
         })),
-      } as any;
+      } as any);
 
-      messages.push(assistantMessageWithTools);
-
+      // Execute each tool call
       for (const toolCall of validCalls) {
         const toolArgs = parseToolArgs(toolCall.arguments);
-
-        safeSend({
-          type: "state",
-          state: getToolStartState(toolCall.name, toolArgs),
-        });
-
-        let toolContent: string;
+        sendState(ws, getToolStateName(toolCall.name, "start", toolArgs));
 
         try {
           const result = await handleToolCall(ws, toolCall, userId);
-          log(`✅ Tool "${toolCall.name}" succeeded`, result);
-          safeSend({
-            type: "state",
-            state: getToolDoneState(toolCall.name, toolArgs, result),
+
+          sendState(ws, getToolStateName(toolCall.name, "done"));
+
+          messages.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.name,
+            content: JSON.stringify(result),
           });
-          toolContent = JSON.stringify(result);
         } catch (err) {
-          console.error(
-            `[Stream][session=${sessionId}] ❌ Tool "${toolCall.name}" failed:`,
-            err,
+          const toolError = err instanceof Error ? err.message : "Tool failed";
+
+          sendState(
+            ws,
+            `Retrying after ${toolCall.name.replace(/_/g, " ")} error`,
           );
-          safeSend({
-            type: "state",
-            state: `Retrying after ${toolCall.name.replace(/_/g, " ")} issue`,
-          });
-          toolContent = JSON.stringify({
-            error: true,
-            message: err instanceof Error ? err.message : "Tool execution failed",
+
+          messages.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.name,
+            content: JSON.stringify({
+              error: true,
+              message: toolError,
+            }),
           });
         }
-
-        const toolMessage: ChatMessage = {
-          role: "tool",
-          tool_call_id: toolCall.id,
-          name: toolCall.name,
-          content: toolContent,
-        };
-
-        messages.push(toolMessage);
-        log(`💬 Tool result pushed for "${toolCall.name}"`);
       }
-
-      log("➡️ Looping back with updated messages");
     }
-  } catch (error) {
-    console.error(
-      `[Stream][session=${sessionId}] ❌ Unhandled error in stream loop:`,
-      error,
-    );
-    safeSend({ type: "error", message: "Internal server error" });
+  } catch (err) {
+    console.error("Stream processing error:", err);
+    sendError(ws, getUserFriendlyErrorMessage(err));
+    return undefined;
+  }
+}
+
+/** Handles the final response when no more tool calls are needed */
+async function handleFinalResponse(
+  ws: WebSocket,
+  messages: ChatMessage[],
+  assistantContent: string,
+  iteration: number,
+): Promise<ChatMessage | undefined> {
+  // If no content but exercises were added, request a summary
+  if (!assistantContent) {
+    const exercisesAdded = messages.filter(
+      (m) => m.role === "tool" && m.name === "create_session_exercise",
+    ).length;
+
+    if (exercisesAdded > 0 && iteration < MAX_TOOL_ITERATIONS) {
+      messages.push({
+        role: "user",
+        content:
+          "All exercises have been saved. Summarize the full workout with exercise names, sets, reps, and instructions. No more tool calls.",
+      } as ChatMessage);
+
+      const { assistantContent: summary } = await streamModel(messages, ws, {
+        disableTools: true,
+      });
+
+      if (summary) {
+        sendDone(ws);
+        return { role: "assistant", content: summary };
+      }
+    }
+
+    sendError(ws, "The assistant could not generate a response");
+    return undefined;
+  }
+
+  sendDone(ws);
+  return { role: "assistant", content: assistantContent };
+}
+
+/** Handles tool call limit being reached */
+async function handleMaxIterationsReached(
+  ws: WebSocket,
+  messages: ChatMessage[],
+): Promise<ChatMessage | undefined> {
+  sendState(ws, "Finalizing...");
+
+  messages.push({
+    role: "user",
+    content: "Summarize all exercises created. No more tool calls.",
+  } as ChatMessage);
+
+  try {
+    const { assistantContent: summary } = await streamModel(messages, ws, {
+      disableTools: true,
+    });
+
+    if (summary) {
+      sendDone(ws);
+      return { role: "assistant", content: summary };
+    }
+
+    // Fallback: summarize from tool results
+    const toolResults = messages
+      .filter((m) => m.role === "tool" && m.name === "create_session_exercise")
+      .map((m) => {
+        try {
+          const parsed = JSON.parse(m.content as string);
+          return parsed.message ?? parsed.exercise_name;
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean);
+
+    const fallback =
+      toolResults.length > 0
+        ? `Created exercises: ${toolResults.join(", ")}`
+        : "Workout session created successfully.";
+
+    sendDone(ws);
+    return { role: "assistant", content: fallback };
+  } catch (err) {
+    sendError(ws, getUserFriendlyErrorMessage(err));
     return undefined;
   }
 }

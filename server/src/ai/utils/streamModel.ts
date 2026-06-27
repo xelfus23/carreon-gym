@@ -4,19 +4,83 @@ import { LMstudio } from "../client/LMstudio.ts";
 import { Gemini } from "../client/Gemini.ts";
 import { sanitizeAssistantContent } from "./sanitizeAssistantContent.ts";
 
-const PROVIDER = "lmstudio";
+type ModelProvider = "lmstudio" | "gemini";
 
-const PROVIDER_FUNC = {
-  gemini: Gemini,
-  lmstudio: LMstudio,
-};
+const PROVIDER: ModelProvider = "lmstudio";
 
-export const modelProvider = async (
+/** Selects and calls the appropriate AI model provider */
+async function getModelStream(
   messages: ChatMessage[],
-  options?: { disableTools: boolean },
-) => {
-  return PROVIDER_FUNC[PROVIDER](messages, options);
-};
+  disableTools: boolean,
+): Promise<ReadableStream<Uint8Array>> {
+  const provider = PROVIDER === "lmstudio" ? LMstudio : Gemini;
+  const stream = await provider(messages, { disableTools });
+
+  if (!stream) {
+    throw new Error("No response from model");
+  }
+
+  return stream;
+}
+
+/** Accumulates partial tool call data from streaming chunks */
+function updateToolCallBuffer(
+  buffer: Record<number, ToolCall>,
+  toolCalls: Array<any>,
+): void {
+  for (const tc of toolCalls) {
+    const index = tc.index ?? 0;
+
+    if (!buffer[index]) {
+      buffer[index] = {
+        id: tc.id || `tool_${index}`,
+        name: tc.function?.name || "",
+        arguments: tc.function?.arguments || "",
+      };
+    } else {
+      if (tc.id) buffer[index].id = tc.id;
+      if (tc.function?.name) buffer[index].name += tc.function.name;
+      if (tc.function?.arguments) {
+        buffer[index].arguments += tc.function.arguments;
+      }
+    }
+  }
+}
+
+/** Removes sensitive field names from assistant responses */
+function sanitizeVisibleText(content: string): string {
+  return content
+    .replace(
+      /"?\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b"?\s*[:=]\s*"?[a-z0-9_-]+"?,?/gi,
+      "",
+    )
+    .replace(
+      /\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b\s*[:=]\s*[a-z0-9_-]+/gi,
+      "",
+    );
+}
+
+/** Parses and processes a single streaming response chunk */
+interface StreamChunk {
+  content?: string;
+  toolCalls?: Array<any>;
+}
+
+function parseStreamChunk(jsonString: string): StreamChunk | null {
+  try {
+    const json = JSON.parse(jsonString);
+    const delta = json.choices?.[0]?.delta;
+
+    if (!delta) return null;
+
+    return {
+      content: delta.content || undefined,
+      toolCalls: delta.tool_calls || undefined,
+    };
+  } catch {
+    return null;
+  }
+}
 
 export async function streamModel(
   messages: ChatMessage[],
@@ -26,61 +90,43 @@ export async function streamModel(
   ws.send(JSON.stringify({ type: "assistant_response_start" }));
   ws.send(JSON.stringify({ type: "state", state: "Connecting to the model" }));
 
-  const response = await modelProvider(messages, {
-    disableTools: params?.disableTools ?? false,
-  });
-
-  if (!response) {
-    throw new Error("No response from model");
-  }
-
-  const reader = response.getReader();
+  const stream = await getModelStream(messages, params?.disableTools ?? false);
+  const reader = stream.getReader();
   const decoder = new TextDecoder();
 
   let buffer = "";
   let toolCallBuffer: Record<number, ToolCall> = {};
   let visibleContent = "";
-  let done = false;
 
-  // REMOVED: inThinkBlock, pendingText, and THINK tags
+  try {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { value, done } = await reader.read();
 
-  const sanitizeVisibleText = (content: string) =>
-    content
-      .replace(
-        /"?\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b"?\s*[:=]\s*"?[a-z0-9_-]+"?,?/gi,
-        "",
-      )
-      .replace(
-        /\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b\s*[:=]\s*[a-z0-9_-]+/gi,
-        "",
-      );
+      if (done) break;
 
-  while (!done) {
-    const { value, done: streamDone } = await reader.read();
-    if (streamDone) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        const trimmed = line.trim();
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith("data:")) continue;
+        if (!trimmed.startsWith("data:")) continue;
 
-      const data = trimmed.slice("data:".length).trim();
-      if (data === "[DONE]") {
-        done = true;
-        break;
-      }
+        const data = trimmed.slice("data:".length).trim();
 
-      try {
-        const json = JSON.parse(data);
-        const delta = json.choices?.[0]?.delta;
-        if (!delta) continue;
+        if (data === "[DONE]") {
+          // Mark completion by breaking inner loop, outer loop will detect EOF
+          continue;
+        }
 
-        if (delta.content) {
-          // DIRECT PASS-THROUGH: No more waiting for </think>
-          const safeChunk = sanitizeVisibleText(delta.content);
+        const chunk = parseStreamChunk(data);
+        if (!chunk) continue;
+
+        // Process text content
+        if (chunk.content) {
+          const safeChunk = sanitizeVisibleText(chunk.content);
 
           if (safeChunk) {
             visibleContent += safeChunk;
@@ -93,36 +139,17 @@ export async function streamModel(
           }
         }
 
-        if (delta.tool_calls) {
-          for (const tc of delta.tool_calls) {
-            const index: number = tc.index ?? 0;
-            if (!toolCallBuffer[index]) {
-              toolCallBuffer[index] = {
-                id: tc.id || `tool_${index}`,
-                name: tc.function?.name || "",
-                arguments: tc.function?.arguments || "",
-              };
-            } else {
-              if (tc.id) toolCallBuffer[index].id = tc.id;
-
-              if (tc.function?.name) {
-                toolCallBuffer[index].name += tc.function.name;
-              }
-
-              if (tc.function?.arguments) {
-                toolCallBuffer[index].arguments += tc.function.arguments;
-              }
-            }
-          }
+        // Accumulate tool calls
+        if (chunk.toolCalls) {
+          updateToolCallBuffer(toolCallBuffer, chunk.toolCalls);
         }
-      } catch (parseErr) {
-        console.warn(`⚠️ Could not parse chunk:`, (parseErr as Error).message);
       }
     }
+  } finally {
+    reader.releaseLock();
   }
 
   const toolCalls = Object.values(toolCallBuffer).filter((tc) => tc.name);
-
   const cleanedResponse = sanitizeAssistantContent(visibleContent).trim();
 
   return {
