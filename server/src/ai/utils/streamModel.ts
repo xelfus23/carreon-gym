@@ -24,6 +24,7 @@ export async function streamModel(
   params?: { disableTools?: boolean },
 ): Promise<{ toolCalls: ToolCall[]; assistantContent: string }> {
   ws.send(JSON.stringify({ type: "assistant_response_start" }));
+  ws.send(JSON.stringify({ type: "state", state: "Connecting to the model" }));
 
   const response = await modelProvider(messages, {
     disableTools: params?.disableTools ?? false,

@@ -67,8 +67,6 @@ export const WSAuthentication = async (
       return null;
     }
 
-    console.log("Has sub");
-
     return {
       userId,
       sessionId: parseInt(sessionId),

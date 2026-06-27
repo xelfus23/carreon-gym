@@ -127,8 +127,13 @@ export const WebsocketHandler = async (server: Server) => {
       }
     });
 
-    ws.on("close", () => {
-      console.log("🔌 WebSocket closed:", userId);
+    ws.on("close", (code, reason) => {
+      console.log(
+        "🔌 WebSocket closed:",
+        userId,
+        code,
+        reason?.toString() ?? "",
+      );
     });
   });
 

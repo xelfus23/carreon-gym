@@ -4,6 +4,12 @@ import { tokenManager } from "../utils/tokenManager";
 
 const WS_URL = process.env.EXPO_PUBLIC_WS_URL;
 
+if (!WS_URL) {
+  console.error(
+    "Missing EXPO_PUBLIC_WS_URL environment variable for chat websocket",
+  );
+}
+
 // Single shared socket — one connection at a time
 let activeSocket: WebSocket | null = null;
 
@@ -11,7 +17,7 @@ const errorMsg: Record<string, string> = {
   SUBSCRIPTION_REQUIRED: "You don't have active subscriptions.",
   SUBSCRIPTION_EXPIRED: "Your subscription has expired.",
   AUTHENTICATION_FAILED: "You're unauthorized to use chats.",
-  SESSION_MISSING: "Chat session does not exist."
+  SESSION_MISSING: "Chat session does not exist.",
 };
 
 const mapClientErrorMessage = (message?: string) => {
@@ -61,9 +67,8 @@ export const chatService = {
   },
 
   getGenerationStatus: async (sessionId: number) => {
-    return (
-      await request(`/chats/sessions/${sessionId}/generation-status`)
-    ).data as {
+    return (await request(`/chats/sessions/${sessionId}/generation-status`))
+      .data as {
       isGenerating: boolean;
       lastMessageRole: string | null;
       lastMessageId: number | null;
@@ -99,35 +104,50 @@ export const chatService = {
   ): Promise<void> => {
     // Define the core logic as a helper to allow for easy retries
     const connectAndSend = (): Promise<void> => {
-
       return new Promise((resolve, reject) => {
-
         const token = tokenManager.getAccessToken();
-
 
         if (!token) {
           reject(new Error("No auth token available"));
           return;
         }
 
-        if (
-          activeSocket &&
-          activeSocket.readyState === WebSocket.OPEN
-        ) {
+        if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
           activeSocket.close(1000, "New message sent");
+        }
+
+        if (!WS_URL) {
+          reject(new Error("Chat websocket URL not configured"));
+          return;
         }
 
         activeSocket = new WebSocket(
           `${WS_URL}/ws/chat?token=${token}&session_id=${sessionId}`,
         );
 
-        console.log(WS_URL)
-
         const socket = activeSocket;
         let settled = false;
         let receivedDone = false;
         let receivedError = false;
+        let connectTimeout: ReturnType<typeof setTimeout> | null = null;
+        let receivedAnyServerMessage = false;
 
+        const parseSocketData = async (rawData: unknown) => {
+          if (typeof rawData === "string") {
+            return JSON.parse(rawData);
+          }
+
+          if (rawData instanceof ArrayBuffer) {
+            return JSON.parse(new TextDecoder().decode(rawData));
+          }
+
+          if (typeof Blob !== "undefined" && rawData instanceof Blob) {
+            const text = await rawData.text();
+            return JSON.parse(text);
+          }
+
+          return JSON.parse(String(rawData));
+        };
 
         const settle = (fn: () => void) => {
           if (!settled) {
@@ -137,16 +157,37 @@ export const chatService = {
         };
 
         const handleAbort = () => {
-          socket.close(1000, "Aborted");
+          if (
+            socket.readyState === WebSocket.OPEN ||
+            socket.readyState === WebSocket.CONNECTING
+          ) {
+            socket.close(1000, "Aborted");
+          }
           settle(() => reject(new Error("Aborted")));
         };
         signal?.addEventListener("abort", handleAbort);
 
         const cleanup = () => {
           signal?.removeEventListener("abort", handleAbort);
+          if (connectTimeout) {
+            clearTimeout(connectTimeout);
+          }
         };
 
+        connectTimeout = setTimeout(() => {
+          if (!settled) {
+            if (socket.readyState === WebSocket.CONNECTING) {
+              socket.close(1000, "Connection timeout");
+            }
+            settle(() => reject(new Error("WebSocket connection timed out")));
+          }
+        }, 10000);
+
         socket.onopen = () => {
+          if (connectTimeout) {
+            clearTimeout(connectTimeout);
+            connectTimeout = null;
+          }
           onState("Connecting to assistant");
           socket.send(
             JSON.stringify({
@@ -156,81 +197,87 @@ export const chatService = {
           );
         };
 
-        socket.onmessage = (e) => {
+        socket.onmessage = async (e) => {
           try {
-            const data = JSON.parse(e.data as string);
+            const data = await parseSocketData((e as MessageEvent).data);
+            receivedAnyServerMessage = true;
 
             if (data.type === "assistant_response_start") {
               onAssistantResponseStart?.();
-            }
-            else if (data.type === "token") onToken(data.content);
-
-            else if (data.type === "state") onState(data.state);
-
-            else if (data.type === "error") {
+            } else if (data.type === "token") {
+              onToken(data.content);
+            } else if (data.type === "state") {
+              onState(data.state);
+            } else if (data.type === "error") {
               receivedError = true;
               cleanup();
 
               if (data.message === "AUTHENTICATION_FAILED") {
-                settle(() =>
-                  reject(new Error("AUTHENTICATION_FAILED")),
-                );
+                settle(() => reject(new Error("AUTHENTICATION_FAILED")));
               } else {
                 settle(() =>
-                  reject(
-                    new Error(
-                      mapClientErrorMessage(data.message),
-                    ),
-                  ),
+                  reject(new Error(mapClientErrorMessage(data.message))),
                 );
               }
               socket.close();
-            }             else if (data.type === "done") {
+            } else if (data.type === "done") {
               receivedDone = true;
               onState("Complete");
               cleanup();
               settle(() => resolve());
               socket.close(1000, "Done");
             }
-          } catch (e) {
+          } catch (error) {
+            console.error("WebSocket parse error:", error);
           }
         };
 
-        socket.onerror = () => {
+        socket.onerror = (event) => {
           receivedError = true;
           cleanup();
+          const errorReason = (event as Event & { message?: string }).message;
           settle(() =>
             reject(
               new Error(
-                mapClientErrorMessage("Error please try again later."),
+                mapClientErrorMessage(
+                  errorReason ?? "Error please try again later.",
+                ),
               ),
             ),
           );
         };
 
         socket.onclose = (e) => {
+          console.warn("Chat WebSocket closed:", {
+            code: e.code,
+            reason: e.reason,
+            wasClean: e.wasClean,
+            receivedDone,
+            receivedError,
+            settled,
+            receivedAnyServerMessage,
+          });
+
           cleanup();
           if (receivedDone || settled) return;
 
           if (!e.wasClean && e.code !== 1000) {
-            // Check for Auth error in Close Reason
             const reason =
               e.reason === "AUTHENTICATION_FAILED"
                 ? "AUTHENTICATION_FAILED"
                 : errorMsg[e.reason];
             settle(() =>
               reject(
-                new Error(mapClientErrorMessage(reason || "Unknown Connection Error")),
-              ),
-            );
-          } else if (!receivedError) {
-            settle(() =>
-              reject(
                 new Error(
-                  mapClientErrorMessage("Connection closed before completion."),
+                  mapClientErrorMessage(reason || "Unknown Connection Error"),
                 ),
               ),
             );
+          } else if (!receivedError) {
+            const message = receivedAnyServerMessage
+              ? "Connection closed before completion."
+              : "No response received from the assistant.";
+            settle(() => reject(new Error(mapClientErrorMessage(message))));
           }
         };
       });

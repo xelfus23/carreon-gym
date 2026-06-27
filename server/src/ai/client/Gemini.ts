@@ -44,10 +44,7 @@ function toGeminiContents(messages: ChatMessage[]) {
             try {
               finalArgs = JSON.parse(finalArgs);
             } catch (e) {
-              console.error(
-                "Failed to parse tool args:",
-                finalArgs,
-              );
+              console.error("Failed to parse tool args:", finalArgs);
               finalArgs = {};
             }
           }
@@ -72,9 +69,7 @@ function toGeminiContents(messages: ChatMessage[]) {
               response: {
                 content: (() => {
                   try {
-                    return JSON.parse(
-                      msg.content as string,
-                    );
+                    return JSON.parse(msg.content as string);
                   } catch {
                     return { result: msg.content };
                   }
@@ -91,7 +86,9 @@ function toGeminiContents(messages: ChatMessage[]) {
 }
 
 /** Gemini rejects schemas where `type` and `anyOf`/`oneOf`/`allOf` coexist on the same node. */
-function sanitizeSchemaForGemini(schema: Record<string, unknown>): Record<string, unknown> {
+function sanitizeSchemaForGemini(
+  schema: Record<string, unknown>,
+): Record<string, unknown> {
   if (!schema || typeof schema !== "object") return schema;
 
   const { anyOf, oneOf, allOf, default: _default, ...rest } = schema;
@@ -114,7 +111,9 @@ function sanitizeSchemaForGemini(schema: Record<string, unknown>): Record<string
     }
 
     if (key === "items" && value && typeof value === "object") {
-      sanitized.items = sanitizeSchemaForGemini(value as Record<string, unknown>);
+      sanitized.items = sanitizeSchemaForGemini(
+        value as Record<string, unknown>,
+      );
       continue;
     }
 
@@ -214,14 +213,29 @@ export const Gemini = async (
   if (geminiTools) config.tools = geminiTools;
 
   let responseStream;
+  const GEMINI_REQUEST_TIMEOUT_MS = 30000;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
   try {
-    responseStream = await ai.models.generateContentStream({
-      model: model.gemini_2_5_flash,
-      contents,
-      ...(Object.keys(config).length > 0 && { config }),
-    });
+    responseStream = await Promise.race([
+      ai.models.generateContentStream({
+        model: model.gemini_2_5_flash,
+        contents,
+        ...(Object.keys(config).length > 0 && { config }),
+      }),
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(
+          () => reject(new Error("Gemini request timed out")),
+          GEMINI_REQUEST_TIMEOUT_MS,
+        );
+      }),
+    ]);
   } catch (error) {
     throw normalizeGeminiError(error);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
 
   return new ReadableStream<Uint8Array>({
@@ -257,14 +271,10 @@ export const Gemini = async (
                           index: 0,
                           id: `call_${part.functionCall.name}_${Date.now()}`,
                           function: {
-                            name: part.functionCall
-                              .name,
-                            arguments:
-                              JSON.stringify(
-                                part
-                                  .functionCall
-                                  .args ?? {},
-                              ),
+                            name: part.functionCall.name,
+                            arguments: JSON.stringify(
+                              part.functionCall.args ?? {},
+                            ),
                           },
                         },
                       ],
@@ -277,9 +287,7 @@ export const Gemini = async (
 
             if (sseData) {
               controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify(sseData)}\n\n`,
-                ),
+                encoder.encode(`data: ${JSON.stringify(sseData)}\n\n`),
               );
             }
           }
