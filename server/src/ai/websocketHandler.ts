@@ -4,6 +4,10 @@ import { WSAuthentication } from "../middleware/wsAuth.ts";
 import type { ChatMessage } from "../types/index.ts";
 import { getChatHistory } from "./utils/getChatHistory.ts";
 import { handleModelStreamWithTools } from "./utils/handleModelStreamWithTools.ts";
+import {
+  createInteractionLogger,
+  getActiveModelMetadata,
+} from "./logging/index.ts";
 import { saveMessageDomain } from "../domain/chat/saveMessage.ts";
 import { saveSummaryDomain } from "../domain/chat/saveSummary.ts";
 import {
@@ -77,14 +81,27 @@ export const WebsocketHandler = async (server: Server) => {
           content: userMessage,
         };
 
-        const chatHistory = await getChatHistory(
-          userId,
-          sessionId!,
-          newMsg,
-          personalization,
-        );
+        const { messages: chatHistory, promptContext, userPrompt } =
+          await getChatHistory(
+            userId,
+            sessionId!,
+            newMsg,
+            personalization,
+          );
 
         let messages: ChatMessage[] = [...chatHistory];
+
+        const { provider, modelName } = getActiveModelMetadata();
+        const logger = createInteractionLogger({
+          userId,
+          sessionId: sessionId!,
+          userPrompt,
+          promptContext,
+          initialMessages: structuredClone(messages),
+          personalization,
+          provider,
+          modelName,
+        });
 
         markSessionGenerating(sessionId!);
 
@@ -93,8 +110,23 @@ export const WebsocketHandler = async (server: Server) => {
           content: userMessage,
         });
 
-        const msgResult: ChatMessage | undefined =
-          await handleModelStreamWithTools(messages, userId, sessionId!, ws);
+        let msgResult: ChatMessage | undefined;
+        try {
+          msgResult = await handleModelStreamWithTools(
+            messages,
+            userId,
+            sessionId!,
+            ws,
+            logger,
+          );
+
+          logger?.setFinalResponse(msgResult?.content);
+          logger?.finalize(msgResult ? "completed" : "partial");
+        } catch (streamErr) {
+          logger?.recordError(streamErr, "websocket");
+          logger?.finalize("error");
+          throw streamErr;
+        }
 
         if (msgResult) {
           await saveMessageDomain(ws, sessionId!, userId, msgResult);

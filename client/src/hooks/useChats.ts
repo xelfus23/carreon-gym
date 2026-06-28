@@ -9,6 +9,7 @@ import {
 import { AppState, AppStateStatus } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { chatService } from "@/src/services/chat.service";
+import { subscribeToStreaming } from "@/src/services/streaming.controller";
 import { ChatMessage } from "../types/chats";
 import { UserProfile } from "../types/users";
 import { hasActiveSubscription } from "../utils/subscription";
@@ -331,6 +332,41 @@ export function useChat(params?: {
     return () => sub.remove();
   }, [sessionId, syncMessagesFromServer, checkAndPollGeneration]);
 
+  /**
+   * Subscribe to streaming updates from the controller.
+   * This handles the streaming state independently from message callbacks,
+   * ensuring that navigation/remount doesn't lose streaming state.
+   */
+  useEffect(() => {
+    const unsubscribe = subscribeToStreaming((streamingMsg) => {
+      if (!mountedRef.current) return;
+
+      // No active stream
+      if (!streamingMsg) {
+        return;
+      }
+
+      const targetId = streamingMsg.id;
+
+      // Update message with new token
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.id !== targetId) return msg;
+
+          return {
+            ...msg,
+            content: streamingMsg.content,
+            aiStatus: streamingMsg.aiStatus,
+            isStreaming: streamingMsg.aiStatus !== "Complete",
+            streamVersion: (msg.streamVersion ?? 0) + 1,
+          };
+        }),
+      );
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const startNewSession = useCallback(
     async (force = false) => {
       if (sessionId && !force) {
@@ -407,72 +443,7 @@ export function useChat(params?: {
         await chatService.sendMessage(
           sessionId,
           text,
-          (token) => {
-            const targetAssistantId = activeAssistantIdRef.current;
-            if (!targetAssistantId) return;
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === targetAssistantId
-                  ? {
-                      ...msg,
-                      content: msg.content + token,
-                      aiStatus: undefined,
-                      isStreaming: true,
-                      streamVersion: (msg.streamVersion ?? 0) + 1,
-                    }
-                  : msg,
-              ),
-            );
-          },
-          (state) => {
-            const targetAssistantId = activeAssistantIdRef.current;
-            if (!targetAssistantId) return;
-
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === targetAssistantId
-                  ? {
-                      ...msg,
-                      aiStatus: state,
-                      isStreaming: state !== "Complete",
-                    }
-                  : msg,
-              ),
-            );
-          },
-          () => {
-            setMessages((prev) => {
-              const activeId = activeAssistantIdRef.current;
-              if (!activeId) return prev;
-
-              const activeMessage = prev.find((msg) => msg.id === activeId);
-              const shouldStartNewAssistantMessage =
-                !!activeMessage && activeMessage.content.trim().length > 0;
-
-              if (!shouldStartNewAssistantMessage) {
-                return prev;
-              }
-
-              const nextAssistantId = newTempId();
-              activeAssistantIdRef.current = nextAssistantId;
-
-              return [
-                ...prev.map((msg) =>
-                  msg.id === activeId
-                    ? { ...msg, aiStatus: undefined, isStreaming: false }
-                    : msg,
-                ),
-                {
-                  id: nextAssistantId,
-                  role: "assistant",
-                  content: "",
-                  aiStatus: "Writing response",
-                  isStreaming: true,
-                  streamVersion: 0,
-                },
-              ];
-            });
-          },
+          initialAssistantId,
           abortRef.current.signal,
           false,
           preferences,

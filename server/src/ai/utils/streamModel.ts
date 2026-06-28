@@ -2,128 +2,256 @@ import { WebSocket } from "ws";
 import type { ChatMessage, ToolCall } from "../../types/index.ts";
 import { LMstudio } from "../client/LMstudio.ts";
 import { Gemini } from "../client/Gemini.ts";
+import {
+  ACTIVE_MODEL_PROVIDER,
+  type AiInteractionLogger,
+} from "../logging/index.ts";
 import { sanitizeAssistantContent } from "./sanitizeAssistantContent.ts";
 
-const PROVIDER = "lmstudio";
+type ModelProvider = "lmstudio" | "gemini";
 
-const PROVIDER_FUNC = {
-  gemini: Gemini,
-  lmstudio: LMstudio,
-};
+const PROVIDER: ModelProvider = ACTIVE_MODEL_PROVIDER;
 
-export const modelProvider = async (
+/** Selects and calls the appropriate AI model provider */
+async function getModelStream(
   messages: ChatMessage[],
-  options?: { disableTools: boolean },
-) => {
-  return PROVIDER_FUNC[PROVIDER](messages, options);
+  disableTools: boolean,
+): Promise<ReadableStream<Uint8Array>> {
+  const provider = PROVIDER === "lmstudio" ? LMstudio : Gemini;
+  const stream = await provider(messages, { disableTools });
+
+  if (!stream) {
+    throw new Error("No response from model");
+  }
+
+  return stream;
+}
+
+/** Accumulates partial tool call data from streaming chunks */
+function updateToolCallBuffer(
+  buffer: Record<number, ToolCall>,
+  toolCalls: Array<any>,
+): void {
+  for (const tc of toolCalls) {
+    const index = tc.index ?? 0;
+
+    if (!buffer[index]) {
+      buffer[index] = {
+        id: tc.id || `tool_${index}`,
+        name: tc.function?.name || "",
+        arguments: tc.function?.arguments || "",
+      };
+    } else {
+      if (tc.id) buffer[index].id = tc.id;
+      if (tc.function?.name) buffer[index].name += tc.function.name;
+      if (tc.function?.arguments) {
+        buffer[index].arguments += tc.function.arguments;
+      }
+    }
+  }
+}
+
+/** Removes sensitive field names from assistant responses */
+function sanitizeVisibleText(content: string): string {
+  return content
+    .replace(
+      /"?\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b"?\s*[:=]\s*"?[a-z0-9_-]+"?,?/gi,
+      "",
+    )
+    .replace(
+      /\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b\s*[:=]\s*[a-z0-9_-]+/gi,
+      "",
+    );
+}
+
+/** Parses and processes a single streaming response chunk */
+interface StreamChunk {
+  content?: string;
+  toolCalls?: Array<any>;
+  finishReason?: string | null;
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
+}
+
+function parseStreamChunk(jsonString: string): StreamChunk | null {
+  try {
+    const json = JSON.parse(jsonString);
+    const choice = json.choices?.[0];
+    const delta = choice?.delta;
+
+    if (!delta && !choice?.finish_reason && !json.usage) return null;
+
+    return {
+      content: delta?.content || undefined,
+      toolCalls: delta?.tool_calls || undefined,
+      finishReason: choice?.finish_reason ?? null,
+      usage: json.usage,
+    };
+  } catch {
+    return null;
+  }
+}
+
+type StreamProcessContext = {
+  ws: WebSocket;
+  toolCallBuffer: Record<number, ToolCall>;
+  visibleContent: { value: string };
+  logger?: AiInteractionLogger | null;
+  iteration: number;
+  firstTokenRecorded: { value: boolean };
 };
+
+/** Process one SSE `data:` line — emit tokens and accumulate tool-call deltas. */
+function processSseDataLine(data: string, ctx: StreamProcessContext): void {
+  if (data === "[DONE]") return;
+
+  const chunk = parseStreamChunk(data);
+  if (!chunk) return;
+
+  if (chunk.finishReason !== undefined && chunk.finishReason !== null) {
+    ctx.logger?.recordUsageMetrics({ finishReason: chunk.finishReason });
+  }
+
+  if (chunk.usage) {
+    const usageMetrics: {
+      promptTokens?: number;
+      completionTokens?: number;
+      totalTokens?: number;
+    } = {};
+
+    if (chunk.usage.prompt_tokens !== undefined) {
+      usageMetrics.promptTokens = chunk.usage.prompt_tokens;
+    }
+    if (chunk.usage.completion_tokens !== undefined) {
+      usageMetrics.completionTokens = chunk.usage.completion_tokens;
+    }
+    if (chunk.usage.total_tokens !== undefined) {
+      usageMetrics.totalTokens = chunk.usage.total_tokens;
+    }
+
+    ctx.logger?.recordUsageMetrics(usageMetrics);
+  }
+
+  if (chunk.content) {
+    const safeChunk = sanitizeVisibleText(chunk.content);
+
+    if (safeChunk) {
+      if (!ctx.firstTokenRecorded.value) {
+        ctx.firstTokenRecorded.value = true;
+        ctx.logger?.recordFirstToken(ctx.iteration, safeChunk.length);
+      }
+
+      ctx.visibleContent.value += safeChunk;
+      ctx.logger?.appendStreamedContent(safeChunk);
+      ctx.logger?.recordTokenChunk(ctx.iteration, safeChunk);
+
+      ctx.ws.send(
+        JSON.stringify({
+          type: "token",
+          content: safeChunk,
+        }),
+      );
+    }
+  }
+
+  if (chunk.toolCalls) {
+    updateToolCallBuffer(ctx.toolCallBuffer, chunk.toolCalls);
+  }
+}
+
+/** Parse complete lines from the SSE byte buffer; returns the unprocessed tail. */
+function drainSseLineBuffer(
+  buffer: string,
+  ctx: StreamProcessContext,
+): string {
+  const lines = buffer.split("\n");
+  const tail = lines.pop() ?? "";
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) continue;
+
+    const data = trimmed.slice("data:".length).trim();
+    processSseDataLine(data, ctx);
+  }
+
+  return tail;
+}
 
 export async function streamModel(
   messages: ChatMessage[],
   ws: WebSocket,
-  params?: { disableTools?: boolean },
+  params?: {
+    disableTools?: boolean;
+    logger?: AiInteractionLogger | null;
+    iteration?: number;
+  },
 ): Promise<{ toolCalls: ToolCall[]; assistantContent: string }> {
+  const iteration = params?.iteration ?? 1;
+  const logger = params?.logger ?? null;
+
   ws.send(JSON.stringify({ type: "assistant_response_start" }));
   ws.send(JSON.stringify({ type: "state", state: "Connecting to the model" }));
+  logger?.recordState("Connecting to the model", iteration);
 
-  const response = await modelProvider(messages, {
-    disableTools: params?.disableTools ?? false,
-  });
+  logger?.beginModelCall(iteration, messages, params?.disableTools ?? false);
 
-  if (!response) {
-    throw new Error("No response from model");
-  }
-
-  const reader = response.getReader();
+  const stream = await getModelStream(messages, params?.disableTools ?? false);
+  const reader = stream.getReader();
   const decoder = new TextDecoder();
 
   let buffer = "";
   let toolCallBuffer: Record<number, ToolCall> = {};
-  let visibleContent = "";
-  let done = false;
+  const visibleContentRef = { value: "" };
+  const firstTokenRecorded = { value: false };
+  const streamCtx: StreamProcessContext = {
+    ws,
+    toolCallBuffer,
+    visibleContent: visibleContentRef,
+    logger,
+    iteration,
+    firstTokenRecorded,
+  };
 
-  // REMOVED: inThinkBlock, pendingText, and THINK tags
+  try {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { value, done } = await reader.read();
 
-  const sanitizeVisibleText = (content: string) =>
-    content
-      .replace(
-        /"?\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b"?\s*[:=]\s*"?[a-z0-9_-]+"?,?/gi,
-        "",
-      )
-      .replace(
-        /\b(?:equipment_id|exercise_id|day_id|plan_id|workout_id|member_id|user_id|session_id)\b\s*[:=]\s*[a-z0-9_-]+/gi,
-        "",
-      );
+      if (value) {
+        buffer += decoder.decode(value, { stream: true });
+        buffer = drainSseLineBuffer(buffer, streamCtx);
+      }
 
-  while (!done) {
-    const { value, done: streamDone } = await reader.read();
-    if (streamDone) break;
+      if (done) {
+        // Flush any bytes held inside the TextDecoder (incomplete UTF-8 sequences).
+        buffer += decoder.decode();
+        buffer = drainSseLineBuffer(buffer, streamCtx);
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
+        // Process a final partial line that never received a trailing newline.
+        const trimmedTail = buffer.trim();
+        if (trimmedTail.startsWith("data:")) {
+          const data = trimmedTail.slice("data:".length).trim();
+          processSseDataLine(data, streamCtx);
+        }
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith("data:")) continue;
-
-      const data = trimmed.slice("data:".length).trim();
-      if (data === "[DONE]") {
-        done = true;
         break;
       }
-
-      try {
-        const json = JSON.parse(data);
-        const delta = json.choices?.[0]?.delta;
-        if (!delta) continue;
-
-        if (delta.content) {
-          // DIRECT PASS-THROUGH: No more waiting for </think>
-          const safeChunk = sanitizeVisibleText(delta.content);
-
-          if (safeChunk) {
-            visibleContent += safeChunk;
-            ws.send(
-              JSON.stringify({
-                type: "token",
-                content: safeChunk,
-              }),
-            );
-          }
-        }
-
-        if (delta.tool_calls) {
-          for (const tc of delta.tool_calls) {
-            const index: number = tc.index ?? 0;
-            if (!toolCallBuffer[index]) {
-              toolCallBuffer[index] = {
-                id: tc.id || `tool_${index}`,
-                name: tc.function?.name || "",
-                arguments: tc.function?.arguments || "",
-              };
-            } else {
-              if (tc.id) toolCallBuffer[index].id = tc.id;
-
-              if (tc.function?.name) {
-                toolCallBuffer[index].name += tc.function.name;
-              }
-
-              if (tc.function?.arguments) {
-                toolCallBuffer[index].arguments += tc.function.arguments;
-              }
-            }
-          }
-        }
-      } catch (parseErr) {
-        console.warn(`⚠️ Could not parse chunk:`, (parseErr as Error).message);
-      }
     }
+  } finally {
+    reader.releaseLock();
   }
 
   const toolCalls = Object.values(toolCallBuffer).filter((tc) => tc.name);
+  const cleanedResponse = sanitizeAssistantContent(visibleContentRef.value).trim();
 
-  const cleanedResponse = sanitizeAssistantContent(visibleContent).trim();
+  logger?.endModelCall({
+    finalContent: cleanedResponse,
+    toolCalls,
+  });
 
   return {
     toolCalls,

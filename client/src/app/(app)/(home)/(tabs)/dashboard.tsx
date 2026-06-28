@@ -14,6 +14,7 @@ import {
   getSubscriptionSummary,
   hasActiveSubscription,
 } from "@/src/utils/subscription";
+import { tokenManager } from "@/src/utils/tokenManager";
 
 export default function Dashboard() {
   const { profile, refreshProfile } = useUserProfile();
@@ -23,6 +24,10 @@ export default function Dashboard() {
     refreshWorkoutSessions,
     isExerciseChecked,
   } = useWorkout();
+
+  const refreshToken = tokenManager.getRefreshToken();
+  const accessToken = tokenManager.getAccessToken();
+  console.log(accessToken);
 
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 

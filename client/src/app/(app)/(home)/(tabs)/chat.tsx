@@ -8,10 +8,11 @@ import {
 } from "react-native";
 
 import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { Send, ArrowDown, SlidersHorizontal, Wand, Sliders } from "lucide-react-native";
+import { Send, ArrowDown, SlidersHorizontal } from "lucide-react-native";
 import { COLORS } from "@/src/consts/colors";
 import ScreenWrapper from "../../../components/ScreenWrapper";
 import { useChat } from "@/src/hooks/useChats";
+import { useScrollToBottom } from "@/src/hooks/useScrollToBottom";
 import renderMessageItem from "../../../components/Chat/RenderMessage";
 import { ChatMessage } from "@/src/types/chats";
 import SubscriptionReminder from "@/src/app/components/SubscriptionReminder";
@@ -59,13 +60,26 @@ const PROMPT_SUGGESTIONS = [
   },
 ];
 
+type ModalState = "personalization" | "profile-prompt" | "edit-profile" | null;
+
 export default function Chats() {
   const { profile } = useUserProfile();
   const navigation = useNavigation();
+  const {
+    scrollRef,
+    isAtBottom,
+    scrollToBottom,
+    handleScroll,
+    handleContentSizeChange,
+  } = useScrollToBottom<ChatMessage>();
 
+  const [inputText, setInputText] = useState("");
+  const [activeModal, setActiveModal] = useState<ModalState>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(
     !hasActiveSubscription(profile),
   );
+  const loadOlderLock = useRef(false);
 
   const {
     messages,
@@ -80,19 +94,6 @@ export default function Chats() {
     loadOlderMessages,
   } = useChat({ profile, setReminderOpen });
 
-  const [text, setText] = useState("");
-  const scrollRef = useRef<FlatList<ChatMessage>>(null);
-  const isAtBottom = useRef(true);
-  const [showScrollButton, setShowScrollButton] = useState(false);
-  const [personalizationOpen, setPersonalizationOpen] = useState(false);
-  const [editProfileOpen, setEditProfileOpen] = useState(false);
-  const [profilePromptOpen, setProfilePromptOpen] = useState(false);
-  const loadOlderLock = useRef(false);
-
-  const openPersonalization = useCallback(() => {
-    setPersonalizationOpen(true);
-  }, []);
-
   useLayoutEffect(() => {
     navigation.setOptions({
       header: () => (
@@ -100,7 +101,7 @@ export default function Chats() {
           title="AI Trainer"
           headerRight={
             <TouchableOpacity
-              onPress={openPersonalization}
+              onPress={() => setActiveModal("personalization")}
               className="flex-row items-center gap-1.5 bg-background px-3 py-2 rounded-lg border border-border"
               accessibilityLabel="AI Settings"
             >
@@ -113,7 +114,7 @@ export default function Chats() {
         />
       ),
     });
-  }, [navigation, openPersonalization]);
+  }, [navigation]);
 
   const handleStartChat = useCallback(async () => {
     const created = await startNewSession();
@@ -121,108 +122,70 @@ export default function Chats() {
 
     const dismissed = await isProfilePromptDismissed();
     if (!dismissed && !hasBodyCompositionData(profile)) {
-      setProfilePromptOpen(true);
+      setActiveModal("profile-prompt");
     }
   }, [startNewSession, profile]);
 
-  const handleProfilePromptContinue = useCallback(async () => {
-    setProfilePromptOpen(false);
-    setEditProfileOpen(true);
-  }, []);
+  const handleLoadOlderMessages = useCallback(async () => {
+    if (loadOlderLock.current) return;
 
-  const handleProfilePromptLater = useCallback(async () => {
-    await dismissProfilePrompt();
-    setProfilePromptOpen(false);
-  }, []);
+    loadOlderLock.current = true;
+    try {
+      await loadOlderMessages();
+    } finally {
+      loadOlderLock.current = false;
+    }
+  }, [loadOlderMessages]);
+
+  const handleScroll_ = useCallback(
+    (event: any) => {
+      handleScroll(event);
+
+      const { contentOffset } = event.nativeEvent;
+      const isCloseToBottom = isAtBottom.current;
+
+      setShowScrollButton(!isCloseToBottom);
+
+      // Load older messages when scrolling to top
+      if (contentOffset.y < 60 && hasMoreOlder && !loadingOlder) {
+        handleLoadOlderMessages();
+      }
+    },
+    [handleScroll, hasMoreOlder, loadingOlder, handleLoadOlderMessages],
+  );
+
+  const handleSend = useCallback(async () => {
+    if (!inputText.trim()) return;
+
+    if (!hasActiveSubscription(profile)) {
+      setReminderOpen(true);
+      return;
+    }
+
+    const text = inputText;
+    setInputText("");
+
+    try {
+      await sendMessage(text);
+    } catch (err) {
+      console.error(
+        "Failed to send message:",
+        err instanceof Error ? err.message : "Unknown error",
+      );
+    }
+  }, [inputText, profile, sendMessage]);
 
   if (!profile) return null;
 
-  const modals = (
-    <>
-      <AiPersonalizationModal
-        visible={personalizationOpen}
-        onClose={() => setPersonalizationOpen(false)}
-      />
-      <ProfileAccuracyPromptModal
-        visible={profilePromptOpen}
-        onContinue={handleProfilePromptContinue}
-        onMaybeLater={handleProfilePromptLater}
-      />
-      <EditProfileModal
-        visible={editProfileOpen}
-        onClose={() => setEditProfileOpen(false)}
-      />
-    </>
-  );
-
+  // Show welcome screen if no session started
   if (!sessionId) {
     return (
-      <>
-        <ScreenWrapper>
-          <WelcomeScreen onStartChat={handleStartChat} loading={loading} />
-        </ScreenWrapper>
-        {modals}
-      </>
+      <ScreenWrapper>
+        <WelcomeScreen onStartChat={handleStartChat} loading={loading} />
+        <ModalStack activeModal={activeModal} setActiveModal={setActiveModal} />
+      </ScreenWrapper>
     );
   }
-
-  const handleSend = async () => {
-    if (!text.trim()) return;
-    const prompt = text;
-    setText("");
-    try {
-      if (!hasActiveSubscription(profile)) {
-        setReminderOpen(true);
-        return;
-      }
-      await sendMessage(prompt);
-    } catch (err) {
-      if (err instanceof Error) {
-        console.error("Unable to send message:", err.message);
-      }
-    }
-  };
-
-  const handleScroll = (event: {
-    nativeEvent: {
-      layoutMeasurement: { height: number };
-      contentOffset: { y: number };
-      contentSize: { height: number };
-    };
-  }) => {
-    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    const paddingToBottom = 20;
-    const isCloseToBottom =
-      layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom;
-
-    isAtBottom.current = isCloseToBottom;
-    setShowScrollButton(!isCloseToBottom);
-
-    if (
-      contentOffset.y < 60 &&
-      hasMoreOlder &&
-      !loadingOlder &&
-      !loadOlderLock.current
-    ) {
-      loadOlderLock.current = true;
-      loadOlderMessages().finally(() => {
-        loadOlderLock.current = false;
-      });
-    }
-  };
-
-  const handleContentSizeChange = () => {
-    if (isAtBottom.current) {
-      scrollToBottom();
-    }
-  };
-
-  const scrollToBottom = () => {
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollToEnd({ animated: true });
-    });
-  };
 
   return (
     <KeyboardAvoidingView
@@ -245,9 +208,9 @@ export default function Chats() {
         <FlatList
           ref={scrollRef}
           data={messages}
-          scrollEnabled={true}
-          keyExtractor={(item, index) => JSON.stringify(item.id) + index}
-          onScroll={handleScroll}
+          scrollEnabled
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          onScroll={handleScroll_}
           refreshControl={getCustomLoader(initializing, refreshMessages)}
           scrollEventThrottle={16}
           onContentSizeChange={handleContentSizeChange}
@@ -269,7 +232,7 @@ export default function Chats() {
               </View>
             ) : hasMoreOlder ? (
               <TouchableOpacity
-                onPress={loadOlderMessages}
+                onPress={handleLoadOlderMessages}
                 className="py-3 items-center"
               >
                 <Text className="text-primary text-xs font-interMedium">
@@ -285,36 +248,7 @@ export default function Chats() {
             ) : null
           }
           ListEmptyComponent={
-            <View className="flex-1 justify-center items-center mt-10 px-4">
-              <Text className="text-text-secondary text-center text-lg font-inter">
-                👋 Ready to train?
-              </Text>
-              <Text className="text-text-secondary font-inter text-center mt-2">
-                Ask me anything about fitness or request a workout!
-              </Text>
-              <View className="mt-6 w-full gap-3">
-                {PROMPT_SUGGESTIONS.map((suggestion) => (
-                  <TouchableOpacity
-                    key={suggestion.id}
-                    onPress={() => setText(suggestion.prompt)}
-                    className="bg-surface border border-border rounded-2xl px-4 py-3 flex-row items-center gap-3"
-                  >
-                    <Text className="text-xl">{suggestion.emoji}</Text>
-                    <View className="flex-1">
-                      <Text className="text-white text-sm font-interMedium">
-                        {suggestion.label}
-                      </Text>
-                      <Text
-                        className="text-text-secondary text-xs mt-0.5 font-inter"
-                        numberOfLines={1}
-                      >
-                        {suggestion.prompt}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
+            <EmptyMessagePrompts onSelectPrompt={setInputText} />
           }
           renderItem={renderMessageItem}
         />
@@ -334,8 +268,8 @@ export default function Chats() {
 
       <View className="flex-row gap-2 p-4">
         <TextInput
-          value={text}
-          onChangeText={setText}
+          value={inputText}
+          onChangeText={setInputText}
           className="flex-1 text-lg bg-background border border-border rounded-xl text-white px-4 py-3 min-h-[50px] max-h-[100px] font-inter"
           placeholder="Message..."
           placeholderTextColor={COLORS.textSecondary}
@@ -346,13 +280,85 @@ export default function Chats() {
         <TouchableOpacity
           onPress={handleSend}
           disabled={loading}
-          className={`p-3 ${loading || !text.trim() ? "bg-surface opacity-50" : "bg-primary-dark"} rounded-full self-end justify-center`}
+          className={`p-3 ${loading || !inputText.trim() ? "bg-surface opacity-50" : "bg-primary-dark"} rounded-full self-end justify-center`}
         >
           <Send color="white" size={24} />
         </TouchableOpacity>
       </View>
 
-      {modals}
+      <ModalStack activeModal={activeModal} setActiveModal={setActiveModal} />
     </KeyboardAvoidingView>
+  );
+}
+
+/** Renders empty message prompt suggestions */
+function EmptyMessagePrompts({
+  onSelectPrompt,
+}: {
+  onSelectPrompt: (text: string) => void;
+}) {
+  return (
+    <View className="flex-1 justify-center items-center mt-10 px-4">
+      <Text className="text-text-secondary text-center text-lg font-inter">
+        👋 Ready to train?
+      </Text>
+      <Text className="text-text-secondary font-inter text-center mt-2">
+        Ask me anything about fitness or request a workout!
+      </Text>
+      <View className="mt-6 w-full gap-3">
+        {PROMPT_SUGGESTIONS.map((suggestion) => (
+          <TouchableOpacity
+            key={suggestion.id}
+            onPress={() => onSelectPrompt(suggestion.prompt)}
+            className="bg-surface border border-border rounded-2xl px-4 py-3 flex-row items-center gap-3"
+          >
+            <Text className="text-xl">{suggestion.emoji}</Text>
+            <View className="flex-1">
+              <Text className="text-white text-sm font-interMedium">
+                {suggestion.label}
+              </Text>
+              <Text
+                className="text-text-secondary text-xs mt-0.5 font-inter"
+                numberOfLines={1}
+              >
+                {suggestion.prompt}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+/** Modal stack component - manages all modal visibility */
+function ModalStack({
+  activeModal,
+  setActiveModal,
+}: {
+  activeModal: ModalState;
+  setActiveModal: (modal: ModalState) => void;
+}) {
+  const { profile } = useUserProfile();
+
+  return (
+    <>
+      <AiPersonalizationModal
+        visible={activeModal === "personalization"}
+        onClose={() => setActiveModal(null)}
+      />
+      <ProfileAccuracyPromptModal
+        visible={activeModal === "profile-prompt"}
+        onContinue={() => setActiveModal("edit-profile")}
+        onMaybeLater={async () => {
+          await dismissProfilePrompt();
+          setActiveModal(null);
+        }}
+      />
+      <EditProfileModal
+        visible={activeModal === "edit-profile"}
+        onClose={() => setActiveModal(null)}
+      />
+    </>
   );
 }

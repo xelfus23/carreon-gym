@@ -1,6 +1,12 @@
 import { AiPreferences } from "../types/aiPreferences";
 import { forceRefreshToken, request } from "../utils/request";
 import { tokenManager } from "../utils/tokenManager";
+import {
+  startStreaming,
+  onToken,
+  onState,
+  onDone,
+} from "./streaming.controller";
 
 const WS_URL = process.env.EXPO_PUBLIC_WS_URL;
 
@@ -95,9 +101,7 @@ export const chatService = {
   sendMessage: async (
     sessionId: number,
     text: string,
-    onToken: (token: string) => void,
-    onState: (state: string) => void,
-    onAssistantResponseStart?: () => void,
+    messageId: string,
     signal?: AbortSignal,
     isRetry = false,
     preferences?: AiPreferences,
@@ -188,6 +192,9 @@ export const chatService = {
             clearTimeout(connectTimeout);
             connectTimeout = null;
           }
+          // Initialize streaming state in controller with the message ID
+          startStreaming(sessionId, messageId);
+
           onState("Connecting to assistant");
           socket.send(
             JSON.stringify({
@@ -203,7 +210,8 @@ export const chatService = {
             receivedAnyServerMessage = true;
 
             if (data.type === "assistant_response_start") {
-              onAssistantResponseStart?.();
+              // This event indicates tool execution completed and response streaming begins
+              // No action needed here - state updates handle status display
             } else if (data.type === "token") {
               onToken(data.content);
             } else if (data.type === "state") {
@@ -211,6 +219,7 @@ export const chatService = {
             } else if (data.type === "error") {
               receivedError = true;
               cleanup();
+              onDone();
 
               if (data.message === "AUTHENTICATION_FAILED") {
                 settle(() => reject(new Error("AUTHENTICATION_FAILED")));
@@ -224,6 +233,7 @@ export const chatService = {
               receivedDone = true;
               onState("Complete");
               cleanup();
+              onDone();
               settle(() => resolve());
               socket.close(1000, "Done");
             }
@@ -295,9 +305,7 @@ export const chatService = {
           return await chatService.sendMessage(
             sessionId,
             text,
-            onToken,
-            onState,
-            onAssistantResponseStart,
+            messageId,
             signal,
             true,
             preferences,
