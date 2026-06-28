@@ -1,5 +1,6 @@
 import { WebSocket } from "ws";
 import type { ChatMessage } from "../../types/index.ts";
+import type { AiInteractionLogger } from "../logging/index.ts";
 import { handleToolCall } from "../tools/handleToolCall.ts";
 import { TOOL_NAMES } from "../tools/toolRegistry.ts";
 import { streamModel } from "./streamModel.ts";
@@ -170,13 +171,24 @@ function safeSend(ws: WebSocket, payload: unknown): void {
 }
 
 /** Sends state update to client */
-function sendState(ws: WebSocket, state: string): void {
+function sendState(
+  ws: WebSocket,
+  state: string,
+  logger?: AiInteractionLogger | null,
+  iteration?: number,
+): void {
   safeSend(ws, { type: "state", state });
+  logger?.recordState(state, iteration);
 }
 
 /** Sends error message to client */
-function sendError(ws: WebSocket, message: string): void {
+function sendError(
+  ws: WebSocket,
+  message: string,
+  logger?: AiInteractionLogger | null,
+): void {
   safeSend(ws, { type: "error", message });
+  logger?.recordError(message, "stream");
 }
 
 /** Sends completion signal to client */
@@ -189,6 +201,7 @@ export async function handleModelStreamWithTools(
   userId: number,
   sessionId: number,
   ws: WebSocket,
+  logger?: AiInteractionLogger | null,
 ): Promise<ChatMessage | undefined> {
   let toolCallCount = 0;
   let iteration = 0;
@@ -202,13 +215,24 @@ export async function handleModelStreamWithTools(
       sendState(
         ws,
         iteration === 1 ? "Understanding your request" : "Preparing response",
+        logger,
+        iteration,
       );
 
-      let { toolCalls, assistantContent } = await streamModel(messages, ws);
+      let { toolCalls, assistantContent } = await streamModel(messages, ws, {
+        logger: logger ?? null,
+        iteration,
+      });
 
       // No tool calls = final response
       if (toolCalls.length === 0) {
-        return handleFinalResponse(ws, messages, assistantContent, iteration);
+        return handleFinalResponse(
+          ws,
+          messages,
+          assistantContent,
+          iteration,
+          logger,
+        );
       }
 
       // Separate valid from invalid tool calls
@@ -218,7 +242,7 @@ export async function handleModelStreamWithTools(
       // Correct hallucinations and loop back
       if (invalidCalls.length > 0) {
         const invalidNames = invalidCalls.map((c) => `"${c.name}"`).join(", ");
-        sendState(ws, "Correcting format");
+        sendState(ws, "Correcting format", logger, iteration);
 
         messages.push({
           role: "user",
@@ -232,7 +256,7 @@ export async function handleModelStreamWithTools(
       toolCallCount += validCalls.length;
 
       if (toolCallCount > MAX_TOOL_ITERATIONS) {
-        return handleMaxIterationsReached(ws, messages);
+        return handleMaxIterationsReached(ws, messages, logger);
       }
 
       // Add assistant message to context
@@ -249,12 +273,14 @@ export async function handleModelStreamWithTools(
       // Execute each tool call
       for (const toolCall of validCalls) {
         const toolArgs = parseToolArgs(toolCall.arguments);
-        sendState(ws, getToolStateName(toolCall.name, "start", toolArgs));
+        sendState(ws, getToolStateName(toolCall.name, "start", toolArgs), logger, iteration);
+        logger?.recordToolStart(toolCall.id, toolCall.name, toolArgs);
 
         try {
           const result = await handleToolCall(ws, toolCall, userId);
 
-          sendState(ws, getToolStateName(toolCall.name, "done"));
+          sendState(ws, getToolStateName(toolCall.name, "done"), logger, iteration);
+          logger?.recordToolResult(toolCall.id, result);
 
           messages.push({
             role: "tool",
@@ -268,7 +294,10 @@ export async function handleModelStreamWithTools(
           sendState(
             ws,
             `Retrying after ${toolCall.name.replace(/_/g, " ")} error`,
+            logger,
+            iteration,
           );
+          logger?.recordToolError(toolCall.id, toolError);
 
           messages.push({
             role: "tool",
@@ -284,7 +313,7 @@ export async function handleModelStreamWithTools(
     }
   } catch (err) {
     console.error("Stream processing error:", err);
-    sendError(ws, getUserFriendlyErrorMessage(err));
+    sendError(ws, getUserFriendlyErrorMessage(err), logger);
     return undefined;
   }
 }
@@ -295,6 +324,7 @@ async function handleFinalResponse(
   messages: ChatMessage[],
   assistantContent: string,
   iteration: number,
+  logger?: AiInteractionLogger | null,
 ): Promise<ChatMessage | undefined> {
   // If no content but exercises were added, request a summary
   if (!assistantContent) {
@@ -311,6 +341,8 @@ async function handleFinalResponse(
 
       const { assistantContent: summary } = await streamModel(messages, ws, {
         disableTools: true,
+        logger: logger ?? null,
+        iteration: iteration + 1,
       });
 
       if (summary) {
@@ -319,7 +351,7 @@ async function handleFinalResponse(
       }
     }
 
-    sendError(ws, "The assistant could not generate a response");
+    sendError(ws, "The assistant could not generate a response", logger);
     return undefined;
   }
 
@@ -331,8 +363,9 @@ async function handleFinalResponse(
 async function handleMaxIterationsReached(
   ws: WebSocket,
   messages: ChatMessage[],
+  logger?: AiInteractionLogger | null,
 ): Promise<ChatMessage | undefined> {
-  sendState(ws, "Finalizing...");
+  sendState(ws, "Finalizing...", logger);
 
   messages.push({
     role: "user",
@@ -342,6 +375,8 @@ async function handleMaxIterationsReached(
   try {
     const { assistantContent: summary } = await streamModel(messages, ws, {
       disableTools: true,
+      logger: logger ?? null,
+      iteration: MAX_TOOL_ITERATIONS + 1,
     });
 
     if (summary) {
@@ -370,7 +405,7 @@ async function handleMaxIterationsReached(
     sendDone(ws);
     return { role: "assistant", content: fallback };
   } catch (err) {
-    sendError(ws, getUserFriendlyErrorMessage(err));
+    sendError(ws, getUserFriendlyErrorMessage(err), logger);
     return undefined;
   }
 }

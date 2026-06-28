@@ -130,11 +130,14 @@ const StreamedAssistantMessage = memo(function StreamedAssistantMessage({
   const status = item.aiStatus;
   const showStatus = !isUser && !!status && !!item.isStreaming;
   const isError = status === "Error";
+  // Phase 1: live WebSocket streams update `content` token-by-token — skip the
+  // typewriter so the UI reflects tokens as they arrive.
+  const isLiveStream = !!item.isStreaming && !isError;
 
   const { revealedLength } = useTypewriterReveal(
     item.id,
     content,
-    !!item.isStreaming
+    isLiveStream ? false : !!item.isStreaming,
   );
 
   const errorFade = useRef(new Animated.Value(0)).current;
@@ -161,7 +164,7 @@ const StreamedAssistantMessage = memo(function StreamedAssistantMessage({
 
 
   const showAnimatedMarkdown =
-    !isUser && !isError && revealedLength < content.length;
+    !isUser && !isError && !isLiveStream && revealedLength < content.length;
 
 
   return (

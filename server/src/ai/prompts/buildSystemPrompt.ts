@@ -45,20 +45,40 @@ function buildPersonalizationBlock(prefs?: AiPersonalization): string {
   return `\n## AI PERSONALIZATION\n${parts.map((p) => `- ${p}`).join("\n")}`;
 }
 
-export const buildSystemPrompt = async (
+export type PromptContext = {
+  baseSystemPrompt: string;
+  today: string;
+  userProfile: unknown;
+  gymInventory: string;
+  conversationSummary: string | null;
+  personalization?: AiPersonalization;
+};
+
+export type BuiltSystemPrompt = {
+  systemPrompt: string;
+  context: PromptContext;
+};
+
+export const buildSystemPromptParts = async (
   userId: number,
   personalization?: AiPersonalization,
-) => {
+): Promise<BuiltSystemPrompt> => {
   const [summary, equipmentResult, userProfile] = await Promise.all([
     summaryQuery(userId),
     getEquipmentDomain(),
-    getUserDetails(userId)
+    getUserDetails(userId),
   ]);
 
-
   const inventory = formatInventory(equipmentResult);
+  const today = new Date().toLocaleDateString("en-US", {
+    timeZone: "Asia/Manila",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
-  const context = buildContext({
+  const contextBlock = buildContext({
     inventory,
     summary,
     userProfile,
@@ -66,5 +86,23 @@ export const buildSystemPrompt = async (
 
   const personalizationBlock = buildPersonalizationBlock(personalization);
 
-  return `${BASE_SYSTEM_PROMPT}\n\n${context}${personalizationBlock}`;
+  return {
+    systemPrompt: `${BASE_SYSTEM_PROMPT}\n\n${contextBlock}${personalizationBlock}`,
+    context: {
+      baseSystemPrompt: BASE_SYSTEM_PROMPT,
+      today,
+      userProfile,
+      gymInventory: inventory,
+      conversationSummary: summary?.trim() || null,
+      ...(personalization ? { personalization } : {}),
+    },
+  };
+};
+
+export const buildSystemPrompt = async (
+  userId: number,
+  personalization?: AiPersonalization,
+): Promise<string> => {
+  const { systemPrompt } = await buildSystemPromptParts(userId, personalization);
+  return systemPrompt;
 };
