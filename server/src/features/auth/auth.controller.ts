@@ -29,7 +29,7 @@ export const loginController = catchAsync(async (req: Request, res: Response) =>
     sub: user.id,
     role: user.role,
   });
-  
+
   const refreshTokenHash = hashToken(refreshToken);
 
   await saveSessionToDB({
@@ -41,19 +41,19 @@ export const loginController = catchAsync(async (req: Request, res: Response) =>
 
   // 4. Send Response based on Platform Strategy
   if (!isMobileClient) {
-    // Web / Electron: Store tokens securely in secure HttpOnly cookies
+    // Electron: Store tokens securely in secure HttpOnly cookies
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 15 * 60 * 1000, // 15 mins
+      maxAge: 15 * 60 * 1000, 
     });
 
     return res.status(200).json({
@@ -71,7 +71,7 @@ export const loginController = catchAsync(async (req: Request, res: Response) =>
     });
   }
 
-  // Mobile (Expo React Native): Return tokens explicitly in JSON payload for AsyncStorage/SecureStore
+  // For mobile (Expo React Native): Return tokens in JSON payload for AsyncStorage/SecureStore
   return res.status(200).json({
     success: true,
     message: "Login Success",
@@ -114,11 +114,9 @@ export const logoutController = catchAsync(async (req: Request, res: Response) =
     );
   }
 
-  // 🌟 FIXED BUG: Your web used decoded.sub while mobile used decoded.id
-  // Unified to check both or default to standard 'sub' claim
   const userId = decoded.sub || decoded.id;
 
-  // 3. Database Session Revocation (Lookup and delete single device target)
+  // 3. Database Session Removal (Check and delete single device target)
   const { rows } = await pool.query(
     "SELECT id, refresh_token_hash FROM user_sessions WHERE user_id = $1",
     [userId],
@@ -136,7 +134,7 @@ export const logoutController = catchAsync(async (req: Request, res: Response) =
   if (sessionId) {
     await pool.query("DELETE FROM user_sessions WHERE id = $1", [sessionId]);
   } else if (req.body?.refreshToken) {
-    // If mobile app sends an explicit token but it's completely missing from DB session tables
+    // If mobile app sends token but it's completely missing from DB session tables
     throw new AppError("Session not found", 404, "SESSION_NOT_FOUND");
   }
 
