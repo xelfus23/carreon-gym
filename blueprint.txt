@@ -1,0 +1,286 @@
+Here is a comprehensive slide-by-slide script and outline optimized for your 30-minute pre-oral defense presentation at AMA University. It aligns your 18-slide roadmap with the institutional chapter details provided.
+
+---
+
+## Slide 1: Title Page
+
+### Visual Blueprint
+
+* **Main Title:** GYM MANAGEMENT SYSTEM WITH AI-POWERED PERSONAL TRAINER FOR CARREON GYM
+* **Sub-text:** Pre-Oral Defense Presentation | Senior Capstone Project
+* **Institution:** Faculty of the College of Computer Studies, AMA University
+* **Presenters:** Patrick John Medenilla, Ruben Ryan O. Tulipas, Jan Mikhail Fajardo
+
+### Defense Script
+
+> "Good day to the members of the panel, our adviser, and everyone present today. We are Patrick John Medenilla, Ruben Ryan O. Tulipas, and Jan Mikhail Fajardo. Today, we will present our capstone study entitled, **'Gym Management System with AI-Powered Personal Trainer for Carreon Gym'**."
+
+---
+
+## Slide 2: Introduction & Project Context
+
+### Visual Blueprint
+
+* **The Problem Space:** Inefficient manual record-keeping, delayed entry queues, fragmented transaction history.
+* **The User Pain Point:** Lack of affordable personalized coaching; static generic fitness apps that ignore specific locally available gym equipment.
+* **The Solution Paradigm:** A dual-ecosystem consolidating desktop administrative control via Electron and automated mobile client features paired with context-aware AI recommendations.
+
+### Defense Script
+
+> "Fitness centers often handle member tracking, subscriptions, and payment matching via manual operations, leading to data errors and delayed front-desk queues. Concurrently, gym members want personalized workouts but face cost barriers for personal trainers. Existing mobile solutions offer static routines that fail to recognize the actual equipment physically inside a specific venue. To solve this disconnect, our study bridges administrative business automation with personal fitness customization tailored directly to Carreon Gym's real-time inventory."
+
+---
+
+## Slide 3: Statement of the Problem
+
+### Visual Blueprint
+
+* **Core Operational Inefficiencies:** How can manual workflows (member registration, attendance tracking, plan verification) be systematically automated?
+* **Context Isolation:** How can mobile users log entry and verify accounts efficiently?
+* **The Intelligence Gap:** How can an AI system generate practical workout routines that adjust continuously to a localized equipment list and explicit user biometric feedback?
+
+### Defense Script
+
+> "Our research explicitly addresses three problem areas: First, the administrative inefficiencies caused by manual operations at Carreon Gym. Second, the lack of immediate, self-service tracking tools for gym members. Third, the intelligence gap where standard workout applications fail to sync exercises with real-world equipment availability or ongoing physical metrics changes."
+
+---
+
+## Slide 4: Objectives of the Study
+
+### Visual Blueprint
+
+```
+       ┌─────────────────────────────────────────────────────────────┐
+       │                      GENERAL OBJECTIVE                      │
+       │   Design & develop an automated desktop software and an     │
+       │   AI-driven mobile client for Carreon Gym operations.       │
+       └──────────────────────────────┬──────────────────────────────┘
+                                      │
+              ┌───────────────────────┴───────────────────────┐
+              ▼                                               ▼
+   [ DESKTOP ADMIN SOFTWARE ]                      [ MOBILE MEMBER CLIENT ]
+   • Member Profiles (CRUD)                        • QR Check-In / Check-Out
+   • Subscription Expiry Alerts                    • Payment Ledger Uploads
+   • Equipment Inventory Status                    • Dynamic AI Trainer Engine
+
+```
+
+*(References:)*
+
+### Defense Script
+
+> "The general objective of this study is to design, develop, and evaluate a split-system architecture consisting of a Desktop Administration Software and an AI-Powered Mobile Member Application. Specifically, the desktop layer manages member accounts, registers transactions, tracks logs, and monitors hardware statuses. The mobile app enables seamless QR-based gate check-ins, payment notifications, and a conversational AI model that interprets metrics to deliver context-aware workout plans."
+
+---
+
+## Slide 5: Scope and Limitations
+
+### Visual Blueprint
+
+* **In-Scope Functions (Admin):** Member profiles, active/expired subscription records, manual override logs, S3 payment verification, hardware catalog toggles.
+* **In-Scope Functions (Mobile):** Scan-based check-in/out, AWS invoice tracking, chat session history, structured biometric input forms.
+* **Explicit System Boundaries:** Distinctly isolated from multi-branch synchronization, hardware computer-vision pose tracking, or real-time camera posture correction. Completely reliant on standard network data pathways.
+
+### Defense Script
+
+> "The scope is intentionally engineered for Carreon Gym's administrative operations, including profile updates, subscription triggers, and client progress dashboards. On the client side, features are bounded by profile capture, QR-driven check-in logs, and token-managed AI interaction threads. We emphasize that the system limits its scope to standard data entry pathways and does not include multi-tenant scaling or camera-based real-time computer vision tracking."
+
+---
+
+## Slide 6: Literature Synthesis & Research Gap
+
+### Visual Blueprint
+
+* **Global Innovations:** Deep tracking metrics, LSTM exercise analysis, and large-scale platform automation are standard across international literature.
+* **The Retention Problem:** High initial drop-off occurs due to overly rigid templates or generic training plans.
+* **Local Bottlenecks:** Local deployments face connectivity limitations, a lack of contextual focus, and standalone systems that separate front-desk administration from member fitness tracking.
+* **The Project Gap:** An integrated platform combining local gym asset status (e.g., flagging broken equipment) directly into an AI trainer's workout logic.
+
+### Defense Script
+
+> "While global literature highlights advanced computer vision frameworks and complex model architectures, it also reveals a critical user retention drop-off when applications ignore localized context. Local studies highlight the need for accessible tech, but systems remain fragmented. Our system directly addresses this gap: it builds a unified platform where operational realities—such as equipment maintenance updates—are linked directly to the AI's workout generation loop."
+
+---
+
+## Slide 7: Research Methodology & Conceptual Framework
+
+### Visual Blueprint
+
+* **Framework Model:** Input -> Process -> Output (IPO).
+* **Input Layer:** Biometric profiles, target goals, payment records, equipment status toggles.
+* **Process Layer:** AI inference mapping, RESTful verification pipelines, JWT token checks.
+* **Output Layer:** Dynamic personalized workout schemas, live administrative financial ledgers.
+
+### Defense Script
+
+> "We structured our research using an Input-Process-Output conceptual framework. The Input stage collects user biometrics, training goals, and equipment statuses. The Process stage handles token authentication, runs database operations via PostgreSQL, and manages inference processing. The Output stage delivers tailored workout plans to members while generating live financial ledger reports for administrators."
+
+---
+
+## Slide 8: Instrumentation & Evaluation Metrics
+
+### Visual Blueprint
+
+* **Primary Testing Protocols:** ISO/IEC 25010 Quality Framework compliance targets.
+* **Core Evaluation Vectors:**
+* *Functionality:* Accuracy of database tracking and QR validations.
+* *Usability:* Structural readability and responsive design checks.
+* *Efficiency:* Quantified API round-trips and AI token processing times.
+* *Reliability:* Session persistence and secure JWT tracking.
+
+
+
+### Defense Script
+
+> "To validate the prototype, the evaluation methodology uses testing protocols based on the ISO 25010 standard. We assess functionality through automated feature testing, evaluate usability with visual layout reviews, and measure system efficiency by tracking API response and token generation latencies. This ensures the application is reliable and ready for deployment. "
+
+---
+
+## Slide 9: System Development Life Cycle (Agile SDLC)
+
+### Visual Blueprint
+
+```
+    [PLAN] ──> [DESIGN] ──> [DEVELOP] ──> [TEST] ──> [DEPLOY] ──> [REVIEW]
+       ▲                                                             │
+       └───────────────────── ITERATIVE AGILE CYCLE ──────────────────┘
+
+```
+
+*(References:)*
+
+* **Iterative Design Strategy:** Rapid sprints prioritizing high-value features first.
+* **Phased Milestones:** Core backend tables configured, client interfaces built, local models optimized, and production deployment completed.
+
+### Defense Script
+
+> "We adopted an Agile Software Development Life Cycle to handle the project requirements efficiently. This iterative cycle—moving from Planning and Design through to Development, Testing, and Deployment—ensures continuous integration. This allowed us to build the system step-by-step, starting with core database features and moving to local model optimization before deploying to cloud production services."
+
+---
+
+## Slide 10: System Architecture & Data Flow
+
+### Visual Blueprint
+
+* **Presentation Layer:** Expo React Native Mobile Client & Electron Admin Dashboard.
+* **Application Logic Layer:** Node.js + Express REST API handling endpoints.
+* **Data & Inference Storage:** PostgreSQL database storage alongside the Gemini API layer.
+
+### Defense Script
+
+> "The architectural framework runs on a three-tier model. The presentation layer uses Expo React Native for members and Electron for the admin desktop dashboard. The application logic tier runs on Node.js and Express to route data requests. Finally, the data layer uses PostgreSQL for structured storage and passes text prompts directly to the Gemini engine for real-time processing."
+
+---
+
+## Slide 11: High-Level System Flowchart
+
+### Visual Blueprint
+
+* **Authentication Gates:** Secure access routing via JWT token evaluation.
+* **Operational Workflows:**
+* *Member Path:* Interactive prompt submissions -> Structured API mapping -> Database storage.
+* *Admin Path:* Front-desk dashboard updates -> Live inventory modifications -> Automated query synchronization.
+
+
+
+### Defense Script
+
+> "This functional flowchart displays how operations move through our system. When a user sends an action, the backend verifies the security token before allowing access. Member requests route directly to the AI service layer, while administrative changes instantly update system records in the database."
+
+---
+
+## Slide 12: High-Level Entity Relationship Diagram (ERD)
+
+### Visual Blueprint
+
+* **Core Entities:** `users`, `subscriptions`, `payments`, `gym_attendance`, `workout_sessions`, `chat_sessions`.
+* **Data Normalization:** Clean relational tables designed to separate billing history, account sessions, biometric logs, and workout tracking.
+* **Context Sync Logic:** The `equipment` model connects directly to operational lookups to inform AI recommendations.
+
+### Defense Script
+
+> "Our centralized database structure maps user authentication profiles directly to specific subscriptions, gym logs, and payment entries. A key feature of this design is that the equipment status table connects directly to the workout lookup logic. This allows the system to easily swap out exercises if a piece of equipment is marked under maintenance."
+
+---
+
+## Slide 13: Functional Block Diagram
+
+### Visual Blueprint
+
+* **Client Core:** Workouts, biometrics tracking, QR scanning, store viewing.
+* **Admin Core:** Subscription management, asset status monitoring, financial validation.
+* **Inference Hub:** Prompts pass to the AI backend layer using local models for testing and the Gemini API for production.
+
+### Defense Script
+
+> "The block diagram illustrates how the system's core modules are organized into functional domains. The client mobile app handles active workout logs and check-ins. The administrative software manages subscriber billing cycles and asset updates. Both frontends connect to the backend server, which runs local models during testing and switches to the cloud-based Gemini API for production use."
+
+---
+
+## Slide 14: Proposed System Features
+
+### Visual Blueprint
+
+* **AI Coach:** Delivers customized exercises using actual equipment availability.
+* **QR Check-In:** Self-service attendance tracking to eliminate manual front-desk logging.
+* **Inventory POS:** Tracks supplement sales and updates historical pricing.
+* **Subscription Ledger:** Tracks account expirations and matches invoice images.
+
+### Defense Script
+
+> "Our system delivers four key features: First, an AI fitness assistant that builds workout plans based on available equipment. Second, self-service QR check-in gates to speed up attendance logging. Third, an administrative dashboard that tracks inventory and maintains accurate sales histories. Finally, an automated subscription ledger that tracks expiration alerts and verifies digital payment invoices."
+
+---
+
+## Slide 15: Prototype Mockups (Mobile App Interface)
+
+### Visual Blueprint
+
+* **Client Flow Panels:** Custom registration forms, metric capture, and home dashboards.
+* **Core Interfaces:** Interactive AI workout screens, QR scanner modes, and available store catalogs.
+
+### Defense Script
+
+> "The mobile client interface focuses on user-friendly design and clear navigation. The application guides members from initial biometric registration through to their main dashboard. From there, users can instantly open the AI workout view, display their check-in QR code, or browse available gym supplements."
+
+---
+
+## Slide 16: Prototype Mockups (Admin Desktop Interface)
+
+### Visual Blueprint
+
+* **Admin Panels:** Live statistics display, subscriber list tables, and payment verification views.
+* **Inventory Trackers:** Equipment status controls and product stock management.
+
+### Defense Script
+
+> "The desktop administration dashboard gives staff a clear view of gym operations. The interface centralizes active attendance lists, pending billing approvals, and inventory tables. It also allows admins to update equipment availability statuses with a single click."
+
+---
+
+## Slide 17: Technology Stack & Cost Analysis
+
+### Visual Blueprint
+
+* **Frameworks:** Expo React Native, NativeWind, Electron, React, Tailwind CSS.
+* **Core Backend:** Node.js, Express, JWT, PostgreSQL.
+* **Inference Engines:** LM Studio (Development) -> Gemini API (Production Deployment).
+* **Infrastructure Financials:** Total development setup cost estimated at ₱49,800 + usage-based AI token processing fees.
+
+### Defense Script
+
+> "Our implementation uses a modern technology stack. The mobile client is built with Expo React Native and NativeWind, while the admin desktop dashboard uses Vite + Electron and Tailwind CSS. The backend runs on Node.js and Express with a PostgreSQL database. For the AI features, we use LM Studio during development and switch to the Gemini API for production deployment. The total budget for hardware and software setup comes to ₱49,800, with operational AI costs managed through standard token usage pricing."
+
+---
+
+## Slide 18: Thank You / Questions
+
+### Visual Blueprint
+
+* **Closing Text:** Thank You! | Questions & Feedback
+* **Project Proponents:** Patrick John Medenilla, Ruben Ryan O. Tulipas, Jan Mikhail Fajardo
+* **Affiliation:** College of Computer Studies, AMA University
+
+### Defense Script
+
+> "This completes our presentation. We have shown how our system automates administrative workflows for Carreon Gym while providing members with context-aware AI coaching. Thank you for your time, and we now open the floor to the panel for questions and feedback."

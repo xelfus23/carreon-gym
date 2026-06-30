@@ -29,6 +29,7 @@ export const loginController = catchAsync(async (req: Request, res: Response) =>
     sub: user.id,
     role: user.role,
   });
+  
   const refreshTokenHash = hashToken(refreshToken);
 
   await saveSessionToDB({

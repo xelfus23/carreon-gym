@@ -22,8 +22,8 @@ export const loginDomain = async (params: {
     throw new AppError("Invalid Email or Password. Please try again.", 401, "INVALID_CREDENTIALS");
   }
 
-  // const isMatch = await bcrypt.compare(password, user.hashed_password);
-  const isMatch = password === user.hashed_password;
+  const isMatch = await bcrypt.compare(password, user.hashed_password);
+//   const isMatch = password === user.hashed_password;
 
   if (!isMatch) {
     throw new AppError("Invalid Email or Password. Please try again.", 401, "INVALID_CREDENTIALS");
